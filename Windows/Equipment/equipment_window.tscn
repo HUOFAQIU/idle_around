@@ -1,0 +1,39 @@
+[gd_scene format=3 uid="uid://b301mgy8od7cj"]
+
+[ext_resource type="Script" uid="uid://16rtjyywfhc6" path="res://Windows/Equipment/equipment_panel.gd" id="1_panel"]
+[ext_resource type="PackedScene" uid="uid://c2pohp6s532ha" path="res://Windows/Equipment/slot_cell.tscn" id="2_1gews"]
+[ext_resource type="Script" uid="uid://b1dncvs7udsva" path="res://Windows/Equipment/equipment_window.gd" id="3_window"]
+
+[node name="EquipmentWindow" type="Window" unique_id=1234613472]
+oversampling_override = 1.0
+position = Vector2i(0, 36)
+size = Vector2i(400, 600)
+script = ExtResource("3_window")
+
+[node name="Panel" type="VBoxContainer" parent="." unique_id=1917371869]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 5.0
+offset_right = -11.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_panel")
+
+[node name="SlotCell" parent="Panel" unique_id=1110476409 instance=ExtResource("2_1gews")]
+layout_mode = 2
+
+[node name="SlotCell2" parent="Panel" unique_id=2045930781 instance=ExtResource("2_1gews")]
+layout_mode = 2
+
+[node name="SlotCell3" parent="Panel" unique_id=1645406464 instance=ExtResource("2_1gews")]
+layout_mode = 2
+
+[node name="SlotCell4" parent="Panel" unique_id=1545397031 instance=ExtResource("2_1gews")]
+layout_mode = 2
+
+[node name="SlotCell5" parent="Panel" unique_id=1320891036 instance=ExtResource("2_1gews")]
+layout_mode = 2
+
+[node name="SlotCell6" parent="Panel" unique_id=197015627 instance=ExtResource("2_1gews")]
+layout_mode = 2

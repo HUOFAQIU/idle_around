@@ -1,0 +1,9 @@
+[gd_scene format=3 uid="uid://83lswyl3a54k"]
+
+[ext_resource type="Texture2D" uid="uid://deaj7ddfwbqwh" path="res://Assets/Tiles/tokens.png" id="1_kglbc"]
+
+[node name="PlayerToken" type="Sprite2D" unique_id=1423586359]
+modulate = Color(0, 0.8765176, 0.32171732, 1)
+texture = ExtResource("1_kglbc")
+region_enabled = true
+region_rect = Rect2(32, 0, 32, 32)

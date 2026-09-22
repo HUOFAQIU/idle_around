@@ -1,0 +1,24 @@
+[gd_scene format=3 uid="uid://bqug1f88ap7hb"]
+
+[ext_resource type="Script" uid="uid://dxwno0glbet88" path="res://Windows/Battle/battle_window.gd" id="1_nc1sn"]
+[ext_resource type="PackedScene" uid="uid://33uxpqaakhs" path="res://Windows/Battle/Maps/tile.tscn" id="2_7qkyi"]
+[ext_resource type="PackedScene" uid="uid://83lswyl3a54k" path="res://Tokens/player_token.tscn" id="3_qp3cb"]
+
+[node name="BattleWindow" type="Window" unique_id=1101778887]
+oversampling_override = 1.0
+position = Vector2i(0, 36)
+size = Vector2i(1000, 1000)
+script = ExtResource("1_nc1sn")
+
+[node name="Tile" parent="." unique_id=2019690502 instance=ExtResource("2_7qkyi")]
+position = Vector2(490, 475)
+metadata/_edit_lock_ = true
+
+[node name="PlayerToken" parent="Tile" unique_id=1423586359 instance=ExtResource("3_qp3cb")]
+position = Vector2(15, 8)
+
+[node name="Monsters" type="Node2D" parent="Tile" unique_id=711168376]
+
+[node name="Projectiles" type="Node2D" parent="Tile" unique_id=89618155]
+
+[node name="DamageNumbers" type="Node2D" parent="Tile" unique_id=1038429231]

@@ -1,0 +1,127 @@
+[gd_scene format=3 uid="uid://cf2t8qpdn820p"]
+
+[ext_resource type="Script" uid="uid://bykipvqgfvhwl" path="res://control.gd" id="1_0fbet"]
+[ext_resource type="Script" uid="uid://kbyb5a2qap8m" path="res://Scripts/setting.gd" id="2_kbped"]
+[ext_resource type="Script" uid="uid://cj0t5upbe5p2n" path="res://status_bar_container.gd" id="3_fj5cn"]
+[ext_resource type="PackedScene" uid="uid://bqug1f88ap7hb" path="res://Windows/Battle/battle_window.tscn" id="3_qtu10"]
+[ext_resource type="PackedScene" uid="uid://da2scdocynbkk" path="res://Windows/Character/character_window.tscn" id="4_ee4bf"]
+[ext_resource type="PackedScene" uid="uid://b301mgy8od7cj" path="res://Windows/Equipment/equipment_window.tscn" id="6_iy58a"]
+[ext_resource type="PackedScene" uid="uid://s34hu7y2c1i" path="res://Windows/Inventory/inventory_window.tscn" id="7_6a6wx"]
+
+[node name="Control" type="Control" unique_id=887310324]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_0fbet")
+
+[node name="Setting" type="Node" parent="." unique_id=1532201443]
+script = ExtResource("2_kbped")
+
+[node name="StatusBarContainer" type="HBoxContainer" parent="." unique_id=685106944]
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+grow_horizontal = 2
+alignment = 1
+script = ExtResource("3_fj5cn")
+
+[node name="Button" type="Button" parent="StatusBarContainer" unique_id=1481583101]
+custom_minimum_size = Vector2(44, 44)
+layout_mode = 2
+text = "<"
+
+[node name="Button2" type="Button" parent="StatusBarContainer" unique_id=155035595]
+custom_minimum_size = Vector2(44, 44)
+layout_mode = 2
+text = "T"
+
+[node name="Button3" type="Button" parent="StatusBarContainer" unique_id=1429552806]
+custom_minimum_size = Vector2(44, 44)
+layout_mode = 2
+
+[node name="Button4" type="Button" parent="StatusBarContainer" unique_id=1786712034]
+custom_minimum_size = Vector2(44, 44)
+layout_mode = 2
+
+[node name="Button5" type="Button" parent="StatusBarContainer" unique_id=1605001095]
+custom_minimum_size = Vector2(44, 44)
+layout_mode = 2
+
+[node name="Button6" type="Button" parent="StatusBarContainer" unique_id=872853390]
+custom_minimum_size = Vector2(44, 44)
+layout_mode = 2
+text = ">"
+
+[node name="GridContainer" type="GridContainer" parent="." unique_id=1805388438]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -124.0
+offset_top = -248.0
+offset_right = 124.0
+grow_horizontal = 2
+grow_vertical = 0
+columns = 3
+
+[node name="Button" type="Button" parent="GridContainer" unique_id=1147498350]
+custom_minimum_size = Vector2(80, 80)
+layout_mode = 2
+text = "人物"
+
+[node name="Button2" type="Button" parent="GridContainer" unique_id=883709736]
+custom_minimum_size = Vector2(80, 80)
+layout_mode = 2
+text = "装备"
+
+[node name="Button3" type="Button" parent="GridContainer" unique_id=1363769282]
+custom_minimum_size = Vector2(80, 80)
+layout_mode = 2
+text = "仓库"
+
+[node name="Button4" type="Button" parent="GridContainer" unique_id=225774360]
+custom_minimum_size = Vector2(80, 80)
+layout_mode = 2
+
+[node name="Button5" type="Button" parent="GridContainer" unique_id=603772684]
+custom_minimum_size = Vector2(80, 80)
+layout_mode = 2
+text = "战！"
+
+[node name="Button6" type="Button" parent="GridContainer" unique_id=1960515822]
+custom_minimum_size = Vector2(80, 80)
+layout_mode = 2
+
+[node name="Button7" type="Button" parent="GridContainer" unique_id=1732763487]
+custom_minimum_size = Vector2(80, 80)
+layout_mode = 2
+
+[node name="Button8" type="Button" parent="GridContainer" unique_id=24536484]
+custom_minimum_size = Vector2(80, 80)
+layout_mode = 2
+
+[node name="Button9" type="Button" parent="GridContainer" unique_id=1526956540]
+custom_minimum_size = Vector2(80, 80)
+layout_mode = 2
+
+[node name="CharacterWindow" parent="." unique_id=1235136498 instance=ExtResource("4_ee4bf")]
+visible = false
+
+[node name="EquipmentWindow" parent="." unique_id=1234613472 instance=ExtResource("6_iy58a")]
+visible = false
+open_position = Vector2i(1266, 564)
+
+[node name="InventoryWindow" parent="." unique_id=111619256 instance=ExtResource("7_6a6wx")]
+visible = false
+open_position = Vector2i(1683, 291)
+
+[node name="BattleWindow" parent="." unique_id=1210820663 instance=ExtResource("3_qtu10")]
+visible = false
+open_position = Vector2i(240, 165)

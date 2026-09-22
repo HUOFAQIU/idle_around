@@ -1,0 +1,11 @@
+[gd_scene format=3 uid="uid://dh3rdqcurx3uq"]
+
+[ext_resource type="Texture2D" uid="uid://deaj7ddfwbqwh" path="res://Assets/Tiles/tokens.png" id="1_tdd0e"]
+[ext_resource type="Script" uid="uid://da42g8wkycnis" path="res://Tokens/Equipments/equipment_23.gd" id="2_4g4gc"]
+
+[node name="Equipment_23" type="NinePatchRect" unique_id=3084277]
+offset_right = 64.0
+offset_bottom = 96.0
+texture = ExtResource("1_tdd0e")
+region_rect = Rect2(0, 96, 64, 96)
+script = ExtResource("2_4g4gc")

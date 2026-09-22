@@ -1,0 +1,10 @@
+[gd_scene format=3 uid="uid://da2scdocynbkk"]
+
+[ext_resource type="Script" uid="uid://7siqbpean10a" path="res://Windows/Character/character_window.gd" id="1_vc8vg"]
+
+[node name="CharacterWindow" type="Window"]
+oversampling_override = 1.0
+position = Vector2i(0, 36)
+size = Vector2i(300, 300)
+script = ExtResource("1_vc8vg")
+open_position = Vector2i(1310, 160)

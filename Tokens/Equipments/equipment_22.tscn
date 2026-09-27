@@ -1,0 +1,32 @@
+[gd_scene format=3 uid="uid://bnwdqt7okoyqd"]
+
+[ext_resource type="Texture2D" uid="uid://bsplxdkucvr4b" path="res://Assets/equipment.png" id="1_03x5a"]
+
+[node name="Equipment_22" type="Control" unique_id=701116700]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = -236.0
+offset_bottom = -236.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ColorRect" type="ColorRect" parent="." unique_id=857560229]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.21230483, 0.21230483, 0.21230483, 1)
+
+[node name="NinePatchRect" type="NinePatchRect" parent="." unique_id=1064434242]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("1_03x5a")
+region_rect = Rect2(0, 64, 64, 64)

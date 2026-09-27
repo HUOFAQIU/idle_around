@@ -1,6 +1,11 @@
 [gd_scene format=3 uid="uid://br5kcpe6mlqf1"]
 
 [ext_resource type="Script" uid="uid://enqdv1ix7e21" path="res://Tokens/Souls/soul_12.gd" id="1_37t1i"]
+[ext_resource type="Script" uid="uid://088u1ojj64t6" path="res://Tokens/Souls/SoulRes.gd" id="2_t2lwf"]
+
+[sub_resource type="Resource" id="Resource_4g4gc"]
+script = ExtResource("2_t2lwf")
+metadata/_custom_type_script = "uid://088u1ojj64t6"
 
 [node name="Soul_12" type="Control" unique_id=7224619]
 layout_mode = 3
@@ -8,6 +13,7 @@ anchors_preset = 0
 offset_right = 32.0
 offset_bottom = 64.0
 script = ExtResource("1_37t1i")
+soul_res = SubResource("Resource_4g4gc")
 
 [node name="ColorRect" type="ColorRect" parent="." unique_id=1074009388]
 layout_mode = 1

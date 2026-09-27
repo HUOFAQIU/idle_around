@@ -25,6 +25,9 @@ const SIZE_CELLS : Dictionary = {
 	Size.TWOTHREE: Vector2i(2, 3),
 }
 
+@export var name : String
+## 暂不用
+@export var eid : String
 @export var equipment_part : Part
 @export var equipment_size : Size
 #@export var my_soul : Soul

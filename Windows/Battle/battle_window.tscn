@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://dxwno0glbet88" path="res://Windows/Battle/battle_window.gd" id="1_nc1sn"]
 [ext_resource type="PackedScene" uid="uid://33uxpqaakhs" path="res://Windows/Battle/Maps/tile.tscn" id="2_7qkyi"]
-[ext_resource type="PackedScene" uid="uid://83lswyl3a54k" path="res://Tokens/player_token.tscn" id="3_qp3cb"]
+[ext_resource type="PackedScene" uid="uid://83lswyl3a54k" path="res://Tokens/Equipments/player_token.tscn" id="3_qp3cb"]
 
 [node name="BattleWindow" type="Window" unique_id=1101778887]
 oversampling_override = 1.0

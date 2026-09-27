@@ -1,0 +1,17 @@
+[gd_scene format=3 uid="uid://cofjgteuqoekp"]
+
+[ext_resource type="Script" uid="uid://dt1btai67cm2i" path="res://Tokens/Souls/soul_33.gd" id="1_q2nv5"]
+
+[node name="Soul_33" type="Control" unique_id=626178770]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_q2nv5")
+
+[node name="ColorRect" type="ColorRect" parent="." unique_id=1920023959]
+layout_mode = 0
+offset_right = 64.0
+offset_bottom = 64.0

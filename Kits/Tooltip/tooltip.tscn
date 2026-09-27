@@ -8,7 +8,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Panel" type="Panel" parent="." unique_id=252236605]
+[node name="BG" type="Panel" parent="." unique_id=252236605]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -16,7 +16,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="Panel" unique_id=1973678723]
+[node name="VBoxContainer" type="VBoxContainer" parent="BG" unique_id=1973678723]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -24,16 +24,16 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="NameLabel" type="Label" parent="Panel/VBoxContainer" unique_id=392209716]
+[node name="NameLabel" type="Label" parent="BG/VBoxContainer" unique_id=392209716]
 layout_mode = 2
 text = "TEST"
 horizontal_alignment = 1
 
-[node name="SoulPanel" type="Panel" parent="Panel/VBoxContainer" unique_id=472896657]
+[node name="SoulPanel" type="Panel" parent="BG/VBoxContainer" unique_id=472896657]
 custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
 
-[node name="TextureRect" type="TextureRect" parent="Panel/VBoxContainer/SoulPanel" unique_id=2046769371]
+[node name="TextureRect" type="TextureRect" parent="BG/VBoxContainer/SoulPanel" unique_id=2046769371]
 layout_mode = 0
 offset_right = 64.0
 offset_bottom = 64.0

@@ -10,5 +10,4 @@ enum Size {
 
 
 @export var soul_size : Size
-@export var cooldown : float
-@export var damage : int
+@export var sid : String

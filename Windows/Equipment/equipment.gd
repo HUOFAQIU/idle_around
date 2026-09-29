@@ -23,15 +23,26 @@ const PART_NAMES : Dictionary = {
 ## 魂灵区：横向 10 格、高 2 格。魂灵都是 2 格高，所以就是横向加起来最多占 10 格
 const SOUL_AREA : Vector2i = Vector2i(10, 2)
 
+## 装备占几格。大件比中型高一头（2×3 而不是 3×2）
+const SIZE_CELLS : Dictionary = {
+	Size.SMALL: Vector2i(1, 2),
+	Size.MEDIUM: Vector2i(2, 2),
+	Size.LARGE: Vector2i(2, 3),
+}
+
 ## 这件是哪个部位的
 var part : Part = Part.WEAPON
 ## 装在上面的魂灵；每颗魂灵的 cell 是它在魂灵区里的左上角格子（跟仓库里放东西一个规矩）
 var souls : Array[Soul] = []
 
 
-func _init(p_part: Part, p_size: Size, p_cell: Vector2i, p_color: Color) -> void:
-	super(p_size, p_cell, p_color)
+func _init(p_part: Part, p_size: Size, p_cell: Vector2i) -> void:
+	super(p_size, p_cell)
 	part = p_part
+
+
+func cells() -> Vector2i:
+	return SIZE_CELLS[size]
 
 
 ## 盖住这一格的魂灵，没有就返回 null

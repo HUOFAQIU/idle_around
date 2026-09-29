@@ -2,14 +2,12 @@ class_name DragGhost
 extends Window
 
 ## 拖着东西时跟着指针跑的小窗口（暗黑 2 那种「拎着东西走」的样子）。
-## 每个窗口只画得了自己画布里的东西，鼠标走到我们窗口外面时，仓库 / 装备面板就画不出来了，
+## 每个窗口只画得了自己画布里的东西，鼠标走到我们窗口外面时，仓库 / 装备面板就摆不出来了，
 ## 只好另开一个无边框小窗口顶上去。它由 GameGlobal 管着，只在拖动期间露脸。
 
-const CELL_SIZE : int = InventoryItem.CELL_SIZE
-const NAME_FONT_SIZE : int = 14
-
-var _canvas : Control
+## 窗口本身就开成东西那么大，视图贴在左上角
 var _item : InventoryItem = null
+var _view : ItemView = null
 
 
 func _init() -> void:
@@ -21,20 +19,11 @@ func _init() -> void:
 	mouse_passthrough = true
 	visible = false
 
-	_canvas = Control.new()
-	_canvas.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	_canvas.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_canvas.draw.connect(_draw_item)
-	add_child(_canvas)
-
 
 ## 按「抓在哪儿」把它摆在指针底下，正好是松手后会落到的位置
 func show_drag(item: InventoryItem, offset: Vector2, mouse: Vector2i) -> void:
-	_item = item
-	var item_size := Vector2i(item.cells() * CELL_SIZE)
-	if size != item_size:
-		size = item_size
-		_canvas.queue_redraw()
+	if _item != item:
+		_rebuild(item)
 	position = mouse - Vector2i(offset)
 	if not visible:
 		visible = true
@@ -45,7 +34,13 @@ func hide_drag() -> void:
 		visible = false
 
 
-func _draw_item() -> void:
-	if _item == null:
-		return
-	ItemDraw.block(_canvas, Rect2(Vector2.ZERO, Vector2(size)), _item, NAME_FONT_SIZE)
+func _rebuild(item: InventoryItem) -> void:
+	if is_instance_valid(_view) and _view.get_parent() == self:
+		remove_child(_view)
+		_view.queue_free()
+
+	_item = item
+	size = Vector2i(item.cells() * InventoryItem.CELL_SIZE)
+	_view = ItemView.new(item)
+	add_child(_view)
+	_view.position = Vector2.ZERO

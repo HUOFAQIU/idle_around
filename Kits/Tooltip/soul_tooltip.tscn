@@ -1,0 +1,58 @@
+[gd_scene format=3 uid="uid://1idft2e6e5m4"]
+
+[ext_resource type="Script" uid="uid://dfocwrjhre04c" path="res://Kits/Tooltip/soul_tooltip.gd" id="1_niwbn"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_pqwl4"]
+font_size = 33
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_skin"]
+
+[node name="SoulTooltip" type="Control" unique_id=2138484160]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 277.0
+offset_bottom = 107.0
+mouse_filter = 2
+script = ExtResource("1_niwbn")
+
+[node name="BG" type="PanelContainer" parent="." unique_id=252236605]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="BG" unique_id=1973678723]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="NameLabel" type="Label" parent="BG/VBoxContainer" unique_id=392209716]
+layout_mode = 2
+text = "TEST"
+horizontal_alignment = 1
+
+[node name="SkillPanel" type="PanelContainer" parent="BG/VBoxContainer" unique_id=472896657]
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxEmpty_skin")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="BG/VBoxContainer/SkillPanel" unique_id=678715644]
+layout_mode = 2
+
+[node name="CooldownLabel" type="Label" parent="BG/VBoxContainer/SkillPanel/HBoxContainer" unique_id=809295147]
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 2
+text = "3.0"
+label_settings = SubResource("LabelSettings_pqwl4")
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TextLabel" type="Label" parent="BG/VBoxContainer/SkillPanel/HBoxContainer" unique_id=973515837]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 1
+text = "TEST"
+metadata/_edit_use_anchors_ = true

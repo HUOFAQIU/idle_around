@@ -15,14 +15,20 @@ var _page_buttons : Array[Button] = []
 func _ready() -> void:
 	super()
 	title = "仓库窗口"
-	
+
+	# 铺满窗口的一层：手上拖着的东西鼠标走到哪儿都看得见（不然只有网格那一块会摆它）。
+	# 装备只能在仓库里挪位置，所以这一层也是唯一要看装备的
+	var overlay := DragOverlay.new()
+	overlay.allow_equipment = true
+	add_child(overlay)
+
 	grid.set_page_count(PAGE_COUNT)
 	_build_pagination()
 	grid.page_changed.connect(_on_page_changed)
 	grid.inventory_changed.connect(_refresh_temp_button)
 	grid.item_right_clicked.connect(_on_item_right_clicked)
 	_fill_demo_page()
-	
+
 	var panel := _equipment_panel()
 	if panel:
 		panel.equipment_removed.connect(_on_equipment_removed)
@@ -102,46 +108,41 @@ func _equipment_panel() -> EquipmentPanel:
 # ---------------------------------------------------------------- 演示数据
 
 # 第一页摆一点东西出来看：六个部位各一件，外加几颗散着的魂灵
-# 名字、伤害、技能都是占位编的，掉落系统做出来之前先这么放着
+# （装备掉落还没做，在掉落系统出来之前先这么放着）
 func _fill_demo_page() -> void:
 	# 武器：弓，身上装着一颗弓手（中 2 格宽）+ 一颗石肤（大 3 格宽），挨着排
-	var bow := _equipment(Equipment.Part.WEAPON, InventoryItem.Size.MEDIUM, Vector2i(1, 1), "#8f6bd8", "弓", Vector2i(10, 20))
-	bow.place_soul(_make_soul("#3f9dd8", "弓手", InventoryItem.Size.MEDIUM, 2.0, "对最近的敌人造成50点伤害"), Vector2i(0, 0))
-	bow.place_soul(_make_soul("#5fb0d8", "石肤", InventoryItem.Size.LARGE, 3.0, "给自己加一层护盾"), Vector2i(2, 0))
+	var bow := _equipment(Equipment.Part.WEAPON, InventoryItem.Size.MEDIUM, Vector2i(1, 1), "弓")
+	bow.place_soul(_make_soul("弓手", InventoryItem.Size.MEDIUM), Vector2i(0, 0))
 
-	_equipment(Equipment.Part.HEAD, InventoryItem.Size.MEDIUM, Vector2i(4, 1), "#c9c2a6", "皮帽", Vector2i(0, 0))
+	_equipment(Equipment.Part.HEAD, InventoryItem.Size.MEDIUM, Vector2i(4, 1), "皮帽")
 	# 身体：锁子甲上挂一颗小的（1 格宽），想放哪一列就放哪一列
-	var armor := _equipment(Equipment.Part.BODY, InventoryItem.Size.LARGE, Vector2i(7, 1), "#d08a3e", "锁子甲", Vector2i(0, 0))
-	armor.place_soul(_make_soul("#8fd85f", "疾风", InventoryItem.Size.SMALL, 1.0, "提高自己的出手速度"), Vector2i(4, 0))
-	_equipment(Equipment.Part.FOOT, InventoryItem.Size.MEDIUM, Vector2i(11, 1), "#7a9c5a", "软靴", Vector2i(0, 0))
-	_equipment(Equipment.Part.NECK, InventoryItem.Size.SMALL, Vector2i(1, 4), "#d8b25a", "护身符", Vector2i(0, 0))
-	_equipment(Equipment.Part.RING, InventoryItem.Size.SMALL, Vector2i(4, 4), "#b06bd8", "铜戒", Vector2i(0, 0))
+	var armor := _equipment(Equipment.Part.BODY, InventoryItem.Size.LARGE, Vector2i(7, 1), "锁子甲")
+	armor.place_soul(_make_soul("疾风", InventoryItem.Size.SMALL), Vector2i(4, 0))
+	_equipment(Equipment.Part.FOOT, InventoryItem.Size.MEDIUM, Vector2i(11, 1), "软靴")
+	_equipment(Equipment.Part.NECK, InventoryItem.Size.SMALL, Vector2i(1, 4), "护身符")
+	_equipment(Equipment.Part.RING, InventoryItem.Size.SMALL, Vector2i(4, 4), "铜戒")
 
 	# 散着的魂灵，三档各一颗，等着被拖到装备上
-	_soul(Vector2i(1, 7), "#d85f5f", "剑士", InventoryItem.Size.SMALL, 1.5, "对最近的敌人造成30点伤害")
-	_soul(Vector2i(4, 7), "#6f8fd8", "狼魂", InventoryItem.Size.MEDIUM, 2.5, "让最近的敌人受伤加重")
-	_soul(Vector2i(7, 7), "#b06bd8", "巨力", InventoryItem.Size.LARGE, 4.0, "下一次攻击伤害翻倍")
+	_soul(Vector2i(1, 7), "剑士", InventoryItem.Size.SMALL)
+	_soul(Vector2i(4, 7), "狼魂", InventoryItem.Size.MEDIUM)
+	_soul(Vector2i(7, 7), "巨力", InventoryItem.Size.LARGE)
 
 
-func _equipment(part: Equipment.Part, size: InventoryItem.Size, cell: Vector2i, color: String, item_name: String, damage: Vector2i) -> Equipment:
-	var equipment := Equipment.new(part, size, cell, Color(color))
+func _equipment(part: Equipment.Part, size: InventoryItem.Size, cell: Vector2i, item_name: String) -> Equipment:
+	var equipment := Equipment.new(part, size, cell)
 	equipment.name = item_name
-	equipment.damage = damage
 	grid.add_item(equipment, 0)
 	return equipment
 
 
 ## 散在仓库里的魂灵
-func _soul(cell: Vector2i, color: String, soul_name: String, size: InventoryItem.Size, interval: float, description: String) -> Soul:
-	var soul := _make_soul(color, soul_name, size, interval, description)
+func _soul(cell: Vector2i, soul_name: String, size: InventoryItem.Size) -> Soul:
+	var soul := _make_soul(soul_name, size)
 	soul.cell = cell
 	grid.add_item(soul, 0)
 	return soul
 
 
 ## 只造一颗魂灵，不进仓库（装在装备上的走 place_soul()）
-func _make_soul(color: String, soul_name: String, size: InventoryItem.Size, interval: float, description: String) -> Soul:
-	var soul := Soul.new(Vector2i.ZERO, Color(color), soul_name, size)
-	soul.interval = interval
-	soul.description = description
-	return soul
+func _make_soul(soul_name: String, size: InventoryItem.Size) -> Soul:
+	return Soul.new(Vector2i.ZERO, soul_name, size)

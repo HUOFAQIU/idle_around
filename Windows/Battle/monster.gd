@@ -2,7 +2,7 @@ class_name Monster
 extends Sprite2D
 
 ## 怪物在 tokens.png 里的位置
-const TEXTURE := preload("res://Assets/Tiles/tokens.png")
+const TEXTURE := preload("res://Assets/tokens.png")
 const REGION := Rect2(64, 0, 32, 32)
 const COLOR := Color(0.92, 0.30, 0.30)
 const MAX_HP : int = 100

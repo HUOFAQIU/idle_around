@@ -116,7 +116,7 @@ visible = false
 
 [node name="EquipmentWindow" parent="." unique_id=1234613472 instance=ExtResource("6_iy58a")]
 visible = false
-open_position = Vector2i(1266, 564)
+open_position = Vector2i(1266, 150)
 
 [node name="InventoryWindow" parent="." unique_id=111619256 instance=ExtResource("7_6a6wx")]
 visible = false

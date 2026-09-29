@@ -4,40 +4,30 @@ extends RefCounted
 ## 一格多少像素。仓库和装备面板都按这个画，改一处两边一起变
 const CELL_SIZE : int = 32
 
-## 装备尺寸，数值是占用的格数：宽 × 高
+## 大中小。装备和魂灵各是各的尺寸，具体占几格由子类的 SIZE_CELLS 说了算
 enum Size {
-	SMALL,   ## 小型 1×2
-	MEDIUM,  ## 中型 2×2
-	LARGE,   ## 大型 3×2
-}
-
-const SIZE_CELLS : Dictionary = {
-	Size.SMALL: Vector2i(1, 2),
-	Size.MEDIUM: Vector2i(2, 2),
-	Size.LARGE: Vector2i(3, 2),
+	SMALL,   ## 小型
+	MEDIUM,  ## 中型
+	LARGE,   ## 大型
 }
 
 var size : Size
 ## 左上角所在的格
 var cell : Vector2i
-## 色块底色
-var color : Color
 
-## 装备名，写在色块上（塞不下就不写），也显示在详情面板里
+## 名字，hover 的时候写在提示框上（格子上不写）
 var name : String = ""
-## 物理伤害范围：最小、最大；0-0 表示这东西不打人（护甲之类）
-var damage : Vector2i = Vector2i.ZERO
 
 
-func _init(p_size: Size, p_cell: Vector2i, p_color: Color) -> void:
+func _init(p_size: Size, p_cell: Vector2i) -> void:
 	size = p_size
 	cell = p_cell
-	color = p_color
 
 
-## 占几格：宽 × 高
+## 占几格：宽 × 高。装备和魂灵的大中小不是同一套尺寸，子类必须覆盖
 func cells() -> Vector2i:
-	return SIZE_CELLS[size]
+	push_error("InventoryItem.cells() 必须由子类覆盖")
+	return Vector2i.ONE
 
 
 ## 占用区域，单位是格

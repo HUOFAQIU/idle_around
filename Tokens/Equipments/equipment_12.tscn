@@ -7,6 +7,7 @@ layout_mode = 3
 anchors_preset = 0
 offset_right = 32.0
 offset_bottom = 64.0
+mouse_filter = 2
 
 [node name="ColorRect" type="ColorRect" parent="." unique_id=1502107901]
 layout_mode = 1
@@ -15,6 +16,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 color = Color(0.21230483, 0.21230483, 0.21230483, 1)
 
 [node name="NinePatchRect" type="NinePatchRect" parent="." unique_id=748721336]
@@ -24,5 +26,6 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 texture = ExtResource("1_dnyok")
 region_rect = Rect2(0, 0, 32, 64)

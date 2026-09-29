@@ -12,20 +12,10 @@ const COLOR_HOVER := Color(1.0, 1.0, 1.0, 0.35)
 ## 拖动时落点框：放得下 / 放不下
 const COLOR_DROP_OK := Color(0.45, 0.95, 0.55, 0.9)
 const COLOR_DROP_BAD := Color(0.95, 0.35, 0.35, 0.9)
-## 色块上的装备名字号（色块本身怎么画见 `Scripts/item_draw.gd`）
-## 格子变大，字也跟着大一点（14 像素时最小的 1×2 也写得下两个字）
-const NAME_FONT_SIZE : int = 14
 
-## 详情面板的颜色
-const COLOR_PANEL_BG := Color(0.13, 0.14, 0.18, 0.97)
-const COLOR_PANEL_BORDER := Color(0.45, 0.48, 0.58)
-const COLOR_SOUL_EMPTY := Color(0.20, 0.21, 0.26)
-## 详情面板里魂灵区的格线
-const COLOR_SOUL_LINE := Color(0.45, 0.48, 0.58, 0.30)
-## 详情里的魂灵区是缩略图，一格画 16 像素（免得提示框比仓库还大）
-const DETAIL_SOUL_CELL : int = 16
-## 详情面板跟鼠标隔开多少像素
-const DETAIL_GAP : float = 18.0
+## hover 到东西浮出来的提示框：装备一个、魂灵一个，按 hover 到的东西二选一
+const EQUIPMENT_TOOLTIP : PackedScene = preload("res://Kits/Tooltip/equipment_tooltip.tscn")
+const SOUL_TOOLTIP : PackedScene = preload("res://Kits/Tooltip/soul_tooltip.tscn")
 
 ## 翻页时发出，参数是新页码（从 0 开始）
 signal page_changed(page: int)
@@ -50,23 +40,24 @@ var _drag_from : Vector2i = Vector2i.ZERO
 ## 拖动中的鼠标位置（本控件局部坐标）
 var _drag_pos : Vector2 = Vector2.ZERO
 
-## 鼠标指到装备时浮出来的详情面板
-var _detail_panel : PanelContainer
-var _detail_name : Label
-var _detail_damage : Label
-## 物理伤害那一行和它下面的分隔线，没伤害的装备（比如护甲）整行藏起来
-var _detail_damage_divider : ColorRect
-## 详情面板里那片迷你魂灵区，画的是 _detail_equipment 身上的魂灵
-var _soul_area : Control
-var _detail_equipment : Equipment = null
+## 当前页每件东西挂一个视图节点，美术在 Tokens/ 的场景里
+var _views : Array[ItemView] = []
+## 铺满网格的一层，只画**拖动落点框**——那个得压在所有东西上面（挡住就没法预览了）。
+## hover 高亮不在这儿：它画在网格自己的 `_draw()` 里，正好被东西挡住
+var _overlay : Control
+## 鼠标指到装备 / 魂灵时浮出来的提示框，同一时刻最多浮一个
+var _equipment_tip : EquipmentTooltip
+var _soul_tip : SoulTooltip
 
 
 func _ready() -> void:
 	custom_minimum_size = Vector2(PAGE_CELLS * CELL_SIZE)
 	mouse_exited.connect(_on_mouse_exited)
 	# 别人拖着的东西在我这儿画过一帧，松手了得擦掉
-	GameGlobal.drag_ended.connect(queue_redraw)
-	_build_detail_panel()
+	GameGlobal.drag_ended.connect(_refresh_overlay)
+	_build_overlay()
+	_build_tooltip()
+	_sync_views()
 	# 别人往我这儿拖东西（比如装备面板拖出来的魂灵）时能找到我
 	add_to_group("drop_target")
 
@@ -85,24 +76,26 @@ func _gui_input(event: InputEvent) -> void:
 		_update_hover(motion.position)
 
 
-# 详情面板跟着鼠标走；拖动期间每帧跟住鼠标，松开左键就放下
+# 提示框跟着鼠标走；拖动期间每帧跟住鼠标，松开左键就放下
 # （在网格外松开也算，所以在这里收尾）
 func _process(_delta: float) -> void:
 	if not is_visible_in_tree():
 		return
 
 	var mouse := get_local_mouse_position()
-	if _detail_panel.visible:
-		_place_detail_panel(mouse)
+	var tip := _visible_tip()
+	if tip:
+		tip.place_near(mouse, size)
 
 	# 别人正拖着东西：鼠标在我这个窗口里就得跟着重画，不然看不到手上拿着什么
+	# （手上那件由窗口那层 DragOverlay 画，这儿只管落点框）
 	if GameGlobal.dragged_item and _mouse_in_window():
-		queue_redraw()
+		_refresh_overlay()
 
 	if _dragging == null:
 		return
 	_drag_pos = mouse
-	queue_redraw()
+	_refresh_overlay()
 	if not Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
 		_finish_drag()
 		return
@@ -125,140 +118,89 @@ func _draw() -> void:
 		var py := float(y * CELL_SIZE) + 0.5
 		draw_line(Vector2(0.0, py), Vector2(grid_size.x, py), COLOR_LINE)
 
-	# 物品：色块 + 一圈深色描边 + 名字
-	for item in get_page_items():
-		ItemDraw.block(self, _item_rect(item), item, NAME_FONT_SIZE)
-
-	if _dragging and _mouse_in_window():
-		# 手上的物品跟着鼠标走（鼠标出了这个窗口就不画了：那是 DragGhost 的活儿，
-		# 不然会同时看到「跟手的一个」和「停在窗口边的那个」）
-		var cells := _dragging.cells()
-		ItemDraw.block(self, _block_rect(_drag_pos - _drag_offset, cells), _dragging, NAME_FONT_SIZE)
-		# 会落在哪：放得下画绿框，放不下画红框（画在色块上面，免得被挡住）
-		# 框画的就是收边之后的落点，所以看到框在哪就是落在哪
-		var target := _drag_cell(_dragging)
-		var fits := can_place(Rect2i(target, cells), page)
-		draw_rect(_cell_rect(target, cells), COLOR_DROP_OK if fits else COLOR_DROP_BAD, false, 2.0)
-	elif GameGlobal.dragged_item and _mouse_in_window():
-		# 别人拖着的东西路过我这儿：画在指针上（谁在鼠标底下谁负责画）
-		var foreign := GameGlobal.dragged_item
-		var block_size := Vector2(foreign.cells() * CELL_SIZE)
-		ItemDraw.block(self, Rect2(get_local_mouse_position() - GameGlobal.dragged_offset, block_size), foreign, NAME_FONT_SIZE)
-	elif _hover_cell.x >= 0:
-		# 鼠标指着的格子
+	# 鼠标底下那一格的高亮：画在这儿（父节点自己的 `_draw()`）而不是 `_overlay` 那层——
+	# 父节点画的在子节点**底下**，东西压在上面正好把它挡住（跟装备面板的魂灵区格线一个道理）。
+	# 空格子上没有东西挡，所以照样看得见
+	if _hover_cell.x >= 0:
 		draw_rect(_cell_rect(_hover_cell), COLOR_HOVER, false, 1.0)
 
 
-
-# ---------------------------------------------------------------- 详情面板
-
-# 鼠标指到装备时浮出来的小面板：名字 / 物理伤害 / 魂灵槽（2×2）
-func _build_detail_panel() -> void:
-	_detail_panel = PanelContainer.new()
-	_detail_panel.z_index = 10
-	# 不拦鼠标，否则面板跟到指针底下就把 hover 顶掉了
-	_detail_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_detail_panel.visible = false
-
-	var style := StyleBoxFlat.new()
-	style.bg_color = COLOR_PANEL_BG
-	style.border_color = COLOR_PANEL_BORDER
-	style.set_border_width_all(1)
-	style.set_content_margin_all(10)
-	_detail_panel.add_theme_stylebox_override("panel", style)
-	add_child(_detail_panel)
-
-	var box := VBoxContainer.new()
-	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	box.add_theme_constant_override("separation", 6)
-	_detail_panel.add_child(box)
-
-	_detail_name = Label.new()
-	_detail_name.add_theme_font_size_override("font_size", 16)
-	box.add_child(_detail_name)
-	box.add_child(_make_divider())
-
-	_detail_damage = Label.new()
-	_detail_damage.add_theme_font_size_override("font_size", 13)
-	box.add_child(_detail_damage)
-	_detail_damage_divider = _make_divider()
-	box.add_child(_detail_damage_divider)
-
-	# 魂灵区：一排 10 格的原样缩略图（自己画，不走子节点）
-	_soul_area = Control.new()
-	_soul_area.custom_minimum_size = Vector2(Equipment.SOUL_AREA * DETAIL_SOUL_CELL)
-	# 靠左、别跟着面板拉宽
-	_soul_area.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	_soul_area.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_soul_area.draw.connect(_draw_soul_area)
-	box.add_child(_soul_area)
+# 这一层只管**要压在所有东西上面**的框：拖动时的落点框（预览要是被东西挡住就没法看了）。
+# hover 那格的高亮不归这儿，见 `_draw()`
+func _draw_overlay() -> void:
+	if _dragging and _mouse_in_window():
+		# 会落在哪：放得下画绿框，放不下画红框
+		# 框画的就是收边之后的落点，所以看到框在哪就是落在哪
+		var cells := _dragging.cells()
+		var target := _drag_cell(_dragging)
+		var fits := can_place(Rect2i(target, cells), page)
+		_overlay.draw_rect(_cell_rect(target, cells), COLOR_DROP_OK if fits else COLOR_DROP_BAD, false, 2.0)
 
 
-func _make_divider() -> ColorRect:
-	var line := ColorRect.new()
-	line.color = COLOR_PANEL_BORDER
-	line.custom_minimum_size = Vector2(0, 1)
-	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	return line
+# ---------------------------------------------------------------- 视图
+
+# 页里的东西变了就重挂一遍。只在“东西真的增减了”的时候调，别每帧调
+func _sync_views() -> void:
+	for view in _views:
+		if is_instance_valid(view) and view.get_parent() == self:
+			remove_child(view)
+			view.queue_free()
+	_views.clear()
+
+	for item in get_page_items():
+		var view := ItemView.new(item)
+		view.place_at_cell()
+		add_child(view)
+		_views.append(view)
+
+	# 落点框那层得一直在最上面
+	if _overlay:
+		move_child(_overlay, -1)
 
 
-# 鼠标底下有装备就显示详情，没有就藏起来
-func _update_detail(local_pos: Vector2) -> void:
+func _build_overlay() -> void:
+	_overlay = Control.new()
+	_overlay.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_overlay.draw.connect(_draw_overlay)
+	add_child(_overlay)
+
+
+func _build_tooltip() -> void:
+	_equipment_tip = EQUIPMENT_TOOLTIP.instantiate()
+	_equipment_tip.z_index = 10
+	add_child(_equipment_tip)
+
+	_soul_tip = SOUL_TOOLTIP.instantiate()
+	_soul_tip.z_index = 10
+	add_child(_soul_tip)
+
+
+# ---------------------------------------------------------------- 详情提示
+
+# 鼠标底下有东西就浮出提示，没有就藏起来
+func _update_tooltip(local_pos: Vector2) -> void:
 	var item : InventoryItem = null
 	if _hover_cell.x >= 0 and _dragging == null:
 		item = item_at(_hover_cell)
-	if item == null:
-		_detail_panel.visible = false
-		return
 
-	_detail_name.text = item.name if not item.name.is_empty() else "？？"
-	# 护甲这类没有伤害的东西，物理伤害整行不显示
-	var has_damage := item.damage.y > 0
-	_detail_damage.visible = has_damage
-	_detail_damage_divider.visible = has_damage
-	if has_damage:
-		_detail_damage.text = "物理伤害：%d-%d" % [item.damage.x, item.damage.y]
-
-	# 魂灵区：把整片区域连着魂灵一起画出来；魂灵自己身上没有区，整块不显示
-	_detail_equipment = item as Equipment
-	_soul_area.visible = _detail_equipment != null
-	_soul_area.queue_redraw()
-
-	_detail_panel.visible = true
-	_place_detail_panel(local_pos)
+	_hide_tips()
+	if item is Equipment:
+		_equipment_tip.show_for(item as Equipment, local_pos, size)
+	elif item is Soul:
+		_soul_tip.show_for(item as Soul, local_pos, size)
 
 
-# 详情里的迷你魂灵区：一排 10 格，魂灵按自己的大小摆在各自的格子上
-func _draw_soul_area() -> void:
-	var equipment := _detail_equipment
-	if equipment == null:
-		return
-
-	var area := Rect2(Vector2.ZERO, Vector2(Equipment.SOUL_AREA * DETAIL_SOUL_CELL))
-	_soul_area.draw_rect(area, COLOR_SOUL_EMPTY)
-	for col in Equipment.SOUL_AREA.x + 1:
-		var px := float(col * DETAIL_SOUL_CELL) + 0.5
-		_soul_area.draw_line(Vector2(px, area.position.y), Vector2(px, area.end.y), COLOR_SOUL_LINE)
-	_soul_area.draw_rect(area, COLOR_PANEL_BORDER, false, 1.0)
-
-	for soul in equipment.souls:
-		var rect := Rect2(Vector2(soul.cell * DETAIL_SOUL_CELL), Vector2(soul.cells() * DETAIL_SOUL_CELL)).grow(-1.0)
-		ItemDraw.block(_soul_area, rect, soul, NAME_FONT_SIZE)
+# 现在浮着的那个（同一时刻最多一个），每帧跟着鼠标走
+func _visible_tip() -> TooltipBase:
+	if _equipment_tip.visible:
+		return _equipment_tip
+	return _soul_tip if _soul_tip.visible else null
 
 
-# 面板放在鼠标旁边，贴近网格边缘时自动翻到另一侧
-func _place_detail_panel(local_pos: Vector2) -> void:
-	var panel_size := _detail_panel.get_combined_minimum_size()
-
-	var pos := local_pos + Vector2(DETAIL_GAP, DETAIL_GAP)
-	if pos.x + panel_size.x > size.x:
-		pos.x = local_pos.x - DETAIL_GAP - panel_size.x
-	if pos.y + panel_size.y > size.y:
-		pos.y = local_pos.y - DETAIL_GAP - panel_size.y
-
-	pos.x = clampf(pos.x, 0.0, maxf(0.0, size.x - panel_size.x))
-	pos.y = clampf(pos.y, 0.0, maxf(0.0, size.y - panel_size.y))
-	_detail_panel.position = pos
+func _hide_tips() -> void:
+	_equipment_tip.hide_tip()
+	_soul_tip.hide_tip()
 
 
 ## 设置普通页数；后面会多出 1 页临时页，专门堆换装换下来的东西
@@ -268,7 +210,7 @@ func set_page_count(count: int) -> void:
 		if pages[i] == null:
 			pages[i] = []
 	page = clampi(page, 0, maxi(pages.size() - 1, 0))
-	queue_redraw()
+	_refresh()
 
 
 ## 临时页是最后一页
@@ -294,7 +236,7 @@ func add_to_temp_page(item: InventoryItem) -> bool:
 	item.cell = spot
 	_page_items(temp_page_index()).append(item)
 	if is_temp_page(page):
-		queue_redraw()
+		_refresh()
 	inventory_changed.emit()
 	return true
 
@@ -319,8 +261,8 @@ func set_page(p_page: int) -> void:
 		return
 	page = target
 	_hover_cell = Vector2i(-1, -1)
-	_detail_panel.visible = false
-	queue_redraw()
+	_hide_tips()
+	_refresh()
 	page_changed.emit(page)
 
 
@@ -330,7 +272,7 @@ func add_item(item: InventoryItem, p_page: int) -> bool:
 		return false
 	_page_items(p_page).append(item)
 	if p_page == page:
-		queue_redraw()
+		_refresh()
 	return true
 
 
@@ -341,7 +283,7 @@ func remove_item(item: InventoryItem) -> void:
 		if items.has(item):
 			items.erase(item)
 			if p_page == page:
-				queue_redraw()
+				_refresh()
 			inventory_changed.emit()
 			return
 
@@ -391,15 +333,6 @@ func _cell_rect(cell: Vector2i, cells: Vector2i = Vector2i.ONE) -> Rect2:
 	return Rect2(Vector2(cell * CELL_SIZE), Vector2(cells * CELL_SIZE))
 
 
-func _item_rect(item: InventoryItem) -> Rect2:
-	return _block_rect(Vector2(item.cell * CELL_SIZE), item.cells())
-
-
-## 放在某个像素位置上的色块，四周各缩进 1 像素，让底下的格线露出来
-func _block_rect(pos: Vector2, cells: Vector2i) -> Rect2:
-	return Rect2(pos + Vector2.ONE, Vector2(cells * CELL_SIZE) - Vector2.ONE * 2.0)
-
-
 ## 在物品上按下左键就开始拖：把它从页里摘下来拿在手上
 func _start_drag(local_pos: Vector2) -> void:
 	# 一次只拖一件：手上有东西就不再接新的一次按下，不然前一件会被顶掉、从页里丢掉
@@ -418,9 +351,9 @@ func _start_drag(local_pos: Vector2) -> void:
 	GameGlobal.begin_drag(item, _drag_offset)
 	_drag_pos = local_pos
 	_hover_cell = Vector2i(-1, -1)
-	_detail_panel.visible = false
+	_hide_tips()
 	_page_items(page).erase(item)
-	queue_redraw()
+	_refresh()
 
 
 # 右键：把点到的这件东西交给窗口处理（仓库里右键装备 = 换上）
@@ -443,7 +376,7 @@ func _finish_drag() -> void:
 	for target in get_tree().get_nodes_in_group("drop_target"):
 		if target != self and target.try_drop_at(item):
 			inventory_changed.emit()
-			queue_redraw()
+			_refresh()
 			return
 
 	# 鼠标已经不在仓库窗口里了（比如拖到装备窗口上松手）：送回原位，
@@ -455,7 +388,7 @@ func _finish_drag() -> void:
 		item.cell = _drag_from
 	_page_items(page).append(item)
 	inventory_changed.emit()
-	queue_redraw()
+	_refresh()
 
 
 ## 不作数了：东西回原来那格（装备被拖出窗口时走这儿）
@@ -468,7 +401,7 @@ func _cancel_drag() -> void:
 	item.cell = _drag_from
 	_page_items(page).append(item)
 	inventory_changed.emit()
-	queue_redraw()
+	_refresh()
 
 
 ## 别人（装备面板）把魂灵拖到我这儿，松手时会问：这一下能放下吗
@@ -490,7 +423,7 @@ func accept_at(local_pos: Vector2, item: InventoryItem) -> bool:
 
 	item.cell = cell
 	_page_items(page).append(item)
-	queue_redraw()
+	_refresh()
 	inventory_changed.emit()
 	return true
 
@@ -517,8 +450,9 @@ func _update_hover(local_pos: Vector2) -> void:
 	if cell == _hover_cell:
 		return
 	_hover_cell = cell
+	# hover 框画在网格自己的 `_draw()` 里，所以重画网格（不是重画 overlay 那层）
 	queue_redraw()
-	_update_detail(local_pos)
+	_update_tooltip(local_pos)
 
 
 ## 像素坐标换成格子坐标，不在格子里就返回 (-1, -1)
@@ -533,6 +467,19 @@ func _pos_to_cell(local_pos: Vector2) -> Vector2i:
 
 func _on_mouse_exited() -> void:
 	_update_hover(Vector2(-1.0, -1.0))
+
+
+# 页里的东西变了：重挂视图，两个画框的地方都跟着重画
+# （网格自己的 `_draw()` 里有 hover 高亮——翻页会把 `_hover_cell` 清掉，得把它擦掉）
+func _refresh() -> void:
+	_sync_views()
+	_refresh_overlay()
+	queue_redraw()
+
+
+func _refresh_overlay() -> void:
+	if _overlay:
+		_overlay.queue_redraw()
 
 
 func _mouse_in_window() -> bool:

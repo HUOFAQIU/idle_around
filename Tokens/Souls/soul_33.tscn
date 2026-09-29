@@ -4,14 +4,18 @@
 
 [node name="Soul_33" type="Control" unique_id=626178770]
 layout_mode = 3
+anchors_preset = 0
+offset_right = 96.0
+offset_bottom = 64.0
+mouse_filter = 2
+script = ExtResource("1_q2nv5")
+
+[node name="ColorRect" type="ColorRect" parent="." unique_id=1920023959]
+layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("1_q2nv5")
-
-[node name="ColorRect" type="ColorRect" parent="." unique_id=1920023959]
-layout_mode = 0
-offset_right = 64.0
-offset_bottom = 64.0
+mouse_filter = 2
+color = Color(0.21230483, 0.21230483, 0.21230483, 1)

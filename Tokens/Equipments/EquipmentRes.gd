@@ -30,4 +30,3 @@ const SIZE_CELLS : Dictionary = {
 @export var eid : String
 @export var equipment_part : Part
 @export var equipment_size : Size
-#@export var my_soul : Soul

@@ -7,7 +7,7 @@
 [node name="EquipmentWindow" type="Window" unique_id=1234613472]
 oversampling_override = 1.0
 position = Vector2i(0, 36)
-size = Vector2i(400, 600)
+size = Vector2i(432, 790)
 script = ExtResource("3_window")
 
 [node name="Panel" type="VBoxContainer" parent="." unique_id=1917371869]

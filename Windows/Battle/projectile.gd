@@ -2,7 +2,7 @@ class_name Projectile
 extends Sprite2D
 
 ## 投射物在 tokens.png 里的位置
-const TEXTURE := preload("res://Assets/Tiles/tokens.png")
+const TEXTURE := preload("res://Assets/tokens.png")
 const REGION := Rect2(0, 32, 32, 32)
 const COLOR := Color(1.0, 0.85, 0.30)
 const SPEED : float = 300.0

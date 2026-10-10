@@ -36,10 +36,8 @@ const FAST_SPEED : float = 10.0
 @onready var speed_3_button: Button = $CanvasLayer/Control/GridContainer/Speed3Button
 @onready var speed_10_button: Button = $CanvasLayer/Control/GridContainer/Speed10Button
 
-
-# 跟随鼠标的坐标小面板
-var coord_panel: PanelContainer
-var coord_label: Label
+# 跟随鼠标的坐标提示框
+@onready var coord_tooltip: CoordTooltip = $CoordTooltip
 
 var hp_label: Label
 var death_label: Label
@@ -79,7 +77,6 @@ func _ready() -> void:
 			_apply_time_scale(10)
 	)
 	
-	_build_coord_panel()
 	visibility_changed.connect(_apply_time_scale)
 
 	if SHOW_DEBUG_DISTANCE:
@@ -106,7 +103,7 @@ func _physics_process(delta: float) -> void:
 	if not visible:
 		return
 
-	_update_coord_panel()
+	_update_coord_tooltip()
 	_tick_battle(delta)
 
 
@@ -292,34 +289,20 @@ func _apply_time_scale(speed : float) -> void:
 	Engine.time_scale = speed
 
 
-# 创建一个跟随鼠标的小面板，里面显示 hover 到的格子坐标
-func _build_coord_panel() -> void:
-	coord_panel = PanelContainer.new()
-	coord_panel.z_index = 99
-	coord_panel.size = Vector2(50, 50)
-	coord_label = Label.new()
-	coord_label.add_theme_font_size_override("font_size", 12)
-	coord_panel.add_child(coord_label)
-	# 与磁贴放在同一坐标系里，位置用局部坐标直接算
-	ground_tilemaplayer.add_child(coord_panel)
-	# 不拦截鼠标，避免影响对磁贴的操作
-	coord_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	coord_panel.visible = false
-
-
-func _update_coord_panel() -> void:
+# 跟着鼠标显示 hover 到的格子：距离中心的格数 + 格子坐标
+func _update_coord_tooltip() -> void:
 	# 鼠标在 TileMapLayer 局部坐标系中的位置
 	var local_mouse := ground_tilemaplayer.get_local_mouse_position()
 	# 鼠标所指的格子
 	var hovered_cell := ground_tilemaplayer.local_to_map(local_mouse)
-	# 鼠标不在有效图块上 -> 隐藏面板
+	# 鼠标不在有效图块上 -> 收起提示
 	if ground_tilemaplayer.get_cell_source_id(hovered_cell) == -1:
-		coord_panel.visible = false
+		coord_tooltip.hide_tip()
 		return
-	# 显示坐标，并把面板放到鼠标旁边，自动避开窗口四边
-	coord_label.text = str(hex_distance(Vector2i(0, 0), hovered_cell))
-	_place_coord_panel(local_mouse)
-	coord_panel.visible = true
+	# 内容在这里填，往哪边弹、贴不贴边由 CoordTooltip 自己处理
+	coord_tooltip.name_label.text = str(hex_distance(Vector2i(0, 0), hovered_cell))
+	coord_tooltip.info_label.text = "(%d, %d)" % [hovered_cell.x, hovered_cell.y]
+	coord_tooltip.visible = true
 
 
 # 计算与中心点的距离
@@ -336,37 +319,3 @@ func _offset_to_cube(coord: Vector2i) -> Vector3i:
 	var r := coord.y
 	var s := -q - r
 	return Vector3i(q, r, s)
-
-# 把面板放到鼠标旁，根据鼠标靠近的窗口边缘自动翻转方向并 clamp 到可视区内
-func _place_coord_panel(local_mouse: Vector2) -> void:
-	var gap := 14.0
-	var panel_size := coord_panel.get_combined_minimum_size()
-
-	# 窗口可视区域换算到 TileMapLayer 局部坐标
-	var view_rect := get_viewport().get_visible_rect()
-	var vp_top_left := ground_tilemaplayer.to_local(view_rect.position)
-	var vp_bottom_right := ground_tilemaplayer.to_local(view_rect.end)
-
-	# 默认放在鼠标右下方
-	var dir_x := 1.0
-	var dir_y := 1.0
-
-	# 右侧放不下 -> 翻到左侧
-	if local_mouse.x + gap + panel_size.x > vp_bottom_right.x:
-		dir_x = -1.0
-	# 下方放不下 -> 翻到上方
-	if local_mouse.y + gap + panel_size.y > vp_bottom_right.y:
-		dir_y = -1.0
-
-	var pos := local_mouse + Vector2(gap * dir_x, gap * dir_y)
-	if dir_x < 0.0:
-		pos.x -= panel_size.x
-	if dir_y < 0.0:
-		pos.y -= panel_size.y
-
-	# 最终 clamp 到可视区域内，确保不越界
-	var max_x := maxf(vp_top_left.x, vp_bottom_right.x - panel_size.x)
-	var max_y := maxf(vp_top_left.y, vp_bottom_right.y - panel_size.y)
-	pos.x = clampf(pos.x, vp_top_left.x, max_x)
-	pos.y = clampf(pos.y, vp_top_left.y, max_y)
-	coord_panel.position = pos

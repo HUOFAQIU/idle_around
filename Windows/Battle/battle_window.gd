@@ -30,6 +30,13 @@ const FAST_SPEED : float = 10.0
 @onready var projectiles: Node2D = $Tile/Projectiles
 @onready var damage_numbers: Node2D = $Tile/DamageNumbers
 
+@onready var start_button: Button = $CanvasLayer/Control/GridContainer/StartButton
+@onready var speed_1_button: Button = $CanvasLayer/Control/GridContainer/Speed1Button
+@onready var speed_2_button: Button = $CanvasLayer/Control/GridContainer/Speed2Button
+@onready var speed_3_button: Button = $CanvasLayer/Control/GridContainer/Speed3Button
+@onready var speed_10_button: Button = $CanvasLayer/Control/GridContainer/Speed10Button
+
+
 # 跟随鼠标的坐标小面板
 var coord_panel: PanelContainer
 var coord_label: Label
@@ -51,9 +58,28 @@ func _ready() -> void:
 	super()
 	title = "战斗窗口"
 	
+	start_button.pressed.connect(
+		func () :
+			pass
+	)
+	speed_1_button.pressed.connect(
+		func () :
+			_apply_time_scale(1)
+	)
+	speed_2_button.pressed.connect(
+		func () :
+			_apply_time_scale(2)
+	)
+	speed_3_button.pressed.connect(
+		func () :
+			_apply_time_scale(3)
+	)
+	speed_10_button.pressed.connect(
+		func () :
+			_apply_time_scale(10)
+	)
+	
 	_build_coord_panel()
-	_build_hud()
-	_update_hud()
 	visibility_changed.connect(_apply_time_scale)
 
 	if SHOW_DEBUG_DISTANCE:
@@ -219,7 +245,6 @@ func _hurt_player(amount: int) -> void:
 	if _dead:
 		return
 	_player_hp = maxi(_player_hp - amount, 0)
-	_update_hud()
 	if _player_hp <= 0:
 		_die()
 
@@ -231,7 +256,6 @@ func _die() -> void:
 	for container in [monsters, projectiles, damage_numbers]:
 		for child in container.get_children():
 			child.queue_free()
-	_update_hud()
 
 
 func _revive() -> void:
@@ -239,7 +263,6 @@ func _revive() -> void:
 	_player_hp = PLAYER_MAX_HP
 	_move_accum = 0.0
 	_fire_accum = 0.0
-	_update_hud()
 
 
 # 怪物身上跳一个伤害数字
@@ -262,48 +285,11 @@ func _pop_damage(pos: Vector2, amount: int) -> void:
 
 # ---------------------------------------------------------------- 界面
 
-func _build_hud() -> void:
-	hp_label = Label.new()
-	hp_label.position = Vector2(14, 10)
-	hp_label.add_theme_font_size_override("font_size", 20)
-	add_child(hp_label)
-
-	# 开发用：切换 10 倍速
-	speed_button = Button.new()
-	speed_button.text = "1×"
-	speed_button.toggle_mode = true
-	speed_button.position = Vector2(14, 42)
-	speed_button.custom_minimum_size = Vector2(64, 32)
-	speed_button.tooltip_text = "开发用：10 倍速（窗口关掉就恢复）"
-	speed_button.toggled.connect(_on_speed_toggled)
-	add_child(speed_button)
-
-	death_label = Label.new()
-	death_label.set_anchors_preset(Control.PRESET_FULL_RECT)
-	death_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	death_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	death_label.add_theme_font_size_override("font_size", 72)
-	death_label.add_theme_color_override("font_color", Color(0.95, 0.25, 0.25))
-	death_label.text = "角色死亡"
-	death_label.visible = false
-	add_child(death_label)
-
-
-func _update_hud() -> void:
-	hp_label.text = "HP %d / %d" % [_player_hp, PLAYER_MAX_HP]
-	death_label.visible = _dead
-
-
-func _on_speed_toggled(pressed: bool) -> void:
-	_speed = FAST_SPEED if pressed else 1.0
-	speed_button.text = "%d×" % int(_speed)
-	_apply_time_scale()
-
 
 # 加速走的是 Engine.time_scale，所以是「整个游戏一起快」，不只是这个窗口。
 # 窗口关着的时候一定要还原成 1 倍，免得这个开发开关漏到游戏别的部分去。
-func _apply_time_scale() -> void:
-	Engine.time_scale = _speed if visible else 1.0
+func _apply_time_scale(speed : float) -> void:
+	Engine.time_scale = speed
 
 
 # 创建一个跟随鼠标的小面板，里面显示 hover 到的格子坐标
@@ -314,10 +300,8 @@ func _build_coord_panel() -> void:
 	coord_label = Label.new()
 	coord_label.add_theme_font_size_override("font_size", 12)
 	coord_panel.add_child(coord_label)
-
 	# 与磁贴放在同一坐标系里，位置用局部坐标直接算
 	ground_tilemaplayer.add_child(coord_panel)
-
 	# 不拦截鼠标，避免影响对磁贴的操作
 	coord_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	coord_panel.visible = false
@@ -328,12 +312,10 @@ func _update_coord_panel() -> void:
 	var local_mouse := ground_tilemaplayer.get_local_mouse_position()
 	# 鼠标所指的格子
 	var hovered_cell := ground_tilemaplayer.local_to_map(local_mouse)
-
 	# 鼠标不在有效图块上 -> 隐藏面板
 	if ground_tilemaplayer.get_cell_source_id(hovered_cell) == -1:
 		coord_panel.visible = false
 		return
-
 	# 显示坐标，并把面板放到鼠标旁边，自动避开窗口四边
 	coord_label.text = str(hex_distance(Vector2i(0, 0), hovered_cell))
 	_place_coord_panel(local_mouse)

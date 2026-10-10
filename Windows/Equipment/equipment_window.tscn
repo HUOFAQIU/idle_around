@@ -1,39 +1,57 @@
 [gd_scene format=3 uid="uid://b301mgy8od7cj"]
 
-[ext_resource type="Script" uid="uid://16rtjyywfhc6" path="res://Windows/Equipment/equipment_panel.gd" id="1_panel"]
-[ext_resource type="PackedScene" uid="uid://c2pohp6s532ha" path="res://Windows/Equipment/slot_cell.tscn" id="2_1gews"]
+[ext_resource type="Script" uid="uid://dg6xjko3rdcta" path="res://Windows/Inventory/grid_base_inventory_system/core/view/slot/equipment_slot_view.gd" id="2_1gews"]
+[ext_resource type="Texture2D" uid="uid://des1jhi317m67" path="res://Assets/weapon_23_bg.png" id="3_0xq3a"]
 [ext_resource type="Script" uid="uid://b1dncvs7udsva" path="res://Windows/Equipment/equipment_window.gd" id="3_window"]
+[ext_resource type="Script" uid="uid://b3x4mwtjmm4tp" path="res://Windows/Inventory/grid_base_inventory_system/core/view/container/inventory/inventory_view.gd" id="4_tl6mi"]
 
 [node name="EquipmentWindow" type="Window" unique_id=1234613472]
 oversampling_override = 1.0
 position = Vector2i(0, 36)
-size = Vector2i(432, 790)
+size = Vector2i(384, 790)
 script = ExtResource("3_window")
 
-[node name="Panel" type="VBoxContainer" parent="." unique_id=1917371869]
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=1243451624]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 5.0
-offset_right = -11.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("1_panel")
 
-[node name="SlotCell" parent="Panel" unique_id=1110476409 instance=ExtResource("2_1gews")]
+[node name="EquipmentSlot" type="Control" parent="VBoxContainer" unique_id=774911878]
+custom_minimum_size = Vector2(384, 96)
+custom_maximum_size = Vector2(384, 96)
 layout_mode = 2
 
-[node name="SlotCell2" parent="Panel" unique_id=2045930781 instance=ExtResource("2_1gews")]
-layout_mode = 2
+[node name="EquipmentSlotView" type="Control" parent="VBoxContainer/EquipmentSlot" unique_id=1303036616]
+anchors_preset = 0
+offset_right = 64.0
+offset_bottom = 96.0
+script = ExtResource("2_1gews")
+slot_name = "e_slot_weapon"
+rows = 3
+background = ExtResource("3_0xq3a")
+metadata/_custom_type_script = "uid://dg6xjko3rdcta"
 
-[node name="SlotCell3" parent="Panel" unique_id=1645406464 instance=ExtResource("2_1gews")]
-layout_mode = 2
+[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/EquipmentSlot" unique_id=2046783391]
+custom_minimum_size = Vector2(320, 96)
+custom_maximum_size = Vector2(320, 96)
+layout_mode = 0
+offset_left = 64.0
+offset_right = 384.0
+offset_bottom = 32.0
 
-[node name="SlotCell4" parent="Panel" unique_id=1545397031 instance=ExtResource("2_1gews")]
+[node name="Label" type="Label" parent="VBoxContainer/EquipmentSlot/VBoxContainer" unique_id=768004645]
+custom_minimum_size = Vector2(0, 32)
+custom_maximum_size = Vector2(-1, 32)
 layout_mode = 2
+text = "WEAPON"
+vertical_alignment = 1
 
-[node name="SlotCell5" parent="Panel" unique_id=1320891036 instance=ExtResource("2_1gews")]
+[node name="SoulView" type="Control" parent="VBoxContainer/EquipmentSlot/VBoxContainer" unique_id=1571337799]
 layout_mode = 2
-
-[node name="SlotCell6" parent="Panel" unique_id=197015627 instance=ExtResource("2_1gews")]
-layout_mode = 2
+script = ExtResource("4_tl6mi")
+avilable_types = Array[String](["Soul"])
+container_name = "soul"
+container_columns = 10
+metadata/_custom_type_script = "uid://b3x4mwtjmm4tp"

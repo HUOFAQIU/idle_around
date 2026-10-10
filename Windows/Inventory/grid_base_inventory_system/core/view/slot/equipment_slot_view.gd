@@ -41,7 +41,7 @@ enum State{
 		INVILABLE_color = value
 		queue_redraw()
 ## 可以装备的物品类型，对应 ItemData.type
-@export var avilable_types: Array[String] = ["ANY"]
+@export_enum("WEAPON") var avilable_types: Array[String] = ["WEAPON"]
 
 ## 物品容器
 var _item_container: Control

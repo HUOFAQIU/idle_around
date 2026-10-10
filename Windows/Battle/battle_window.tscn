@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://dxwno0glbet88" path="res://Windows/Battle/battle_window.gd" id="1_nc1sn"]
 [ext_resource type="PackedScene" uid="uid://33uxpqaakhs" path="res://Windows/Battle/Maps/tile.tscn" id="2_7qkyi"]
 [ext_resource type="PackedScene" uid="uid://83lswyl3a54k" path="res://Tokens/Equipments/player_token.tscn" id="3_qp3cb"]
+[ext_resource type="PackedScene" uid="uid://yewotwadii1v" path="res://Kits/Tooltip/coord_tooltip.tscn" id="4_rymto"]
 
 [node name="BattleWindow" type="Window" unique_id=1101778887]
 oversampling_override = 1.0
@@ -22,3 +23,50 @@ position = Vector2(15, 8)
 [node name="Projectiles" type="Node2D" parent="Tile" unique_id=89618155]
 
 [node name="DamageNumbers" type="Node2D" parent="Tile" unique_id=1038429231]
+
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1626333118]
+
+[node name="Control" type="Control" parent="CanvasLayer" unique_id=40557709]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="GridContainer" type="GridContainer" parent="CanvasLayer/Control" unique_id=9012016]
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 44.0
+grow_horizontal = 2
+columns = 20
+
+[node name="StartButton" type="Button" parent="CanvasLayer/Control/GridContainer" unique_id=172162591]
+custom_minimum_size = Vector2(44, 44)
+layout_mode = 2
+text = "▷"
+
+[node name="Speed1Button" type="Button" parent="CanvasLayer/Control/GridContainer" unique_id=48274711]
+custom_minimum_size = Vector2(44, 44)
+layout_mode = 2
+text = "1x"
+
+[node name="Speed2Button" type="Button" parent="CanvasLayer/Control/GridContainer" unique_id=861024876]
+custom_minimum_size = Vector2(44, 44)
+layout_mode = 2
+text = "2x"
+
+[node name="Speed3Button" type="Button" parent="CanvasLayer/Control/GridContainer" unique_id=801321157]
+custom_minimum_size = Vector2(44, 44)
+layout_mode = 2
+text = "3x"
+
+[node name="Speed10Button" type="Button" parent="CanvasLayer/Control/GridContainer" unique_id=682179347]
+custom_minimum_size = Vector2(44, 44)
+layout_mode = 2
+text = "10x"
+
+[node name="CoordTooltip" parent="." unique_id=2138484160 instance=ExtResource("4_rymto")]
+visible = false

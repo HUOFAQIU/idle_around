@@ -6,7 +6,8 @@
 [ext_resource type="PackedScene" uid="uid://bqug1f88ap7hb" path="res://Windows/Battle/battle_window.tscn" id="3_qtu10"]
 [ext_resource type="PackedScene" uid="uid://da2scdocynbkk" path="res://Windows/Character/character_window.tscn" id="4_ee4bf"]
 [ext_resource type="PackedScene" uid="uid://b301mgy8od7cj" path="res://Windows/Equipment/equipment_window.tscn" id="6_iy58a"]
-[ext_resource type="PackedScene" uid="uid://s34hu7y2c1i" path="res://Windows/Inventory/inventory_window.tscn" id="7_6a6wx"]
+[ext_resource type="PackedScene" uid="uid://f6jom4nfishp" path="res://Windows/Inventory/inventory_window.tscn" id="7_6a6wx"]
+[ext_resource type="PackedScene" uid="uid://byuffsddecjhf" path="res://Windows/Shop/shop_window.tscn" id="8_6a6wx"]
 
 [node name="Control" type="Control" unique_id=887310324]
 layout_mode = 3
@@ -89,6 +90,7 @@ text = "仓库"
 [node name="Button4" type="Button" parent="GridContainer" unique_id=225774360]
 custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
+text = "商店"
 
 [node name="Button5" type="Button" parent="GridContainer" unique_id=603772684]
 custom_minimum_size = Vector2(80, 80)
@@ -125,3 +127,7 @@ open_position = Vector2i(1683, 291)
 [node name="BattleWindow" parent="." unique_id=1210820663 instance=ExtResource("3_qtu10")]
 visible = false
 open_position = Vector2i(240, 165)
+
+[node name="ShopWindow" parent="." unique_id=1488491486 instance=ExtResource("8_6a6wx")]
+visible = false
+open_position = Vector2i(160, 1000)

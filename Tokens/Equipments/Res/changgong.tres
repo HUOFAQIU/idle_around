@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="EquipmentData" format=3 uid="uid://c7o1ldy56mwu6"]
+
+[ext_resource type="Script" uid="uid://c81d67advvltj" path="res://Windows/Inventory/grid_base_inventory_system/core/model/item/equipment_data.gd" id="1_pb4r7"]
+[ext_resource type="Texture2D" uid="uid://dmyf46ach06wc" path="res://Assets/weapon/changgong.png" id="1_vlw7o"]
+
+[resource]
+script = ExtResource("1_pb4r7")
+item_name = "长弓"
+type = "WEAPON"
+icon = ExtResource("1_vlw7o")
+columns = 2
+rows = 3
+metadata/_custom_type_script = "uid://c81d67advvltj"

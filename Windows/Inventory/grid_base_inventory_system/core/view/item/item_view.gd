@@ -68,6 +68,11 @@ func _draw() -> void:
 
 ## 跟随鼠标
 func _process(_delta: float) -> void:
-	if _is_moving:
-		@warning_ignore("integer_division")
-		global_position = get_global_mouse_position() - Vector2(base_size * _moving_offset) - Vector2(base_size / 2, base_size / 2)
+	update_moving_position()
+
+
+func update_moving_position() -> void:
+	if not _is_moving:
+		return
+	@warning_ignore("integer_division")
+	global_position = get_global_mouse_position() - Vector2(base_size * _moving_offset) - Vector2(base_size / 2, base_size / 2)

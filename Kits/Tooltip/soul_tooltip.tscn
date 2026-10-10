@@ -2,10 +2,10 @@
 
 [ext_resource type="Script" uid="uid://dfocwrjhre04c" path="res://Kits/Tooltip/soul_tooltip.gd" id="1_niwbn"]
 
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_skin"]
+
 [sub_resource type="LabelSettings" id="LabelSettings_pqwl4"]
 font_size = 33
-
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_skin"]
 
 [node name="SoulTooltip" type="Control" unique_id=2138484160]
 layout_mode = 3

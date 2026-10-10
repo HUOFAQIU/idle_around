@@ -1,0 +1,46 @@
+[gd_resource type="Resource" script_class="SkillDefinition" format=3 uid="uid://imhu0gfm7dbd"]
+
+[ext_resource type="Script" uid="uid://b7ovihaaijli7" path="res://addons/GodotGAS/effects/gameplay_execution_calculation.gd" id="1_kc2s6"]
+[ext_resource type="Script" uid="uid://ktr72cmavmyy" path="res://game/content/skill_definition.gd" id="1_skilldef"]
+[ext_resource type="Script" uid="uid://c81papidngxvg" path="res://addons/GodotGAS/effects/gameplay_effect.gd" id="2_effect"]
+[ext_resource type="Script" uid="uid://bcow77l0bnh0s" path="res://addons/GodotGAS/effects/gameplay_effect_modifier.gd" id="3_modifier"]
+[ext_resource type="Script" uid="uid://ccvfqmqr8q1pm" path="res://addons/GodotGAS/gameplay_tag/gameplay_tag_query.gd" id="4_query"]
+[ext_resource type="Script" uid="uid://cf2mx3u4jfquk" path="res://game/content/target_rule.gd" id="5_rule"]
+
+[sub_resource type="Resource" id="Resource_effect_charge"]
+resource_name = "蓄力"
+script = ExtResource("2_effect")
+policy = 1
+duration = 3.0
+granted_tags = Array[StringName]([&"State.Charging.Slash"])
+
+[sub_resource type="Resource" id="Resource_query_not_dead"]
+script = ExtResource("4_query")
+ignore_tags = Array[StringName]([&"State.Dead"])
+
+[sub_resource type="Resource" id="Resource_modifier_damage"]
+script = ExtResource("3_modifier")
+attribute_name = "hp"
+magnitude_calculation = 2
+backing_attribute_name = "atk"
+attribute_multiplier = -1.0
+
+[sub_resource type="Resource" id="Resource_effect_damage"]
+resource_name = "斩击"
+script = ExtResource("2_effect")
+application_query = SubResource("Resource_query_not_dead")
+modifiers = Array[ExtResource("3_modifier")]([SubResource("Resource_modifier_damage")])
+
+[sub_resource type="Resource" id="Resource_target_rule"]
+script = ExtResource("5_rule")
+count = 2
+
+[resource]
+script = ExtResource("1_skilldef")
+id = "slash"
+display_name = "斩击"
+description = "随机斩击2名敌人，各造成攻击力100%的伤害。开局蓄力3秒，之后每3秒释放一次。"
+effects = Array[ExtResource("2_effect")]([SubResource("Resource_effect_damage")])
+charge_effect = SubResource("Resource_effect_charge")
+target_rule = SubResource("Resource_target_rule")
+metadata/_custom_type_script = "uid://ktr72cmavmyy"

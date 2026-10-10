@@ -4,7 +4,6 @@ extends Window
 ## 打开时摆在屏幕哪儿；x 或 y 是负数表示「居中」（就按 popup_centered 来）
 @export var open_position : Vector2i = Vector2i(-1, -1)
 
-
 func _ready() -> void:
 	unresizable = true
 	#popup_window = true
@@ -14,6 +13,8 @@ func _ready() -> void:
 	close_requested.connect(
 		func ():
 			self.hide()
+			# 暂时的
+			Engine.time_scale = 1
 	)
 
 

@@ -1,34 +1,28 @@
 class_name EquipmentTooltip
 extends TooltipBase
 
-## 装备的提示框：名字 + 它的魂灵区，10 格宽 2 格高、跟装备面板一样 1:1。
-## 魂灵的提示框是另一个（`Kits/Tooltip/soul_tooltip.gd`）。
-
-## 魂灵区缩略图一格画多少像素（跟装备面板一格一样大）
-const SOUL_CELL : int = InventoryItem.CELL_SIZE
-
-@onready var _soul_panel : Panel = $BG/VBoxContainer/SoulPanel
+@onready var name_label: Label = $BG/VBoxContainer/NameLabel
 
 
-## 显示这件装备的提示。anchor 是鼠标位置、bounds 是能占的地方（都是所在容器的坐标）
-func show_for(equipment: Equipment, anchor: Vector2, bounds: Vector2) -> void:
-	_clear_views()
-	_name_label.text = equipment.name
-
-	# 整片魂灵区照原样摆出来
-	_soul_panel.custom_minimum_size = Vector2(Equipment.SOUL_AREA * SOUL_CELL)
-	for soul in equipment.souls:
-		var view := ItemView.new(soul)
-		view.position = Vector2(soul.cell * SOUL_CELL)
-		_soul_panel.add_child(view)
-
-	visible = true
-	place_near(anchor, bounds)
+func _ready() -> void:
+	super()
+	GBIS.sig_item_focused.connect(
+		func (item_data: ItemData, container_name: String):
+			name_label.text = item_data.item_name
+			visible = true
+			place_tip()
+	)
+	GBIS.sig_item_focus_lost.connect(
+		func (item_data: ItemData):
+			hide_tip()
+	)
 
 
-# 先摘下来再排队删：留着下一帧画会跟新内容叠在一起
-func _clear_views() -> void:
-	for child in _soul_panel.get_children():
-		if child is ItemView:
-			_soul_panel.remove_child(child)
-			child.queue_free()
+func _process(_delta: float) -> void:
+	if visible:
+		place_tip()
+
+
+## 自己决定往哪边弹：锚点是鼠标，边界是自己所在窗口的矩形
+func place_tip() -> void:
+	place_near(get_global_mouse_position(), get_viewport_rect().size)

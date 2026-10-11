@@ -77,8 +77,6 @@ func _ready() -> void:
 			_apply_time_scale(10)
 	)
 	
-	visibility_changed.connect(_apply_time_scale)
-
 	if SHOW_DEBUG_DISTANCE:
 		for cell in ground_tilemaplayer.get_used_cells():
 			var label: Label = Label.new()

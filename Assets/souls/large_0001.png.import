@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dmyf46ach06wc"
-path="res://.godot/imported/changgong.png-9193cc9a98fff82385f52c64e25b63f4.ctex"
+uid="uid://c0mm8fek0n85r"
+path="res://.godot/imported/large_0001.png-a6c8c82bff0ee59ebbc1e54de0c2921b.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/weapon/changgong.png"
-dest_files=["res://.godot/imported/changgong.png-9193cc9a98fff82385f52c64e25b63f4.ctex"]
+source_file="res://Assets/souls/large_0001.png"
+dest_files=["res://.godot/imported/large_0001.png-a6c8c82bff0ee59ebbc1e54de0c2921b.ctex"]
 
 [params]
 

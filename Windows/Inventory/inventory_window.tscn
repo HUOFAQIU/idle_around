@@ -3,15 +3,17 @@
 [ext_resource type="Script" uid="uid://wdso8tw62aev" path="res://Windows/Inventory/inventory_window.gd" id="1_window"]
 [ext_resource type="Script" uid="uid://b3x4mwtjmm4tp" path="res://Windows/Inventory/grid_base_inventory_system/core/view/container/inventory/inventory_view.gd" id="2_5mbsx"]
 [ext_resource type="Script" uid="uid://c5uqs7o5b2w68" path="res://Windows/Inventory/grid_base_inventory_system/core/model/item/item_data.gd" id="2_632ck"]
-[ext_resource type="Resource" uid="uid://c7o1ldy56mwu6" path="res://Tokens/Equipments/Res/changgong.tres" id="3_luwve"]
+[ext_resource type="Resource" uid="uid://d4dvhctbc8pk2" path="res://Tokens/Souls/Res/small_0001.tres" id="3_txnay"]
+[ext_resource type="Resource" uid="uid://cooi7q46e2n0g" path="res://Tokens/Souls/Res/medium_0001.tres" id="4_chv28"]
 [ext_resource type="PackedScene" uid="uid://x7a68sy2xo4e" path="res://Kits/Tooltip/equipment_tooltip.tscn" id="5_ptvaf"]
+[ext_resource type="Resource" uid="uid://dnbx5yjtetb2y" path="res://Tokens/Souls/Res/large_0001.tres" id="5_vicg4"]
 
 [node name="InventoryWindow" type="Window" unique_id=111619256]
 oversampling_override = 1.0
 position = Vector2i(0, 36)
 size = Vector2i(850, 850)
 script = ExtResource("1_window")
-items = Array[ExtResource("2_632ck")]([ExtResource("3_luwve")])
+items = Array[ExtResource("2_632ck")]([ExtResource("3_txnay"), ExtResource("4_chv28"), ExtResource("5_vicg4")])
 
 [node name="GridContainer" type="GridContainer" parent="." unique_id=49732532]
 offset_right = 833.0
@@ -21,29 +23,14 @@ columns = 10
 [node name="Button" type="Button" parent="GridContainer" unique_id=1713601447]
 custom_minimum_size = Vector2(60, 40)
 layout_mode = 2
-text = "装备_2_3"
+text = "魂灵_1_2"
 
 [node name="Button2" type="Button" parent="GridContainer" unique_id=279295495]
 custom_minimum_size = Vector2(60, 40)
 layout_mode = 2
-text = "装备_2_2"
-
-[node name="Button3" type="Button" parent="GridContainer" unique_id=1732713918]
-custom_minimum_size = Vector2(60, 40)
-layout_mode = 2
-text = "装备_1_1"
-
-[node name="Button4" type="Button" parent="GridContainer" unique_id=1583663768]
-custom_minimum_size = Vector2(60, 40)
-layout_mode = 2
-text = "魂灵_1_2"
-
-[node name="Button5" type="Button" parent="GridContainer" unique_id=364998541]
-custom_minimum_size = Vector2(60, 40)
-layout_mode = 2
 text = "魂灵_2_2"
 
-[node name="Button6" type="Button" parent="GridContainer" unique_id=1364990286]
+[node name="Button3" type="Button" parent="GridContainer" unique_id=1732713918]
 custom_minimum_size = Vector2(60, 40)
 layout_mode = 2
 text = "魂灵_3_2"
@@ -55,6 +42,7 @@ offset_top = 49.0
 offset_right = 832.0
 offset_bottom = 817.0
 script = ExtResource("2_5mbsx")
+avilable_types = Array[String](["SOUL"])
 container_name = "inventory_0"
 container_columns = 26
 container_rows = 24

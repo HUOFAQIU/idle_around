@@ -8,6 +8,7 @@ func _ready() -> void:
 	super()
 	GBIS.sig_item_focused.connect(
 		func (item_data: ItemData, container_name: String):
+			print(item_data)
 			name_label.text = item_data.item_name
 			visible = true
 			place_tip()
@@ -16,13 +17,3 @@ func _ready() -> void:
 		func (item_data: ItemData):
 			hide_tip()
 	)
-
-
-func _process(_delta: float) -> void:
-	if visible:
-		place_tip()
-
-
-## 自己决定往哪边弹：锚点是鼠标，边界是自己所在窗口的矩形
-func place_tip() -> void:
-	place_near(get_global_mouse_position(), get_viewport_rect().size)

@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="ItemData" format=3 uid="uid://d4dvhctbc8pk2"]
+
+[ext_resource type="Texture2D" uid="uid://ilgemf7x3ojb" path="res://Assets/souls/small_0001.png" id="1_b2xxo"]
+[ext_resource type="Script" uid="uid://c5uqs7o5b2w68" path="res://Windows/Inventory/grid_base_inventory_system/core/model/item/item_data.gd" id="2_8shdg"]
+
+[resource]
+script = ExtResource("2_8shdg")
+item_name = "小刀"
+type = "SOUL"
+icon = ExtResource("1_b2xxo")
+rows = 2
+metadata/_custom_type_script = "uid://c5uqs7o5b2w68"

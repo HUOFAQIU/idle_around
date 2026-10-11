@@ -8,9 +8,9 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	visible = false
 
-## 收起来
-func hide_tip() -> void:
-	visible = false
+func _process(_delta: float) -> void:
+	if visible:
+		place_tip()
 
 ## 摆位：默认在鼠标右下方，右边放不下就翻到左边，翻过头再夹回窗口里。
 func place_near(anchor: Vector2, bounds: Vector2) -> void:
@@ -25,3 +25,11 @@ func place_near(anchor: Vector2, bounds: Vector2) -> void:
 	pos.x = clampf(pos.x, 0.0, maxf(0.0, bounds.x - tip.x))
 	pos.y = clampf(pos.y, 0.0, maxf(0.0, bounds.y - tip.y))
 	position = pos
+
+## 自己决定往哪边弹：锚点是鼠标，边界是自己所在窗口的矩形
+func place_tip() -> void:
+	place_near(get_global_mouse_position(), get_viewport_rect().size)
+
+## 收起来
+func hide_tip() -> void:
+	visible = false

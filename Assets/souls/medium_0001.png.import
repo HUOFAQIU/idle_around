@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://des1jhi317m67"
-path="res://.godot/imported/weapon_23_bg.png-5de607a374fa36b0d1c0e915d27f8200.ctex"
+uid="uid://d0ljyogk0u7y6"
+path="res://.godot/imported/medium_0001.png-fc6c0b853a724b4dda9848fb71ebe9a6.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/weapon_23_bg.png"
-dest_files=["res://.godot/imported/weapon_23_bg.png-5de607a374fa36b0d1c0e915d27f8200.ctex"]
+source_file="res://Assets/souls/medium_0001.png"
+dest_files=["res://.godot/imported/medium_0001.png-fc6c0b853a724b4dda9848fb71ebe9a6.ctex"]
 
 [params]
 

@@ -4,4 +4,4 @@ extends BaseWindow
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	super()
-	title = "装备窗口"
+	title = "魂灵窗口"

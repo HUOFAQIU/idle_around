@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="ItemData" format=3 uid="uid://cooi7q46e2n0g"]
+
+[ext_resource type="Texture2D" uid="uid://d0ljyogk0u7y6" path="res://Assets/souls/medium_0001.png" id="1_liq26"]
+[ext_resource type="Script" uid="uid://c5uqs7o5b2w68" path="res://Windows/Inventory/grid_base_inventory_system/core/model/item/item_data.gd" id="2_2f3c6"]
+
+[resource]
+script = ExtResource("2_2f3c6")
+item_name = "盾"
+type = "SOUL"
+icon = ExtResource("1_liq26")
+columns = 2
+rows = 2
+metadata/_custom_type_script = "uid://c5uqs7o5b2w68"

@@ -2,18 +2,12 @@
 
 [ext_resource type="Script" uid="uid://wdso8tw62aev" path="res://Windows/Inventory/inventory_window.gd" id="1_window"]
 [ext_resource type="Script" uid="uid://b3x4mwtjmm4tp" path="res://Windows/Inventory/grid_base_inventory_system/core/view/container/inventory/inventory_view.gd" id="2_5mbsx"]
-[ext_resource type="Script" uid="uid://c5uqs7o5b2w68" path="res://Windows/Inventory/grid_base_inventory_system/core/model/item/item_data.gd" id="2_632ck"]
-[ext_resource type="Resource" uid="uid://d4dvhctbc8pk2" path="res://Tokens/Souls/Res/small_0001.tres" id="3_txnay"]
-[ext_resource type="Resource" uid="uid://cooi7q46e2n0g" path="res://Tokens/Souls/Res/medium_0001.tres" id="4_chv28"]
-[ext_resource type="PackedScene" uid="uid://x7a68sy2xo4e" path="res://Kits/Tooltip/equipment_tooltip.tscn" id="5_ptvaf"]
-[ext_resource type="Resource" uid="uid://dnbx5yjtetb2y" path="res://Tokens/Souls/Res/large_0001.tres" id="5_vicg4"]
 
 [node name="InventoryWindow" type="Window" unique_id=111619256]
 oversampling_override = 1.0
 position = Vector2i(0, 36)
 size = Vector2i(850, 850)
 script = ExtResource("1_window")
-items = Array[ExtResource("2_632ck")]([ExtResource("3_txnay"), ExtResource("4_chv28"), ExtResource("5_vicg4")])
 
 [node name="GridContainer" type="GridContainer" parent="." unique_id=49732532]
 offset_right = 833.0
@@ -47,6 +41,3 @@ container_name = "inventory_0"
 container_columns = 26
 container_rows = 24
 metadata/_custom_type_script = "uid://b3x4mwtjmm4tp"
-
-[node name="EquipmentTooltip" parent="." unique_id=2138484160 instance=ExtResource("5_ptvaf")]
-visible = false

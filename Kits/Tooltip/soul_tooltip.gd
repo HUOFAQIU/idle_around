@@ -10,7 +10,7 @@ extends TooltipBase
 
 
 ## 显示这颗魂灵的提示。anchor 是鼠标位置、bounds 是能占的地方（都是所在容器的坐标）
-func show_for(soul: Soul, anchor: Vector2, bounds: Vector2) -> void:
-	_name_label.text = soul.name
-	visible = true
-	place_near(anchor, bounds)
+#func show_for(soul: Soul, anchor: Vector2, bounds: Vector2) -> void:
+	#_name_label.text = soul.name
+	#visible = true
+	#place_near(anchor, bounds)

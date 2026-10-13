@@ -27,6 +27,24 @@ signal sig_refresh
 func get_shape() -> Vector2i:
 	return Vector2i(columns, rows)
 
+## 改一个 shader 参数的值，并让用到它的 view 重绘
+## （sig_refresh 就是为这种情况留的：只重画这一件，不用刷新整个背包）
+func set_shader_param(param: String, value: Variant) -> void:
+	# Godot 4 里 Dictionary 是引用类型，duplicate() 出来的物品跟原件共用同一个
+	# shader_params —— 不先复制一份，改一颗会连带改掉所有同类实例，连预制资源本身也跑不掉
+	shader_params = shader_params.duplicate()
+	shader_params[param] = value
+	sig_refresh.emit()
+
+## 扫描线开关。只对材质挂 soul_scanline.gdshader 的物品有效；
+## 挂在别的 shader 上也调不坏，只是多一个用不上的参数
+func set_scanline_enabled(on: bool) -> void:
+	set_shader_param("enable", 1.0 if on else 0.0)
+
+## 扫描线当前开着没
+func is_scanline_enabled() -> bool:
+	return float(shader_params.get("enable", 1.0)) > 0.5
+
 func can_drop() -> bool:
 	push_warning("[Override this function] check if the item [%s] can drop" % item_name)
 	return true

@@ -1,0 +1,64 @@
+{
+	"categories": [
+		{
+			"uuid": "abd1801b-a241-4c02-8dd1-4e804d1e3bd5",
+			"title": "Task",
+			"color": "70bafa"
+		},
+		{
+			"uuid": "dc17d4ed-a172-4464-9b98-2aeab52f9cdf",
+			"title": "JI",
+			"color": "ff1800"
+		}
+	],
+	"stages": [
+		{
+			"uuid": "13cb6bda-ffb7-4ee9-879a-a4735482d3aa",
+			"title": "Todo",
+			"tasks": []
+		},
+		{
+			"uuid": "3d8e3d00-a609-41c7-a684-c1dd2b26f8c7",
+			"title": "Doing",
+			"tasks": [
+				"b1ded61d-4fa0-478f-8a9c-cb3c94ecbc65"
+			]
+		},
+		{
+			"uuid": "00cc217b-6c96-4fd1-acab-fa03554e6f0f",
+			"title": "Done",
+			"tasks": [
+				"3001fafb-5888-47f2-8a4e-5610f52dbfe6"
+			]
+		}
+	],
+	"tasks": [
+		{
+			"uuid": "b1ded61d-4fa0-478f-8a9c-cb3c94ecbc65",
+			"title": "基础玩法循环",
+			"description": "",
+			"category": "abd1801b-a241-4c02-8dd1-4e804d1e3bd5",
+			"steps": []
+		},
+		{
+			"uuid": "3001fafb-5888-47f2-8a4e-5610f52dbfe6",
+			"title": "把tooltip替换完",
+			"description": "",
+			"category": "dc17d4ed-a172-4464-9b98-2aeab52f9cdf",
+			"steps": []
+		}
+	],
+	"layout": {
+		"columns": [
+			[
+				"13cb6bda-ffb7-4ee9-879a-a4735482d3aa"
+			],
+			[
+				"3d8e3d00-a609-41c7-a684-c1dd2b26f8c7"
+			],
+			[
+				"00cc217b-6c96-4fd1-acab-fa03554e6f0f"
+			]
+		]
+	}
+}

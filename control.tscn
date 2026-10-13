@@ -141,4 +141,6 @@ visible = false
 always_on_top = true
 unfocusable = true
 mouse_passthrough = true
+minimize_disabled = true
+maximize_disabled = true
 script = ExtResource("9_sky72")

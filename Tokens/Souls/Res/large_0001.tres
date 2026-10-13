@@ -2,6 +2,16 @@
 
 [ext_resource type="Texture2D" uid="uid://c0mm8fek0n85r" path="res://Assets/souls/large_0001.png" id="1_2y3js"]
 [ext_resource type="Script" uid="uid://c5uqs7o5b2w68" path="res://Windows/Inventory/grid_base_inventory_system/core/model/item/item_data.gd" id="2_dn2ec"]
+[ext_resource type="Shader" uid="uid://c7gxmyf484kcn" path="res://Assets/Shader/soul_scanline.gdshader" id="3_scan"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_scan"]
+shader = ExtResource("3_scan")
+shader_parameter/line_color = Color(0.55, 0.85, 1, 1)
+shader_parameter/speed = 0.28
+shader_parameter/band_width = 0.16
+shader_parameter/intensity = 1.0
+shader_parameter/enable = 1.0
+shader_parameter/phase = 0.71
 
 [resource]
 script = ExtResource("2_dn2ec")
@@ -10,4 +20,5 @@ type = "SOUL"
 icon = ExtResource("1_2y3js")
 columns = 3
 rows = 2
+material = SubResource("ShaderMaterial_scan")
 metadata/_custom_type_script = "uid://c5uqs7o5b2w68"

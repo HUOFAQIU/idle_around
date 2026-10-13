@@ -8,8 +8,6 @@ const SMALL_0001 = preload("uid://d4dvhctbc8pk2")
 const MEDIUM_0001 = preload("uid://cooi7q46e2n0g")
 const LARGE_0001 = preload("uid://dnbx5yjtetb2y")
 
-@onready var tooltip_window: TooltipWindow = $"../TooltipWindow"
-
 
 func _ready() -> void:
 	super()
@@ -21,12 +19,11 @@ func _ready() -> void:
 	
 	GBIS.sig_item_focused.connect(
 		func (item_data: ItemData, container_name: String):
-			tooltip_window.visible = true
-			tooltip_window.place_tip()
+			TooltipWindow.instance.show_tip()
 	)
 	GBIS.sig_item_focus_lost.connect(
 		func (item_data: ItemData):
-			tooltip_window.hide_tip()
+			TooltipWindow.instance.hide_tip()
 	)
 
 

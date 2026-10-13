@@ -3,7 +3,6 @@
 [ext_resource type="Script" uid="uid://dxwno0glbet88" path="res://Windows/Battle/battle_window.gd" id="1_nc1sn"]
 [ext_resource type="PackedScene" uid="uid://33uxpqaakhs" path="res://Windows/Battle/Maps/tile.tscn" id="2_7qkyi"]
 [ext_resource type="PackedScene" uid="uid://83lswyl3a54k" path="res://Tokens/player_token.tscn" id="3_qp3cb"]
-[ext_resource type="PackedScene" uid="uid://yewotwadii1v" path="res://Kits/Tooltip/coord_tooltip.tscn" id="4_rymto"]
 
 [node name="BattleWindow" type="Window" unique_id=1101778887]
 oversampling_override = 1.0
@@ -67,6 +66,3 @@ text = "3x"
 custom_minimum_size = Vector2(44, 44)
 layout_mode = 2
 text = "10x"
-
-[node name="CoordTooltip" parent="." unique_id=2138484160 instance=ExtResource("4_rymto")]
-visible = false

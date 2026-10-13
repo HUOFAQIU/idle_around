@@ -36,8 +36,6 @@ const FAST_SPEED : float = 10.0
 @onready var speed_3_button: Button = $CanvasLayer/Control/GridContainer/Speed3Button
 @onready var speed_10_button: Button = $CanvasLayer/Control/GridContainer/Speed10Button
 
-# 跟随鼠标的坐标提示框
-@onready var coord_tooltip: CoordTooltip = $CoordTooltip
 
 var hp_label: Label
 var death_label: Label
@@ -295,12 +293,12 @@ func _update_coord_tooltip() -> void:
 	var hovered_cell := ground_tilemaplayer.local_to_map(local_mouse)
 	# 鼠标不在有效图块上 -> 收起提示
 	if ground_tilemaplayer.get_cell_source_id(hovered_cell) == -1:
-		coord_tooltip.hide_tip()
+		TooltipWindow.instance.hide_tip()
 		return
 	# 内容在这里填，往哪边弹、贴不贴边由 CoordTooltip 自己处理
-	coord_tooltip.name_label.text = str(hex_distance(Vector2i(0, 0), hovered_cell))
-	coord_tooltip.info_label.text = "(%d, %d)" % [hovered_cell.x, hovered_cell.y]
-	coord_tooltip.visible = true
+	#coord_tooltip.name_label.text = str(hex_distance(Vector2i(0, 0), hovered_cell))
+	#coord_tooltip.info_label.text = "(%d, %d)" % [hovered_cell.x, hovered_cell.y]
+	TooltipWindow.instance.show_tip()
 
 
 # 计算与中心点的距离

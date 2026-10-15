@@ -6,7 +6,7 @@
 ##   ③ 吟唱（可选）       吟唱结束后重新选人，避免对着尸体放大
 ##   ④ 逐批结算          一个批次 = 一份 Spec = 一次施加
 ##
-## 门卫检查（蓄力倒计时 / 花费 / 施法条件标签 / 是否在施法中）全部由框架的
+## 门卫检查（冷却倒计时 / 花费 / 施法条件标签 / 是否在施法中）全部由框架的
 ## can_activate_ability() 负责，这里不重复实现。
 ##
 ## @meta_addon: GodotGAS
@@ -23,8 +23,8 @@ func apply_definition(def: SkillDefinition) -> void:
 	skill = def
 	ability_name = def.display_name
 	ability_tag = StringName("Skill." + def.id)
-	# 框架的 cooldown_effect 槽位 = 我们的"蓄力效果"：开局挂上、释放后重新挂上，
-	# 门卫靠它授予的标签判定"蓄力是否完成"。
+	# 框架的 cooldown_effect 槽位 = 我们的"冷却效果"：开局挂上、释放后重新挂上，
+	# 门卫靠它授予的标签判定"冷却是否完成"。
 	cooldown_effect = def.charge_effect
 
 	# 施法条件（例如"只在受伤时治疗"）翻译成框架的标签查询，由门卫统一检查

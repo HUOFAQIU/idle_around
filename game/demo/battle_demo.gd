@@ -4,14 +4,11 @@
 ##
 ## 运行：按 F5（本场景已设为项目主场景），点击【开始战斗】按钮开战。
 ## 重开：按 R。
-## 换种子：改下面的 SEED 常量（同种子 → 同一条战斗过程，可复现）。
 ##
 ## @meta_addon: GodotGAS
 ## @meta_license: MIT
 
 extends Node
-
-const SEED := 20261009
 
 var battle: BattleManager
 var log_label: RichTextLabel
@@ -24,7 +21,7 @@ func _ready() -> void:
 	battle = BattleManager.new()
 	battle.name = "BattleManager"
 	add_child(battle)
-	battle.setup(SEED)
+	battle.setup()
 	battle.log_sink = _append_log_line
 
 	# —— 我方 ——
@@ -100,7 +97,7 @@ func _build_ui() -> void:
 	vbox.add_child(log_label)
 
 
-## 点击【开始战斗】：禁用按钮并正式开战（蓄力倒计时从这个时刻开始）
+## 点击【开始战斗】：禁用按钮并正式开战（冷却倒计时从这个时刻开始）
 func _on_start_pressed() -> void:
 	start_button.disabled = true
 	start_button.text = "战斗进行中…"

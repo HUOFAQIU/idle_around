@@ -1,0 +1,15 @@
+[gd_scene format=3 uid="uid://duibpbpnx3f6x"]
+
+[ext_resource type="Script" uid="uid://qofo1s6g8bl5" path="res://Windows/Tooltip/tooltip_window.gd" id="1_axn8q"]
+
+[node name="TooltipWindow" type="Window" unique_id=143098148]
+oversampling_override = 1.0
+title = "Tooltip"
+size = Vector2i(200, 100)
+visible = false
+always_on_top = true
+unfocusable = true
+mouse_passthrough = true
+minimize_disabled = true
+maximize_disabled = true
+script = ExtResource("1_axn8q")

@@ -8,7 +8,9 @@
 [ext_resource type="PackedScene" uid="uid://b301mgy8od7cj" path="res://Windows/Equipment/equipment_window.tscn" id="6_iy58a"]
 [ext_resource type="PackedScene" uid="uid://f6jom4nfishp" path="res://Windows/Inventory/inventory_window.tscn" id="7_6a6wx"]
 [ext_resource type="PackedScene" uid="uid://byuffsddecjhf" path="res://Windows/Shop/shop_window.tscn" id="8_6a6wx"]
-[ext_resource type="Script" uid="uid://qofo1s6g8bl5" path="res://tooltip_window.gd" id="9_sky72"]
+[ext_resource type="PackedScene" uid="uid://duibpbpnx3f6x" path="res://Windows/Tooltip/tooltip_window.tscn" id="9_sky72"]
+[ext_resource type="PackedScene" uid="uid://bc0rml4pkml2k" path="res://Windows/Info/info_window.tscn" id="10_0ytqx"]
+[ext_resource type="Script" uid="uid://dpy04ofr18j4b" path="res://Windows/Info/info_window.gd" id="11_pxugv"]
 
 [node name="Control" type="Control" unique_id=887310324]
 layout_mode = 3
@@ -133,14 +135,7 @@ open_position = Vector2i(240, 165)
 visible = false
 open_position = Vector2i(160, 1000)
 
-[node name="TooltipWindow" type="Window" parent="." unique_id=397723786]
-oversampling_override = 1.0
-title = "Tooltip"
-size = Vector2i(200, 100)
-visible = false
-always_on_top = true
-unfocusable = true
-mouse_passthrough = true
-minimize_disabled = true
-maximize_disabled = true
-script = ExtResource("9_sky72")
+[node name="TooltipWindow" parent="." unique_id=143098148 instance=ExtResource("9_sky72")]
+
+[node name="InfoWindow" parent="." unique_id=158491879 instance=ExtResource("10_0ytqx")]
+script = ExtResource("11_pxugv")

@@ -7,12 +7,12 @@
 [ext_resource type="Script" uid="uid://ccvfqmqr8q1pm" path="res://addons/GodotGAS/gameplay_tag/gameplay_tag_query.gd" id="4_query"]
 [ext_resource type="Script" uid="uid://cf2mx3u4jfquk" path="res://game/content/target_rule.gd" id="5_rule"]
 
-[sub_resource type="Resource" id="Resource_effect_charge"]
-resource_name = "蓄力"
+[sub_resource type="Resource" id="Resource_8i6cp"]
 script = ExtResource("2_effect")
 policy = 1
 duration = 3.0
 granted_tags = Array[StringName]([&"State.Charging.Slash"])
+metadata/_custom_type_script = "uid://c81papidngxvg"
 
 [sub_resource type="Resource" id="Resource_query_not_dead"]
 script = ExtResource("4_query")
@@ -31,16 +31,17 @@ script = ExtResource("2_effect")
 application_query = SubResource("Resource_query_not_dead")
 modifiers = Array[ExtResource("3_modifier")]([SubResource("Resource_modifier_damage")])
 
-[sub_resource type="Resource" id="Resource_target_rule"]
+[sub_resource type="Resource" id="Resource_ou3ca"]
 script = ExtResource("5_rule")
 count = 2
+metadata/_custom_type_script = "uid://cf2mx3u4jfquk"
 
 [resource]
 script = ExtResource("1_skilldef")
 id = "slash"
 display_name = "斩击"
-description = "随机斩击2名敌人，各造成攻击力100%的伤害。开局蓄力3秒，之后每3秒释放一次。"
+description = "冷却3，随机斩击2名敌人，各造成攻击力100%的伤害。"
 effects = Array[ExtResource("2_effect")]([SubResource("Resource_effect_damage")])
-charge_effect = SubResource("Resource_effect_charge")
-target_rule = SubResource("Resource_target_rule")
+charge_effect = SubResource("Resource_8i6cp")
+target_rule = SubResource("Resource_ou3ca")
 metadata/_custom_type_script = "uid://ktr72cmavmyy"

@@ -1,0 +1,12 @@
+[gd_scene format=3 uid="uid://bc0rml4pkml2k"]
+
+[node name="InfoWindow" type="Window" unique_id=158491879]
+oversampling_override = 1.0
+title = "Tooltip"
+size = Vector2i(400, 400)
+visible = false
+always_on_top = true
+unfocusable = true
+mouse_passthrough = true
+minimize_disabled = true
+maximize_disabled = true

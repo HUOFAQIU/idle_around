@@ -20,10 +20,10 @@ class_name SkillDefinition extends Resource
 ## 施加到每个目标的效果列表（可多个：例如"伤害 + 中毒"）
 @export var effects: Array[GameplayEffect] = []
 
-## 蓄力效果（释放间隔）：DURATION 效果 + granted_tags 里放"蓄力标签"。
+## 冷却效果（释放间隔）：DURATION 效果 + granted_tags 里放"冷却标签"。
 ## 开局 BattleBrain.begin_charge() 会给每个技能挂上它 —— 倒计时走完前，
-## 门卫（can_activate_ability）会因蓄力标签而拒绝释放；标签一脱落即可释放。
-## 释放时 commit_ability() 会重新挂上，进入下一轮蓄力 → 本质是"释放间隔 X 秒"。
+## 门卫（can_activate_ability）会因冷却标签而拒绝释放；标签一脱落即可释放。
+## 释放时 commit_ability() 会重新挂上，进入下一轮冷却 → 本质是"释放间隔 X 秒"。
 ## UI 可调用 asc.get_tag_duration_remaining(标签) 读剩余秒数画倒计时。
 ## （字段名在框架侧仍叫 cooldown_effect —— AutoCastAbility 会把它填进那个槽位）
 @export var charge_effect: GameplayEffect

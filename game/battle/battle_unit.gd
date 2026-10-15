@@ -130,7 +130,7 @@ func _on_active_effect_removed(active_effect: ActiveGameplayEffect) -> void:
 	_log("%s 的状态【%s】结束" % [unit_name, def.resource_name], "gray")
 
 
-## 蓄力等内部效果不播报（靠 State.Charging.* 标签识别）
+## 冷却等内部效果不播报（靠 State.Charging.* 标签识别）
 func _is_internal(def: GameplayEffect) -> bool:
 	for tag in def.granted_tags:
 		if String(tag).begins_with("State.Charging."):

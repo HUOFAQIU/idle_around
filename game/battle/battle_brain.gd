@@ -28,8 +28,8 @@ func setup(p_unit: BattleUnit, skills: Array[SkillDefinition]) -> void:
 		abilities.append(ability)
 
 
-## 开局蓄力：给每个技能挂上它的蓄力效果，倒计时开始走。
-## 蓄力期间技能被蓄力标签挡在门外；倒计时到点、标签脱落，技能才可以释放。
+## 开局冷却：给每个技能挂上它的冷却效果，倒计时开始走。
+## 冷却期间技能被冷却标签挡在门外；倒计时到点、标签脱落，技能才可以释放。
 ## 释放时 commit_ability() 会重新挂上，进入下一轮 —— 即"每 X 秒释放一次"。
 func begin_charge() -> void:
 	for ability in abilities:

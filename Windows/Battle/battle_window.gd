@@ -30,6 +30,7 @@ const FAST_SPEED : float = 10.0
 @onready var projectiles: Node2D = $Tile/Projectiles
 @onready var damage_numbers: Node2D = $Tile/DamageNumbers
 
+@onready var info_button: Button = $CanvasLayer/Control/GridContainer/InfoButton
 @onready var start_button: Button = $CanvasLayer/Control/GridContainer/StartButton
 @onready var speed_1_button: Button = $CanvasLayer/Control/GridContainer/Speed1Button
 @onready var speed_2_button: Button = $CanvasLayer/Control/GridContainer/Speed2Button
@@ -48,16 +49,17 @@ var _fire_accum : float = 0.0
 var _revive_accum : float = 0.0
 ## 开发用的加速倍率，1.0 就是正常速度
 var _speed : float = 1.0
+## 这场战斗在不在跑：点 ▶ 才开始，关窗就结束
+var _running : bool = false
 
 
 func _ready() -> void:
 	super()
 	title = "战斗窗口"
 	
-	start_button.pressed.connect(
-		func () :
-			pass
-	)
+	# 点击出现调试窗口
+	info_button.pressed.connect(_start_battle)
+	start_button.pressed.connect(_start_battle)
 	speed_1_button.pressed.connect(
 		func () :
 			_apply_time_scale(1)
@@ -74,7 +76,10 @@ func _ready() -> void:
 		func () :
 			_apply_time_scale(10)
 	)
-	
+
+	# 关窗（标题栏 × 或主界面的切换按钮）＝ 这场战斗结束，下次打开回到初始状态
+	visibility_changed.connect(_on_visibility_changed)
+
 	if SHOW_DEBUG_DISTANCE:
 		for cell in ground_tilemaplayer.get_used_cells():
 			var label: Label = Label.new()
@@ -95,15 +100,53 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
-	# 窗口没开着就整场暂停
+	# 窗口没开着就不跑
 	if not visible:
 		return
 
 	_update_coord_tooltip()
+
+	# 没点开始，场上什么都不动
+	if not _running:
+		return
+
 	_tick_battle(delta)
 
 
 # ---------------------------------------------------------------- 战斗
+
+# ▶：开打。跑起来之后这个按钮是「重开」，点了就清场从头来
+# —— 开始和重开是同一件事：复位 + 开跑
+func _start_battle() -> void:
+	_reset_field()
+	_running = true
+	start_button.text = "重开"
+	# 立刻先来一只，不然点完还得对着空场等第一拍
+	_spawn_monster()
+
+
+# 关窗＝这场战斗结束。下次打开窗口看到的，就是这一关的初始状态
+func _end_battle() -> void:
+	_running = false
+	_reset_field()
+	start_button.text = "▷"
+
+
+# 满血、计时归零、场上清空
+func _reset_field() -> void:
+	_clear_field()
+	_player_hp = PLAYER_MAX_HP
+	_dead = false
+	_move_accum = 0.0
+	_fire_accum = 0.0
+	_revive_accum = 0.0
+
+
+func _clear_field() -> void:
+	for container in [monsters, projectiles, damage_numbers]:
+		for child in container.get_children():
+			child.queue_free()
+
 
 func _tick_battle(delta: float) -> void:
 	if _dead:
@@ -246,9 +289,7 @@ func _die() -> void:
 	_dead = true
 	_revive_accum = 0.0
 	# 清场：怪、飞行物、跳着的数字全清掉
-	for container in [monsters, projectiles, damage_numbers]:
-		for child in container.get_children():
-			child.queue_free()
+	_clear_field()
 
 
 func _revive() -> void:
@@ -277,6 +318,12 @@ func _pop_damage(pos: Vector2, amount: int) -> void:
 
 
 # ---------------------------------------------------------------- 界面
+
+
+# 关窗会走到这儿（标题栏 × 和主界面按钮最后都是 hide()）；开窗时也会走，直接放行
+func _on_visibility_changed() -> void:
+	if not visible:
+		_end_battle()
 
 
 # 加速走的是 Engine.time_scale，所以是「整个游戏一起快」，不只是这个窗口。

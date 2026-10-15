@@ -14,17 +14,13 @@ signal battle_ended(winner_team: int)
 var units: Array[BattleUnit] = []
 var is_running: bool = false
 
-## 全局随机数：带种子 → 同一场战斗完全可复现（方便回放与调试）
-var rng := RandomNumberGenerator.new()
-
 ## UI 日志接收器，签名：func(line: String, color: String)
 var log_sink: Callable = Callable()
 
 var _start_msec: int = 0
 
 
-func setup(random_seed: int = 20261009) -> void:
-	rng.seed = random_seed
+func setup() -> void:
 	_start_msec = Time.get_ticks_msec()
 
 
@@ -44,7 +40,7 @@ func start_battle() -> void:
 				unit.hp_attr.current_value,
 				unit.asc.get_attribute("atk").current_value], "white")
 	
-	# 开局蓄力：所有技能同时开始各自的倒计时，时间到才能释放
+	# 开局冷却：所有技能同时开始各自的倒计时，时间到才能释放
 	for unit in units:
 		unit.brain.begin_charge()
 

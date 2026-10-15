@@ -6,12 +6,12 @@
 [ext_resource type="Script" uid="uid://bcow77l0bnh0s" path="res://addons/GodotGAS/effects/gameplay_effect_modifier.gd" id="3_modifier"]
 [ext_resource type="Script" uid="uid://cf2mx3u4jfquk" path="res://game/content/target_rule.gd" id="5_rule"]
 
-[sub_resource type="Resource" id="Resource_effect_charge"]
-resource_name = "蓄力"
+[sub_resource type="Resource" id="Resource_8a88l"]
 script = ExtResource("2_effect")
 policy = 1
 duration = 5.0
 granted_tags = Array[StringName]([&"State.Charging.Heal"])
+metadata/_custom_type_script = "uid://c81papidngxvg"
 
 [sub_resource type="Resource" id="Resource_modifier_heal"]
 script = ExtResource("3_modifier")
@@ -32,9 +32,9 @@ camp = 1
 script = ExtResource("1_skilldef")
 id = "heal"
 display_name = "治愈"
-description = "治疗血量百分比最低的友方（含自己）25点生命。仅在受伤时才可施放。开局蓄力5秒，之后每5秒蓄力一次。"
+description = "冷却5，治疗血量百分比最低的友方（含自己）25点生命。仅在受伤时才可施放。"
 effects = Array[ExtResource("2_effect")]([SubResource("Resource_effect_heal")])
-charge_effect = SubResource("Resource_effect_charge")
+charge_effect = SubResource("Resource_8a88l")
 target_rule = SubResource("Resource_target_rule")
 cast_requires_tags = Array[StringName]([&"State.Wounded"])
 metadata/_custom_type_script = "uid://ktr72cmavmyy"

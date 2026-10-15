@@ -1,12 +1,24 @@
 [gd_scene format=3 uid="uid://bc0rml4pkml2k"]
 
-[node name="InfoWindow" type="Window" unique_id=158491879]
+[ext_resource type="Script" path="res://Windows/Info/info_window.gd" id="1_info"]
+
+[node name="InfoWindow" type="Window"]
 oversampling_override = 1.0
-title = "Tooltip"
+title = "战斗信息"
 size = Vector2i(400, 400)
 visible = false
-always_on_top = true
-unfocusable = true
-mouse_passthrough = true
 minimize_disabled = true
 maximize_disabled = true
+script = ExtResource("1_info")
+
+[node name="LogPanel" type="PanelContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="LogLabel" type="RichTextLabel" parent="LogPanel"]
+layout_mode = 2
+bbcode_enabled = true
+scroll_following = true

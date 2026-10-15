@@ -1,34 +1,34 @@
 class_name BattleWindow
 extends BaseWindow
 
-const PLAYER_MAX_HP : int = 500
-## 怪物贴到身边后，每 3 秒咬一口的伤害
-const BITE_DAMAGE : int = 20
-
-## 战斗心跳：每 3 秒一拍 —— 所有怪一起朝中心挪一格，然后刷一只新的
-const TURN_INTERVAL : float = 3.0
-## 「距离 10 以外」：比这个距离远的格子才刷怪
-const SPAWN_MIN_DISTANCE : int = 10
-
-## 每 2 秒朝最近的怪打一发
-const FIRE_INTERVAL : float = 2.0
-const PROJECTILE_DAMAGE : int = 30
-
-## 死后多久复活
+## 角色的血量上限（角色目前只有血量这一个属性）
+const PLAYER_MAX_HEALTH : float = 500.0
+## 蛇的血量上限
+const ENEMY_MAX_HEALTH : float = 100.0
+## 角色倒下后多久重开一整场
 const REVIVE_DELAY : float = 3.0
+
+## 单位的贴图与取哪一格
+const TOKENS_TEXTURE := preload("res://Assets/tokens.png")
+const PLAYER_REGION := Rect2(32, 0, 32, 32)
+const PLAYER_COLOR := Color(0, 0.8765176, 0.32171732)
+const SNAKE_REGION := Rect2(64, 0, 32, 32)
+const SNAKE_COLOR := Color(0.92, 0.30, 0.30)
+
+## 蛇的技能表、以及它"每 3 秒走一步"用的冷却
+const SNAKE_SKILL := preload("res://game/content/skills/yao.tres")
+const MOVE_COOLDOWN := preload("res://game/content/effects/move_cooldown.tres")
+
+## 魂灵窗口里那四个格子（容器名，见 equipment_window.tscn）
+const SOUL_SLOT_NAMES : Array[String] = ["cell_0", "cell_1", "cell_2", "cell_3"]
 
 ## 格子上画距离数字（调试用）
 const SHOW_DEBUG_DISTANCE : bool = false
 
-## 开发用的加速倍率（右上角按钮切换）
-const FAST_SPEED : float = 10.0
-
 @onready var tile: Node2D = $Tile
 @onready var ground_tilemaplayer: TileMapLayer = $Tile/GroundTileMapLayer
-@onready var player_token: Sprite2D = $Tile/PlayerToken
-@onready var monsters: Node2D = $Tile/Monsters
-@onready var projectiles: Node2D = $Tile/Projectiles
-@onready var damage_numbers: Node2D = $Tile/DamageNumbers
+## 单位的家：跟地图同一个坐标系，所以单位直接挂这儿
+@onready var units_root: Node2D = $Tile/Units
 
 @onready var info_button: Button = $CanvasLayer/Control/GridContainer/InfoButton
 @onready var start_button: Button = $CanvasLayer/Control/GridContainer/StartButton
@@ -37,28 +37,21 @@ const FAST_SPEED : float = 10.0
 @onready var speed_3_button: Button = $CanvasLayer/Control/GridContainer/Speed3Button
 @onready var speed_10_button: Button = $CanvasLayer/Control/GridContainer/Speed10Button
 
-
-var hp_label: Label
-var death_label: Label
-var speed_button: Button
-
-var _player_hp : int = PLAYER_MAX_HP
-var _dead : bool = false
-var _move_accum : float = 0.0
-var _fire_accum : float = 0.0
-var _revive_accum : float = 0.0
-## 开发用的加速倍率，1.0 就是正常速度
-var _speed : float = 1.0
-## 这场战斗在不在跑：点 ▶ 才开始，关窗就结束
-var _running : bool = false
+## 现在这一场。开打时建，关窗/重开时整个销毁 —— 单位的属性、标签、冷却
+## 全挂在它下面的节点上，所以销毁就等于全清，不用写复原逻辑
+var _battle : BattleManager
+## 重开代次：角色倒下要等 3 秒，这期间玩家自己点了重开的话，那次等待作废
+var _run_id : int = 0
+## 这一场参战的魂灵（开打时从装备格里抓的，用来推扫描线）
+var _battle_souls : Array[SoulData] = []
 
 
 func _ready() -> void:
 	super()
 	title = "战斗窗口"
-	
-	# 点击出现调试窗口
-	info_button.pressed.connect(_start_battle)
+
+	# ☰ 开关战斗信息窗口；▶ 才是开战
+	info_button.pressed.connect(_on_info_pressed)
 	start_button.pressed.connect(_start_battle)
 	speed_1_button.pressed.connect(
 		func () :
@@ -90,7 +83,7 @@ func _ready() -> void:
 			# Label 自身坐标是左上角，偏移一半尺寸来居中
 			label.position = center - label.size / 2.0
 
-			var d : int = hex_distance(Vector2i(0, 0), cell)
+			var d : int = Hex.distance(Vector2i(0, 0), cell)
 			if d % 2 != 0:
 				label.add_theme_color_override("font_color", Color.WHITE)
 			else:
@@ -99,222 +92,147 @@ func _ready() -> void:
 			ground_tilemaplayer.add_child(label)
 
 
-func _physics_process(delta: float) -> void:
+func _physics_process(_delta: float) -> void:
 	# 窗口没开着就不跑
 	if not visible:
 		return
 
 	_update_coord_tooltip()
-
-	# 没点开始，场上什么都不动
-	if not _running:
-		return
-
-	_tick_battle(delta)
+	_push_scanlines()
 
 
 # ---------------------------------------------------------------- 战斗
 
-# ▶：开打。跑起来之后这个按钮是「重开」，点了就清场从头来
-# —— 开始和重开是同一件事：复位 + 开跑
+# ▶：开打。跑起来之后这个按钮是「重开」，点了就把整场推倒重来
+# —— 开始和重开是同一件事：清场 + 重建
 func _start_battle() -> void:
-	_reset_field()
-	_running = true
-	start_button.text = "重开"
+	_clear_battle()
+	_run_id += 1
+
+	_battle = BattleManager.new()
+	_battle.name = "BattleManager"
+	add_child(_battle)
+	_battle.map = ground_tilemaplayer
+	_battle.log_sink = InfoWindow.instance.append_line
+	_battle.spawn_enemy = _spawn_enemy
+	_battle.setup()
+
+	InfoWindow.instance.clear_log()
+	_battle_souls = _equipped_souls()
+	_battle.player = _spawn_player()
+	_battle.start_battle()
 	# 立刻先来一只，不然点完还得对着空场等第一拍
-	_spawn_monster()
+	_battle.spawn_one()
+	_set_scanlines(true)
+
+	start_button.text = "重开"
 
 
 # 关窗＝这场战斗结束。下次打开窗口看到的，就是这一关的初始状态
 func _end_battle() -> void:
-	_running = false
-	_reset_field()
+	_run_id += 1  # 让"等 3 秒重开"作废
+	_clear_battle()
+	_set_scanlines(false)
 	start_button.text = "▷"
 
 
-# 满血、计时归零、场上清空
-func _reset_field() -> void:
-	_clear_field()
-	_player_hp = PLAYER_MAX_HP
-	_dead = false
-	_move_accum = 0.0
-	_fire_accum = 0.0
-	_revive_accum = 0.0
+func _clear_battle() -> void:
+	for child in units_root.get_children():
+		child.queue_free()
+	if _battle:
+		_battle.queue_free()
+		_battle = null
 
 
-func _clear_field() -> void:
-	for container in [monsters, projectiles, damage_numbers]:
-		for child in container.get_children():
-			child.queue_free()
+# 角色：站在战场中心，技能全部来自装备上的魂灵
+func _spawn_player() -> BattleUnit:
+	var skills : Array[SkillDefinition] = []
+	for soul in _battle_souls:
+		if soul.skill and not skills.has(soul.skill):
+			skills.append(soul.skill)
+	if skills.is_empty():
+		_battle.log_line("没有装备魂灵 —— 角色不会任何技能", "yellow")
+
+	var unit := BattleUnit.new()
+	units_root.add_child(unit)
+	unit.setup("角色", BattleUnit.Team.PLAYER, PLAYER_MAX_HEALTH, skills, _battle)
+	unit.set_body(TOKENS_TEXTURE, PLAYER_REGION, PLAYER_COLOR)
+	unit.set_cell(Vector2i.ZERO)
+	unit.died.connect(_on_player_died)
+	_battle.add_unit(unit)
+	return unit
 
 
-func _tick_battle(delta: float) -> void:
-	if _dead:
-		_revive_accum += delta
-		if _revive_accum >= REVIVE_DELAY:
-			_revive()
-		return
+# 蛇：咬人 + 每 3 秒朝角色走一步
+func _spawn_enemy(cell: Vector2i) -> void:
+	var skills : Array[SkillDefinition] = [SNAKE_SKILL]
+	var unit := BattleUnit.new()
+	units_root.add_child(unit)
+	unit.setup("蛇", BattleUnit.Team.ENEMY, ENEMY_MAX_HEALTH, skills, _battle)
+	unit.set_body(TOKENS_TEXTURE, SNAKE_REGION, SNAKE_COLOR)
+	unit.set_cell(cell)
 
-	_move_accum += delta
-	if _move_accum >= TURN_INTERVAL:
-		_move_accum -= TURN_INTERVAL
-		_monster_turn()
+	# 移动也是"能力"：节奏走 cooldown_effect 这个槽位，和技能共用同一套冷却机制
+	var move := MoveAbility.new()
+	move.ability_name = "移动"
+	move.ability_tag = &"Ability.Move"
+	move.cooldown_effect = MOVE_COOLDOWN
+	unit.brain.add_ability(move)
 
-	_fire_accum += delta
-	if _fire_accum >= FIRE_INTERVAL:
-		_fire_accum -= FIRE_INTERVAL
-		_fire()
+	_battle.add_unit(unit)
 
 
-# 3 秒一拍：所有怪朝中心挪一格，已经贴到玩家的就咬一口，然后刷一只新的
-# 一格只站一只怪：前面有怪挡着，这一拍就原地等着（排成一队往里走）
-func _monster_turn() -> void:
-	var occupied := _occupied_cells()
-	var bites : int = 0
-
-	for node in monsters.get_children():
-		if node.is_queued_for_deletion():
+## 装备着的魂灵：魂灵窗口里那四个格子，每个其实是一个只收 SOUL 的小背包
+func _equipped_souls() -> Array[SoulData]:
+	var souls : Array[SoulData] = []
+	for slot_name in SOUL_SLOT_NAMES:
+		var container := ContainerRepository.instance.get_container(slot_name)
+		if container == null:
 			continue
-		var monster := node as Monster
-		if monster == null:
-			continue
-
-		var next := _next_cell_toward_center(monster.cell)
-		if next == monster.cell:
-			# 贴到玩家了，咬一口
-			bites += 1
-		elif not occupied.has(next):
-			occupied.erase(monster.cell)
-			occupied[next] = true
-			monster.step_to(next, ground_tilemaplayer.map_to_local(next))
-
-	if bites > 0:
-		_hurt_player(bites * BITE_DAMAGE)
-	if not _dead:
-		_spawn_monster()
+		for item in container.items:
+			if item is SoulData:
+				souls.append(item)
+	return souls
 
 
-# 现在被怪占着的格子
-func _occupied_cells() -> Dictionary:
-	var occupied := {}
-	for node in monsters.get_children():
-		if node.is_queued_for_deletion():
-			continue
-		var monster := node as Monster
-		if monster:
-			occupied[monster.cell] = true
-	return occupied
+#region 魂灵扫描线 = 冷却条
 
-
-# 朝中心走一格；已经贴到玩家（距离 1）就原地不动，等着咬
-func _next_cell_toward_center(cell: Vector2i) -> Vector2i:
-	var d := hex_distance(cell, Vector2i.ZERO)
-	if d <= 1:
-		return cell
-	# 六个邻居里，朝中心走的那一格距离正好少 1
-	for neighbor in ground_tilemaplayer.get_surrounding_cells(cell):
-		if hex_distance(neighbor, Vector2i.ZERO) == d - 1:
-			return neighbor
-	return cell
-
-
-func _spawn_monster() -> void:
-	var candidates := _free_spawn_cells()
-	if candidates.is_empty():
+## 每帧把每颗魂灵的冷却进度写进它的扫描线（0 = 刚触发，1 = 冷却走完）
+func _push_scanlines() -> void:
+	if _battle == null or _battle.player == null:
 		return
-	var cell : Vector2i = candidates.pick_random()
-	var monster := Monster.new()
-	monster.cell = cell
-	monster.position = ground_tilemaplayer.map_to_local(cell)
-	monsters.add_child(monster)
+	for soul in _battle_souls:
+		if soul.skill:
+			soul.set_shader_param("progress", _charge_progress(soul.skill))
 
 
-# 距离中心 10 以外、且没被别的怪占着的格子
-# 注意：棋盘上格子坐标有负数，别拿负数当「没位置」的标记
-func _free_spawn_cells() -> Array[Vector2i]:
-	var taken := _occupied_cells()
-
-	var cells : Array[Vector2i] = []
-	for cell in ground_tilemaplayer.get_used_cells():
-		if hex_distance(cell, Vector2i.ZERO) > SPAWN_MIN_DISTANCE and not taken.has(cell):
-			cells.append(cell)
-	return cells
+## 冷却走完多少了。读的是框架挂在角色身上那条冷却标签的剩余时间
+func _charge_progress(skill: SkillDefinition) -> float:
+	var effect := skill.charge_effect
+	if effect == null or effect.granted_tags.is_empty() or effect.duration <= 0.0:
+		return 0.0
+	var tag : StringName = effect.granted_tags[0]
+	var remaining := _battle.player.asc.get_tag_duration_remaining(tag)
+	return clampf(1.0 - remaining / effect.duration, 0.0, 1.0)
 
 
-func _fire() -> void:
-	var target := _nearest_monster()
-	if target == null:
+## 扫描线的总开关：不在战斗时整条收起来（这是文档要的"战斗开始后才出现"）
+func _set_scanlines(on: bool) -> void:
+	for soul in _battle_souls:
+		soul.set_scanline_enabled(on)
+		if not on:
+			soul.set_shader_param("progress", 0.0)
+#endregion
+
+
+# 角色倒下：停一会儿，然后整场重来
+func _on_player_died(_unit: BattleUnit) -> void:
+	_battle.log_line("角色倒下了，%.0f 秒后重来……" % REVIVE_DELAY, "yellow")
+	var run_id := _run_id
+	await get_tree().create_timer(REVIVE_DELAY).timeout
+	if run_id != _run_id or not visible:
 		return
-
-	var projectile := Projectile.new()
-	projectile.position = player_token.position
-	projectile.setup(target.position - player_token.position, monsters)
-	projectile.hit.connect(_on_projectile_hit)
-	projectiles.add_child(projectile)
-
-
-func _nearest_monster() -> Monster:
-	var nearest : Monster = null
-	var nearest_distance : float = INF
-	for node in monsters.get_children():
-		if node.is_queued_for_deletion():
-			continue
-		var monster := node as Monster
-		if monster == null:
-			continue
-		var d := player_token.position.distance_to(monster.position)
-		if d < nearest_distance:
-			nearest_distance = d
-			nearest = monster
-	return nearest
-
-
-func _on_projectile_hit(monster: Monster) -> void:
-	if monster.is_queued_for_deletion():
-		return
-	_pop_damage(monster.position, PROJECTILE_DAMAGE)
-	if monster.take_damage(PROJECTILE_DAMAGE):
-		monster.queue_free()
-
-
-func _hurt_player(amount: int) -> void:
-	if _dead:
-		return
-	_player_hp = maxi(_player_hp - amount, 0)
-	if _player_hp <= 0:
-		_die()
-
-
-func _die() -> void:
-	_dead = true
-	_revive_accum = 0.0
-	# 清场：怪、飞行物、跳着的数字全清掉
-	_clear_field()
-
-
-func _revive() -> void:
-	_dead = false
-	_player_hp = PLAYER_MAX_HP
-	_move_accum = 0.0
-	_fire_accum = 0.0
-
-
-# 怪物身上跳一个伤害数字
-func _pop_damage(pos: Vector2, amount: int) -> void:
-	var label := Label.new()
-	label.text = str(amount)
-	label.size = Vector2(40, 20)
-	label.position = pos - Vector2(20, 26)
-	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.add_theme_font_size_override("font_size", 16)
-	label.add_theme_color_override("font_color", Color(1.0, 0.9, 0.3))
-	damage_numbers.add_child(label)
-
-	var tween := label.create_tween()
-	tween.set_parallel(true)
-	tween.tween_property(label, "position", label.position + Vector2(0, -24), 0.6)
-	tween.tween_property(label, "modulate:a", 0.0, 0.6)
-	tween.chain().tween_callback(label.queue_free)
+	_start_battle()
 
 
 # ---------------------------------------------------------------- 界面
@@ -332,6 +250,10 @@ func _apply_time_scale(speed : float) -> void:
 	Engine.time_scale = speed
 
 
+func _on_info_pressed() -> void:
+	InfoWindow.instance.toggle()
+
+
 # 跟着鼠标显示 hover 到的格子：距离中心的格数 + 格子坐标
 func _update_coord_tooltip() -> void:
 	# 鼠标在 TileMapLayer 局部坐标系中的位置
@@ -342,23 +264,4 @@ func _update_coord_tooltip() -> void:
 	if ground_tilemaplayer.get_cell_source_id(hovered_cell) == -1:
 		TooltipWindow.instance.hide_tip()
 		return
-	# 内容在这里填，往哪边弹、贴不贴边由 CoordTooltip 自己处理
-	#coord_tooltip.name_label.text = str(hex_distance(Vector2i(0, 0), hovered_cell))
-	#coord_tooltip.info_label.text = "(%d, %d)" % [hovered_cell.x, hovered_cell.y]
 	TooltipWindow.instance.show_tip()
-
-
-# 计算与中心点的距离
-func hex_distance(a: Vector2i, b: Vector2i) -> int:
-	# 把 Godot 的 offset 坐标转成 axial，再转 cube，取三个轴的最大差
-	var a_cube := _offset_to_cube(a)
-	var b_cube := _offset_to_cube(b)
-	return max(absi(a_cube.x - b_cube.x), absi(a_cube.y - b_cube.y), absi(a_cube.z - b_cube.z))
-
-
-func _offset_to_cube(coord: Vector2i) -> Vector3i:
-	# pointy-top：偶数行偏移，q = col - (row - (row & 1)) / 2
-	var q := coord.x - (coord.y - (coord.y & 1)) / 2
-	var r := coord.y
-	var s := -q - r
-	return Vector3i(q, r, s)

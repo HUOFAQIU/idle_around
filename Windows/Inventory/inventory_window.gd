@@ -4,9 +4,12 @@ extends BaseWindow
 @onready var button_2: Button = $GridContainer/Button2
 @onready var button_3: Button = $GridContainer/Button3
 
-const SMALL_0001 = preload("uid://d4dvhctbc8pk2")
-const MEDIUM_0001 = preload("uid://cooi7q46e2n0g")
-const LARGE_0001 = preload("uid://dnbx5yjtetb2y")
+## 调试用：往仓库里塞一颗魂灵。
+## 带 skill 的魂灵拖进魂灵窗口的格子，战斗里角色才会放技能；
+## 盾是早期的样例魂灵（没挂技能），留着占位
+const XIAO_LU = preload("res://Tokens/Souls/Res/xiao_lu.tres")
+const DUN = preload("uid://cooi7q46e2n0g")
+const CHANG_GONG = preload("res://Tokens/Souls/Res/chang_gong.tres")
 
 
 func _ready() -> void:
@@ -28,10 +31,10 @@ func _ready() -> void:
 
 
 func button_pressed() -> void:
-	GBIS.add_item("inventory_0", SMALL_0001)
+	GBIS.add_item("inventory_0", XIAO_LU)
 
 func button_2_pressed() -> void:
-	GBIS.add_item("inventory_0", MEDIUM_0001)
+	GBIS.add_item("inventory_0", DUN)
 
 func button_3_pressed() -> void:
-	GBIS.add_item("inventory_0", LARGE_0001)
+	GBIS.add_item("inventory_0", CHANG_GONG)

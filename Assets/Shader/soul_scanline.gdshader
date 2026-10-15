@@ -1,32 +1,31 @@
 shader_type canvas_item;
-// 魂灵扫描线：一条发光带自上而下扫过。
+// 魂灵扫描线：一条发光带自下而上扫过 —— 扫到顶就是这颗魂灵的冷却走完。
 //
-// 挂在 ItemData.material 上。ItemView 会给每个 view duplicate 一份材质，
-// 所以 shader_parameter/phase 可以每颗魂灵各填一个值，错开相位。
+// progress 由战斗侧每帧推（0 = 刚触发、线在底部；1 = 冷却走完、线在顶部）。
+// 为什么不学以前那样用内置 TIME 自己走：TIME 不受 Engine.time_scale 影响，
+// 而冷却受 —— 一开加速，线和冷却就分家了。
 //
-// 动画完全靠内置的 TIME，GDScript 侧不用每帧 set_shader_parameter，
-// 也不用 queue_redraw。代价是 TIME 不受 Engine.time_scale 影响。
+// 不在战斗时 enable = 0，整条线不画。
 //
 // 光带自己有颜色也有透明度，所以**图案透明的地方一样画得出来**：
 // 扫过的是整个物品格子，不只是图案的实体部分。
 
 // 光带颜色
 uniform vec4 line_color : source_color = vec4(0.55, 0.85, 1.0, 1.0);
-// 每秒扫过几趟
-uniform float speed : hint_range(0.0, 2.0) = 0.28;
 // 光带半宽（占物品高度的比例），越大越柔
 uniform float band_width : hint_range(0.01, 0.5) = 0.16;
 // 光带强度：既是染上去的比例，也是它在透明区上的不透明度
 uniform float intensity : hint_range(0.0, 1.0) = 0.85;
 // 开关：0 = 整条光带不画。代码里用 ItemData.set_scanline_enabled() 控制
-uniform float enable : hint_range(0.0, 1.0) = 1.0;
-// 相位偏移 0..1，每颗魂灵填不同的值
-uniform float phase : hint_range(0.0, 1.0) = 0.0;
+uniform float enable : hint_range(0.0, 1.0) = 0.0;
+// 冷却进度 0..1，由战斗侧每帧写
+uniform float progress : hint_range(0.0, 1.0) = 0.0;
 
 void fragment() {
-	// 0..1 循环：扫到底之后从头再来
-	float t = fract(TIME * speed + phase);
-	float d = abs(UV.y - t);
+	// UV.y 是"从上往下"的，所以底部是 1、顶部是 0 —— 进度 0 要落在底部，
+	// 位置就得反过来写
+	float line_y = 1.0 - clamp(progress, 0.0, 1.0);
+	float d = abs(UV.y - line_y);
 
 	// 一圈软的 + 一条硬的芯。芯要收得比外面窄，才像"一条线"而不是一道晕。
 	// 注意写成 1.0 - smoothstep(0, w, d)：GLSL 规定 edge0 >= edge1 时结果未定义，

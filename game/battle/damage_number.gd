@@ -1,0 +1,32 @@
+## 单位头顶跳一下的数字：掉血红、回血绿，边升边淡出。
+##
+## 挂在单位节点底下，所以单位走它跟着走、单位没了它跟着没，
+## 不需要外面拿个容器管它们。
+
+class_name DamageNumber extends Label
+
+## 往上飘多远
+const RISE : float = 28.0
+## 飘多久
+const LIFETIME : float = 0.7
+const FONT_SIZE : int = 16
+const COLOR_DAMAGE := Color(1.0, 0.45, 0.4)
+const COLOR_HEAL := Color(0.5, 0.95, 0.5)
+
+
+## amount 传正数；heal = true 表示这是回血。
+## 注意：要先 add_child 再调这个 —— 建补间需要节点已经在树里
+func setup(amount: float, heal: bool) -> void:
+	text = ("+%d" % roundi(amount)) if heal else ("-%d" % roundi(amount))
+	# Label 的坐标是左上角，所以要自己往左上挪半个身位，让它落在单位正上方
+	size = Vector2(48.0, 20.0)
+	position = Vector2(-24.0, -46.0)
+	horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	add_theme_font_size_override("font_size", FONT_SIZE)
+	add_theme_color_override("font_color", COLOR_HEAL if heal else COLOR_DAMAGE)
+
+	var tween := create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(self, "position:y", position.y - RISE, LIFETIME)
+	tween.tween_property(self, "modulate:a", 0.0, LIFETIME)
+	tween.chain().tween_callback(queue_free)

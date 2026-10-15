@@ -1,40 +1,38 @@
-[gd_resource type="Resource" script_class="SkillDefinition" format=3 uid="uid://d0vv2w6ydii3f"]
+[gd_resource type="Resource" script_class="SkillDefinition" format=3 uid="uid://byh5mdt4b84yp"]
 
-[ext_resource type="Script" uid="uid://b7ovihaaijli7" path="res://addons/GodotGAS/effects/gameplay_execution_calculation.gd" id="1_8a88l"]
+[ext_resource type="Script" uid="uid://b7ovihaaijli7" path="res://addons/GodotGAS/effects/gameplay_execution_calculation.gd" id="1_sd1or"]
 [ext_resource type="Script" uid="uid://ktr72cmavmyy" path="res://game/content/skill_definition.gd" id="1_skilldef"]
 [ext_resource type="Script" uid="uid://c81papidngxvg" path="res://addons/GodotGAS/effects/gameplay_effect.gd" id="2_effect"]
 [ext_resource type="Script" uid="uid://bcow77l0bnh0s" path="res://addons/GodotGAS/effects/gameplay_effect_modifier.gd" id="3_modifier"]
 [ext_resource type="Script" uid="uid://cf2mx3u4jfquk" path="res://game/content/target_rule.gd" id="5_rule"]
 
-[sub_resource type="Resource" id="Resource_8a88l"]
+[sub_resource type="Resource" id="Resource_effect_charge"]
+resource_name = "小鹿·冷却"
 script = ExtResource("2_effect")
 policy = 1
-duration = 5.0
-granted_tags = Array[StringName]([&"State.Charging.Heal"])
-metadata/_custom_type_script = "uid://c81papidngxvg"
+duration = 4.0
+granted_tags = Array[StringName]([&"State.Charging.Deer"])
 
 [sub_resource type="Resource" id="Resource_modifier_heal"]
 script = ExtResource("3_modifier")
-attribute_name = "hp"
-magnitude = 25.0
+attribute_name = "health"
+magnitude = 30.0
 
 [sub_resource type="Resource" id="Resource_effect_heal"]
-resource_name = "治愈"
+resource_name = "小鹿"
 script = ExtResource("2_effect")
 modifiers = Array[ExtResource("3_modifier")]([SubResource("Resource_modifier_heal")])
 
 [sub_resource type="Resource" id="Resource_target_rule"]
 script = ExtResource("5_rule")
-mode = 2
-camp = 1
+camp = 2
 
 [resource]
 script = ExtResource("1_skilldef")
-id = "heal"
-display_name = "治愈"
-description = "冷却5，治疗血量百分比最低的友方（含自己）25点生命。仅在受伤时才可施放。"
+id = "deer"
+display_name = "小鹿"
+description = "冷却 4 秒，回复自身 30 点血量。"
 effects = Array[ExtResource("2_effect")]([SubResource("Resource_effect_heal")])
-charge_effect = SubResource("Resource_8a88l")
+charge_effect = SubResource("Resource_effect_charge")
 target_rule = SubResource("Resource_target_rule")
-cast_requires_tags = Array[StringName]([&"State.Wounded"])
 metadata/_custom_type_script = "uid://ktr72cmavmyy"

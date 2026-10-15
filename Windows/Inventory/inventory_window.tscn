@@ -17,17 +17,17 @@ columns = 10
 [node name="Button" type="Button" parent="GridContainer" unique_id=1713601447]
 custom_minimum_size = Vector2(60, 40)
 layout_mode = 2
-text = "魂灵_1_2"
+text = "小鹿"
 
 [node name="Button2" type="Button" parent="GridContainer" unique_id=279295495]
 custom_minimum_size = Vector2(60, 40)
 layout_mode = 2
-text = "魂灵_2_2"
+text = "盾"
 
 [node name="Button3" type="Button" parent="GridContainer" unique_id=1732713918]
 custom_minimum_size = Vector2(60, 40)
 layout_mode = 2
-text = "魂灵_3_2"
+text = "长弓"
 
 [node name="InventoryView" type="Control" parent="." unique_id=1654115602]
 layout_mode = 3

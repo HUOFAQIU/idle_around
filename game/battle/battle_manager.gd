@@ -1,23 +1,38 @@
-## 战场：阵营名单、全局随机数（可复现）、战斗日志、胜负判定。
+## 战场：单位登记、刷怪心跳、坐标换算、战斗日志。
 ##
-## 实时秒表模型下这里不驱动技能计时——每个单位的冷却由框架自己走，
-## BattleManager 只负责"谁在场上、谁倒下了、谁赢了"。
+## 它不认地图节点本身，只借一张地图做"格子 → 像素"的换算 ——
+## 战斗逻辑算的是格子坐标，地图只负责把格子画出来。
 ##
-## @meta_addon: GodotGAS
-## @meta_license: MIT
+## 没有胜负：怪一直刷，角色倒下就发信号，由外面决定怎么重来。
 
 class_name BattleManager extends Node
 
-## 战斗结束（winner 为 BattleUnit.Team；-1 = 同归于尽）
-signal battle_ended(winner_team: int)
+## 角色倒下（外面通常等几秒后重开）
+signal player_died
+
+## 刷怪间隔（秒）
+const SPAWN_INTERVAL : float = 3.0
+## 只在这个距离之外刷怪
+const SPAWN_MIN_DISTANCE : int = 10
+
+## 单位坐标 → 像素坐标要用的地图
+var map: TileMapLayer
+## 刷怪回调，签名 func(cell: Vector2i)。谁建怪、怪长什么样，是游戏侧的事
+var spawn_enemy: Callable = Callable()
+## 角色（目前只有它一个 PLAYER 单位）
+var player: BattleUnit
 
 var units: Array[BattleUnit] = []
 var is_running: bool = false
+
+## 全局随机数：选目标、刷怪都走它
+var rng := RandomNumberGenerator.new()
 
 ## UI 日志接收器，签名：func(line: String, color: String)
 var log_sink: Callable = Callable()
 
 var _start_msec: int = 0
+var _spawn_accum: float = 0.0
 
 
 func setup() -> void:
@@ -27,30 +42,83 @@ func setup() -> void:
 func add_unit(unit: BattleUnit) -> void:
 	units.append(unit)
 	unit.died.connect(_on_unit_died)
+	# 战斗中才入场的单位（比如后面刷出来的怪）也要从这一刻开始走冷却，
+	# 不然它们身上没有冷却标签，开场第一帧就会把所有能力全放一遍
+	if is_running:
+		unit.brain.begin_charge()
 
 
 func start_battle() -> void:
 	is_running = true
 	_start_msec = Time.get_ticks_msec()
+	_spawn_accum = 0.0
 	log_line("========== 战斗开始 ==========", "yellow")
 	for unit in units:
-		log_line("%s（%s）  HP %.0f  攻击 %.0f"
-			% [unit.unit_name,
-				"我方" if unit.team == BattleUnit.Team.PLAYER else "敌方",
-				unit.hp_attr.current_value,
-				unit.asc.get_attribute("atk").current_value], "white")
-	
-	# 开局冷却：所有技能同时开始各自的倒计时，时间到才能释放
+		log_line("%s  HP %.0f"
+			% [unit.unit_name, unit.health_attr.current_value], "white")
+
+	# 开局冷却：所有能力同时开始各自的倒计时，时间到才能释放
 	for unit in units:
 		unit.brain.begin_charge()
 
 
-func get_alive(team: BattleUnit.Team) -> Array[BattleUnit]:
-	var alive: Array[BattleUnit] = []
+## 刷怪心跳：每隔 SPAWN_INTERVAL 在远处补一只
+func _process(delta: float) -> void:
+	if not is_running:
+		return
+	_spawn_accum += delta
+	if _spawn_accum >= SPAWN_INTERVAL:
+		_spawn_accum -= SPAWN_INTERVAL
+		spawn_one()
+
+
+#region 坐标与占位
+## 格子 → 像素（单位节点跟地图挂在同一个坐标系下）
+func cell_to_world(cell: Vector2i) -> Vector2:
+	return map.map_to_local(cell)
+
+
+## 角色在哪一格
+func player_cell() -> Vector2i:
+	return player.cell if player else Vector2i.ZERO
+
+
+## 除了 except 之外，场上单位占着的格子
+func occupied_cells(except: BattleUnit = null) -> Dictionary:
+	var occupied := {}
 	for unit in units:
-		if unit.team == team and not unit.is_dead:
-			alive.append(unit)
-	return alive
+		if unit == except or unit.is_dead:
+			continue
+		occupied[unit.cell] = true
+	return occupied
+
+
+## 这一格能不能站（在地图图块上就算能站）
+func is_walkable(cell: Vector2i) -> bool:
+	return map.get_cell_source_id(cell) != -1
+#endregion
+
+
+#region 刷怪
+## 立刻在远处刷一只（挑得到位置才刷）
+func spawn_one() -> void:
+	if not spawn_enemy.is_valid():
+		return
+	var candidates := _free_spawn_cells()
+	if candidates.is_empty():
+		return
+	spawn_enemy.call(candidates.pick_random())
+
+
+## 距离角色 10 格以外、没被占、且在地图上的格子
+func _free_spawn_cells() -> Array[Vector2i]:
+	var taken := occupied_cells()
+	var cells : Array[Vector2i] = []
+	for cell in map.get_used_cells():
+		if Hex.distance(cell, player_cell()) > SPAWN_MIN_DISTANCE and not taken.has(cell):
+			cells.append(cell)
+	return cells
+#endregion
 
 
 #region 日志
@@ -65,7 +133,7 @@ func log_line(text: String, color: String = "white") -> void:
 	print_rich("[color=%s]%s[/color]" % [color, line])
 
 
-## 施法报幕："勇者 施放【斩击】→ 哥布林A、哥布林B"
+## 施法报幕："长弓 施放【长弓】→ 蛇、蛇、蛇"
 func log_cast(caster: BattleUnit, skill: SkillDefinition, groups: Array) -> void:
 	log_line("%s 施放【%s】→ %s" % [caster.unit_name, skill.display_name, _format_targets(groups)], "#6fb7ff")
 
@@ -86,25 +154,11 @@ func _format_targets(groups: Array) -> String:
 #endregion
 
 
-func _on_unit_died(_unit: BattleUnit) -> void:
-	if not is_running:
+## 有单位倒下：角色倒下就发信号让外面重开；怪倒下就从名册里划掉、清掉节点
+func _on_unit_died(unit: BattleUnit) -> void:
+	if unit == player:
+		is_running = false
+		player_died.emit()
 		return
-
-	var players := get_alive(BattleUnit.Team.PLAYER).size()
-	var enemies := get_alive(BattleUnit.Team.ENEMY).size()
-	if players > 0 and enemies > 0:
-		return
-
-	is_running = false
-	var winner := -1
-	if players > 0:
-		winner = BattleUnit.Team.PLAYER
-	elif enemies > 0:
-		winner = BattleUnit.Team.ENEMY
-
-	if winner == -1:
-		log_line("========== 战斗结束：同归于尽（用时 %.1f 秒）==========" % elapsed_seconds(), "yellow")
-	else:
-		log_line("========== 战斗结束：%s 获胜（用时 %.1f 秒）=========="
-			% ["我方" if winner == BattleUnit.Team.PLAYER else "敌方", elapsed_seconds()], "yellow")
-	battle_ended.emit(winner)
+	units.erase(unit)
+	unit.queue_free()

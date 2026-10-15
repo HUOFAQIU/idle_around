@@ -24,18 +24,31 @@ func setup(p_unit: BattleUnit, skills: Array[SkillDefinition]) -> void:
 			continue
 		var ability := AutoCastAbility.new()
 		ability.apply_definition(def)
-		unit.asc.grant_ability(ability)
-		abilities.append(ability)
+		add_ability(ability)
 
 
-## 开局冷却：给每个技能挂上它的冷却效果，倒计时开始走。
+## 直接挂一个能力（不走 SkillDefinition 的，比如移动）
+func add_ability(ability: GameplayAbility) -> void:
+	unit.asc.grant_ability(ability)
+	abilities.append(ability)
+
+
+## 开局冷却：给每个能力挂上它的冷却效果，倒计时开始走。
 ## 冷却期间技能被冷却标签挡在门外；倒计时到点、标签脱落，技能才可以释放。
 ## 释放时 commit_ability() 会重新挂上，进入下一轮 —— 即"每 X 秒释放一次"。
 func begin_charge() -> void:
 	for ability in abilities:
-		var auto := ability as AutoCastAbility
-		if auto and auto.skill and auto.skill.charge_effect:
-			unit.asc.apply_gameplay_effect(auto.skill.charge_effect, unit.asc, 1.0)
+		var effect := _charge_effect_of(ability)
+		if effect:
+			unit.asc.apply_gameplay_effect(effect, unit.asc, 1.0)
+
+
+## 能力的"冷却效果"：技能从数据里取，其它能力就用框架自己的 cooldown_effect 槽位
+func _charge_effect_of(ability: GameplayAbility) -> GameplayEffect:
+	var auto := ability as AutoCastAbility
+	if auto:
+		return auto.skill.charge_effect if auto.skill else null
+	return ability.cooldown_effect
 
 
 func _process(_delta: float) -> void:

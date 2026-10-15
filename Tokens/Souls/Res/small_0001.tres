@@ -7,11 +7,10 @@
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_sky72"]
 shader = ExtResource("2_ih66y")
 shader_parameter/line_color = Color(0.9529412, 0, 0.30588236, 1)
-shader_parameter/speed = 0.1950000092625
 shader_parameter/band_width = 0.16
 shader_parameter/intensity = 1.0
-shader_parameter/enable = 1.0
-shader_parameter/phase = 0.0
+shader_parameter/enable = 0.0
+shader_parameter/progress = 0.0
 
 [resource]
 script = ExtResource("2_8shdg")

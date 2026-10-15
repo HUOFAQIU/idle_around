@@ -4,6 +4,7 @@
 ##   "随机斩击2名敌人"        → mode = RANDOM, count = 2, camp = ENEMY
 ##   "随机攻击2次"            → mode = REPEAT, count = 2
 ##   "治疗血量最低的友方"     → mode = LOWEST_HP_PERCENT, count = 1, camp = ALLY
+##   "对 10 格内最近的 3 个敌人" → mode = NEAREST, count = 3, camp = ENEMY, max_range = 10
 ##   "对全体敌人"             → mode = ALL, camp = ENEMY
 ##
 ## 本类不碰任何框架内部状态，只用公开接口读取战场名单。
@@ -17,6 +18,7 @@ enum Mode {
 	RANDOM,             ## 随机 count 个（不重复）
 	REPEAT,             ## 随机 count 次（可重复，每次独立结算）
 	LOWEST_HP_PERCENT,  ## 血量百分比最低的 count 个
+	NEAREST,            ## 离自己最近的 count 个
 	ALL,                ## 全部
 }
 
@@ -29,6 +31,10 @@ enum Camp {
 @export var mode: Mode = Mode.RANDOM
 @export var count: int = 1
 @export var camp: Camp = Camp.ENEMY
+
+## 选取范围：只挑离自己 max_range 格以内的目标。0 = 不限
+## （效果本身可能打空、投射物可能飞歪，那是后面的事 —— 这里只决定"瞄谁"）
+@export var max_range: int = 0
 
 ## camp = ALLY 时是否允许选中自己（"治疗最残血的友方（含自己）"）
 @export var include_self: bool = true
@@ -67,12 +73,14 @@ func resolve(caster_asc: AbilitySystemComponent, battle: BattleManager) -> Array
 			continue
 		if unit == caster and not include_self:
 			continue
+		if max_range > 0 and Hex.distance(caster.cell, unit.cell) > max_range:
+			continue
 		candidates.append(unit)
 
 	if candidates.is_empty():
 		return groups
 
-	# 2. 按规则挑选（随机数走 battle.rng，带种子 → 整场战斗可复现）
+	# 2. 按规则挑选（随机数走 battle.rng）
 	match mode:
 		Mode.ALL:
 			groups.append(candidates)
@@ -86,7 +94,12 @@ func resolve(caster_asc: AbilitySystemComponent, battle: BattleManager) -> Array
 		Mode.LOWEST_HP_PERCENT:
 			var sorted := candidates.duplicate()
 			sorted.sort_custom(func(a: BattleUnit, b: BattleUnit) -> bool:
-				return a.hp_percent() < b.hp_percent())
+				return a.health_percent() < b.health_percent())
+			groups.append(sorted.slice(0, mini(count, sorted.size())))
+		Mode.NEAREST:
+			var sorted := candidates.duplicate()
+			sorted.sort_custom(func(a: BattleUnit, b: BattleUnit) -> bool:
+				return Hex.distance(caster.cell, a.cell) < Hex.distance(caster.cell, b.cell))
 			groups.append(sorted.slice(0, mini(count, sorted.size())))
 
 	return groups

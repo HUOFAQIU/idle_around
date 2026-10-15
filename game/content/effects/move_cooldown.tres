@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="GameplayEffect" format=3]
+
+[ext_resource type="Script" uid="uid://c81papidngxvg" path="res://addons/GodotGAS/effects/gameplay_effect.gd" id="1_effect"]
+
+[resource]
+resource_name = "移动·冷却"
+script = ExtResource("1_effect")
+policy = 1
+duration = 3.0
+granted_tags = Array[StringName]([&"State.Charging.Move"])
+metadata/_custom_type_script = "uid://c81papidngxvg"

@@ -31,6 +31,11 @@ class_name SkillDefinition extends Resource
 ## 目标选择规则
 @export var target_rule: TargetRule
 
+## 投射物场景。留空 = 选完目标立刻结算（比如治疗）；
+## 填了 = 每个目标发一支，射向它"此刻"的坐标，飞到谁身上才算打中谁，
+## 飞空了就是空了 —— 空箭是设计的一部分，不是 bug。
+@export var projectile_scene: PackedScene
+
 ## 吟唱时间（秒）；0 = 瞬发。吟唱结束会重新选目标，避免对着尸体放大。
 @export_range(0.0, 10.0, 0.1) var cast_time: float = 0.0
 

@@ -1,15 +1,15 @@
 [gd_scene format=3 uid="uid://cf2t8qpdn820p"]
 
-[ext_resource type="Script" uid="uid://bykipvqgfvhwl" path="res://control.gd" id="1_0fbet"]
-[ext_resource type="Script" uid="uid://kbyb5a2qap8m" path="res://Scripts/setting.gd" id="2_kbped"]
-[ext_resource type="Script" uid="uid://cj0t5upbe5p2n" path="res://status_bar_container.gd" id="3_fj5cn"]
-[ext_resource type="PackedScene" uid="uid://bqug1f88ap7hb" path="res://Windows/Battle/battle_window.tscn" id="3_qtu10"]
-[ext_resource type="PackedScene" uid="uid://da2scdocynbkk" path="res://Windows/Character/character_window.tscn" id="4_ee4bf"]
-[ext_resource type="PackedScene" uid="uid://b301mgy8od7cj" path="res://Windows/Equipment/equipment_window.tscn" id="6_iy58a"]
-[ext_resource type="PackedScene" uid="uid://f6jom4nfishp" path="res://Windows/Inventory/inventory_window.tscn" id="7_6a6wx"]
-[ext_resource type="PackedScene" uid="uid://byuffsddecjhf" path="res://Windows/Shop/shop_window.tscn" id="8_6a6wx"]
-[ext_resource type="PackedScene" uid="uid://duibpbpnx3f6x" path="res://Windows/Tooltip/tooltip_window.tscn" id="9_sky72"]
-[ext_resource type="PackedScene" uid="uid://bc0rml4pkml2k" path="res://Windows/Info/info_window.tscn" id="10_0ytqx"]
+[ext_resource type="Script" uid="uid://bykipvqgfvhwl" path="res://Main/control.gd" id="1_6fago"]
+[ext_resource type="Script" uid="uid://kbyb5a2qap8m" path="res://Scripts/setting.gd" id="2_n2hic"]
+[ext_resource type="Script" uid="uid://cj0t5upbe5p2n" path="res://Main/status_bar_container.gd" id="3_nu5lx"]
+[ext_resource type="PackedScene" uid="uid://da2scdocynbkk" path="res://Windows/Character/character_window.tscn" id="4_pa2rv"]
+[ext_resource type="PackedScene" uid="uid://b301mgy8od7cj" path="res://Windows/Equipment/equipment_window.tscn" id="5_70kn5"]
+[ext_resource type="PackedScene" uid="uid://f6jom4nfishp" path="res://Windows/Inventory/inventory_window.tscn" id="6_2mfgw"]
+[ext_resource type="PackedScene" uid="uid://bqug1f88ap7hb" path="res://Windows/Battle/battle_window.tscn" id="7_e8vwd"]
+[ext_resource type="PackedScene" uid="uid://byuffsddecjhf" path="res://Windows/Shop/shop_window.tscn" id="8_mkciv"]
+[ext_resource type="PackedScene" uid="uid://duibpbpnx3f6x" path="res://Windows/Tooltip/tooltip_window.tscn" id="9_c4peb"]
+[ext_resource type="PackedScene" uid="uid://bc0rml4pkml2k" path="res://Windows/Info/info_window.tscn" id="10_gdtoh"]
 
 [node name="Control" type="Control" unique_id=887310324]
 layout_mode = 3
@@ -18,10 +18,10 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("1_0fbet")
+script = ExtResource("1_6fago")
 
 [node name="Setting" type="Node" parent="." unique_id=1532201443]
-script = ExtResource("2_kbped")
+script = ExtResource("2_n2hic")
 
 [node name="StatusBarContainer" type="HBoxContainer" parent="." unique_id=685106944]
 custom_minimum_size = Vector2(0, 44)
@@ -30,7 +30,7 @@ anchors_preset = 10
 anchor_right = 1.0
 grow_horizontal = 2
 alignment = 1
-script = ExtResource("3_fj5cn")
+script = ExtResource("3_nu5lx")
 
 [node name="Button" type="Button" parent="StatusBarContainer" unique_id=1481583101]
 custom_minimum_size = Vector2(44, 44)
@@ -115,26 +115,26 @@ layout_mode = 2
 custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 
-[node name="CharacterWindow" parent="." unique_id=1235136498 instance=ExtResource("4_ee4bf")]
+[node name="CharacterWindow" parent="." unique_id=1235136498 instance=ExtResource("4_pa2rv")]
 visible = false
 
-[node name="EquipmentWindow" parent="." unique_id=1234613472 instance=ExtResource("6_iy58a")]
+[node name="EquipmentWindow" parent="." unique_id=1234613472 instance=ExtResource("5_70kn5")]
 visible = false
 open_position = Vector2i(1266, 150)
 
-[node name="InventoryWindow" parent="." unique_id=111619256 instance=ExtResource("7_6a6wx")]
+[node name="InventoryWindow" parent="." unique_id=111619256 instance=ExtResource("6_2mfgw")]
 visible = false
 open_position = Vector2i(1683, 291)
 
-[node name="BattleWindow" parent="." unique_id=1210820663 instance=ExtResource("3_qtu10")]
+[node name="BattleWindow" parent="." unique_id=1210820663 instance=ExtResource("7_e8vwd")]
 visible = false
 open_position = Vector2i(240, 165)
 
-[node name="ShopWindow" parent="." unique_id=1488491486 instance=ExtResource("8_6a6wx")]
+[node name="ShopWindow" parent="." unique_id=1488491486 instance=ExtResource("8_mkciv")]
 visible = false
 open_position = Vector2i(160, 1000)
 
-[node name="TooltipWindow" parent="." unique_id=143098148 instance=ExtResource("9_sky72")]
+[node name="TooltipWindow" parent="." unique_id=143098148 instance=ExtResource("9_c4peb")]
 
-[node name="InfoWindow" parent="." unique_id=158491879 instance=ExtResource("10_0ytqx")]
+[node name="InfoWindow" parent="." unique_id=158491879 instance=ExtResource("10_gdtoh")]
 size = Vector2i(600, 400)

@@ -27,7 +27,6 @@ magnitude = -10.0
 resource_name = "咬"
 script = ExtResource("2_effect")
 application_query = SubResource("Resource_query_not_dead")
-application_cue_tags = Array[StringName]([&"Cue.Combat.Impact"])
 modifiers = Array[ExtResource("3_modifier")]([SubResource("Resource_modifier_damage")])
 
 [sub_resource type="Resource" id="Resource_target_rule"]

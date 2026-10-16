@@ -62,12 +62,12 @@ func release() -> void:
 	state = State.EMPTY
 
 ## 构造函数
-func _init(inventoryView: BaseContainerView, in_grid_id: Vector2i,size: int, border_size: int, 
+func _init(inventoryView: BaseContainerView, in_grid_id: Vector2i, in_size: int, border_size: int,
 	border_color: Color, empty_color: Color, taken_color: Color, conflict_color: Color, avilable_color: Color):
 		_avilable_color = avilable_color
 		_container_view = inventoryView
 		grid_id = in_grid_id
-		_size = size
+		_size = in_size
 		_border_size = border_size
 		_border_color = border_color
 		_empty_color = empty_color

@@ -32,10 +32,10 @@ func setup(caster: BattleUnit, aim_position: Vector2) -> void:
 	_caster = caster
 	_battle = caster.battle
 	position = caster.position
-
-	var offset := aim_position - caster.position
-	if offset.length_squared() > 0.0001:
-		_direction = offset.normalized()
+	
+	var aim_offset := aim_position - caster.position
+	if aim_offset.length_squared() > 0.0001:
+		_direction = aim_offset.normalized()
 		# 图里的箭头是朝上的，转成朝飞行方向
 		rotation = _direction.angle() + PI / 2.0
 
@@ -43,12 +43,12 @@ func setup(caster: BattleUnit, aim_position: Vector2) -> void:
 func _process(delta: float) -> void:
 	if _done:
 		return
-
+	
 	_life += delta
 	if _life >= MAX_LIFE:
 		_finish(null)
 		return
-
+	
 	# 一小步一小步往前挪着查命中：一帧能飞出去好几像素，
 	# 分步查才不会直接从单位身上穿过去
 	var distance := SPEED * delta
@@ -56,7 +56,7 @@ func _process(delta: float) -> void:
 		var step := minf(distance, HIT_RADIUS * 0.5)
 		position += _direction * step
 		distance -= step
-
+	
 		var hit := _find_hit()
 		if hit:
 			_finish(hit)

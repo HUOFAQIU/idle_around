@@ -148,8 +148,9 @@ func _format_targets(groups: Array) -> String:
 				order.append(unit.unit_name)
 			counts[unit.unit_name] += 1
 	var parts: Array[String] = []
-	for name in order:
-		parts.append(name if counts[name] == 1 else "%s ×%d" % [name, counts[name]])
+	
+	for unit_name in order:
+		parts.append(unit_name if counts[unit_name] == 1 else "%s ×%d" % [unit_name, counts[unit_name]])
 	return "、".join(parts)
 #endregion
 

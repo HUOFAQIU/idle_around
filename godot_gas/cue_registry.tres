@@ -2,13 +2,6 @@
 
 [ext_resource type="Script" uid="uid://c31mycy3sv3aq" path="res://addons/GodotGAS/cues/gameplay_cue_entry.gd" id="1_eumo4"]
 [ext_resource type="Script" uid="uid://dkt21eabd45kx" path="res://addons/GodotGAS/cues/gameplay_cue_registry.gd" id="2_bcoe5"]
-[ext_resource type="PackedScene" path="res://game/battle/cues/impact_cue.tscn" id="3_impact"]
-
-[sub_resource type="Resource" id="GameplayCueEntry_impact"]
-script = ExtResource("1_eumo4")
-tag = &"Cue.Combat.Impact"
-scene = ExtResource("3_impact")
 
 [resource]
 script = ExtResource("2_bcoe5")
-entries = Array[ExtResource("1_eumo4")]([SubResource("GameplayCueEntry_impact")])

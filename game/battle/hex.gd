@@ -36,6 +36,9 @@ static func neighbors(cell: Vector2i) -> Array[Vector2i]:
 
 ## 偏移坐标 → 立方坐标，取三个轴的最大差就是距离
 static func _to_cube(coord: Vector2i) -> Vector3i:
+	# 这里的整除是故意的：y - (y & 1) 一定是偶数（减掉奇偶位就成双了），
+	# 除以 2 丢不了小数。分析器看不出这一层，所以手动消警
+	@warning_ignore("integer_division")
 	var q := coord.x - (coord.y - (coord.y & 1)) / 2
 	var r := coord.y
 	return Vector3i(q, r, -q - r)

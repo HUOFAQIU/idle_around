@@ -43,12 +43,13 @@ func begin_charge() -> void:
 			unit.asc.apply_gameplay_effect(effect, unit.asc, 1.0)
 
 
-## 能力的"冷却效果"：技能从数据里取，其它能力就用框架自己的 cooldown_effect 槽位
+## 能力的"冷却效果"：实例上覆盖过的优先（同种魂灵要各用各的标签），
+## 没覆盖就用技能数据里那份
 func _charge_effect_of(ability: GameplayAbility) -> GameplayEffect:
+	if ability.cooldown_effect:
+		return ability.cooldown_effect
 	var auto := ability as AutoCastAbility
-	if auto:
-		return auto.skill.charge_effect if auto.skill else null
-	return ability.cooldown_effect
+	return auto.skill.charge_effect if auto and auto.skill else null
 
 
 func _process(_delta: float) -> void:

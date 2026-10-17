@@ -44,6 +44,8 @@ var _battle : BattleManager
 var _run_id : int = 0
 ## 这一场参战的魂灵（开打时从装备格里抓的，用来推扫描线）
 var _battle_souls : Array[SoulData] = []
+## 与 _battle_souls 同下标：每颗魂灵的技能用的是哪个冷却标签（同种魂灵也各不相同）
+var _soul_cooldown_tags : Array[StringName] = []
 ## 上一帧鼠标在不在本窗口里（用来判断"刚离开"这一下）
 var _mouse_was_inside : bool = false
 
@@ -147,22 +149,52 @@ func _clear_battle() -> void:
 
 
 # 角色：站在战场中心，技能全部来自装备上的魂灵
+# 注意是"一颗魂灵一个技能"：同一颗魂灵装两把也要各算各的冷却，不能去重
 func _spawn_player() -> BattleUnit:
-	var skills : Array[SkillDefinition] = []
-	for soul in _battle_souls:
-		if soul.skill and not skills.has(soul.skill):
-			skills.append(soul.skill)
-	if skills.is_empty():
-		_battle.log_line("没有装备魂灵 —— 角色不会任何技能", "yellow")
-
 	var unit := BattleUnit.new()
 	units_root.add_child(unit)
-	unit.setup("角色", BattleUnit.Team.PLAYER, PLAYER_MAX_HEALTH, skills, _battle)
+	var no_skills : Array[SkillDefinition] = []
+	unit.setup("角色", BattleUnit.Team.PLAYER, PLAYER_MAX_HEALTH, no_skills, _battle)
 	unit.set_body(TOKENS_TEXTURE, PLAYER_REGION, PLAYER_COLOR)
 	unit.set_cell(Vector2i.ZERO)
 	unit.died.connect(_on_player_died)
 	_battle.add_unit(unit)
+
+	# 逐个魂灵建技能，顺便给每个技能一份"自己的"冷却标签
+	_soul_cooldown_tags.clear()
+	var granted := 0
+	for i in _battle_souls.size():
+		var soul := _battle_souls[i]
+		_soul_cooldown_tags.append(&"")
+		if soul.skill == null:
+			continue
+		var ability := AutoCastAbility.new()
+		ability.apply_definition(soul.skill)
+		_soul_cooldown_tags[i] = _give_unique_cooldown(ability, i)
+		unit.brain.add_ability(ability)
+		granted += 1
+
+	if granted == 0:
+		_battle.log_line("没有装备魂灵 —— 角色不会任何技能", "yellow")
+
 	return unit
+
+
+## 给这个技能实例一份自己的冷却：复制冷却效果，标签加序号。
+## 不这么做的话，同种魂灵的两个技能查的是同一个标签，会互相把对方锁在冷却里。
+## 返回加了序号的标签，扫描线要靠它读剩余时间
+func _give_unique_cooldown(ability: AutoCastAbility, index: int) -> StringName:
+	var base := ability.skill.charge_effect
+	if base == null or base.granted_tags.is_empty():
+		return &""
+
+	var charge := base.duplicate() as GameplayEffect
+	var tag := StringName("%s.%d" % [base.granted_tags[0], index])
+	# 浅拷贝出来的 granted_tags 和原件共用同一个 Array，必须整个换掉，不能 append
+	var tags : Array[StringName] = [tag]
+	charge.granted_tags = tags
+	ability.cooldown_effect = charge
+	return tag
 
 
 # 蛇：咬人 + 每 3 秒朝角色走一步
@@ -203,17 +235,18 @@ func _equipped_souls() -> Array[SoulData]:
 func _push_scanlines() -> void:
 	if _battle == null or _battle.player == null:
 		return
-	for soul in _battle_souls:
-		if soul.skill:
-			soul.set_shader_param("progress", _charge_progress(soul.skill))
+	for i in _battle_souls.size():
+		if i >= _soul_cooldown_tags.size() or _soul_cooldown_tags[i] == &"":
+			continue
+		var soul := _battle_souls[i]
+		soul.set_shader_param("progress", _charge_progress(soul.skill, _soul_cooldown_tags[i]))
 
 
 ## 冷却走完多少了。读的是框架挂在角色身上那条冷却标签的剩余时间
-func _charge_progress(skill: SkillDefinition) -> float:
+func _charge_progress(skill: SkillDefinition, tag: StringName) -> float:
 	var effect := skill.charge_effect
-	if effect == null or effect.granted_tags.is_empty() or effect.duration <= 0.0:
+	if effect == null or effect.duration <= 0.0:
 		return 0.0
-	var tag : StringName = effect.granted_tags[0]
 	var remaining := _battle.player.asc.get_tag_duration_remaining(tag)
 	return clampf(1.0 - remaining / effect.duration, 0.0, 1.0)
 

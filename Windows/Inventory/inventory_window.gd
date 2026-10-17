@@ -23,6 +23,7 @@ func _ready() -> void:
 	GBIS.sig_item_focused.connect(
 		func (item_data: ItemData, container_name: String):
 			TooltipWindow.instance.show_tip()
+			TooltipWindow.instance.set_window_title(item_data.item_name)
 	)
 	GBIS.sig_item_focus_lost.connect(
 		func (item_data: ItemData):

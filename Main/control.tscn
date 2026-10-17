@@ -10,6 +10,7 @@
 [ext_resource type="PackedScene" uid="uid://byuffsddecjhf" path="res://Windows/Shop/shop_window.tscn" id="8_mkciv"]
 [ext_resource type="PackedScene" uid="uid://duibpbpnx3f6x" path="res://Windows/Tooltip/tooltip_window.tscn" id="9_c4peb"]
 [ext_resource type="PackedScene" uid="uid://bc0rml4pkml2k" path="res://Windows/Info/info_window.tscn" id="10_gdtoh"]
+[ext_resource type="PackedScene" uid="uid://b87wi6f58te5u" path="res://Windows/Item/item_window.tscn" id="11_n2hic"]
 
 [node name="Control" type="Control" unique_id=887310324]
 layout_mode = 3
@@ -138,3 +139,5 @@ open_position = Vector2i(160, 1000)
 
 [node name="InfoWindow" parent="." unique_id=158491879 instance=ExtResource("10_gdtoh")]
 size = Vector2i(600, 400)
+
+[node name="ItemWindow" parent="." unique_id=61833472 instance=ExtResource("11_n2hic")]

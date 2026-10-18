@@ -8,7 +8,7 @@
 class_name BattleManager extends Node
 
 ## 刷怪间隔（秒）
-const SPAWN_INTERVAL : float = 3.0
+const SPAWN_INTERVAL : float = 0.2
 ## 只在这个距离之外刷怪
 const SPAWN_MIN_DISTANCE : int = 10
 

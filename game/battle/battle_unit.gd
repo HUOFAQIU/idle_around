@@ -5,6 +5,7 @@
 ##   ├── AbilitySystemComponent   ← 名字必须精确叫这个！
 ##                                   框架在解析"施法者→ASC"时用的是
 ##                                   get_node_or_null("AbilitySystemComponent")
+##                                   属性集配在它的 attribute_sets 上
 ##   ├── BattleBrain              ← 自动施法
 ##   ├── HealthBar (UnitHealthBar)← 血条（必需）
 ##   ├── Body (Sprite2D)          ← 本体贴图（可选，纯显示）
@@ -20,15 +21,10 @@ signal died(unit: BattleUnit)
 
 enum Team { PLAYER, ENEMY }
 
-## 挪一格的视觉时长：cell 立刻变，画面用补间追上来
-const MOVE_TIME := 0.15
-
 @export var unit_name: String = ""
 @export var team: Team = Team.PLAYER
 ## 血量上限（在场景根节点上配置）
 @export var max_health: float = 100.0
-## 场景建号时用哪个属性集脚本（默认怪物属性集，玩家场景覆盖成玩家属性集）
-@export var attribute_set_script: Script = preload("res://godot_gas/attributes/monster_stats_attribute_set.gd")
 
 var battle: BattleManager
 var asc: AbilitySystemComponent
@@ -49,9 +45,7 @@ func setup_from_scene(p_battle: BattleManager) -> void:
 	battle = p_battle
 
 	asc = get_node("AbilitySystemComponent")
-	# ASC 的 _ready 已经在入树时跑过，属性集在这里补一份；get_attribute 是实时遍历，
-	# 补进来即可用，而且这份实例只属于本单位
-	asc.attribute_sets.append(attribute_set_script.new() as AttributeSet)
+	# 属性集配在场景的 ASC 节点上，入树时框架已经深拷贝好；这里只写初始数值
 	_init_attributes()
 
 	brain = get_node("BattleBrain")
@@ -105,7 +99,7 @@ func set_cell(p_cell: Vector2i) -> void:
 ## 挪到相邻格：逻辑立刻到位（选目标马上就按新位置算），视觉用补间追过去
 func move_to_cell(p_cell: Vector2i) -> void:
 	cell = p_cell
-	create_tween().tween_property(self, "position", battle.cell_to_world(p_cell), MOVE_TIME)
+	create_tween().tween_property(self, "position", battle.cell_to_world(p_cell), 0.15)
 
 
 ## 血量百分比（0~1），TargetRule 的 LOWEST_HP_PERCENT 规则用它排序

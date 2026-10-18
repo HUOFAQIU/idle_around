@@ -9,6 +9,7 @@
 [ext_resource type="PackedScene" uid="uid://bqug1f88ap7hb" path="res://Windows/Battle/battle_window.tscn" id="7_e8vwd"]
 [ext_resource type="PackedScene" uid="uid://byuffsddecjhf" path="res://Windows/Shop/shop_window.tscn" id="8_mkciv"]
 [ext_resource type="PackedScene" uid="uid://duibpbpnx3f6x" path="res://Windows/Tooltip/tooltip_window.tscn" id="9_c4peb"]
+[ext_resource type="PackedScene" uid="uid://dcymb2xgnhr2c" path="res://Windows/Collection/collection_window.tscn" id="9_nu5lx"]
 [ext_resource type="PackedScene" uid="uid://bc0rml4pkml2k" path="res://Windows/Info/info_window.tscn" id="10_gdtoh"]
 [ext_resource type="PackedScene" uid="uid://b87wi6f58te5u" path="res://Windows/Item/item_window.tscn" id="11_n2hic"]
 
@@ -103,6 +104,7 @@ text = "战！"
 [node name="Button6" type="Button" parent="GridContainer" unique_id=1960515822]
 custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
+text = "图鉴"
 
 [node name="Button7" type="Button" parent="GridContainer" unique_id=1732763487]
 custom_minimum_size = Vector2(80, 80)
@@ -133,11 +135,12 @@ open_position = Vector2i(240, 165)
 
 [node name="ShopWindow" parent="." unique_id=1488491486 instance=ExtResource("8_mkciv")]
 visible = false
-open_position = Vector2i(160, 1000)
+
+[node name="CollectionWindow" parent="." unique_id=1694343200 instance=ExtResource("9_nu5lx")]
 
 [node name="TooltipWindow" parent="." unique_id=143098148 instance=ExtResource("9_c4peb")]
 
 [node name="InfoWindow" parent="." unique_id=158491879 instance=ExtResource("10_gdtoh")]
-size = Vector2i(600, 400)
 
 [node name="ItemWindow" parent="." unique_id=61833472 instance=ExtResource("11_n2hic")]
+borderless = true

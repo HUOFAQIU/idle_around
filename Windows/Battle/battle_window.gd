@@ -300,7 +300,7 @@ func _update_coord_tooltip() -> void:
 			TooltipWindow.instance.hide_tip()
 		return
 	_mouse_was_inside = true
-
+	
 	# 鼠标在 TileMapLayer 局部坐标系中的位置
 	var local_mouse := ground_tilemaplayer.get_local_mouse_position()
 	# 鼠标所指的格子
@@ -310,6 +310,7 @@ func _update_coord_tooltip() -> void:
 		TooltipWindow.instance.hide_tip()
 		return
 	TooltipWindow.instance.show_tip()
+	TooltipWindow.instance.set_window_title(str(hovered_cell))
 
 
 # 鼠标在不在本窗口的屏幕范围里（窗口是独立 OS 窗口，所以拿屏幕坐标比）

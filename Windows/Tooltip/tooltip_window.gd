@@ -46,7 +46,6 @@ func set_window_title(title_name : String) -> void:
 	title = title_name
 
 
-
 ## 自己决定往哪边弹：锚点是鼠标，边界是屏幕
 func _place_tip() -> void:
 	_place_near(DisplayServer.mouse_get_position(), DisplayServer.screen_get_size())

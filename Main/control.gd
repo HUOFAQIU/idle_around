@@ -5,12 +5,15 @@ extends Control
 @onready var button_3: Button = $GridContainer/Button3
 @onready var button_4: Button = $GridContainer/Button4
 @onready var button_5: Button = $GridContainer/Button5
+@onready var button_6: Button = $GridContainer/Button6
 
 @onready var character_window: CharacterWindow = $CharacterWindow
 @onready var equipment_window: Window = $EquipmentWindow
 @onready var inventory_window: Window = $InventoryWindow
 @onready var battle_window: BattleWindow = $BattleWindow
 @onready var shop_window: BaseWindow = $ShopWindow
+@onready var collection_window: Window = $CollectionWindow
+
 
 func _ready() -> void:
 	button.pressed.connect(
@@ -32,6 +35,10 @@ func _ready() -> void:
 	button_5.pressed.connect(
 		func ():
 			popup_window(battle_window)
+	)
+	button_6.pressed.connect(
+		func ():
+			popup_window(collection_window)
 	)
 
 

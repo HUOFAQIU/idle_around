@@ -15,7 +15,10 @@
 		{
 			"uuid": "13cb6bda-ffb7-4ee9-879a-a4735482d3aa",
 			"title": "Todo",
-			"tasks": []
+			"tasks": [
+				"a31f774e-4cb0-434c-95f3-e578f59c9212",
+				"30215f06-69cc-4210-a19e-64f59d5297cb"
+			]
 		},
 		{
 			"uuid": "3d8e3d00-a609-41c7-a684-c1dd2b26f8c7",
@@ -45,6 +48,20 @@
 			"title": "把tooltip替换完",
 			"description": "",
 			"category": "dc17d4ed-a172-4464-9b98-2aeab52f9cdf",
+			"steps": []
+		},
+		{
+			"uuid": "a31f774e-4cb0-434c-95f3-e578f59c9212",
+			"title": "需要公开些方法方便AI做后续测试",
+			"description": "",
+			"category": "abd1801b-a241-4c02-8dd1-4e804d1e3bd5",
+			"steps": []
+		},
+		{
+			"uuid": "30215f06-69cc-4210-a19e-64f59d5297cb",
+			"title": "文档很重要，一定要完善，这是给自己看的，也是给AI的约束",
+			"description": "",
+			"category": "abd1801b-a241-4c02-8dd1-4e804d1e3bd5",
 			"steps": []
 		}
 	],

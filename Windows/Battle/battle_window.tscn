@@ -13,7 +13,7 @@ script = ExtResource("1_nc1sn")
 position = Vector2(490, 475)
 metadata/_edit_lock_ = true
 
-[node name="Units" type="Node2D" parent="Tile"]
+[node name="Units" type="Node2D" parent="Tile" unique_id=544514597]
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1626333118]
 

@@ -1,0 +1,10 @@
+[gd_scene format=3 uid="uid://dcymb2xgnhr2c"]
+
+[ext_resource type="Script" uid="uid://ccnlh3othlrsn" path="res://Windows/Collection/collection_window.gd" id="1_okmvx"]
+
+[node name="CollectionWindow" type="Window" unique_id=1694343200]
+oversampling_override = 1.0
+position = Vector2i(0, 36)
+size = Vector2i(400, 400)
+visible = false
+script = ExtResource("1_okmvx")

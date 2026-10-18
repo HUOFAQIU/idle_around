@@ -17,16 +17,6 @@ var unit: BattleUnit
 var abilities: Array[GameplayAbility] = []
 
 
-func setup(p_unit: BattleUnit, skills: Array[SkillDefinition]) -> void:
-	unit = p_unit
-	for def in skills:
-		if def == null:
-			continue
-		var ability := AutoCastAbility.new()
-		ability.apply_definition(def)
-		add_ability(ability)
-
-
 ## 直接挂一个能力（不走 SkillDefinition 的，比如移动）
 func add_ability(ability: GameplayAbility) -> void:
 	unit.asc.grant_ability(ability)

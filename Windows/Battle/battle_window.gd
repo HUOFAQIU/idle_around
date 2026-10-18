@@ -14,7 +14,6 @@ const SOUL_SLOT_NAMES : Array[String] = ["cell_0", "cell_1", "cell_2", "cell_3"]
 ## 格子上画距离数字（调试用）
 const SHOW_DEBUG_DISTANCE : bool = false
 
-@onready var tile: Node2D = $Tile
 @onready var ground_tilemaplayer: TileMapLayer = $Tile/GroundTileMapLayer
 ## 单位的家：跟地图同一个坐标系，所以单位直接挂这儿
 @onready var units_root: Node2D = $Tile/Units

@@ -7,9 +7,6 @@
 
 class_name BattleManager extends Node
 
-## 角色倒下（外面通常等几秒后重开）
-signal player_died
-
 ## 刷怪间隔（秒）
 const SPAWN_INTERVAL : float = 3.0
 ## 只在这个距离之外刷怪
@@ -159,7 +156,6 @@ func _format_targets(groups: Array) -> String:
 func _on_unit_died(unit: BattleUnit) -> void:
 	if unit == player:
 		is_running = false
-		player_died.emit()
 		return
 	units.erase(unit)
 	unit.queue_free()

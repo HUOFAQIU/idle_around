@@ -28,6 +28,8 @@ const MOVE_TIME := 0.15
 @export var team: Team = Team.PLAYER
 ## 血量上限（场景配置的单位用；代码建号时由 setup 的参数覆盖）
 @export var max_health: float = 100.0
+## 场景建号时用哪个属性集脚本（默认怪物属性集，玩家场景覆盖成玩家属性集）
+@export var attribute_set_script: Script = preload("res://godot_gas/attributes/monster_stats_attribute_set.gd")
 
 var battle: BattleManager
 var asc: AbilitySystemComponent
@@ -84,7 +86,7 @@ func setup_from_scene(p_battle: BattleManager) -> void:
 	asc = get_node("AbilitySystemComponent")
 	# ASC 的 _ready 已经在入树时跑过，属性集在这里补一份；get_attribute 是实时遍历，
 	# 补进来即可用，而且这份实例只属于本单位
-	asc.attribute_sets.append(MonsterStatsAttributeSet.new())
+	asc.attribute_sets.append(attribute_set_script.new() as AttributeSet)
 	_init_attributes(max_health)
 
 	brain = get_node("BattleBrain")

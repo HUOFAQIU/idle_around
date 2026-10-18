@@ -1,17 +1,11 @@
 class_name BattleWindow
 extends BaseWindow
 
-## 角色的血量上限（角色目前只有血量这一个属性）
-const PLAYER_MAX_HEALTH : float = 500.0
 ## 角色倒下后多久重开一整场
 const REVIVE_DELAY : float = 3.0
 
-## 单位的贴图与取哪一格
-const TOKENS_TEXTURE := preload("res://Assets/tokens.png")
-const PLAYER_REGION := Rect2(32, 0, 32, 32)
-const PLAYER_COLOR := Color(0, 0.8765176, 0.32171732)
-
-## 蛇：配置好的单位场景
+## 双方单位：配置好的场景，开战时直接实例化
+const PLAYER_SCENE := preload("res://game/content/Player/player.tscn")
 const SNAKE_SCENE := preload("res://game/content/Monster/snake.tscn")
 
 ## 魂灵窗口里那四个格子（容器名，见 equipment_window.tscn）
@@ -146,11 +140,9 @@ func _clear_battle() -> void:
 # 角色：站在战场中心，技能全部来自装备上的魂灵
 # 注意是"一颗魂灵一个技能"：同一颗魂灵装两把也要各算各的冷却，不能去重
 func _spawn_player() -> BattleUnit:
-	var unit := BattleUnit.new()
+	var unit := PLAYER_SCENE.instantiate() as BattleUnit
 	units_root.add_child(unit)
-	var no_skills : Array[SkillDefinition] = []
-	unit.setup("角色", BattleUnit.Team.PLAYER, PLAYER_MAX_HEALTH, no_skills, _battle)
-	unit.set_body(TOKENS_TEXTURE, PLAYER_REGION, PLAYER_COLOR)
+	unit.setup_from_scene(_battle)
 	unit.set_cell(Vector2i.ZERO)
 	unit.died.connect(_on_player_died)
 	_battle.add_unit(unit)

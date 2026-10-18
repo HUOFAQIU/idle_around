@@ -1,0 +1,30 @@
+[gd_scene format=3 uid="uid://cmcyabqfvjp2r"]
+
+[ext_resource type="Script" uid="uid://ce1hf1tf13mvl" path="res://game/battle/battle_unit.gd" id="1_unit"]
+[ext_resource type="Script" uid="uid://cbrvrpcenj2cn" path="res://addons/GodotGAS/components/ability_system_component.gd" id="2_asc"]
+[ext_resource type="Script" uid="uid://dn3y0yymnkah2" path="res://game/battle/battle_brain.gd" id="3_brain"]
+[ext_resource type="Script" uid="uid://dn6s8onr16u6k" path="res://game/battle/unit_health_bar.gd" id="4_bar"]
+[ext_resource type="Script" uid="uid://b13dtujeymn62" path="res://godot_gas/attributes/player_stats_attribute_set.gd" id="5_stats"]
+[ext_resource type="Texture2D" uid="uid://deaj7ddfwbqwh" path="res://Assets/tokens.png" id="6_tokens"]
+
+[node name="Player" type="Node2D" unique_id=1410800408]
+script = ExtResource("1_unit")
+unit_name = "角色"
+max_health = 500.0
+attribute_set_script = ExtResource("5_stats")
+
+[node name="AbilitySystemComponent" type="Node" parent="." unique_id=1590496847]
+script = ExtResource("2_asc")
+
+[node name="BattleBrain" type="Node" parent="." unique_id=796654875]
+script = ExtResource("3_brain")
+
+[node name="Body" type="Sprite2D" parent="." unique_id=2011092079]
+modulate = Color(0, 0.8765176, 0.32171732, 1)
+texture = ExtResource("6_tokens")
+region_enabled = true
+region_rect = Rect2(32, 0, 32, 32)
+
+[node name="HealthBar" type="Node2D" parent="." unique_id=738274666]
+position = Vector2(0, -26)
+script = ExtResource("4_bar")

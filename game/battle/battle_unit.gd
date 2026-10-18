@@ -2,12 +2,13 @@
 ##
 ## 节点结构（有框架强约束）：
 ##   BattleUnit (Node2D)          ← 位置跟着 cell 走
-##   ├── Sprite2D                 ← 本体（token 图）
-##   ├── UnitHealthBar            ← 头顶血条
 ##   ├── AbilitySystemComponent   ← 名字必须精确叫这个！
 ##                                   框架在解析"施法者→ASC"时用的是
 ##                                   get_node_or_null("AbilitySystemComponent")
-##   └── BattleBrain              ← 自动施法
+##   ├── BattleBrain              ← 自动施法
+##   ├── HealthBar (UnitHealthBar)← 血条（必需）
+##   ├── Body (Sprite2D)          ← 本体贴图（可选，纯显示）
+##   └── Name (Label)             ← 头顶名字（可选，有就自动填 unit_name）
 ##
 ## 位置：cell 是逻辑坐标（选目标、寻路都算它），position 是像素投影，
 ## 由 BattleManager.cell_to_world() 换算 —— 战斗逻辑不依赖地图节点。
@@ -19,14 +20,12 @@ signal died(unit: BattleUnit)
 
 enum Team { PLAYER, ENEMY }
 
-## 血条浮在头顶多高
-const HEALTH_BAR_OFFSET := Vector2(0.0, -26.0)
 ## 挪一格的视觉时长：cell 立刻变，画面用补间追上来
 const MOVE_TIME := 0.15
 
 @export var unit_name: String = ""
 @export var team: Team = Team.PLAYER
-## 血量上限（场景配置的单位用；代码建号时由 setup 的参数覆盖）
+## 血量上限（在场景根节点上配置）
 @export var max_health: float = 100.0
 ## 场景建号时用哪个属性集脚本（默认怪物属性集，玩家场景覆盖成玩家属性集）
 @export var attribute_set_script: Script = preload("res://godot_gas/attributes/monster_stats_attribute_set.gd")
@@ -43,40 +42,6 @@ var cell: Vector2i = Vector2i.ZERO
 var health_attr: AttributeData
 var max_health_attr: AttributeData
 
-var _body: Sprite2D
-var _health_bar: UnitHealthBar
-
-
-## 建号（代码构建：ASC / 大脑 / 外观都在这里 new）。
-## 调用前请先把本节点 add_child 进场景树。
-func setup(p_name: String, p_team: Team, p_max_health: float, skills: Array[SkillDefinition], p_battle: BattleManager) -> void:
-	unit_name = p_name
-	team = p_team
-	battle = p_battle
-	
-	# 1. 属性集（数值先留默认，第 2 步说明为什么）
-	var stats := PlayerStatsAttributeSet.new()
-	
-	# 2. ASC（框架会在 _ready 里对属性集做 duplicate(true) 深拷贝，保证每个单位内存独立。
-	#    注意：duplicate 只复制带 STORAGE 标记的属性（即 @export 的），属性集里的普通
-	#    var 在入树前被赋的运行时值不会随深拷贝保留。所以初始数值必须在 ASC 入树之后、
-	#    通过 ASC 写进那份"活"的属性集里 —— 这也正是框架推荐的属性修改路径。
-	asc = AbilitySystemComponent.new()
-	asc.name = "AbilitySystemComponent"
-	asc.attribute_sets.append(stats)
-	add_child(asc)
-
-	_init_attributes(p_max_health)
-
-	# 3. 自动施法大脑
-	brain = BattleBrain.new()
-	brain.name = "BattleBrain"
-	add_child(brain)
-	brain.setup(self, skills)
-
-	# 4. 接线：观战日志与死亡
-	_connect_asc()
-
 
 ## 从场景建号：ASC、外观、能力都由场景预先配置。
 ## 场景根节点已经入树（子节点的 _ready 跑过）之后调用。
@@ -87,7 +52,7 @@ func setup_from_scene(p_battle: BattleManager) -> void:
 	# ASC 的 _ready 已经在入树时跑过，属性集在这里补一份；get_attribute 是实时遍历，
 	# 补进来即可用，而且这份实例只属于本单位
 	asc.attribute_sets.append(attribute_set_script.new() as AttributeSet)
-	_init_attributes(max_health)
+	_init_attributes()
 
 	brain = get_node("BattleBrain")
 	brain.unit = self
@@ -97,9 +62,8 @@ func setup_from_scene(p_battle: BattleManager) -> void:
 		if child is GameplayAbility:
 			brain.abilities.append(child as GameplayAbility)
 
-	_body = get_node("Body")
-	_health_bar = get_node("HealthBar")
-	_health_bar.bind(health_attr, max_health_attr, asc, _bar_color())
+	var health_bar := get_node("HealthBar") as UnitHealthBar
+	health_bar.bind(health_attr, max_health_attr, asc, _bar_color())
 
 	# 头顶名字：场景里有 Name 标签就跟着 unit_name 走
 	var name_label := get_node_or_null("Name") as Label
@@ -110,9 +74,9 @@ func setup_from_scene(p_battle: BattleManager) -> void:
 
 
 ## ASC 入树之后写初始属性：先设上限，血量的钳制依赖它
-func _init_attributes(p_max_health: float) -> void:
-	asc.get_attribute("max_health").base_value = p_max_health
-	asc.get_attribute("health").base_value = p_max_health
+func _init_attributes() -> void:
+	asc.get_attribute("max_health").base_value = max_health
+	asc.get_attribute("health").base_value = max_health
 
 	health_attr = asc.get_attribute("health")
 	max_health_attr = asc.get_attribute("max_health")
@@ -125,21 +89,6 @@ func _connect_asc() -> void:
 	asc.attribute_changed.connect(_on_attribute_changed)
 	asc.active_effect_added.connect(_on_active_effect_added)
 	asc.active_effect_removed.connect(_on_active_effect_removed)
-
-
-## 外观：从贴图里抠一块当本体，顺便把头顶血条挂上。放在 setup 之后调。
-func set_body(texture: Texture2D, region: Rect2, color: Color) -> void:
-	_body = Sprite2D.new()
-	_body.texture = texture
-	_body.region_enabled = true
-	_body.region_rect = region
-	_body.modulate = color
-	add_child(_body)
-
-	_health_bar = UnitHealthBar.new()
-	_health_bar.position = HEALTH_BAR_OFFSET
-	add_child(_health_bar)
-	_health_bar.bind(health_attr, max_health_attr, asc, _bar_color())
 
 
 ## 血条颜色：敌红我绿
@@ -191,8 +140,6 @@ func _on_attribute_changed(attribute_name: String, old_value: float, new_value: 
 			% [unit_name, new_value - old_value, old_value, new_value], "#7ddf7d")
 		_pop_number(new_value - old_value, true)
 
-	_update_wounded_tag(new_value)
-
 	if new_value <= 0.0:
 		_die()
 
@@ -202,16 +149,6 @@ func _pop_number(amount: float, heal: bool) -> void:
 	var number := DamageNumber.new()
 	add_child(number)  # 先入树，里面建补间要用
 	number.setup(amount, heal)
-
-
-## "受伤"状态维护：血量低于上限就挂 State.Wounded 标签，回满则摘掉。
-## 治愈技能就是靠 activation_query 要求这个标签实现"只在受伤时施放"的。
-func _update_wounded_tag(health_value: float) -> void:
-	var wounded := health_value < max_health_attr.current_value and health_value > 0.0
-	if wounded and not asc.has_tag_exact(GameplayTags.State_Wounded):
-		asc.add_tag(GameplayTags.State_Wounded)
-	elif not wounded and asc.has_tag_exact(GameplayTags.State_Wounded):
-		asc.clear_tag(GameplayTags.State_Wounded)
 
 
 func _on_active_effect_added(active_effect: ActiveGameplayEffect) -> void:

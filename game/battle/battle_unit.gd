@@ -24,8 +24,11 @@ const HEALTH_BAR_OFFSET := Vector2(0.0, -26.0)
 ## 挪一格的视觉时长：cell 立刻变，画面用补间追上来
 const MOVE_TIME := 0.15
 
-var unit_name: String = ""
-var team: Team = Team.PLAYER
+@export var unit_name: String = ""
+@export var team: Team = Team.PLAYER
+## 血量上限（场景配置的单位用；代码建号时由 setup 的参数覆盖）
+@export var max_health: float = 100.0
+
 var battle: BattleManager
 var asc: AbilitySystemComponent
 var brain: BattleBrain
@@ -42,15 +45,16 @@ var _body: Sprite2D
 var _health_bar: UnitHealthBar
 
 
-## 建号。调用前请先把本节点 add_child 进场景树。
+## 建号（代码构建：ASC / 大脑 / 外观都在这里 new）。
+## 调用前请先把本节点 add_child 进场景树。
 func setup(p_name: String, p_team: Team, p_max_health: float, skills: Array[SkillDefinition], p_battle: BattleManager) -> void:
 	unit_name = p_name
 	team = p_team
 	battle = p_battle
-
+	
 	# 1. 属性集（数值先留默认，第 2 步说明为什么）
 	var stats := PlayerStatsAttributeSet.new()
-
+	
 	# 2. ASC（框架会在 _ready 里对属性集做 duplicate(true) 深拷贝，保证每个单位内存独立。
 	#    注意：duplicate 只复制带 STORAGE 标记的属性（即 @export 的），属性集里的普通
 	#    var 在入树前被赋的运行时值不会随深拷贝保留。所以初始数值必须在 ASC 入树之后、
@@ -60,22 +64,62 @@ func setup(p_name: String, p_team: Team, p_max_health: float, skills: Array[Skil
 	asc.attribute_sets.append(stats)
 	add_child(asc)
 
-	asc.get_attribute("max_health").base_value = p_max_health  # 先设上限，血量的钳制依赖它
-	asc.get_attribute("health").base_value = p_max_health
+	_init_attributes(p_max_health)
 
-	health_attr = asc.get_attribute("health")
-	max_health_attr = asc.get_attribute("max_health")
-
-	# 3. 阵营标签（本案例逻辑以 team 字段为准；标签留给未来的标签过滤器用）
-	asc.add_tag(GameplayTags.Team_Player if team == Team.PLAYER else GameplayTags.Team_Enemy)
-
-	# 4. 自动施法大脑
+	# 3. 自动施法大脑
 	brain = BattleBrain.new()
 	brain.name = "BattleBrain"
 	add_child(brain)
 	brain.setup(self, skills)
 
-	# 5. 接线：观战日志与死亡
+	# 4. 接线：观战日志与死亡
+	_connect_asc()
+
+
+## 从场景建号：ASC、外观、能力都由场景预先配置。
+## 场景根节点已经入树（子节点的 _ready 跑过）之后调用。
+func setup_from_scene(p_battle: BattleManager) -> void:
+	battle = p_battle
+
+	asc = get_node("AbilitySystemComponent")
+	# ASC 的 _ready 已经在入树时跑过，属性集在这里补一份；get_attribute 是实时遍历，
+	# 补进来即可用，而且这份实例只属于本单位
+	asc.attribute_sets.append(MonsterStatsAttributeSet.new())
+	_init_attributes(max_health)
+
+	brain = get_node("BattleBrain")
+	brain.unit = self
+	# 场景里的能力节点挂在 ASC 下，入树时已经由框架自动授予；
+	# 这里只把它们登记给大脑，供每帧轮询
+	for child in asc.get_children():
+		if child is GameplayAbility:
+			brain.abilities.append(child as GameplayAbility)
+
+	_body = get_node("Body")
+	_health_bar = get_node("HealthBar")
+	_health_bar.bind(health_attr, max_health_attr, asc, _bar_color())
+
+	# 头顶名字：场景里有 Name 标签就跟着 unit_name 走
+	var name_label := get_node_or_null("Name") as Label
+	if name_label != null:
+		name_label.text = unit_name
+
+	_connect_asc()
+
+
+## ASC 入树之后写初始属性：先设上限，血量的钳制依赖它
+func _init_attributes(p_max_health: float) -> void:
+	asc.get_attribute("max_health").base_value = p_max_health
+	asc.get_attribute("health").base_value = p_max_health
+
+	health_attr = asc.get_attribute("health")
+	max_health_attr = asc.get_attribute("max_health")
+
+	# 阵营标签（本案例逻辑以 team 字段为准；标签留给未来的标签过滤器用）
+	asc.add_tag(GameplayTags.Team_Player if team == Team.PLAYER else GameplayTags.Team_Enemy)
+
+
+func _connect_asc() -> void:
 	asc.attribute_changed.connect(_on_attribute_changed)
 	asc.active_effect_added.connect(_on_active_effect_added)
 	asc.active_effect_removed.connect(_on_active_effect_removed)
@@ -90,11 +134,15 @@ func set_body(texture: Texture2D, region: Rect2, color: Color) -> void:
 	_body.modulate = color
 	add_child(_body)
 
-	var bar_color := Color(0.40, 0.85, 0.45) if team == Team.PLAYER else Color(0.90, 0.30, 0.25)
 	_health_bar = UnitHealthBar.new()
 	_health_bar.position = HEALTH_BAR_OFFSET
 	add_child(_health_bar)
-	_health_bar.bind(health_attr, max_health_attr, asc, bar_color)
+	_health_bar.bind(health_attr, max_health_attr, asc, _bar_color())
+
+
+## 血条颜色：敌红我绿
+func _bar_color() -> Color:
+	return Color(0.40, 0.85, 0.45) if team == Team.PLAYER else Color(0.90, 0.30, 0.25)
 
 
 ## 放到某个格子上（瞬时）

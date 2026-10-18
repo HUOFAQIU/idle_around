@@ -1,0 +1,53 @@
+[gd_scene format=3 uid="uid://bwro0807h6ekx"]
+
+[ext_resource type="Script" uid="uid://ce1hf1tf13mvl" path="res://game/battle/battle_unit.gd" id="1_3434r"]
+[ext_resource type="Script" uid="uid://cbrvrpcenj2cn" path="res://addons/GodotGAS/components/ability_system_component.gd" id="2_lyyvq"]
+[ext_resource type="Script" uid="uid://dxyk0ohabtj3b" path="res://game/battle/auto_cast_ability.gd" id="3_rtqcb"]
+[ext_resource type="Resource" uid="uid://chnvje3gcafxo" path="res://game/content/skills/yao.tres" id="4_nimd2"]
+[ext_resource type="Script" uid="uid://csy8k3vgu6nj3" path="res://game/battle/move_ability.gd" id="5_m544u"]
+[ext_resource type="Resource" path="res://game/content/effects/move_cooldown.tres" id="6_epups"]
+[ext_resource type="Script" uid="uid://dn3y0yymnkah2" path="res://game/battle/battle_brain.gd" id="7_ed6q0"]
+[ext_resource type="Texture2D" uid="uid://deaj7ddfwbqwh" path="res://Assets/tokens.png" id="8_k0v21"]
+[ext_resource type="Script" uid="uid://dn6s8onr16u6k" path="res://game/battle/unit_health_bar.gd" id="9_y4ndw"]
+
+[node name="Snake" type="Node2D" unique_id=207571995]
+script = ExtResource("1_3434r")
+unit_name = "蛇"
+team = 1
+
+[node name="AbilitySystemComponent" type="Node" parent="." unique_id=1465089854]
+script = ExtResource("2_lyyvq")
+
+[node name="Bite" type="Node" parent="AbilitySystemComponent" unique_id=563441757]
+script = ExtResource("3_rtqcb")
+skill = ExtResource("4_nimd2")
+
+[node name="Move" type="Node" parent="AbilitySystemComponent" unique_id=1682405011]
+script = ExtResource("5_m544u")
+ability_name = "移动"
+ability_tag = &"Ability.Move"
+cooldown_effect = ExtResource("6_epups")
+
+[node name="BattleBrain" type="Node" parent="." unique_id=630664741]
+script = ExtResource("7_ed6q0")
+
+[node name="Body" type="Sprite2D" parent="." unique_id=563510829]
+modulate = Color(0.92, 0.3, 0.3, 1)
+texture = ExtResource("8_k0v21")
+region_enabled = true
+region_rect = Rect2(64, 0, 32, 32)
+
+[node name="HealthBar" type="Node2D" parent="." unique_id=2101219531]
+position = Vector2(0, 20)
+script = ExtResource("9_y4ndw")
+
+[node name="Name" type="Label" parent="." unique_id=1354184635]
+offset_left = -32.0
+offset_top = -34.0
+offset_right = 32.0
+offset_bottom = -18.0
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 16
+text = "蛇"
+horizontal_alignment = 1

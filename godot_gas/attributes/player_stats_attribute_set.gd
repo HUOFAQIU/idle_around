@@ -1,9 +1,3 @@
-## An extended class for the attribute module: PlayerStats 
-##
-## @meta_addon: GodotGAS
-## @meta_author: YulRun (https://YulRun.Dev) & 'Your Name Here'
-## @meta_license: MIT (Default)
-
 @tool
 class_name PlayerStatsAttributeSet extends AttributeSet
 

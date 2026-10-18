@@ -3,8 +3,6 @@ extends BaseWindow
 
 ## 角色的血量上限（角色目前只有血量这一个属性）
 const PLAYER_MAX_HEALTH : float = 500.0
-## 蛇的血量上限
-const ENEMY_MAX_HEALTH : float = 100.0
 ## 角色倒下后多久重开一整场
 const REVIVE_DELAY : float = 3.0
 
@@ -12,12 +10,9 @@ const REVIVE_DELAY : float = 3.0
 const TOKENS_TEXTURE := preload("res://Assets/tokens.png")
 const PLAYER_REGION := Rect2(32, 0, 32, 32)
 const PLAYER_COLOR := Color(0, 0.8765176, 0.32171732)
-const SNAKE_REGION := Rect2(64, 0, 32, 32)
-const SNAKE_COLOR := Color(0.92, 0.30, 0.30)
 
-## 蛇的技能表、以及它"每 3 秒走一步"用的冷却
-const SNAKE_SKILL := preload("res://game/content/skills/yao.tres")
-const MOVE_COOLDOWN := preload("res://game/content/effects/move_cooldown.tres")
+## 蛇：配置好的单位场景
+const SNAKE_SCENE := preload("res://game/content/Monster/snake.tscn")
 
 ## 魂灵窗口里那四个格子（容器名，见 equipment_window.tscn）
 const SOUL_SLOT_NAMES : Array[String] = ["cell_0", "cell_1", "cell_2", "cell_3"]
@@ -197,22 +192,12 @@ func _give_unique_cooldown(ability: AutoCastAbility, index: int) -> StringName:
 	return tag
 
 
-# 蛇：咬人 + 每 3 秒朝角色走一步
+# 蛇：场景里配置好的单位，直接实例化
 func _spawn_enemy(cell: Vector2i) -> void:
-	var skills : Array[SkillDefinition] = [SNAKE_SKILL]
-	var unit := BattleUnit.new()
+	var unit := SNAKE_SCENE.instantiate() as BattleUnit
 	units_root.add_child(unit)
-	unit.setup("蛇", BattleUnit.Team.ENEMY, ENEMY_MAX_HEALTH, skills, _battle)
-	unit.set_body(TOKENS_TEXTURE, SNAKE_REGION, SNAKE_COLOR)
+	unit.setup_from_scene(_battle)
 	unit.set_cell(cell)
-
-	# 移动也是"能力"：节奏走 cooldown_effect 这个槽位，和技能共用同一套冷却机制
-	var move := MoveAbility.new()
-	move.ability_name = "移动"
-	move.ability_tag = &"Ability.Move"
-	move.cooldown_effect = MOVE_COOLDOWN
-	unit.brain.add_ability(move)
-
 	_battle.add_unit(unit)
 
 

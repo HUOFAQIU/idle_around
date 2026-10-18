@@ -19,6 +19,7 @@ config/version="0.0.1"
 config/tags=PackedStringArray("doing", "开发中")
 run/main_scene="uid://cf2t8qpdn820p"
 config/features=PackedStringArray("4.7", "Forward Plus")
+run/max_fps=60
 
 [autoload]
 

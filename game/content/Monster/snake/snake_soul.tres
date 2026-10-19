@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="SoulData" format=3 uid="uid://bgqrj3i0tufqg"]
+
+[ext_resource type="Texture2D" uid="uid://deaj7ddfwbqwh" path="res://Assets/tokens.png" id="1_tokens"]
+[ext_resource type="Script" uid="uid://bbcxwqb4ef1cg" path="res://Windows/Inventory/grid_base_inventory_system/core/model/item/soul_data.gd" id="2_soul"]
+[ext_resource type="Shader" uid="uid://c7gxmyf484kcn" path="res://Assets/Shader/soul_scanline.gdshader" id="3_scan"]
+[ext_resource type="Resource" uid="uid://chnvje3gcafxo" path="res://game/content/skills/yao.tres" id="4_skill"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_snake"]
+atlas = ExtResource("1_tokens")
+region = Rect2(64, 0, 32, 32)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_scan"]
+shader = ExtResource("3_scan")
+shader_parameter/line_color = Color(0.95, 0.55, 0.45, 1)
+shader_parameter/band_width = 0.16
+shader_parameter/intensity = 1.0
+shader_parameter/enable = 0.0
+shader_parameter/progress = 0.0
+
+[resource]
+script = ExtResource("2_soul")
+skill = ExtResource("4_skill")
+item_name = "蛇之魂"
+type = "SOUL"
+icon = SubResource("AtlasTexture_snake")
+rows = 2
+material = SubResource("ShaderMaterial_scan")
+metadata/_custom_type_script = "uid://bbcxwqb4ef1cg"

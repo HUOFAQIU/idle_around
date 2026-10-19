@@ -15,13 +15,13 @@
 
 class_name AutoCastAbility extends GameplayAbility
 
-## 本技能的数据定义（由 BattleBrain 在授予时注入；也可在场景里直接配置）
+## 本技能的数据定义（由 BattleUnit.add_soul_abilities() 注入）
 @export var skill: SkillDefinition
 
 
 func _ready() -> void:
 	super()
-	# 场景里预配置的技能：入树时翻译成框架配置。
+	# 通过场景节点直接配置 skill 的用法：入树时翻译成框架配置。
 	# 代码创建的技能在授予前已经 apply 过，ability_name 非空，不会重复执行
 	if skill != null and ability_name.is_empty():
 		apply_definition(skill)

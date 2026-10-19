@@ -6,7 +6,7 @@ const REVIVE_DELAY : float = 3.0
 
 ## 双方单位：配置好的场景，开战时直接实例化
 const PLAYER_SCENE := preload("res://game/content/Player/player.tscn")
-const SNAKE_SCENE := preload("res://game/content/Monster/snake.tscn")
+const SNAKE_SCENE := preload("res://game/content/Monster/snake/snake.tscn")
 
 ## 魂灵窗口里那四个格子（容器名，见 equipment_window.tscn）
 const SOUL_SLOT_NAMES : Array[String] = ["cell_0", "cell_1", "cell_2", "cell_3"]
@@ -150,41 +150,16 @@ func _spawn_player() -> BattleUnit:
 	player_health_bar.bind(unit.health_attr, unit.max_health_attr, unit.asc)
 	player_health_bar.visible = true
 
-	# 逐个魂灵建技能，顺便给每个技能一份"自己的"冷却标签
-	_soul_cooldown_tags.clear()
+	# 魂灵 → 技能：和怪物走同一条管线
+	_soul_cooldown_tags = unit.add_soul_abilities(_battle_souls)
 	var granted := 0
-	for i in _battle_souls.size():
-		var soul := _battle_souls[i]
-		_soul_cooldown_tags.append(&"")
-		if soul.skill == null:
-			continue
-		var ability := AutoCastAbility.new()
-		ability.apply_definition(soul.skill)
-		_soul_cooldown_tags[i] = _give_unique_cooldown(ability, i)
-		unit.brain.add_ability(ability)
-		granted += 1
-
+	for tag in _soul_cooldown_tags:
+		if tag != &"":
+			granted += 1
 	if granted == 0:
 		_battle.log_line("没有装备魂灵 —— 角色不会任何技能", "yellow")
 
 	return unit
-
-
-## 给这个技能实例一份自己的冷却：复制冷却效果，标签加序号。
-## 不这么做的话，同种魂灵的两个技能查的是同一个标签，会互相把对方锁在冷却里。
-## 返回加了序号的标签，扫描线要靠它读剩余时间
-func _give_unique_cooldown(ability: AutoCastAbility, index: int) -> StringName:
-	var base := ability.skill.charge_effect
-	if base == null or base.granted_tags.is_empty():
-		return &""
-
-	var charge := base.duplicate() as GameplayEffect
-	var tag := StringName("%s.%d" % [base.granted_tags[0], index])
-	# 浅拷贝出来的 granted_tags 和原件共用同一个 Array，必须整个换掉，不能 append
-	var tags : Array[StringName] = [tag]
-	charge.granted_tags = tags
-	ability.cooldown_effect = charge
-	return tag
 
 
 # 蛇：场景里配置好的单位，直接实例化

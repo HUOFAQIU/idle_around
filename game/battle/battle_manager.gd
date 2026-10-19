@@ -11,6 +11,8 @@ class_name BattleManager extends Node
 const SPAWN_INTERVAL : float = 0.2
 ## 只在这个距离之外刷怪
 const SPAWN_MIN_DISTANCE : int = 10
+## 掉落进哪个仓库容器
+const DROP_CONTAINER : String = "inventory_0"
 
 ## 单位坐标 → 像素坐标要用的地图
 var map: TileMapLayer
@@ -152,10 +154,24 @@ func _format_targets(groups: Array) -> String:
 #endregion
 
 
+## 每项掉落各掷一次骰子；测试阶段仓库满了就丢
+func _roll_drops(unit: BattleUnit) -> void:
+	for entry in unit.drops:
+		if entry == null or entry.item == null:
+			continue
+		if rng.randf() > entry.chance:
+			continue
+		if GBIS.add_item(DROP_CONTAINER, entry.item):
+			log_line("%s 掉落了【%s】" % [unit.unit_name, entry.item.item_name], "#ffd866")
+		else:
+			log_line("仓库已满，【%s】掉落丢失" % entry.item.item_name, "yellow")
+
+
 ## 有单位倒下：角色倒下就发信号让外面重开；怪倒下就从名册里划掉、清掉节点
 func _on_unit_died(unit: BattleUnit) -> void:
 	if unit == player:
 		is_running = false
 		return
+	_roll_drops(unit)
 	units.erase(unit)
 	unit.queue_free()

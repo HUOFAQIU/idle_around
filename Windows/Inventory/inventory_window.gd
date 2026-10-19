@@ -7,9 +7,9 @@ extends BaseWindow
 ## 调试用：往仓库里塞一颗魂灵。
 ## 带 skill 的魂灵拖进魂灵窗口的格子，战斗里角色才会放技能；
 ## 盾是早期的样例魂灵（没挂技能），留着占位
-const XIAO_LU = preload("res://Tokens/Souls/Res/xiao_lu.tres")
-const DUN = preload("uid://cooi7q46e2n0g")
-const CHANG_GONG = preload("res://Tokens/Souls/Res/chang_gong.tres")
+const XIAO_LU = preload("res://game/content/Player/xiao_lu.tres")
+const DUN = preload("res://game/content/Player/medium_0001.tres")
+const CHANG_GONG = preload("res://game/content/Player/chang_gong.tres")
 
 
 func _ready() -> void:

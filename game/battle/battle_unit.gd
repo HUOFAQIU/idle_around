@@ -25,6 +25,10 @@ enum Team { PLAYER, ENEMY }
 @export var team: Team = Team.PLAYER
 ## 血量上限（在场景根节点上配置）
 @export var max_health: float = 100.0
+## 死亡掉落（怪物场景里配置；玩家留空）
+@export var drops: Array[DropEntry] = []
+## 场景配置的魂灵（怪物用；玩家场景留空，运行时从装备读取）
+@export var souls: Array[SoulData] = []
 
 var battle: BattleManager
 var asc: AbilitySystemComponent
@@ -55,6 +59,8 @@ func setup_from_scene(p_battle: BattleManager) -> void:
 	for child in asc.get_children():
 		if child is GameplayAbility:
 			brain.abilities.append(child as GameplayAbility)
+	# 场景配置的魂灵 → 技能（玩家场景 souls 为空，由 BattleWindow 从装备读取后调用）
+	add_soul_abilities(souls)
 
 	var health_bar := get_node_or_null("HealthBar") as UnitHealthBar
 	if health_bar != null:
@@ -78,6 +84,39 @@ func _init_attributes() -> void:
 
 	# 阵营标签（本案例逻辑以 team 字段为准；标签留给未来的标签过滤器用）
 	asc.add_tag(GameplayTags.Team_Player if team == Team.PLAYER else GameplayTags.Team_Enemy)
+
+
+## 把一批魂灵变成技能；每个技能拿一份带序号的独立冷却标签。
+## 返回与输入等长的标签数组，空字符串表示这颗魂灵没有技能。
+func add_soul_abilities(soul_list: Array[SoulData]) -> Array[StringName]:
+	var tags : Array[StringName] = []
+	for i in soul_list.size():
+		var soul := soul_list[i]
+		tags.append(&"")
+		if soul == null or soul.skill == null:
+			continue
+		var ability := AutoCastAbility.new()
+		ability.apply_definition(soul.skill)
+		tags[i] = _give_unique_cooldown(ability, i)
+		brain.add_ability(ability)
+	return tags
+
+
+## 给这个技能实例一份自己的冷却：复制冷却效果，标签加序号。
+## 不这么做的话，同种魂灵的两个技能查的是同一个标签，会互相把对方锁在冷却里。
+## 返回加了序号的标签，扫描线要靠它读剩余时间
+func _give_unique_cooldown(ability: AutoCastAbility, index: int) -> StringName:
+	var base := ability.skill.charge_effect
+	if base == null or base.granted_tags.is_empty():
+		return &""
+
+	var charge := base.duplicate() as GameplayEffect
+	var tag := StringName("%s.%d" % [base.granted_tags[0], index])
+	# 浅拷贝出来的 granted_tags 和原件共用同一个 Array，必须整个换掉，不能 append
+	var tags : Array[StringName] = [tag]
+	charge.granted_tags = tags
+	ability.cooldown_effect = charge
+	return tag
 
 
 func _connect_asc() -> void:

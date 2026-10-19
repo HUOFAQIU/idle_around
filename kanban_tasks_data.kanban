@@ -24,15 +24,17 @@
 			"uuid": "3d8e3d00-a609-41c7-a684-c1dd2b26f8c7",
 			"title": "Doing",
 			"tasks": [
-				"b1ded61d-4fa0-478f-8a9c-cb3c94ecbc65"
+				"b1ded61d-4fa0-478f-8a9c-cb3c94ecbc65",
+				"051f7adb-9b63-49c1-8e26-09f7615a5cc7",
+				"ca003893-c03d-462d-8530-fb6553c37cd8",
+				"2d44f95f-5926-4afb-9f2c-20a64393c01e",
+				"29fa349a-dcab-4ea5-8a8c-634a10391763"
 			]
 		},
 		{
 			"uuid": "00cc217b-6c96-4fd1-acab-fa03554e6f0f",
 			"title": "Done",
-			"tasks": [
-				"3001fafb-5888-47f2-8a4e-5610f52dbfe6"
-			]
+			"tasks": []
 		}
 	],
 	"tasks": [
@@ -41,13 +43,6 @@
 			"title": "基础玩法循环",
 			"description": "",
 			"category": "abd1801b-a241-4c02-8dd1-4e804d1e3bd5",
-			"steps": []
-		},
-		{
-			"uuid": "3001fafb-5888-47f2-8a4e-5610f52dbfe6",
-			"title": "把tooltip替换完",
-			"description": "",
-			"category": "dc17d4ed-a172-4464-9b98-2aeab52f9cdf",
 			"steps": []
 		},
 		{
@@ -60,6 +55,34 @@
 		{
 			"uuid": "30215f06-69cc-4210-a19e-64f59d5297cb",
 			"title": "文档很重要，一定要完善，这是给自己看的，也是给AI的约束",
+			"description": "",
+			"category": "abd1801b-a241-4c02-8dd1-4e804d1e3bd5",
+			"steps": []
+		},
+		{
+			"uuid": "ca003893-c03d-462d-8530-fb6553c37cd8",
+			"title": "存档",
+			"description": "",
+			"category": "abd1801b-a241-4c02-8dd1-4e804d1e3bd5",
+			"steps": []
+		},
+		{
+			"uuid": "051f7adb-9b63-49c1-8e26-09f7615a5cc7",
+			"title": "完善Tooltip",
+			"description": "",
+			"category": "abd1801b-a241-4c02-8dd1-4e804d1e3bd5",
+			"steps": []
+		},
+		{
+			"uuid": "2d44f95f-5926-4afb-9f2c-20a64393c01e",
+			"title": "简单特效",
+			"description": "",
+			"category": "abd1801b-a241-4c02-8dd1-4e804d1e3bd5",
+			"steps": []
+		},
+		{
+			"uuid": "29fa349a-dcab-4ea5-8a8c-634a10391763",
+			"title": "怪物掉落池",
 			"description": "",
 			"category": "abd1801b-a241-4c02-8dd1-4e804d1e3bd5",
 			"steps": []

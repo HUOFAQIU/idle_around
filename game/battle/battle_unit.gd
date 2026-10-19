@@ -7,7 +7,7 @@
 ##                                   get_node_or_null("AbilitySystemComponent")
 ##                                   属性集配在它的 attribute_sets 上
 ##   ├── BattleBrain              ← 自动施法
-##   ├── HealthBar (UnitHealthBar)← 血条（必需）
+##   ├── HealthBar (UnitHealthBar)← 血条（可选，有就绑上）
 ##   ├── Body (Sprite2D)          ← 本体贴图（可选，纯显示）
 ##   └── Name (Label)             ← 头顶名字（可选，有就自动填 unit_name）
 ##
@@ -56,8 +56,9 @@ func setup_from_scene(p_battle: BattleManager) -> void:
 		if child is GameplayAbility:
 			brain.abilities.append(child as GameplayAbility)
 
-	var health_bar := get_node("HealthBar") as UnitHealthBar
-	health_bar.bind(health_attr, max_health_attr, asc, _bar_color())
+	var health_bar := get_node_or_null("HealthBar") as UnitHealthBar
+	if health_bar != null:
+		health_bar.bind(health_attr, max_health_attr, asc, _bar_color())
 
 	# 头顶名字：场景里有 Name 标签就跟着 unit_name 走
 	var name_label := get_node_or_null("Name") as Label

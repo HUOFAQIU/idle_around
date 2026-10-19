@@ -18,6 +18,7 @@ const SHOW_DEBUG_DISTANCE : bool = false
 ## 单位的家：跟地图同一个坐标系，所以单位直接挂这儿
 @onready var units_root: Node2D = $Tile/Units
 
+@onready var player_health_bar: PlayerHealthBar = $CanvasLayer/Control/PlayerHealthBar
 @onready var info_button: Button = $CanvasLayer/Control/GridContainer/InfoButton
 @onready var start_button: Button = $CanvasLayer/Control/GridContainer/StartButton
 @onready var speed_1_button: Button = $CanvasLayer/Control/GridContainer/Speed1Button
@@ -129,6 +130,7 @@ func _end_battle() -> void:
 
 
 func _clear_battle() -> void:
+	player_health_bar.visible = false
 	for child in units_root.get_children():
 		child.queue_free()
 	if _battle:
@@ -145,6 +147,8 @@ func _spawn_player() -> BattleUnit:
 	unit.set_cell(Vector2i.ZERO)
 	unit.died.connect(_on_player_died)
 	_battle.add_unit(unit)
+	player_health_bar.bind(unit.health_attr, unit.max_health_attr, unit.asc)
+	player_health_bar.visible = true
 
 	# 逐个魂灵建技能，顺便给每个技能一份"自己的"冷却标签
 	_soul_cooldown_tags.clear()

@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://dxwno0glbet88" path="res://Windows/Battle/battle_window.gd" id="1_nc1sn"]
 [ext_resource type="PackedScene" uid="uid://33uxpqaakhs" path="res://Windows/Battle/Maps/tile.tscn" id="2_7qkyi"]
+[ext_resource type="Script" uid="uid://dhkg54ofvcs6i" path="res://Windows/Battle/player_health_bar.gd" id="3_healthbar"]
 
 [node name="BattleWindow" type="Window" unique_id=1101778887]
 oversampling_override = 1.0
@@ -63,3 +64,17 @@ text = "3x"
 custom_minimum_size = Vector2(44, 44)
 layout_mode = 2
 text = "10x"
+
+[node name="PlayerHealthBar" type="Control" parent="CanvasLayer/Control" unique_id=874031946]
+visible = false
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 12.0
+offset_top = -30.0
+offset_right = 232.0
+offset_bottom = -12.0
+grow_vertical = 0
+mouse_filter = 2
+script = ExtResource("3_healthbar")

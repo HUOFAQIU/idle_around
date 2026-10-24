@@ -199,7 +199,7 @@ func _push_scanlines() -> void:
 
 ## 冷却走完多少了。读的是框架挂在角色身上那条冷却标签的剩余时间
 func _charge_progress(skill: SkillDefinition, tag: StringName) -> float:
-	var effect := skill.charge_effect
+	var effect := skill.cooldown_effect
 	if effect == null or effect.duration <= 0.0:
 		return 0.0
 	var remaining := _battle.player.asc.get_tag_duration_remaining(tag)

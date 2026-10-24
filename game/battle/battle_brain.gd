@@ -2,8 +2,7 @@
 ##
 ## 每个单位一个大脑，每帧向框架的"门卫"问一次：
 ##   "这个技能现在能放吗？"
-## 门卫（can_activate_ability）会替我们查好：冷却标签、花费、施法条件标签、
-## 是否正在施法中、是否被其他技能封锁。能放就 try_activate()，放不了就等下一帧。
+## 门卫（can_activate_ability）会替我们查好：冷却标签、花费、施法条件标签、是否正在施法中、是否被其他技能封锁。能放就 try_activate()，放不了就等下一帧。
 ##
 ## 冷却倒计时不需要大脑操心——它由框架的冷却效果在每个 ASC 的 _process 里自己走。
 ##
@@ -28,18 +27,18 @@ func add_ability(ability: GameplayAbility) -> void:
 ## 释放时 commit_ability() 会重新挂上，进入下一轮 —— 即"每 X 秒释放一次"。
 func begin_charge() -> void:
 	for ability in abilities:
-		var effect := _charge_effect_of(ability)
+		var effect := _cooldown_effect_of(ability)
 		if effect:
 			unit.asc.apply_gameplay_effect(effect, unit.asc, 1.0)
 
 
 ## 能力的"冷却效果"：实例上覆盖过的优先（同种魂灵要各用各的标签），
 ## 没覆盖就用技能数据里那份
-func _charge_effect_of(ability: GameplayAbility) -> GameplayEffect:
+func _cooldown_effect_of(ability: GameplayAbility) -> GameplayEffect:
 	if ability.cooldown_effect:
 		return ability.cooldown_effect
 	var auto := ability as AutoCastAbility
-	return auto.skill.charge_effect if auto and auto.skill else null
+	return auto.skill.cooldown_effect if auto and auto.skill else null
 
 
 func _process(_delta: float) -> void:

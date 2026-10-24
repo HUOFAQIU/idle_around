@@ -9,8 +9,10 @@
 @tool
 class_name GameplayTags
 
-const State_Charging_Heal: StringName = &"State.Charging.Heal"
-const State_Charging_Slash: StringName = &"State.Charging.Slash"
+const State_Cooldown_Changgong: StringName = &"State.Cooldown.Changgong"
+const State_Cooldown_Jianya: StringName = &"State.Cooldown.Jianya"
+const State_Cooldown_Move: StringName = &"State.Cooldown.Move"
+const State_Cooldown_Xiaolu: StringName = &"State.Cooldown.Xiaolu"
 const State_Dead: StringName = &"State.Dead"
 const State_Wounded: StringName = &"State.Wounded"
 const Team_Enemy: StringName = &"Team.Enemy"

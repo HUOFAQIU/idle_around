@@ -7,11 +7,10 @@
 [ext_resource type="Script" uid="uid://cf2mx3u4jfquk" path="res://game/content/target_rule.gd" id="5_rule"]
 
 [sub_resource type="Resource" id="Resource_effect_charge"]
-resource_name = "小鹿·冷却"
 script = ExtResource("2_effect")
 policy = 1
 duration = 4.0
-granted_tags = Array[StringName]([&"State.Charging.Deer"])
+granted_tags = Array[StringName]([&"State.Cooldown.Xiaolu"])
 
 [sub_resource type="Resource" id="Resource_modifier_heal"]
 script = ExtResource("3_modifier")
@@ -29,10 +28,9 @@ camp = 2
 
 [resource]
 script = ExtResource("1_skilldef")
-id = "deer"
-display_name = "小鹿"
+id = "xiaolu"
 description = "冷却 4 秒，回复自身 30 点血量。"
 effects = Array[ExtResource("2_effect")]([SubResource("Resource_effect_heal")])
-charge_effect = SubResource("Resource_effect_charge")
+cooldown_effect = SubResource("Resource_effect_charge")
 target_rule = SubResource("Resource_target_rule")
 metadata/_custom_type_script = "uid://ktr72cmavmyy"

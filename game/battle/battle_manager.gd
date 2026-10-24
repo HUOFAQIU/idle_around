@@ -133,8 +133,8 @@ func log_line(text: String, color: String = "white") -> void:
 
 
 ## 施法报幕："长弓 施放【长弓】→ 蛇、蛇、蛇"
-func log_cast(caster: BattleUnit, skill: SkillDefinition, groups: Array) -> void:
-	log_line("%s 施放【%s】→ %s" % [caster.unit_name, skill.display_name, _format_targets(groups)], "#6fb7ff")
+func log_cast(caster: BattleUnit, skill_name: String, groups: Array) -> void:
+	log_line("%s 施放【%s】→ %s" % [caster.unit_name, skill_name, _format_targets(groups)], "#6fb7ff")
 
 
 func _format_targets(groups: Array) -> String:

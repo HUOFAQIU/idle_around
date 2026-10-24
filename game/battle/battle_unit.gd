@@ -96,7 +96,7 @@ func add_soul_abilities(soul_list: Array[SoulData]) -> Array[StringName]:
 		if soul == null or soul.skill == null:
 			continue
 		var ability := AutoCastAbility.new()
-		ability.apply_definition(soul.skill)
+		ability.apply_definition(soul.skill, soul.item_name)
 		tags[i] = _give_unique_cooldown(ability, i)
 		brain.add_ability(ability)
 	return tags
@@ -106,7 +106,7 @@ func add_soul_abilities(soul_list: Array[SoulData]) -> Array[StringName]:
 ## 不这么做的话，同种魂灵的两个技能查的是同一个标签，会互相把对方锁在冷却里。
 ## 返回加了序号的标签，扫描线要靠它读剩余时间
 func _give_unique_cooldown(ability: AutoCastAbility, index: int) -> StringName:
-	var base := ability.skill.charge_effect
+	var base := ability.skill.cooldown_effect
 	if base == null or base.granted_tags.is_empty():
 		return &""
 
@@ -199,10 +199,10 @@ func _on_active_effect_removed(active_effect: ActiveGameplayEffect) -> void:
 	_log("%s 的状态【%s】结束" % [unit_name, def.resource_name], "gray")
 
 
-## 蓄力等内部效果不播报（靠 State.Charging.* 标签识别）
+## 冷却等内部效果不播报（靠 State.Cooldown.* 标签识别）
 func _is_internal(def: GameplayEffect) -> bool:
 	for tag in def.granted_tags:
-		if String(tag).begins_with("State.Charging."):
+		if String(tag).begins_with("State.Cooldown."):
 			return true
 	return false
 

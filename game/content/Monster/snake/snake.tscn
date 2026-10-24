@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://ce1hf1tf13mvl" path="res://game/battle/battle_unit.gd" id="1_bsytc"]
 [ext_resource type="Script" uid="uid://btsu4ealh0l4a" path="res://game/content/drops/drop_entry.gd" id="2_l0g88"]
-[ext_resource type="Resource" uid="uid://bgqrj3i0tufqg" path="res://game/content/Monster/snake/snake_soul.tres" id="3_ld8mg"]
+[ext_resource type="Resource" uid="uid://bgqrj3i0tufqg" path="res://game/content/Souls/jian_ya/jian_ya_soul.tres" id="3_ld8mg"]
 [ext_resource type="Script" uid="uid://cbrvrpcenj2cn" path="res://addons/GodotGAS/components/ability_system_component.gd" id="4_8k11f"]
 [ext_resource type="Script" uid="uid://bhr4dsrpc4jw8" path="res://addons/GodotGAS/attributes/attribute_set.gd" id="5_83dlg"]
 [ext_resource type="Script" uid="uid://0ok23abdn4k0" path="res://godot_gas/attributes/monster_stats_attribute_set.gd" id="6_pxmas"]

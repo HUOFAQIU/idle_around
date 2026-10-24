@@ -28,13 +28,14 @@ func _ready() -> void:
 
 
 ## 把一份 SkillDefinition 翻译成框架的技能配置。
-func apply_definition(def: SkillDefinition) -> void:
+## p_display_name 来自魂灵物品的 item_name；不传时退回内部 id。
+func apply_definition(def: SkillDefinition, p_display_name: String = "") -> void:
 	skill = def
-	ability_name = def.display_name
+	ability_name = p_display_name if not p_display_name.is_empty() else def.id
 	ability_tag = StringName("Skill." + def.id)
-	# 框架的 cooldown_effect 槽位 = 我们的"冷却效果"：开局挂上、释放后重新挂上，
+	# 冷却效果：开局挂上、释放后重新挂上，
 	# 门卫靠它授予的标签判定"冷却是否完成"。
-	cooldown_effect = def.charge_effect
+	cooldown_effect = def.cooldown_effect
 
 	# 施法条件（例如"只在受伤时治疗"）翻译成框架的标签查询，由门卫统一检查
 	if not def.cast_requires_tags.is_empty():
@@ -68,11 +69,11 @@ func _activate_ability() -> bool:
 		# 会把真正有意思的行冲掉
 		var caster := _caster_unit()
 		if caster and caster.team == BattleUnit.Team.PLAYER:
-			battle.log_line("%s 的【%s】空放了（范围内没目标）" % [_caster_name(), skill.display_name], "gray")
+			battle.log_line("%s 的【%s】空放了（范围内没目标）" % [_caster_name(), ability_name], "gray")
 		return true
 
 	# ④ 报幕 + 结算
-	battle.log_cast(_caster_unit(), skill, groups)
+	battle.log_cast(_caster_unit(), ability_name, groups)
 
 	if skill.projectile_scene:
 		return await _cast_projectiles(battle, groups)
@@ -109,7 +110,7 @@ func _cast_projectiles(battle: BattleManager, groups: Array) -> bool:
 
 	var missed := targets.size() - hit_count
 	if missed > 0:
-		battle.log_line("%s 的【%s】有 %d 支空了" % [caster.unit_name, skill.display_name, missed], "gray")
+		battle.log_line("%s 的【%s】有 %d 支空了" % [caster.unit_name, ability_name, missed], "gray")
 	return true
 
 

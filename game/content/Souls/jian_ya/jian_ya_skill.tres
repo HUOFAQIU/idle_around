@@ -1,0 +1,43 @@
+[gd_resource type="Resource" script_class="SkillDefinition" format=3 uid="uid://chnvje3gcafxo"]
+
+[ext_resource type="Script" uid="uid://b7ovihaaijli7" path="res://addons/GodotGAS/effects/gameplay_execution_calculation.gd" id="1_aowow"]
+[ext_resource type="Script" uid="uid://bcow77l0bnh0s" path="res://addons/GodotGAS/effects/gameplay_effect_modifier.gd" id="2_vykec"]
+[ext_resource type="Script" uid="uid://c81papidngxvg" path="res://addons/GodotGAS/effects/gameplay_effect.gd" id="3_cwdw2"]
+[ext_resource type="Script" uid="uid://ccvfqmqr8q1pm" path="res://addons/GodotGAS/gameplay_tag/gameplay_tag_query.gd" id="4_od3hn"]
+[ext_resource type="Script" uid="uid://ktr72cmavmyy" path="res://game/content/skill_definition.gd" id="5_nixmg"]
+[ext_resource type="Script" uid="uid://cf2mx3u4jfquk" path="res://game/content/target_rule.gd" id="6_irj8f"]
+
+[sub_resource type="Resource" id="Resource_effect_charge"]
+script = ExtResource("3_cwdw2")
+policy = 1
+duration = 3.0
+granted_tags = Array[StringName]([&"State.Cooldown.Jianya"])
+
+[sub_resource type="Resource" id="Resource_query_not_dead"]
+script = ExtResource("4_od3hn")
+ignore_tags = Array[StringName]([&"State.Dead"])
+
+[sub_resource type="Resource" id="Resource_modifier_damage"]
+script = ExtResource("2_vykec")
+attribute_name = "health"
+magnitude = -10.0
+
+[sub_resource type="Resource" id="Resource_effect_damage"]
+resource_name = "咬"
+script = ExtResource("3_cwdw2")
+application_query = SubResource("Resource_query_not_dead")
+modifiers = Array[ExtResource("2_vykec")]([SubResource("Resource_modifier_damage")])
+
+[sub_resource type="Resource" id="Resource_target_rule"]
+script = ExtResource("6_irj8f")
+mode = 3
+max_range = 1
+
+[resource]
+script = ExtResource("5_nixmg")
+id = "jianya"
+description = "冷却 3 秒，对 1 格内最近的目标造成 10 点伤害。"
+effects = Array[ExtResource("3_cwdw2")]([SubResource("Resource_effect_damage")])
+cooldown_effect = SubResource("Resource_effect_charge")
+target_rule = SubResource("Resource_target_rule")
+metadata/_custom_type_script = "uid://ktr72cmavmyy"

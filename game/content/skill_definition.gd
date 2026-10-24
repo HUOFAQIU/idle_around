@@ -11,9 +11,6 @@ class_name SkillDefinition extends Resource
 ## 英文短 id（用于 ability_tag 等内部标识）
 @export var id: String = ""
 
-## 中文名（日志与 UI 显示用）
-@export var display_name: String = ""
-
 ## 面向玩家的技能描述（与下面字段一一对应）
 @export_multiline var description: String = ""
 
@@ -25,8 +22,8 @@ class_name SkillDefinition extends Resource
 ## 门卫（can_activate_ability）会因冷却标签而拒绝释放；标签一脱落即可释放。
 ## 释放时 commit_ability() 会重新挂上，进入下一轮冷却 → 本质是"释放间隔 X 秒"。
 ## UI 可调用 asc.get_tag_duration_remaining(标签) 读剩余秒数画倒计时。
-## （字段名在框架侧仍叫 cooldown_effect —— AutoCastAbility 会把它填进那个槽位）
-@export var charge_effect: GameplayEffect
+## 字段名与框架 GameplayAbility.cooldown_effect 保持一致，不做重命名。
+@export var cooldown_effect: GameplayEffect
 
 ## 目标选择规则
 @export var target_rule: TargetRule

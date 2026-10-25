@@ -5,3 +5,7 @@ class_name SoulData
 ## 这颗魂灵在战斗中提供的技能：冷却、范围、效果全写在这份数据里。
 ## 空着 = 装上去也不提供任何技能
 @export var skill: SkillDefinition
+
+## 可装备的部位；ANY = 不限
+@export_enum("ANY", "HEADSOUL", "TORSOSOUL", "ARMSSOUL", "LEGSSOUL")
+var equip_part: String = "ANY"

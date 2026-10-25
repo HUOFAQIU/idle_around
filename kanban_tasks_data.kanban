@@ -17,7 +17,8 @@
 			"title": "Todo",
 			"tasks": [
 				"a31f774e-4cb0-434c-95f3-e578f59c9212",
-				"30215f06-69cc-4210-a19e-64f59d5297cb"
+				"30215f06-69cc-4210-a19e-64f59d5297cb",
+				"90ca3725-b67b-41d3-b2dd-2c2245c32624"
 			]
 		},
 		{
@@ -83,6 +84,13 @@
 		{
 			"uuid": "29fa349a-dcab-4ea5-8a8c-634a10391763",
 			"title": "怪物掉落池",
+			"description": "",
+			"category": "abd1801b-a241-4c02-8dd1-4e804d1e3bd5",
+			"steps": []
+		},
+		{
+			"uuid": "90ca3725-b67b-41d3-b2dd-2c2245c32624",
+			"title": "写 soul 的 skill，我在 excel 里写技能，由 skill 完成",
 			"description": "",
 			"category": "abd1801b-a241-4c02-8dd1-4e804d1e3bd5",
 			"steps": []

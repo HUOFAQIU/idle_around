@@ -8,7 +8,7 @@ extends BaseWindow
 ## 带 skill 的魂灵拖进魂灵窗口的格子，战斗里角色才会放技能；
 ## 盾是早期的样例魂灵（没挂技能），留着占位
 const XIAO_LU = preload("res://game/content/Souls/xiao_lu/xiao_lu_soul.tres")
-const DUN = preload("res://game/content/Player/medium_0001.tres")
+const DUN = preload("res://game/content/Souls/dun/dun_soul.tres")
 const CHANG_GONG = preload("res://game/content/Souls/chang_gong/chang_gong_soul.tres")
 
 

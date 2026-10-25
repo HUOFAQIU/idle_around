@@ -26,13 +26,14 @@ theme_override_constants/separation = 0
 custom_minimum_size = Vector2(0, 32)
 custom_maximum_size = Vector2(-1, 32)
 layout_mode = 2
-text = "HEAD"
+text = "HEADSOUL"
 vertical_alignment = 1
 
 [node name="SoulView" type="Control" parent="VBoxContainer/Cell0" unique_id=1571337799]
 layout_mode = 2
 script = ExtResource("4_tl6mi")
 avilable_types = Array[String](["SOUL"])
+equip_part = "HEADSOUL"
 container_name = "cell_0"
 container_columns = 10
 metadata/_custom_type_script = "uid://b3x4mwtjmm4tp"
@@ -47,13 +48,14 @@ theme_override_constants/separation = 0
 custom_minimum_size = Vector2(0, 32)
 custom_maximum_size = Vector2(-1, 32)
 layout_mode = 2
-text = "BODY"
+text = "TORSOSOUL"
 vertical_alignment = 1
 
 [node name="SoulView" type="Control" parent="VBoxContainer/Cell1" unique_id=47895324]
 layout_mode = 2
 script = ExtResource("4_tl6mi")
 avilable_types = Array[String](["SOUL"])
+equip_part = "TORSOSOUL"
 container_name = "cell_1"
 container_columns = 10
 metadata/_custom_type_script = "uid://b3x4mwtjmm4tp"
@@ -68,13 +70,14 @@ theme_override_constants/separation = 0
 custom_minimum_size = Vector2(0, 32)
 custom_maximum_size = Vector2(-1, 32)
 layout_mode = 2
-text = "HAND"
+text = "ARMSSOUL"
 vertical_alignment = 1
 
 [node name="SoulView" type="Control" parent="VBoxContainer/Cell2" unique_id=1174273378]
 layout_mode = 2
 script = ExtResource("4_tl6mi")
 avilable_types = Array[String](["SOUL"])
+equip_part = "ARMSSOUL"
 container_name = "cell_2"
 container_columns = 10
 metadata/_custom_type_script = "uid://b3x4mwtjmm4tp"
@@ -89,13 +92,14 @@ theme_override_constants/separation = 0
 custom_minimum_size = Vector2(0, 32)
 custom_maximum_size = Vector2(-1, 32)
 layout_mode = 2
-text = "LEG"
+text = "LEGSSOUL"
 vertical_alignment = 1
 
 [node name="SoulView" type="Control" parent="VBoxContainer/Cell3" unique_id=1744245926]
 layout_mode = 2
 script = ExtResource("4_tl6mi")
 avilable_types = Array[String](["SOUL"])
+equip_part = "LEGSSOUL"
 container_name = "cell_3"
 container_columns = 10
 metadata/_custom_type_script = "uid://b3x4mwtjmm4tp"

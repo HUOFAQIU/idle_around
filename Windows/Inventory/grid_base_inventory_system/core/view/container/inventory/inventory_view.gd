@@ -5,6 +5,8 @@ class_name InventoryView
 
 ## 允许存放的物品类型，如果背包名字重复，可存放的物品类型需要一样
 @export_enum("ANY", "SOUL") var avilable_types: Array[String] = ["ANY"]
+## 装备部位限制（NONE = 普通背包，不限制）
+@export_enum("NONE", "HEADSOUL", "TORSOSOUL", "ARMSSOUL", "LEGSSOUL") var equip_part: String = "NONE"
 
 func grid_hover(grid_id: Vector2i) -> void:
 	_handle_grid_hover(grid_id, true)
@@ -60,6 +62,7 @@ func change_data_source(new_container_name: String) -> void:
 	for child in get_children():
 		child.queue_free()
 	var ret = GBIS.inventory_service.regist(new_container_name, container_columns, container_rows, false, avilable_types)
+	ret.equip_part = "" if equip_part == "NONE" else equip_part
 	container_name = new_container_name
 	avilable_types = ret.avilable_types
 	container_columns = ret.columns
@@ -80,7 +83,8 @@ func _ready() -> void:
 		return
 	
 	var ret = GBIS.inventory_service.regist(container_name, container_columns, container_rows, false, avilable_types)
-	
+	ret.equip_part = "" if equip_part == "NONE" else equip_part
+
 	if visible:
 		GBIS.opened_containers.append(container_name)
 	

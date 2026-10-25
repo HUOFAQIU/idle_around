@@ -1,15 +1,20 @@
-## 自动施法大脑：实时秒表模型的最简实现。
+## 自动施法大脑：充能模型。
 ##
-## 每个单位一个大脑，每帧向框架的"门卫"问一次：
-##   "这个技能现在能放吗？"
-## 门卫（can_activate_ability）会替我们查好：冷却标签、花费、施法条件标签、是否正在施法中、是否被其他技能封锁。能放就 try_activate()，放不了就等下一帧。
+## 每个单位一个大脑，每物理帧：
+##   1. 给没在施法中的能力累加充能（1/60 秒/帧）
+##   2. 充满后向框架的"门卫"问一次能不能放
+## 门卫（can_activate_ability）负责花费、施法条件标签、是否正在施法等检查。
 ##
-## 冷却倒计时不需要大脑操心——它由框架的冷却效果在每个 ASC 的 _process 里自己走。
+## 冰冻期间：自身不充能，也不能释放；外部充能（Charge 效果）仍然可以直接
+## 调用 add_charge() 把充能加满，解冻后下一帧立刻释放。
 ##
 ## @meta_addon: GodotGAS
 ## @meta_license: MIT
 
 class_name BattleBrain extends Node
+
+## 冰冻标签；Freeze 效果实现后由它负责挂/摘
+const FROZEN_TAG : StringName = &"State.Frozen"
 
 ## 本单位的技能（AutoCastAbility 节点，已授予给 ASC）
 var unit: BattleUnit
@@ -22,28 +27,26 @@ func add_ability(ability: GameplayAbility) -> void:
 	abilities.append(ability)
 
 
-## 开局冷却：给每个能力挂上它的冷却效果，倒计时开始走。
-## 冷却期间技能被冷却标签挡在门外；倒计时到点、标签脱落，技能才可以释放。
-## 释放时 commit_ability() 会重新挂上，进入下一轮 —— 即"每 X 秒释放一次"。
+## 开局：所有能力从 0 开始充能
 func begin_charge() -> void:
 	for ability in abilities:
-		var effect := _cooldown_effect_of(ability)
-		if effect:
-			unit.asc.apply_gameplay_effect(effect, unit.asc, 1.0)
+		var charged := ability as ChargedAbility
+		if charged:
+			charged.reset_charge()
 
 
-## 能力的"冷却效果"：实例上覆盖过的优先（同种魂灵要各用各的标签），
-## 没覆盖就用技能数据里那份
-func _cooldown_effect_of(ability: GameplayAbility) -> GameplayEffect:
-	if ability.cooldown_effect:
-		return ability.cooldown_effect
-	var auto := ability as AutoCastAbility
-	return auto.skill.cooldown_effect if auto and auto.skill else null
-
-
-func _process(_delta: float) -> void:
+func _physics_process(delta: float) -> void:
 	if unit.is_dead or unit.battle == null or not unit.battle.is_running:
 		return
+	var frozen := unit.asc.has_tag(FROZEN_TAG)
 	for ability in abilities:
+		var charged := ability as ChargedAbility
+		# 冰冻时自身不充能；施法期间也不充能（冷却从释放后开始算）
+		if charged != null and not ability.is_active and not frozen:
+			charged.add_charge(delta)
+		if frozen:
+			continue
+		if charged != null and not charged.is_ready():
+			continue
 		if unit.asc.can_activate_ability(ability):
 			ability.try_activate()  # 开火即忘，技能内部自己 await

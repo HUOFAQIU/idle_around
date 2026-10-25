@@ -10,6 +10,8 @@ class_name ContainerData
 @export_storage var container_name: String
 ## 允许存放的物品类型列表
 @export_storage var avilable_types: Array[String]
+## 装备部位限制（空 = 普通容器，不限制）
+@export_storage var equip_part: String = ""
 
 ## 当前存放的物品数据列表
 @export_storage var items: Array[ItemData] = []
@@ -42,6 +44,7 @@ func clear() -> void:
 ## 深度复制当前库存数据
 func deep_duplicate() -> ContainerData:
 	var ret = ContainerData.new(container_name, columns, rows, avilable_types)
+	ret.equip_part = equip_part
 	for item_data in item_grids_map.keys():
 		ret.item_grids_map[item_data.duplicate()] = item_grids_map[item_data].duplicate(true)
 	ret.items.append_array(ret.item_grids_map.keys())
@@ -72,7 +75,13 @@ func remove_item(item: ItemData) -> bool:
 
 ## 检查物品是否可以被放入当前库存
 func is_item_avilable(item_data: ItemData) -> bool:
-	return avilable_types.has("ANY") or avilable_types.has(item_data.type)
+	if not (avilable_types.has("ANY") or avilable_types.has(item_data.type)):
+		return false
+	# 装备部位容器：魂灵只能进对应部位；ANY 的魂灵不限制
+	if equip_part != "" and item_data is SoulData:
+		var soul := item_data as SoulData
+		return soul.equip_part == "ANY" or soul.equip_part == equip_part
+	return true
 
 ## 根据物品数据查找其占用的网格坐标列表
 func find_grids_by_item_data(item_data: ItemData) -> Array[Vector2i]:

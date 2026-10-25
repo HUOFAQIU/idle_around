@@ -16,6 +16,7 @@ shader_parameter/progress = 0.0
 [resource]
 script = ExtResource("3_yhsl3")
 skill = ExtResource("4_ssp3u")
+equip_part = "ARMSSOUL"
 item_name = "长弓"
 type = "SOUL"
 icon = ExtResource("1_rlrga")

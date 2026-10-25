@@ -33,8 +33,8 @@ var _battle : BattleManager
 var _run_id : int = 0
 ## 这一场参战的魂灵（开打时从装备格里抓的，用来推扫描线）
 var _battle_souls : Array[SoulData] = []
-## 与 _battle_souls 同下标：每颗魂灵的技能用的是哪个冷却标签（同种魂灵也各不相同）
-var _soul_cooldown_tags : Array[StringName] = []
+## 与 _battle_souls 同下标：每颗魂灵对应的技能（没有技能为 null）
+var _soul_abilities : Array[AutoCastAbility] = []
 ## 上一帧鼠标在不在本窗口里（用来判断"刚离开"这一下）
 var _mouse_was_inside : bool = false
 
@@ -131,6 +131,7 @@ func _end_battle() -> void:
 
 func _clear_battle() -> void:
 	player_health_bar.visible = false
+	_soul_abilities.clear()
 	for child in units_root.get_children():
 		child.queue_free()
 	if _battle:
@@ -151,10 +152,10 @@ func _spawn_player() -> BattleUnit:
 	player_health_bar.visible = true
 
 	# 魂灵 → 技能：和怪物走同一条管线
-	_soul_cooldown_tags = unit.add_soul_abilities(_battle_souls)
+	_soul_abilities = unit.add_soul_abilities(_battle_souls)
 	var granted := 0
-	for tag in _soul_cooldown_tags:
-		if tag != &"":
+	for ability in _soul_abilities:
+		if ability != null:
 			granted += 1
 	if granted == 0:
 		_battle.log_line("没有装备魂灵 —— 角色不会任何技能", "yellow")
@@ -191,19 +192,9 @@ func _push_scanlines() -> void:
 	if _battle == null or _battle.player == null:
 		return
 	for i in _battle_souls.size():
-		if i >= _soul_cooldown_tags.size() or _soul_cooldown_tags[i] == &"":
+		if i >= _soul_abilities.size() or _soul_abilities[i] == null:
 			continue
-		var soul := _battle_souls[i]
-		soul.set_shader_param("progress", _charge_progress(soul.skill, _soul_cooldown_tags[i]))
-
-
-## 冷却走完多少了。读的是框架挂在角色身上那条冷却标签的剩余时间
-func _charge_progress(skill: SkillDefinition, tag: StringName) -> float:
-	var effect := skill.cooldown_effect
-	if effect == null or effect.duration <= 0.0:
-		return 0.0
-	var remaining := _battle.player.asc.get_tag_duration_remaining(tag)
-	return clampf(1.0 - remaining / effect.duration, 0.0, 1.0)
+		_battle_souls[i].set_shader_param("progress", _soul_abilities[i].charge_ratio())
 
 
 ## 扫描线的总开关：不在战斗时整条收起来（这是文档要的"战斗开始后才出现"）

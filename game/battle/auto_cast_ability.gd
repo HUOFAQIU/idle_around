@@ -1,19 +1,19 @@
 ## 通用自动施法技能：全场共用这一个脚本，差异全在 SkillDefinition 数据里。
 ##
 ## 施法顺序：
-##   ① commit_ability()  扣费 + 进冷却 —— 冷却一到就放，不等任何东西
-##   ② 选目标            选不到就是空放：照放、照扣冷却，只是什么也没打着
+##   ① commit_cost() + reset_charge()  扣费 + 清空充能 —— 充满就放，不等任何东西
+##   ② 选目标            选不到就是空放：照放、照清充能，只是什么也没打着
 ##   ③ 吟唱（可选）       吟唱结束后重新选人，避免对着尸体放大
 ##   ④ 结算              有投射物 → 一支箭对一个目标，飞到才结算、空了就是空了；
-##                       没投射物 → 直接按批次施加效果
+##                       没投射物 → 逐目标直接结算，暴击独立判定
 ##
-## 门卫检查（冷却倒计时 / 花费 / 施法条件标签 / 是否在施法中）全部由框架的
-## can_activate_ability() 负责，这里不重复实现。
+## 门卫检查（花费 / 施法条件标签 / 是否在施法中）由框架的 can_activate_ability()
+## 负责；冷却由 ChargedAbility 的充能值控制。
 ##
 ## @meta_addon: GodotGAS
 ## @meta_license: MIT
 
-class_name AutoCastAbility extends GameplayAbility
+class_name AutoCastAbility extends ChargedAbility
 
 ## 本技能的数据定义（由 BattleUnit.add_soul_abilities() 注入）
 @export var skill: SkillDefinition
@@ -33,9 +33,9 @@ func apply_definition(def: SkillDefinition, p_display_name: String = "") -> void
 	skill = def
 	ability_name = p_display_name if not p_display_name.is_empty() else def.id
 	ability_tag = StringName("Skill." + def.id)
-	# 冷却效果：开局挂上、释放后重新挂上，
-	# 门卫靠它授予的标签判定"冷却是否完成"。
-	cooldown_effect = def.cooldown_effect
+	# 冷却效果只作为时长数据，不再挂到 ASC；清空避免门卫检查它的标签
+	setup_cooldown_from_effect(def.cooldown_effect)
+	cooldown_effect = null
 
 	# 施法条件（例如"只在受伤时治疗"）翻译成框架的标签查询，由门卫统一检查
 	if not def.cast_requires_tags.is_empty():
@@ -51,8 +51,9 @@ func _activate_ability() -> bool:
 	if skill == null or battle == null:
 		return false
 
-	# ① 冷却一到就放，不等任何东西 —— 先把冷却扣掉（扫描线也从头重扫）
-	commit_ability()
+	# ① 充满就放，不等任何东西 —— 先扣费并清空充能（扫描线从头重扫）
+	commit_cost()
+	reset_charge()
 
 	# ② 选目标。选不到就是空放：照放、照扣冷却，只是什么也没打着
 	var groups := skill.target_rule.resolve(owner_asc, battle)
@@ -78,16 +79,12 @@ func _activate_ability() -> bool:
 	if skill.projectile_scene:
 		return await _cast_projectiles(battle, groups)
 
-	# 没有投射物：逐批直接结算。REPEAT 规则会给出多个批次，每批独立结算。
+	# 没有投射物：逐目标直接结算，暴击对每个目标独立判定。
 	for group in groups:
 		if not battle.is_running:
 			break
-		var target_data := GameplayAbilityTargetData.new()
 		for target in group:
-			target_data.append_node(target)
-		for effect in skill.effects:
-			if effect:
-				apply_effect_to_targets(effect, target_data)  # GameplayAbility 自带的方法，内部走 owner_asc
+			_apply_effects_to_target(target)
 	return true
 
 
@@ -117,13 +114,34 @@ func _cast_projectiles(battle: BattleManager, groups: Array) -> bool:
 ## 一支箭落地就地结算。远近不同的目标各打各的，互不等待 ——
 ## 等全部飞完再一起结算的话，近的那支会白等，看起来就是"打中了却不掉血"
 func _on_projectile_landed(hit_unit: BattleUnit) -> void:
-	if hit_unit == null:
+	_apply_effects_to_target(hit_unit)
+
+
+## 对单个目标结算技能效果；每支箭/每个目标独立掷暴击
+func _apply_effects_to_target(target: BattleUnit) -> void:
+	if target == null:
+		return
+	var battle := _get_battle()
+	if battle == null:
 		return
 	var target_data := GameplayAbilityTargetData.new()
-	target_data.append_node(hit_unit)
+	target_data.append_node(target)
 	for effect in skill.effects:
-		if effect:
-			apply_effect_to_targets(effect, target_data)
+		if effect == null:
+			continue
+		var applied := effect
+		if skill.crit_chance > 0.0 and battle.rng.randf() < skill.crit_chance:
+			applied = _critical_copy(effect)
+		apply_effect_to_targets(applied, target_data)
+
+
+## 复制一份效果，把所有 modifier 的数值乘上暴击倍率
+func _critical_copy(effect: GameplayEffect) -> GameplayEffect:
+	var copy := effect.duplicate(true) as GameplayEffect
+	for modifier in copy.modifiers:
+		if modifier != null:
+			modifier.magnitude *= skill.crit_multiplier
+	return copy
 
 
 ## 发一批投射物，等它们全部落地，返回打中了几支。

@@ -86,37 +86,19 @@ func _init_attributes() -> void:
 	asc.add_tag(GameplayTags.Team_Player if team == Team.PLAYER else GameplayTags.Team_Enemy)
 
 
-## 把一批魂灵变成技能；每个技能拿一份带序号的独立冷却标签。
-## 返回与输入等长的标签数组，空字符串表示这颗魂灵没有技能。
-func add_soul_abilities(soul_list: Array[SoulData]) -> Array[StringName]:
-	var tags : Array[StringName] = []
+## 把一批魂灵变成技能；返回与输入等长的能力数组，null 表示这颗魂灵没有技能。
+func add_soul_abilities(soul_list: Array[SoulData]) -> Array[AutoCastAbility]:
+	var result : Array[AutoCastAbility] = []
 	for i in soul_list.size():
 		var soul := soul_list[i]
-		tags.append(&"")
+		result.append(null)
 		if soul == null or soul.skill == null:
 			continue
 		var ability := AutoCastAbility.new()
 		ability.apply_definition(soul.skill, soul.item_name)
-		tags[i] = _give_unique_cooldown(ability, i)
 		brain.add_ability(ability)
-	return tags
-
-
-## 给这个技能实例一份自己的冷却：复制冷却效果，标签加序号。
-## 不这么做的话，同种魂灵的两个技能查的是同一个标签，会互相把对方锁在冷却里。
-## 返回加了序号的标签，扫描线要靠它读剩余时间
-func _give_unique_cooldown(ability: AutoCastAbility, index: int) -> StringName:
-	var base := ability.skill.cooldown_effect
-	if base == null or base.granted_tags.is_empty():
-		return &""
-
-	var charge := base.duplicate() as GameplayEffect
-	var tag := StringName("%s.%d" % [base.granted_tags[0], index])
-	# 浅拷贝出来的 granted_tags 和原件共用同一个 Array，必须整个换掉，不能 append
-	var tags : Array[StringName] = [tag]
-	charge.granted_tags = tags
-	ability.cooldown_effect = charge
-	return tag
+		result[i] = ability
+	return result
 
 
 func _connect_asc() -> void:
@@ -187,24 +169,16 @@ func _pop_number(amount: float, heal: bool) -> void:
 
 func _on_active_effect_added(active_effect: ActiveGameplayEffect) -> void:
 	var def := active_effect.get_effect_def()
-	if is_dead or def == null or def.policy == GameplayEffect.DurationPolicy.INSTANT or _is_internal(def):
+	if is_dead or def == null or def.policy == GameplayEffect.DurationPolicy.INSTANT:
 		return
 	_log("%s 获得状态【%s】（%.1f 秒）" % [unit_name, def.resource_name, active_effect.time_remaining], "#57d9e8")
 
 
 func _on_active_effect_removed(active_effect: ActiveGameplayEffect) -> void:
 	var def := active_effect.get_effect_def()
-	if is_dead or def == null or def.policy == GameplayEffect.DurationPolicy.INSTANT or _is_internal(def):
+	if is_dead or def == null or def.policy == GameplayEffect.DurationPolicy.INSTANT:
 		return
 	_log("%s 的状态【%s】结束" % [unit_name, def.resource_name], "gray")
-
-
-## 冷却等内部效果不播报（靠 State.Cooldown.* 标签识别）
-func _is_internal(def: GameplayEffect) -> bool:
-	for tag in def.granted_tags:
-		if String(tag).begins_with("State.Cooldown."):
-			return true
-	return false
 
 
 func _die() -> void:

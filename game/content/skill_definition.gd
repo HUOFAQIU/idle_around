@@ -17,13 +17,13 @@ class_name SkillDefinition extends Resource
 ## 施加到每个目标的效果列表（可多个：例如"伤害 + 中毒"）
 @export var effects: Array[GameplayEffect] = []
 
-## 冷却效果（释放间隔）：DURATION 效果 + granted_tags 里放"冷却标签"。
-## 开局 BattleBrain.begin_charge() 会给每个技能挂上它 —— 倒计时走完前，
-## 门卫（can_activate_ability）会因冷却标签而拒绝释放；标签一脱落即可释放。
-## 释放时 commit_ability() 会重新挂上，进入下一轮冷却 → 本质是"释放间隔 X 秒"。
-## UI 可调用 asc.get_tag_duration_remaining(标签) 读剩余秒数画倒计时。
-## 字段名与框架 GameplayAbility.cooldown_effect 保持一致，不做重命名。
+## 冷却时长（秒）：只读取 duration，不再把效果挂到 ASC。
+## 充能由 ChargedAbility 按帧累加，充满后释放。
 @export var cooldown_effect: GameplayEffect
+
+## 暴击率（0~1）与暴击倍率；伤害和治疗共用
+@export_range(0.0, 1.0, 0.01) var crit_chance: float = 0.0
+@export var crit_multiplier: float = 1.5
 
 ## 目标选择规则
 @export var target_rule: TargetRule

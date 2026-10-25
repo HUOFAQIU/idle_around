@@ -41,8 +41,7 @@ func setup() -> void:
 func add_unit(unit: BattleUnit) -> void:
 	units.append(unit)
 	unit.died.connect(_on_unit_died)
-	# 战斗中才入场的单位（比如后面刷出来的怪）也要从这一刻开始走冷却，
-	# 不然它们身上没有冷却标签，开场第一帧就会把所有能力全放一遍
+	# 战斗中才入场的单位从 0 开始充能，不然一入场就是满充能
 	if is_running:
 		unit.brain.begin_charge()
 
@@ -56,7 +55,7 @@ func start_battle() -> void:
 		log_line("%s  HP %.0f"
 			% [unit.unit_name, unit.health_attr.current_value], "white")
 
-	# 开局冷却：所有能力同时开始各自的倒计时，时间到才能释放
+	# 开局：所有能力从 0 开始充能
 	for unit in units:
 		unit.brain.begin_charge()
 

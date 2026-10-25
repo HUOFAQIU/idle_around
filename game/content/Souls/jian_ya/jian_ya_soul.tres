@@ -20,6 +20,7 @@ shader_parameter/progress = 0.0
 [resource]
 script = ExtResource("3_hwmqp")
 skill = ExtResource("4_nieve")
+equip_part = "HEADSOUL"
 item_name = "尖牙"
 type = "SOUL"
 icon = SubResource("AtlasTexture_snake")

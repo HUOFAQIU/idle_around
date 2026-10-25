@@ -7,7 +7,7 @@
 [ext_resource type="Script" uid="uid://bhr4dsrpc4jw8" path="res://addons/GodotGAS/attributes/attribute_set.gd" id="5_83dlg"]
 [ext_resource type="Script" uid="uid://0ok23abdn4k0" path="res://godot_gas/attributes/monster_stats_attribute_set.gd" id="6_pxmas"]
 [ext_resource type="Script" uid="uid://csy8k3vgu6nj3" path="res://game/battle/move_ability.gd" id="9_fy4ka"]
-[ext_resource type="Resource" path="res://game/content/effects/move_cooldown.tres" id="10_j2tqy"]
+[ext_resource type="Resource" uid="uid://dsxt5wf8w51ba" path="res://game/content/effects/move_cooldown.tres" id="10_j2tqy"]
 [ext_resource type="Script" uid="uid://dn3y0yymnkah2" path="res://game/battle/battle_brain.gd" id="11_vj23h"]
 [ext_resource type="Texture2D" uid="uid://deaj7ddfwbqwh" path="res://Assets/tokens.png" id="12_8xe1r"]
 [ext_resource type="Script" uid="uid://dn6s8onr16u6k" path="res://game/battle/unit_health_bar.gd" id="13_6fil4"]

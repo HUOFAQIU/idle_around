@@ -1,7 +1,7 @@
-[gd_resource type="Resource" script_class="ItemData" format=3 uid="uid://cooi7q46e2n0g"]
+[gd_resource type="Resource" script_class="SoulData" format=3 uid="uid://cooi7q46e2n0g"]
 
 [ext_resource type="Texture2D" uid="uid://d0ljyogk0u7y6" path="res://Assets/souls/medium_0001.png" id="1_liq26"]
-[ext_resource type="Script" uid="uid://c5uqs7o5b2w68" path="res://Windows/Inventory/grid_base_inventory_system/core/model/item/item_data.gd" id="2_2f3c6"]
+[ext_resource type="Script" uid="uid://bbcxwqb4ef1cg" path="res://Windows/Inventory/grid_base_inventory_system/core/model/item/soul_data.gd" id="2_2f3c6"]
 [ext_resource type="Shader" uid="uid://c7gxmyf484kcn" path="res://Assets/Shader/soul_scanline.gdshader" id="3_scan"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_scan"]
@@ -14,10 +14,11 @@ shader_parameter/progress = 0.0
 
 [resource]
 script = ExtResource("2_2f3c6")
+equip_part = "TORSOSOUL"
 item_name = "盾"
 type = "SOUL"
 icon = ExtResource("1_liq26")
 columns = 2
 rows = 2
 material = SubResource("ShaderMaterial_scan")
-metadata/_custom_type_script = "uid://c5uqs7o5b2w68"
+metadata/_custom_type_script = "uid://bbcxwqb4ef1cg"

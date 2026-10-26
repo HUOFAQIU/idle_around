@@ -12,7 +12,7 @@
 ## @meta_addon: GodotGAS
 ## @meta_license: MIT
 
-class_name TargetRule extends Resource
+class_name TargetRule extends TargetRuleBase
 
 enum Mode {
 	RANDOM,             ## 随机 count 个（不重复）
@@ -37,7 +37,7 @@ enum Camp {
 @export var max_range: int = 0
 
 ## camp = ALLY 时是否允许选中自己（"治疗最残血的友方（含自己）"）
-@export var include_self: bool = true
+@export var include_self: bool = false
 
 
 ## 解析出"施加批次"：Array[Array[BattleUnit]]

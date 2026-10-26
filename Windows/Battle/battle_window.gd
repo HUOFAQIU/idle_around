@@ -33,6 +33,8 @@ var _battle : BattleManager
 var _run_id : int = 0
 ## 这一场参战的魂灵（开打时从装备格里抓的，用来推扫描线）
 var _battle_souls : Array[SoulData] = []
+## 与 _battle_souls 同下标：魂灵在装备栏里的位置（左右/触发顺序用）
+var _battle_slots : Array[SoulSlot] = []
 ## 与 _battle_souls 同下标：每颗魂灵对应的技能（没有技能为 null）
 var _soul_abilities : Array[AutoCastAbility] = []
 ## 上一帧鼠标在不在本窗口里（用来判断"刚离开"这一下）
@@ -111,8 +113,11 @@ func _start_battle() -> void:
 	_battle.setup()
 
 	InfoWindow.instance.clear_log()
-	_battle_souls = _equipped_souls()
-	_battle.player = _spawn_player()
+	_battle_slots = _equipped_souls()
+	_battle_souls.clear()
+	for slot in _battle_slots:
+		_battle_souls.append(slot.soul)
+	_battle.player = _spawn_player(_battle_slots)
 	_battle.start_battle()
 	# 立刻先来一只，不然点完还得对着空场等第一拍
 	_battle.spawn_one()
@@ -132,6 +137,7 @@ func _end_battle() -> void:
 func _clear_battle() -> void:
 	player_health_bar.visible = false
 	_soul_abilities.clear()
+	_battle_slots.clear()
 	for child in units_root.get_children():
 		child.queue_free()
 	if _battle:
@@ -141,7 +147,7 @@ func _clear_battle() -> void:
 
 # 角色：站在战场中心，技能全部来自装备上的魂灵
 # 注意是"一颗魂灵一个技能"：同一颗魂灵装两把也要各算各的冷却，不能去重
-func _spawn_player() -> BattleUnit:
+func _spawn_player(slots: Array[SoulSlot]) -> BattleUnit:
 	var unit := PLAYER_SCENE.instantiate() as BattleUnit
 	units_root.add_child(unit)
 	unit.setup_from_scene(_battle)
@@ -153,6 +159,21 @@ func _spawn_player() -> BattleUnit:
 
 	# 魂灵 → 技能：和怪物走同一条管线
 	_soul_abilities = unit.add_soul_abilities(_battle_souls)
+
+	# 把装备位置和整场魂灵名单交给每个技能，供“左/右/随机”选目标
+	var loadout: Array[ChargedAbility] = []
+	for ability in _soul_abilities:
+		if ability != null:
+			loadout.append(ability)
+	for i in slots.size():
+		if i >= _soul_abilities.size() or _soul_abilities[i] == null:
+			continue
+		var ability := _soul_abilities[i]
+		ability.soul_container = slots[i].container_name
+		ability.soul_column = slots[i].column
+		ability.soul_width = slots[i].width
+		ability.soul_loadout = loadout
+
 	var granted := 0
 	for ability in _soul_abilities:
 		if ability != null:
@@ -172,17 +193,34 @@ func _spawn_enemy(cell: Vector2i) -> void:
 	_battle.add_unit(unit)
 
 
-## 装备着的魂灵：魂灵窗口里那四个格子，每个其实是一个只收 SOUL 的小背包
-func _equipped_souls() -> Array[SoulData]:
-	var souls : Array[SoulData] = []
+## 装备着的魂灵：魂灵窗口里那四个格子，每个其实是一个只收 SOUL 的小背包。
+## 返回按“部位行从上到下、行内从左到右”排好的位置信息。
+func _equipped_souls() -> Array[SoulSlot]:
+	var slots : Array[SoulSlot] = []
 	for slot_name in SOUL_SLOT_NAMES:
 		var container := ContainerRepository.instance.get_container(slot_name)
 		if container == null:
 			continue
+		var row_slots : Array[SoulSlot] = []
 		for item in container.items:
-			if item is SoulData:
-				souls.append(item)
-	return souls
+			if not item is SoulData:
+				continue
+			var grids := container.find_grids_by_item_data(item)
+			if grids.is_empty():
+				continue
+			var column := grids[0].x
+			for grid in grids:
+				column = mini(column, grid.x)
+			var soul := item as SoulData
+			var slot := SoulSlot.new()
+			slot.soul = soul
+			slot.container_name = slot_name
+			slot.column = column
+			slot.width = maxi(soul.columns, 1)
+			row_slots.append(slot)
+		row_slots.sort_custom(func (a: SoulSlot, b: SoulSlot) -> bool: return a.column < b.column)
+		slots.append_array(row_slots)
+	return slots
 
 
 #region 魂灵扫描线 = 冷却条

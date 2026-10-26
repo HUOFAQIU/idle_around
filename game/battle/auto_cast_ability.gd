@@ -10,6 +10,8 @@
 ## 门卫检查（花费 / 施法条件标签 / 是否在施法中）由框架的 can_activate_ability()
 ## 负责；冷却由 ChargedAbility 的充能值控制。
 ##
+## target_rule 是 SoulTargetRule 的技能走魂灵分支：目标是魂灵能力（加速等），不是战斗单位。
+##
 ## @meta_addon: GodotGAS
 ## @meta_license: MIT
 
@@ -55,13 +57,20 @@ func _activate_ability() -> bool:
 	commit_cost()
 	reset_charge()
 
+	# 魂灵目标技能（加速/减速/充能）：目标不是战斗单位
+	if skill.target_rule is SoulTargetRule:
+		return await _activate_soul_skill(battle)
+
+	if skill.target_rule == null:
+		return true
+
 	# ② 选目标。选不到就是空放：照放、照扣冷却，只是什么也没打着
-	var groups := skill.target_rule.resolve(owner_asc, battle)
+	var groups := (skill.target_rule as TargetRule).resolve(owner_asc, battle)
 
 	# ③ 吟唱（可选）：醒来后重新选人，有人中途倒下就换目标。
 	if skill.cast_time > 0.0:
 		await task_wait_delay(skill.cast_time)
-		groups = skill.target_rule.resolve(owner_asc, battle)
+		groups = (skill.target_rule as TargetRule).resolve(owner_asc, battle)
 
 	if not battle.is_running:
 		return true
@@ -85,6 +94,38 @@ func _activate_ability() -> bool:
 			break
 		for target in group:
 			_apply_effects_to_target(target)
+	return true
+
+
+## 魂灵目标技能：选魂灵、施加加速；空放也照常消耗冷却。
+## 当前只支持加速；减速/充能以后在这条分支里扩。
+func _activate_soul_skill(battle: BattleManager) -> bool:
+	var rule := skill.target_rule as SoulTargetRule
+	if rule == null:
+		return true
+	var targets := rule.resolve(self, battle.rng)
+
+	# 吟唱结束后重新选，避免对着已经离开的魂灵施放
+	if skill.cast_time > 0.0:
+		await task_wait_delay(skill.cast_time)
+		if not battle.is_running:
+			return true
+		targets = rule.resolve(self, battle.rng)
+
+	if targets.is_empty():
+		battle.log_line("%s 的【%s】空放了（没有可加速的魂灵）" % [_caster_name(), ability_name], "gray")
+		return true
+
+	var names: Array[String] = []
+	for target in targets:
+		names.append(target.ability_name)
+	battle.log_line("%s 施放【%s】→ %s" % [_caster_name(), ability_name, "、".join(names)], "#6fb7ff")
+
+	for target in targets:
+		if not is_instance_valid(target):
+			continue
+		if target.apply_haste(skill.haste_duration):
+			battle.log_line("%s 获得状态【加速】（%.1f 秒）" % [target.ability_name, skill.haste_duration], "#57d9e8")
 	return true
 
 

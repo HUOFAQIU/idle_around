@@ -25,8 +25,13 @@ class_name SkillDefinition extends Resource
 @export_range(0.0, 1.0, 0.01) var crit_chance: float = 0.0
 @export var crit_multiplier: float = 1.5
 
-## 目标选择规则
-@export var target_rule: TargetRule
+## 目标选择规则：
+##   TargetRule      选战斗单位，使用 effects / projectile_scene
+##   SoulTargetRule  选魂灵，使用 haste_duration
+@export var target_rule: TargetRuleBase
+
+## 加速时长（秒）；0 = 不加速。只有 target_rule 是 SoulTargetRule 时才生效。
+@export_range(0.0, 60.0, 0.1) var haste_duration: float = 0.0
 
 ## 投射物场景。留空 = 选完目标立刻结算（比如治疗）；
 ## 填了 = 每个目标发一支，射向它"此刻"的坐标，飞到谁身上才算打中谁，

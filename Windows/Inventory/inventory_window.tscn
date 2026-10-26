@@ -29,6 +29,21 @@ custom_minimum_size = Vector2(60, 40)
 layout_mode = 2
 text = "长弓"
 
+[node name="Button4" type="Button" parent="GridContainer"]
+custom_minimum_size = Vector2(60, 40)
+layout_mode = 2
+text = "松鼠"
+
+[node name="Button5" type="Button" parent="GridContainer"]
+custom_minimum_size = Vector2(60, 40)
+layout_mode = 2
+text = "咖啡"
+
+[node name="Button6" type="Button" parent="GridContainer"]
+custom_minimum_size = Vector2(60, 40)
+layout_mode = 2
+text = "鱼"
+
 [node name="InventoryView" type="Control" parent="." unique_id=1654115602]
 layout_mode = 3
 anchors_preset = 0

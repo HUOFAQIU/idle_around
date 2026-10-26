@@ -94,6 +94,13 @@
 			"description": "",
 			"category": "abd1801b-a241-4c02-8dd1-4e804d1e3bd5",
 			"steps": []
+		},
+		{
+			"uuid": "11bb7c9b-ae8a-4ecd-8cb6-41dc718f43d7",
+			"title": "New task",
+			"description": "/Users/huofaqiu/AppData/Local/Programs/Tabby\n\n\n\nC:\\Users\\huofaqiu\\AppData\\Local\\Microsoft\\WindowsApps\\pwsh.exe\n-noexit -command cd '{directory}'",
+			"category": "abd1801b-a241-4c02-8dd1-4e804d1e3bd5",
+			"steps": []
 		}
 	],
 	"layout": {

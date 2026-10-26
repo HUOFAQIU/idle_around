@@ -113,7 +113,7 @@ func _activate_soul_skill(battle: BattleManager) -> bool:
 		targets = rule.resolve(self, battle.rng)
 
 	if targets.is_empty():
-		battle.log_line("%s 的【%s】空放了（没有可加速的魂灵）" % [_caster_name(), ability_name], "gray")
+		battle.log_line("%s 的【%s】空放了（没有可施加状态的魂灵）" % [_caster_name(), ability_name], "gray")
 		return true
 
 	var names: Array[String] = []
@@ -124,8 +124,18 @@ func _activate_soul_skill(battle: BattleManager) -> bool:
 	for target in targets:
 		if not is_instance_valid(target):
 			continue
-		if target.apply_haste(skill.haste_duration):
+		var charge_applied := false
+		if skill.charge_duration > 0.0 and target.cooldown > 0.0:
+			target.add_charge(skill.charge_duration)
+			battle.log_line("%s 获得充能（%.1f 秒）" % [target.ability_name, skill.charge_duration], "#ffd866")
+			charge_applied = true
+		if skill.haste_duration > 0.0 and target.apply_haste(skill.haste_duration):
 			battle.log_line("%s 获得状态【加速】（%.1f 秒）" % [target.ability_name, skill.haste_duration], "#57d9e8")
+		if skill.slow_duration > 0.0 and target.apply_slow(skill.slow_duration):
+			battle.log_line("%s 获得状态【减速】（%.1f 秒）" % [target.ability_name, skill.slow_duration], "#57d9e8")
+		# 充能满就同帧释放：避免目标晚一帧归零，之后和充能者相位锁死
+		if charge_applied and target.is_ready() and not target.is_active:
+			target.try_activate()
 	return true
 
 

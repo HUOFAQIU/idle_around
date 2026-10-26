@@ -136,6 +136,8 @@ func _end_battle() -> void:
 
 func _clear_battle() -> void:
 	player_health_bar.visible = false
+	for soul in _battle_souls:
+		soul.clear_battle_status()
 	_soul_abilities.clear()
 	_battle_slots.clear()
 	for child in units_root.get_children():
@@ -230,9 +232,13 @@ func _push_scanlines() -> void:
 	if _battle == null or _battle.player == null:
 		return
 	for i in _battle_souls.size():
+		var soul := _battle_souls[i]
 		if i >= _soul_abilities.size() or _soul_abilities[i] == null:
+			soul.set_battle_status(0.0, 0.0)
 			continue
-		_battle_souls[i].set_shader_param("progress", _soul_abilities[i].charge_ratio())
+		var ability := _soul_abilities[i]
+		soul.set_shader_param("progress", ability.charge_ratio())
+		soul.set_battle_status(ability.haste_seconds(), ability.slow_seconds())
 
 
 ## 扫描线的总开关：不在战斗时整条收起来（这是文档要的"战斗开始后才出现"）

@@ -2,6 +2,7 @@
 ##
 ## 给“加速/减速/充能”这类以魂灵为目标的技能用：
 ##   LEFT / RIGHT  同一部位行内、紧邻的魂灵；中间空一格不算相邻
+##   BOTH_SIDES    同一部位行内、左右两侧紧邻的魂灵（各最多一个）
 ##   RANDOM        从有冷却的魂灵里随机
 ##   SELF          自己
 ##   ALL           全部有冷却的魂灵
@@ -10,7 +11,7 @@
 
 class_name SoulTargetRule extends TargetRuleBase
 
-enum Mode { LEFT, RIGHT, RANDOM, SELF, ALL }
+enum Mode { LEFT, RIGHT, RANDOM, SELF, ALL, BOTH_SIDES }
 
 ## 选择方式
 @export var mode: Mode = Mode.RIGHT
@@ -53,6 +54,14 @@ func resolve(caster: ChargedAbility, rng: RandomNumberGenerator) -> Array[Charge
 				if ability.soul_column == caster.soul_column + caster.soul_width:
 					result.append(ability)
 					break
+		Mode.BOTH_SIDES:
+			for ability in candidates:
+				if ability.soul_container != caster.soul_container:
+					continue
+				var is_left := ability.soul_column + ability.soul_width == caster.soul_column
+				var is_right := ability.soul_column == caster.soul_column + caster.soul_width
+				if is_left or is_right:
+					result.append(ability)
 		Mode.RANDOM:
 			var pool: Array[ChargedAbility] = []
 			for ability in candidates:

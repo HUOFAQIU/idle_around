@@ -2,6 +2,11 @@ extends Control
 ## 物品视图，控制物品的绘制
 class_name ItemView
 
+## 魂灵状态徽章：加速在上、减速在下
+const HASTE_BADGE_SCENE := preload("res://game/content/Kits/jiasu.tscn")
+const SLOW_BADGE_SCENE := preload("res://game/content/Kits/jiansu.tscn")
+const STATUS_BADGE_SIZE := Vector2(16.0, 10.0)
+
 ## 堆叠数字的字体
 var stack_num_font: Font
 ## 堆叠数字的字体大小
@@ -22,6 +27,9 @@ var base_size: int:
 var _is_moving: bool = false
 ## 移动偏移量（坐标）
 var _moving_offset: Vector2i = Vector2i.ZERO
+## 状态徽章（只对 SoulData 创建）
+var _haste_badge: Control
+var _slow_badge: Control
 
 ## 构造函数
 @warning_ignore("shadowed_variable")
@@ -39,12 +47,20 @@ func _init(data: ItemData, base_size: int, stack_num_font: Font = null, stack_nu
 		material = data.material.duplicate()
 	elif GBIS.item_material:
 		material = GBIS.item_material.duplicate()
-	data.sig_refresh.connect(queue_redraw)
+	data.sig_refresh.connect(_on_data_refresh)
+
+## 入树后创建魂灵状态徽章
+func _ready() -> void:
+	if data is SoulData:
+		_haste_badge = _make_status_badge(HASTE_BADGE_SCENE, "HasteBadge")
+		_slow_badge = _make_status_badge(SLOW_BADGE_SCENE, "SlowBadge")
+		_refresh_status_badges()
 
 ## 重写计算大小
 func recalculate_size() -> void:
 	size = Vector2(data.columns * base_size, data.rows * base_size)
 	queue_redraw()
+	_refresh_status_badges()
 
 ## 移动
 func move(offset: Vector2i = Vector2i.ZERO) -> void:
@@ -76,3 +92,47 @@ func update_moving_position() -> void:
 		return
 	@warning_ignore("integer_division")
 	global_position = get_global_mouse_position() - Vector2(base_size * _moving_offset) - Vector2(base_size / 2, base_size / 2)
+
+
+func _on_data_refresh() -> void:
+	queue_redraw()
+	_refresh_status_badges()
+
+
+## 实例化一个 Kits 徽章，尺寸固定 16×10，鼠标事件全部穿透
+func _make_status_badge(scene: PackedScene, badge_name: String) -> Control:
+	var badge := scene.instantiate() as Control
+	badge.name = badge_name
+	badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	for child in badge.get_children():
+		if child is Control:
+			(child as Control).mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(badge)
+	badge.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	badge.size = STATUS_BADGE_SIZE
+	badge.position = Vector2.ZERO
+	badge.visible = false
+	return badge
+
+
+## 把 SoulData 上的剩余秒数同步到两个徽章
+func _refresh_status_badges() -> void:
+	if not data is SoulData:
+		return
+	var soul := data as SoulData
+	_update_status_badge(_haste_badge, soul.haste_seconds, true)
+	_update_status_badge(_slow_badge, soul.slow_seconds, false)
+
+
+func _update_status_badge(badge: Control, seconds: float, top: bool) -> void:
+	if badge == null:
+		return
+	badge.visible = seconds > 0.0
+	var x := roundf((size.x - STATUS_BADGE_SIZE.x) * 0.5)
+	var y := 0.0 if top else roundf(size.y - STATUS_BADGE_SIZE.y)
+	badge.position = Vector2(x, y)
+	if not badge.visible:
+		return
+	var label := badge.get_node_or_null("Label") as Label
+	if label != null:
+		label.text = "%.1f" % seconds

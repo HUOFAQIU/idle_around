@@ -15,7 +15,7 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 [application]
 
 config/name="idle_around"
-config/version="0.0.1"
+config/version="0.1.0"
 config/tags=PackedStringArray("doing", "开发中")
 run/main_scene="uid://cf2t8qpdn820p"
 config/features=PackedStringArray("4.7", "Forward Plus")
@@ -40,6 +40,13 @@ window/subwindows/embed_subwindows=false
 
 enabled=PackedStringArray("res://addons/GodotGAS/plugin.cfg", "res://addons/kanban_tasks/plugin.cfg", "res://addons/script-ide/plugin.cfg")
 
+[file_customization]
+
+folder_colors={
+"res://Main/": "red",
+"res://game/content/Souls/": "yellow"
+}
+
 [input]
 
 inv_click={
@@ -62,3 +69,7 @@ inv_split={
 "events": [Object(InputEventMouseButton,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"button_mask":4,"position":Vector2(237, 13),"global_position":Vector2(246, 61),"factor":1.0,"button_index":3,"canceled":false,"pressed":true,"double_click":false,"script":null)
 ]
 }
+
+[rendering]
+
+textures/canvas_textures/default_texture_filter=0

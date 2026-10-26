@@ -6,6 +6,8 @@ extends BaseWindow
 @onready var button_4: Button = $GridContainer/Button4
 @onready var button_5: Button = $GridContainer/Button5
 @onready var button_6: Button = $GridContainer/Button6
+@onready var button_7: Button = $GridContainer/Button7
+@onready var button_8: Button = $GridContainer/Button8
 
 ## 调试用：往仓库里塞一颗魂灵。
 ## 带 skill 的魂灵拖进魂灵窗口的格子，战斗里角色才会放技能；
@@ -16,6 +18,8 @@ const CHANG_GONG = preload("res://game/content/Souls/chang_gong/chang_gong_soul.
 const SONG_SHU = preload("res://game/content/Souls/song_shu/song_shu_soul.tres")
 const KA_FEI = preload("res://game/content/Souls/ka_fei/ka_fei_soul.tres")
 const YU = preload("res://game/content/Souls/yu/yu_soul.tres")
+const WA = preload("res://game/content/Souls/wa/wa_soul.tres")
+const DIAN_CHI = preload("res://game/content/Souls/dian_chi/dian_chi_soul.tres")
 
 
 func _ready() -> void:
@@ -28,6 +32,8 @@ func _ready() -> void:
 	button_4.pressed.connect(button_4_pressed)
 	button_5.pressed.connect(button_5_pressed)
 	button_6.pressed.connect(button_6_pressed)
+	button_7.pressed.connect(button_7_pressed)
+	button_8.pressed.connect(button_8_pressed)
 
 	GBIS.sig_item_focused.connect(
 		func (item_data: ItemData, container_name: String):
@@ -57,3 +63,9 @@ func button_5_pressed() -> void:
 
 func button_6_pressed() -> void:
 	GBIS.add_item("inventory_0", YU)
+
+func button_7_pressed() -> void:
+	GBIS.add_item("inventory_0", WA)
+
+func button_8_pressed() -> void:
+	GBIS.add_item("inventory_0", DIAN_CHI)

@@ -1,0 +1,37 @@
+[gd_scene format=3 uid="uid://dlop5vpiclei0"]
+
+[ext_resource type="Texture2D" uid="uid://dam3lpp2j3mv0" path="res://Assets/jiansu_bg.png" id="1_woljs"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_ycphl"]
+font_size = 13
+
+[node name="Control" type="Control" unique_id=761397148]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_right = -272.0
+offset_bottom = -280.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TextureRect" type="TextureRect" parent="." unique_id=1869612463]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("1_woljs")
+
+[node name="Label" type="Label" parent="." unique_id=1777068874]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "1.2"
+label_settings = SubResource("LabelSettings_ycphl")
+horizontal_alignment = 1
+vertical_alignment = 1

@@ -184,7 +184,9 @@ func _on_active_effect_removed(active_effect: ActiveGameplayEffect) -> void:
 func _die() -> void:
 	is_dead = true
 	asc.add_tag(GameplayTags.State_Dead)
-	brain.set_process(false)
+	if brain != null:
+		brain.set_process(false)
+		brain.set_physics_process(false)
 	_log("%s 倒下了！" % unit_name, "#ffcc44")
 	died.emit(self)
 #endregion

@@ -48,6 +48,8 @@ func _init(data: ItemData, base_size: int, stack_num_font: Font = null, stack_nu
 	elif GBIS.item_material:
 		material = GBIS.item_material.duplicate()
 	data.sig_refresh.connect(_on_data_refresh)
+	if data is SoulData:
+		(data as SoulData).sig_scanline_progress.connect(_on_scanline_progress)
 
 ## 入树后创建魂灵状态徽章
 func _ready() -> void:
@@ -80,7 +82,10 @@ func _draw() -> void:
 		draw_string(stack_num_font, pos, str(data.current_amount), HORIZONTAL_ALIGNMENT_RIGHT, -1, stack_num_font_size, stack_num_color)
 	if material:
 		for param_name in data.shader_params.keys():
-			(material as ShaderMaterial).set_shader_parameter(param_name, data.shader_params[param_name])
+			var value: Variant = data.shader_params[param_name]
+			if data is SoulData and param_name == "progress":
+				value = (data as SoulData).scanline_progress
+			(material as ShaderMaterial).set_shader_parameter(param_name, value)
 
 ## 跟随鼠标
 func _process(_delta: float) -> void:
@@ -97,6 +102,12 @@ func update_moving_position() -> void:
 func _on_data_refresh() -> void:
 	queue_redraw()
 	_refresh_status_badges()
+
+
+## 扫描线进度只改材质参数，不需要重绘整个 ItemView
+func _on_scanline_progress(value: float) -> void:
+	if material is ShaderMaterial:
+		(material as ShaderMaterial).set_shader_parameter("progress", value)
 
 
 ## 实例化一个 Kits 徽章，尺寸固定 16×10，鼠标事件全部穿透

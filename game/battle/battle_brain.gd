@@ -16,8 +16,8 @@
 
 class_name BattleBrain extends Node
 
-## 冰冻标签；Freeze 效果实现后由它负责挂/摘
-const FROZEN_TAG : StringName = &"State.Frozen"
+## 冰冻标签；唯一来源在 ChargedAbility，这里保留别名方便阅读
+const FROZEN_TAG : StringName = ChargedAbility.FROZEN_TAG
 
 ## 本单位的技能（AutoCastAbility 节点，已授予给 ASC）
 var unit: BattleUnit
@@ -43,6 +43,8 @@ func _physics_process(_delta: float) -> void:
 		return
 
 	var frozen := unit.asc.has_tag(FROZEN_TAG)
+	# 不用 _delta：物理帧是固定步长，掉帧时引擎会补跑多个 tick；
+	# 这里显式按 tick 频率和 time_scale 算“每 tick 固定刻度”。
 	var base_units := int(round(
 		float(ChargedAbility.UNITS_PER_SECOND)
 		/ float(Engine.physics_ticks_per_second)

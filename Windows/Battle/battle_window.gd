@@ -235,9 +235,10 @@ func _push_scanlines() -> void:
 		var soul := _battle_souls[i]
 		if i >= _soul_abilities.size() or _soul_abilities[i] == null:
 			soul.set_battle_status(0.0, 0.0)
+			soul.set_scanline_progress(0.0)
 			continue
 		var ability := _soul_abilities[i]
-		soul.set_shader_param("progress", ability.charge_ratio())
+		soul.set_scanline_progress(ability.charge_ratio())
 		soul.set_battle_status(ability.haste_seconds(), ability.slow_seconds())
 
 
@@ -246,7 +247,7 @@ func _set_scanlines(on: bool) -> void:
 	for soul in _battle_souls:
 		soul.set_scanline_enabled(on)
 		if not on:
-			soul.set_shader_param("progress", 0.0)
+			soul.set_scanline_progress(0.0)
 #endregion
 
 

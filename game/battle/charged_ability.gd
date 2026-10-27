@@ -3,12 +3,14 @@
 ## 60 FPS 下每物理帧基础 +2 刻度；加速 ×2、减速 ×0.5，两者同时存在时抵消。
 ## 加速/减速持续时间也用同一刻度，避免浮点误差。
 ## 外部充能直接调 add_charge(秒)，内部换算成刻度。
-## 冰冻等状态由外部决定是否调用 tick_charge / try_activate，本类不做判断。
+## 冰冻等状态由外部决定是否调用 tick_charge / try_activate，本类只提供 is_frozen() 查询。
 
 class_name ChargedAbility extends GameplayAbility
 
 ## 1 秒 = 120 刻度；60 FPS 下每帧基础 2 刻度，减速 1 刻度，加速 4 刻度
 const UNITS_PER_SECOND: int = 120
+## 冰冻标签；状态由 Freeze 效果挂/摘
+const FROZEN_TAG : StringName = &"State.Frozen"
 
 ## 冷却总时长（秒，数据仍用秒）
 @export var cooldown: float = 0.0
@@ -98,21 +100,13 @@ func has_slow() -> bool:
 	return slow_units > 0
 
 
-## 自然充能倍率：加速 2x、减速 0.5x；同时存在时抵消为 1x
-func charge_multiplier() -> float:
-	var hasted := has_haste()
-	var slowed := has_slow()
-	if hasted and slowed:
-		return 1.0
-	if hasted:
-		return 2.0
-	if slowed:
-		return 0.5
-	return 1.0
-
-
 func is_ready() -> bool:
 	return cooldown <= 0.0 or charge_units >= _cooldown_units()
+
+
+## 是否处于冰冻状态；冰冻期间由 BattleBrain 决定不充能、不释放
+func is_frozen() -> bool:
+	return owner_asc != null and owner_asc.has_tag(FROZEN_TAG)
 
 
 ## 0 = 刚开始充能，1 = 充满
@@ -126,10 +120,6 @@ func charge_ratio() -> float:
 
 
 ## 给 UI / 日志用的秒数
-func charge_seconds() -> float:
-	return float(charge_units) / float(UNITS_PER_SECOND)
-
-
 func haste_seconds() -> float:
 	return float(haste_units) / float(UNITS_PER_SECOND)
 

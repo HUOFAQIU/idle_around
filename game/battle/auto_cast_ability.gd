@@ -133,8 +133,9 @@ func _activate_soul_skill(battle: BattleManager) -> bool:
 			battle.log_line("%s 获得状态【加速】（%.1f 秒）" % [target.ability_name, skill.haste_duration], "#57d9e8")
 		if skill.slow_duration > 0.0 and target.apply_slow(skill.slow_duration):
 			battle.log_line("%s 获得状态【减速】（%.1f 秒）" % [target.ability_name, skill.slow_duration], "#57d9e8")
-		# 充能满就同帧释放：避免目标晚一帧归零，之后和充能者相位锁死
-		if charge_applied and target.is_ready() and not target.is_active:
+		# 充能满就同帧释放：避免目标晚一帧归零，之后和充能者相位锁死。
+		# 冰冻目标不释放，留到解冻后的下一物理帧由 BattleBrain 统一处理。
+		if charge_applied and target.is_ready() and not target.is_active and not target.is_frozen():
 			target.try_activate()
 	return true
 
@@ -168,7 +169,7 @@ func _on_projectile_landed(hit_unit: BattleUnit) -> void:
 	_apply_effects_to_target(hit_unit)
 
 
-## 对单个目标结算技能效果；每支箭/每个目标独立掷暴击
+## 对单个目标结算技能效果；每支箭/每个目标独立掷一次暴击
 func _apply_effects_to_target(target: BattleUnit) -> void:
 	if target == null:
 		return
@@ -177,22 +178,59 @@ func _apply_effects_to_target(target: BattleUnit) -> void:
 		return
 	var target_data := GameplayAbilityTargetData.new()
 	target_data.append_node(target)
+	var is_crit := skill.crit_chance > 0.0 and battle.rng.randf() < skill.crit_chance
 	for effect in skill.effects:
 		if effect == null:
 			continue
 		var applied := effect
-		if skill.crit_chance > 0.0 and battle.rng.randf() < skill.crit_chance:
-			applied = _critical_copy(effect)
+		if is_crit:
+			applied = _build_critical_effect(effect, target)
 		apply_effect_to_targets(applied, target_data)
 
 
-## 复制一份效果，把所有 modifier 的数值乘上暴击倍率
-func _critical_copy(effect: GameplayEffect) -> GameplayEffect:
-	var copy := effect.duplicate(true) as GameplayEffect
-	for modifier in copy.modifiers:
-		if modifier != null:
-			modifier.magnitude *= skill.crit_multiplier
-	return copy
+## 暴击按“最终伤害 ×crit_multiplier”结算。
+## 先用 GAS 预览这次效果真正会造成的属性变化，再把变化量做成一个等价的瞬时效果。
+## 这样 ADD / PERCENT_ADD / MULTIPLY / DIVIDE / OVERRIDE 都不会被逐 modifier 乘错；
+## 只放大负向变化（掉血/削属性），治疗和正向增益保持原值。
+## 只处理 INSTANT；持续/周期效果的暴击语义还没定义，先保持原效果。
+func _build_critical_effect(effect: GameplayEffect, target: BattleUnit) -> GameplayEffect:
+	if effect.policy != GameplayEffect.DurationPolicy.INSTANT:
+		return effect
+	if effect.application_query and not effect.application_query.matches(target.asc):
+		return effect
+
+	var caster := owner_asc.get_parent()
+	var context := GameplayEffectContext.new(caster, caster)
+	var target_data := GameplayAbilityTargetData.new()
+	target_data.append_node(target)
+	context.target_data = target_data
+	var preview := GameplayEffectSpec.new(effect, context, ability_level)
+	target.asc._evaluate_spec(preview)
+	if preview.calculated_deltas.is_empty():
+		return effect
+
+	var has_damage := false
+	for attr_name in preview.calculated_deltas:
+		if float(preview.calculated_deltas[attr_name]) < 0.0:
+			has_damage = true
+			break
+	if not has_damage:
+		return effect
+
+	var critical := effect.duplicate(true) as GameplayEffect
+	critical.modifiers.clear()
+	critical.executions.clear()
+	for attr_name in preview.calculated_deltas:
+		var delta := float(preview.calculated_deltas[attr_name])
+		if not is_zero_approx(delta):
+			var modifier := GameplayEffectModifier.new()
+			modifier.attribute_name = String(attr_name)
+			modifier.operation = GameplayEffectModifier.Operation.ADD
+			modifier.magnitude = delta * (skill.crit_multiplier if delta < 0.0 else 1.0)
+			critical.modifiers.append(modifier)
+	if critical.modifiers.is_empty():
+		return effect
+	return critical
 
 
 ## 发一批投射物，等它们全部落地，返回打中了几支。

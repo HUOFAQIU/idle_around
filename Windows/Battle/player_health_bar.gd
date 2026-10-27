@@ -13,6 +13,8 @@ var _max_health : AttributeData
 var _asc : AbilitySystemComponent
 var _ratio : float = 1.0
 
+@onready var _value_label : Label = $ValueLabel
+
 
 func _draw() -> void:
 	var outer := Rect2(Vector2(-BORDER, -BORDER), size + Vector2(BORDER * 2.0, BORDER * 2.0))
@@ -41,4 +43,6 @@ func _refresh() -> void:
 	if _health == null or _max_health == null:
 		return
 	_ratio = clampf(_health.current_value / maxf(_max_health.current_value, 0.001), 0.0, 1.0)
+	if _value_label != null:
+		_value_label.text = "%d/%d" % [roundi(_health.current_value), roundi(_max_health.current_value)]
 	queue_redraw()

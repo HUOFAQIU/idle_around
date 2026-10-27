@@ -8,6 +8,7 @@ extends BaseWindow
 @onready var button_6: Button = $GridContainer/Button6
 @onready var button_7: Button = $GridContainer/Button7
 @onready var button_8: Button = $GridContainer/Button8
+@onready var button_9: Button = $GridContainer/Button9
 
 ## 调试用：往仓库里塞一颗魂灵。
 ## 带 skill 的魂灵拖进魂灵窗口的格子，战斗里角色才会放技能；
@@ -20,6 +21,7 @@ const KA_FEI = preload("res://game/content/Souls/ka_fei/ka_fei_soul.tres")
 const YU = preload("res://game/content/Souls/yu/yu_soul.tres")
 const WA = preload("res://game/content/Souls/wa/wa_soul.tres")
 const DIAN_CHI = preload("res://game/content/Souls/dian_chi/dian_chi_soul.tres")
+const YAO_DAI = preload("res://game/content/Souls/yao_dai/yao_dai_soul.tres")
 
 
 func _ready() -> void:
@@ -34,15 +36,15 @@ func _ready() -> void:
 	button_6.pressed.connect(button_6_pressed)
 	button_7.pressed.connect(button_7_pressed)
 	button_8.pressed.connect(button_8_pressed)
+	button_9.pressed.connect(button_9_pressed)
 
 	GBIS.sig_item_focused.connect(
 		func (item_data: ItemData, container_name: String):
-			TooltipWindow.instance.show_tip()
-			TooltipWindow.instance.set_window_title(item_data.item_name)
+			TooltipWindow.instance.show_tip(self, TooltipWindow.Layer.ITEM, item_data.item_name)
 	)
 	GBIS.sig_item_focus_lost.connect(
 		func (item_data: ItemData):
-			TooltipWindow.instance.hide_tip()
+			TooltipWindow.instance.hide_tip(self)
 	)
 
 
@@ -69,3 +71,6 @@ func button_7_pressed() -> void:
 
 func button_8_pressed() -> void:
 	GBIS.add_item("inventory_0", DIAN_CHI)
+
+func button_9_pressed() -> void:
+	GBIS.add_item("inventory_0", YAO_DAI)

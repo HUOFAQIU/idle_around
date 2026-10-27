@@ -6,6 +6,9 @@ static var instance : TooltipWindow
 ## 提示框跟鼠标隔开多少像素
 const GAP : float = 10.0
 
+## tooltip 层级：数值越大越优先，低层级不能覆盖仍然有效的高层级
+enum Layer { COORD, ITEM }
+
 ## 本帧结算出来的显隐目标。
 ## 信号的收发发生在输入阶段、_process 在其后，所以一帧内的 hide + show
 ## 会被合并成「保持显示」—— Window 的 visible 是真的去 OS 那里撤窗口、建窗口，
@@ -13,6 +16,10 @@ const GAP : float = 10.0
 var _want_visible : bool = false
 ## 本帧收到过隐藏请求
 var _hide_armed : bool = false
+## 当前占用 tooltip 的对象；真正隐藏时清空
+var _owner : Object
+## 当前层级，默认是战斗坐标
+var _layer : int = Layer.COORD
 
 
 func _ready() -> void:
@@ -24,6 +31,7 @@ func _process(_delta: float) -> void:
 	if _hide_armed:
 		_hide_armed = false
 		_want_visible = false
+		_owner = null
 	# 先摆位再显示，免得在上一帧的位置上闪一下
 	if _want_visible:
 		_place_tip()
@@ -31,19 +39,24 @@ func _process(_delta: float) -> void:
 		visible = _want_visible
 
 
-## 显示提示框；本帧内收到的隐藏请求作废
-func show_tip() -> void:
+## 显示提示框；低层级不能覆盖仍然有效的高层级 owner。
+## 本帧内收到的隐藏请求作废。
+func show_tip(owner: Object, layer: int, title_name: String) -> void:
+	if is_instance_valid(_owner) and _owner != owner and layer < _layer and not _hide_armed:
+		return
+	_owner = owner
+	_layer = layer
+	title = title_name
 	_hide_armed = false
 	_want_visible = true
 
 
-## 收起来；延迟到本帧末结算，期间又被 show 的话就不闪
-func hide_tip() -> void:
+## 收起来；只有当前 owner 能收，避免战斗窗口把物品提示关掉。
+## 延迟到本帧末结算，期间又被 show 的话就不闪。
+func hide_tip(owner: Object) -> void:
+	if is_instance_valid(_owner) and _owner != owner:
+		return
 	_hide_armed = true
-
-
-func set_window_title(title_name : String) -> void:
-	title = title_name
 
 
 ## 自己决定往哪边弹：锚点是鼠标，边界是屏幕

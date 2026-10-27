@@ -150,9 +150,18 @@ func _clear_battle() -> void:
 # 角色：站在战场中心，技能全部来自装备上的魂灵
 # 注意是"一颗魂灵一个技能"：同一颗魂灵装两把也要各算各的冷却，不能去重
 func _spawn_player(slots: Array[SoulSlot]) -> BattleUnit:
+	var passive_effects: Array[GameplayEffect] = []
+	for slot in slots:
+		var passive := slot.soul as PassiveSoulData
+		if passive == null:
+			continue
+		for effect in passive.passive_effects:
+			if effect != null:
+				passive_effects.append(effect)
+
 	var unit := PLAYER_SCENE.instantiate() as BattleUnit
 	units_root.add_child(unit)
-	unit.setup_from_scene(_battle)
+	unit.setup_from_scene(_battle, passive_effects)
 	unit.set_cell(Vector2i.ZERO)
 	unit.died.connect(_on_player_died)
 	_battle.add_unit(unit)
@@ -181,7 +190,7 @@ func _spawn_player(slots: Array[SoulSlot]) -> BattleUnit:
 		if ability != null:
 			granted += 1
 	if granted == 0:
-		_battle.log_line("没有装备魂灵 —— 角色不会任何技能", "yellow")
+		_battle.log_line("没有装备主动魂灵 —— 角色不会任何技能", "yellow")
 
 	return unit
 
@@ -243,10 +252,13 @@ func _push_scanlines() -> void:
 
 
 ## 扫描线的总开关：不在战斗时整条收起来（这是文档要的"战斗开始后才出现"）
+## 被动魂灵没有冷却，不显示扫描线。
 func _set_scanlines(on: bool) -> void:
-	for soul in _battle_souls:
-		soul.set_scanline_enabled(on)
-		if not on:
+	for i in _battle_souls.size():
+		var soul := _battle_souls[i]
+		var has_active := i < _soul_abilities.size() and _soul_abilities[i] != null
+		soul.set_scanline_enabled(on and has_active)
+		if not on or not has_active:
 			soul.set_scanline_progress(0.0)
 #endregion
 
@@ -267,6 +279,8 @@ func _on_player_died(_unit: BattleUnit) -> void:
 # 关窗会走到这儿（标题栏 × 和主界面按钮最后都是 hide()）；开窗时也会走，直接放行
 func _on_visibility_changed() -> void:
 	if not visible:
+		if TooltipWindow.instance != null:
+			TooltipWindow.instance.hide_tip(self)
 		_end_battle()
 
 
@@ -282,26 +296,36 @@ func _on_info_pressed() -> void:
 
 # 跟着鼠标显示 hover 到的格子：距离中心的格数 + 格子坐标
 func _update_coord_tooltip() -> void:
+	var tip := TooltipWindow.instance
+	if tip == null:
+		return
+
+	# 只有战斗窗口自己拥有焦点时才显示坐标。魂灵窗口盖在上面时，
+	# 它的物品 tooltip 优先级更高，这里不能再抢。
+	if not has_focus():
+		_mouse_was_inside = false
+		tip.hide_tip(self)
+		return
+
 	# 鼠标不在这个窗口里就彻底撒手：tooltip 是全游戏共用一个，
 	# 魂灵窗口 hover 物品时正用着它，这里每帧无条件 show/hide 会把人家盖掉。
 	# 只在"刚离开"那一帧收一次，之后就什么都不做
 	if not _is_mouse_inside():
 		if _mouse_was_inside:
 			_mouse_was_inside = false
-			TooltipWindow.instance.hide_tip()
+			tip.hide_tip(self)
 		return
 	_mouse_was_inside = true
-	
+
 	# 鼠标在 TileMapLayer 局部坐标系中的位置
 	var local_mouse := ground_tilemaplayer.get_local_mouse_position()
 	# 鼠标所指的格子
 	var hovered_cell := ground_tilemaplayer.local_to_map(local_mouse)
 	# 鼠标不在有效图块上 -> 收起提示
 	if ground_tilemaplayer.get_cell_source_id(hovered_cell) == -1:
-		TooltipWindow.instance.hide_tip()
+		tip.hide_tip(self)
 		return
-	TooltipWindow.instance.show_tip()
-	TooltipWindow.instance.set_window_title(str(hovered_cell))
+	tip.show_tip(self, TooltipWindow.Layer.COORD, str(hovered_cell))
 
 
 # 鼠标在不在本窗口的屏幕范围里（窗口是独立 OS 窗口，所以拿屏幕坐标比）

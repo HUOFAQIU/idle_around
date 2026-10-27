@@ -45,12 +45,14 @@ var max_health_attr: AttributeData
 
 ## 从场景建号：ASC、外观、能力都由场景预先配置。
 ## 场景根节点已经入树（子节点的 _ready 跑过）之后调用。
-func setup_from_scene(p_battle: BattleManager) -> void:
+## passive_effects 只给玩家用：开战前挂上被动魂灵的属性效果。
+func setup_from_scene(p_battle: BattleManager, passive_effects: Array[GameplayEffect] = []) -> void:
 	battle = p_battle
 
 	asc = get_node("AbilitySystemComponent")
 	# 属性集配在场景的 ASC 节点上，入树时框架已经深拷贝好；这里只写初始数值
 	_init_attributes()
+	_apply_passive_effects(passive_effects)
 
 	brain = get_node("BattleBrain")
 	brain.unit = self
@@ -86,13 +88,27 @@ func _init_attributes() -> void:
 	asc.add_tag(GameplayTags.Team_Player if team == Team.PLAYER else GameplayTags.Team_Enemy)
 
 
+## 开战前挂被动效果。上限变化时按原生命百分比同步当前生命。
+## 此时还没 _connect_asc()，也还没 bind 血条，所以不会产生状态日志。
+func _apply_passive_effects(effects: Array[GameplayEffect]) -> void:
+	if effects.is_empty():
+		return
+	var health_ratio := health_attr.current_value / maxf(max_health_attr.current_value, 0.001)
+	var max_before := max_health_attr.current_value
+	for effect in effects:
+		if effect != null:
+			asc.apply_gameplay_effect(effect, asc)
+	if not is_equal_approx(max_before, max_health_attr.current_value):
+		health_attr.base_value = max_health_attr.current_value * health_ratio
+
+
 ## 把一批魂灵变成技能；返回与输入等长的能力数组，null 表示这颗魂灵没有技能。
 func add_soul_abilities(soul_list: Array[SoulData]) -> Array[AutoCastAbility]:
 	var result : Array[AutoCastAbility] = []
 	for i in soul_list.size():
 		var soul := soul_list[i]
 		result.append(null)
-		if soul == null or soul.skill == null:
+		if soul == null or soul is PassiveSoulData or soul.skill == null:
 			continue
 		var ability := AutoCastAbility.new()
 		ability.apply_definition(soul.skill, soul.item_name)

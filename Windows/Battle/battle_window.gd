@@ -141,6 +141,8 @@ func _clear_battle() -> void:
 	_soul_abilities.clear()
 	_battle_slots.clear()
 	for child in units_root.get_children():
+		if child is BattleUnit:
+			(child as BattleUnit).cleanup_asc()
 		child.queue_free()
 	if _battle:
 		_battle.queue_free()

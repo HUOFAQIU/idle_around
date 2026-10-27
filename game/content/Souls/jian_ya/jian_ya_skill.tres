@@ -1,7 +1,8 @@
 [gd_resource type="Resource" script_class="SkillDefinition" format=3 uid="uid://chnvje3gcafxo"]
 
 [ext_resource type="Script" uid="uid://b7ovihaaijli7" path="res://addons/GodotGAS/effects/gameplay_execution_calculation.gd" id="1_aowow"]
-[ext_resource type="Script" path="res://game/content/soul_damage_execution.gd" id="2_exec"]
+[ext_resource type="Script" uid="uid://dxtfmpqjh3pta" path="res://game/content/soul_damage_execution.gd" id="2_exec"]
+[ext_resource type="Script" uid="uid://bcow77l0bnh0s" path="res://addons/GodotGAS/effects/gameplay_effect_modifier.gd" id="2_vykec"]
 [ext_resource type="Script" uid="uid://c81papidngxvg" path="res://addons/GodotGAS/effects/gameplay_effect.gd" id="3_cwdw2"]
 [ext_resource type="Script" uid="uid://ccvfqmqr8q1pm" path="res://addons/GodotGAS/gameplay_tag/gameplay_tag_query.gd" id="4_od3hn"]
 [ext_resource type="Script" uid="uid://ktr72cmavmyy" path="res://game/content/skill_definition.gd" id="5_nixmg"]

@@ -70,6 +70,8 @@ func _activate_ability() -> bool:
 	# ③ 吟唱（可选）：醒来后重新选人，有人中途倒下就换目标。
 	if skill.cast_time > 0.0:
 		await task_wait_delay(skill.cast_time)
+		if not is_active:
+			return false
 		groups = (skill.target_rule as TargetRule).resolve(owner_asc, battle)
 
 	if not battle.is_running:
@@ -108,6 +110,8 @@ func _activate_soul_skill(battle: BattleManager) -> bool:
 	# 吟唱结束后重新选，避免对着已经离开的魂灵施放
 	if skill.cast_time > 0.0:
 		await task_wait_delay(skill.cast_time)
+		if not is_active:
+			return false
 		if not battle.is_running:
 			return true
 		targets = rule.resolve(self, battle.rng)
@@ -154,6 +158,8 @@ func _cast_projectiles(battle: BattleManager, groups: Array) -> bool:
 		return true
 
 	var hit_count := await task_projectile(caster, targets, skill.projectile_scene)
+	if not is_active:
+		return false
 	if not battle.is_running:
 		return true
 
@@ -166,6 +172,8 @@ func _cast_projectiles(battle: BattleManager, groups: Array) -> bool:
 ## 一支箭落地就地结算。远近不同的目标各打各的，互不等待 ——
 ## 等全部飞完再一起结算的话，近的那支会白等，看起来就是"打中了却不掉血"
 func _on_projectile_landed(hit_unit: BattleUnit) -> void:
+	if not is_active:
+		return
 	_apply_effects_to_target(hit_unit)
 
 

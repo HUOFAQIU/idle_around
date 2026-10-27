@@ -1,12 +1,12 @@
-[gd_resource type="Resource" script_class="GameplayEffect" format=3]
+[gd_resource type="Resource" script_class="GameplayEffect" format=3 uid="uid://mu3qnrt7fqs3"]
 
 [ext_resource type="Script" uid="uid://c81papidngxvg" path="res://addons/GodotGAS/effects/gameplay_effect.gd" id="1_effect"]
+[ext_resource type="Script" uid="uid://b7ovihaaijli7" path="res://addons/GodotGAS/effects/gameplay_execution_calculation.gd" id="1_y57x1"]
 [ext_resource type="Script" uid="uid://bcow77l0bnh0s" path="res://addons/GodotGAS/effects/gameplay_effect_modifier.gd" id="2_modifier"]
 
 [sub_resource type="Resource" id="Resource_modifier_damage_bonus"]
 script = ExtResource("2_modifier")
 attribute_name = "damage_bonus"
-operation = 0
 magnitude = 50.0
 
 [resource]

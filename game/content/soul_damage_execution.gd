@@ -28,6 +28,8 @@ func execute(spec: GameplayEffectSpec, _target_asc: AbilitySystemComponent) -> D
 	var damage := maxf(base_damage + damage_bonus, 0.0) * crit_multiplier
 	if damage <= 0.0:
 		return {}
+	if crit_multiplier > 1.0:
+		spec.inject_tag(GameplayTags.Event_Combat_Critical)
 	return {"health": -damage}
 
 

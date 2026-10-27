@@ -10,20 +10,25 @@ const RISE : float = 28.0
 ## 飘多久
 const LIFETIME : float = 0.7
 const FONT_SIZE : int = 16
+const CRIT_FONT_SIZE : int = 20
 const COLOR_DAMAGE := Color(1.0, 0.45, 0.4)
 const COLOR_HEAL := Color(0.5, 0.95, 0.5)
+const COLOR_CRIT := Color(1.0, 0.68, 0.25)
 
 
 ## amount 传正数；heal = true 表示这是回血。
 ## 注意：要先 add_child 再调这个 —— 建补间需要节点已经在树里
-func setup(amount: float, heal: bool) -> void:
-	text = ("+%d" % roundi(amount)) if heal else ("-%d" % roundi(amount))
+func setup(amount: float, heal: bool, critical: bool = false) -> void:
+	var text_value := ("+%d" % roundi(amount)) if heal else ("-%d" % roundi(amount))
+	if critical:
+		text_value += "!"
+	text = text_value
 	# Label 的坐标是左上角，所以要自己往左上挪半个身位，让它落在单位正上方
 	size = Vector2(48.0, 20.0)
 	position = Vector2(-24.0, -46.0)
 	horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	add_theme_font_size_override("font_size", FONT_SIZE)
-	add_theme_color_override("font_color", COLOR_HEAL if heal else COLOR_DAMAGE)
+	add_theme_font_size_override("font_size", CRIT_FONT_SIZE if critical else FONT_SIZE)
+	add_theme_color_override("font_color", COLOR_CRIT if critical else (COLOR_HEAL if heal else COLOR_DAMAGE))
 
 	var tween := create_tween()
 	tween.set_parallel(true)

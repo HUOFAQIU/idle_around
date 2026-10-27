@@ -9,6 +9,7 @@
 @tool
 class_name GameplayTags
 
+const Event_Combat_Critical: StringName = &"Event.Combat.Critical"
 const State_Dead: StringName = &"State.Dead"
 const State_Wounded: StringName = &"State.Wounded"
 const Team_Enemy: StringName = &"Team.Enemy"

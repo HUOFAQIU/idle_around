@@ -173,4 +173,5 @@ func _on_unit_died(unit: BattleUnit) -> void:
 		return
 	_roll_drops(unit)
 	units.erase(unit)
+	unit.cleanup_asc()
 	unit.queue_free()

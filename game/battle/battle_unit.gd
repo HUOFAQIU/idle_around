@@ -34,6 +34,7 @@ var battle: BattleManager
 var asc: AbilitySystemComponent
 var brain: BattleBrain
 var is_dead: bool = false
+var _death_queued: bool = false
 
 ## 战场格子坐标（逻辑位置）
 var cell: Vector2i = Vector2i.ZERO
@@ -123,6 +124,7 @@ func _connect_asc() -> void:
 	asc.attribute_changed.connect(_on_attribute_changed)
 	asc.active_effect_added.connect(_on_active_effect_added)
 	asc.active_effect_removed.connect(_on_active_effect_removed)
+	asc.effect_received.connect(_on_effect_received)
 
 
 ## 血条颜色：敌红我绿
@@ -153,36 +155,71 @@ func _log(text: String, color: String = "white") -> void:
 		battle.log_line(text, color)
 
 
-## 统一的掉血/回血日志：所有属性变化（含 DoT 每秒 tick）都会经过这里。
-func _on_attribute_changed(attribute_name: String, old_value: float, new_value: float, spec: GameplayEffectSpec) -> void:
-	if attribute_name != "health" or is_dead:
+## 血条和死亡只看属性变化；伤害/治疗叙事走 effect_received。
+func _on_attribute_changed(attribute_name: String, _old_value: float, new_value: float, _spec: GameplayEffectSpec) -> void:
+	if attribute_name == "health" and new_value <= 0.0:
+		_queue_death()
+
+
+## 效果生命周期：只有对方真正收到效果时才写伤害/治疗日志和飘字。
+## 击杀那一下也要显示，所以这里不因为 is_dead 直接返回。
+func _on_effect_received(_source_asc: AbilitySystemComponent, spec: GameplayEffectSpec) -> void:
+	if spec == null:
+		return
+	if spec.effect_def != null and bool(spec.effect_def.get_meta("passive", false)):
+		return
+	var delta := float(spec.calculated_deltas.get("health", 0.0))
+	if is_zero_approx(delta):
 		return
 
+	var current := health_attr.current_value
+	var old_value := current - delta
 	var source_name := "未知来源"
-	if spec and spec.context and spec.context.instigator is BattleUnit:
+	if spec.context and spec.context.instigator is BattleUnit:
 		source_name = (spec.context.instigator as BattleUnit).unit_name
 	var effect_name := "未知效果"
-	if spec and spec.effect_def and spec.effect_def.resource_name != "":
+	if spec.effect_def and spec.effect_def.resource_name != "":
 		effect_name = spec.effect_def.resource_name
+	var critical := spec.has_tag(GameplayTags.Event_Combat_Critical)
+	var crit_suffix := "（暴击）" if critical else ""
 
-	if new_value < old_value:
-		_log("%s 受到【%s】（来自 %s）%.0f 点伤害，HP %.0f → %.0f"
-			% [unit_name, effect_name, source_name, old_value - new_value, old_value, new_value], "#ff6e6e")
-		_pop_number(old_value - new_value, false)
-	elif new_value > old_value:
-		_log("%s 回复 %.0f 点生命，HP %.0f → %.0f"
-			% [unit_name, new_value - old_value, old_value, new_value], "#7ddf7d")
-		_pop_number(new_value - old_value, true)
-
-	if new_value <= 0.0:
-		_die()
+	if delta < 0.0:
+		_log("%s 受到【%s】（来自 %s）%.0f 点伤害%s，HP %.0f → %.0f"
+			% [unit_name, effect_name, source_name, -delta, crit_suffix, old_value, current], "#ff6e6e")
+		_pop_number(-delta, false, critical)
+	elif delta > 0.0:
+		_log("%s 回复 %.0f 点生命%s，HP %.0f → %.0f"
+			% [unit_name, delta, crit_suffix, old_value, current], "#7ddf7d")
+		_pop_number(delta, true, critical)
 
 
 ## 头顶跳一个数字
-func _pop_number(amount: float, heal: bool) -> void:
+func _pop_number(amount: float, heal: bool, critical: bool = false) -> void:
 	var number := DamageNumber.new()
 	add_child(number)  # 先入树，里面建补间要用
-	number.setup(amount, heal)
+	number.setup(amount, heal, critical)
+
+
+## 延迟一帧确认死亡：先让 effect_received 写伤害日志，再写“倒下”；
+## 同帧内又被治疗回正的话就不死。
+func _queue_death() -> void:
+	if _death_queued:
+		return
+	_death_queued = true
+	_die_deferred.call_deferred()
+
+
+func _die_deferred() -> void:
+	_death_queued = false
+	if is_dead or health_attr == null or health_attr.current_value > 0.0:
+		return
+	_die()
+
+
+## 销毁单位前调用：停技能、清 active effects，避免 GAS 泄漏。
+func cleanup_asc() -> void:
+	if asc != null:
+		asc.cleanup()
 
 
 func _on_active_effect_added(active_effect: ActiveGameplayEffect) -> void:

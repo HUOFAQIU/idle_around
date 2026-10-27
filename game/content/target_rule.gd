@@ -42,7 +42,7 @@ enum Camp {
 
 ## 解析出"施加批次"：Array[Array[BattleUnit]]
 ##
-## 一个批次 = 一次 apply_effect_to_targets = 一份 Spec：
+## 一个批次 = 一次目标解析 = 一组目标：
 ##   RANDOM / LOWEST_HP_PERCENT / ALL → 只产生 1 个批次（一次打多个目标）
 ##   REPEAT → 产生 count 个批次，每批 1 个目标（独立随机、独立结算，可重复命中同一目标）
 ##

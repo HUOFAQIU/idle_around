@@ -3,6 +3,8 @@ class_name PlayerStatsAttributeSet extends AttributeSet
 
 var max_health: AttributeData = AttributeData.new(500.0)
 var health: AttributeData = AttributeData.new(500.0)
+## 己方魂灵的直接伤害加成（固定值）；健身房等被动魂灵会加这个属性
+var damage_bonus: AttributeData = AttributeData.new(0.0)
 
 
 ## The safety pipeline: Clamps stats before they are officially changed.

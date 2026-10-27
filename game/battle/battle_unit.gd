@@ -97,6 +97,8 @@ func _apply_passive_effects(effects: Array[GameplayEffect]) -> void:
 	var max_before := max_health_attr.current_value
 	for effect in effects:
 		if effect != null:
+			# 被动效果不写“获得/结束状态”日志
+			effect.set_meta("passive", true)
 			asc.apply_gameplay_effect(effect, asc)
 	if not is_equal_approx(max_before, max_health_attr.current_value):
 		health_attr.base_value = max_health_attr.current_value * health_ratio
@@ -185,14 +187,14 @@ func _pop_number(amount: float, heal: bool) -> void:
 
 func _on_active_effect_added(active_effect: ActiveGameplayEffect) -> void:
 	var def := active_effect.get_effect_def()
-	if is_dead or def == null or def.policy == GameplayEffect.DurationPolicy.INSTANT:
+	if is_dead or def == null or def.policy == GameplayEffect.DurationPolicy.INSTANT or bool(def.get_meta("passive", false)):
 		return
 	_log("%s 获得状态【%s】（%.1f 秒）" % [unit_name, def.resource_name, active_effect.time_remaining], "#57d9e8")
 
 
 func _on_active_effect_removed(active_effect: ActiveGameplayEffect) -> void:
 	var def := active_effect.get_effect_def()
-	if is_dead or def == null or def.policy == GameplayEffect.DurationPolicy.INSTANT:
+	if is_dead or def == null or def.policy == GameplayEffect.DurationPolicy.INSTANT or bool(def.get_meta("passive", false)):
 		return
 	_log("%s 的状态【%s】结束" % [unit_name, def.resource_name], "gray")
 

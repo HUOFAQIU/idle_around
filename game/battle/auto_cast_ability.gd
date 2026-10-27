@@ -176,61 +176,28 @@ func _apply_effects_to_target(target: BattleUnit) -> void:
 	var battle := _get_battle()
 	if battle == null:
 		return
-	var target_data := GameplayAbilityTargetData.new()
-	target_data.append_node(target)
 	var is_crit := skill.crit_chance > 0.0 and battle.rng.randf() < skill.crit_chance
+	var crit_multiplier := skill.crit_multiplier if is_crit else 1.0
 	for effect in skill.effects:
-		if effect == null:
-			continue
-		var applied := effect
-		if is_crit:
-			applied = _build_critical_effect(effect, target)
-		apply_effect_to_targets(applied, target_data)
+		if effect != null:
+			_apply_effect_to_target(effect, target, crit_multiplier)
 
 
-## 暴击按“最终伤害 ×crit_multiplier”结算。
-## 先用 GAS 预览这次效果真正会造成的属性变化，再把变化量做成一个等价的瞬时效果。
-## 这样 ADD / PERCENT_ADD / MULTIPLY / DIVIDE / OVERRIDE 都不会被逐 modifier 乘错；
-## 只放大负向变化（掉血/削属性），治疗和正向增益保持原值。
-## 只处理 INSTANT；持续/周期效果的暴击语义还没定义，先保持原效果。
-func _build_critical_effect(effect: GameplayEffect, target: BattleUnit) -> GameplayEffect:
-	if effect.policy != GameplayEffect.DurationPolicy.INSTANT:
-		return effect
-	if effect.application_query and not effect.application_query.matches(target.asc):
-		return effect
-
+## 用当前目标建 spec，把暴击倍率注入给 SoulDamageExecution。
+## 伤害加成由 SoulDamageExecution 自己从施法者 ASC 的 damage_bonus 读取。
+func _apply_effect_to_target(effect: GameplayEffect, target: BattleUnit, crit_multiplier: float) -> void:
+	if owner_asc == null or target == null or target.asc == null:
+		return
 	var caster := owner_asc.get_parent()
+	if caster == null:
+		return
 	var context := GameplayEffectContext.new(caster, caster)
 	var target_data := GameplayAbilityTargetData.new()
 	target_data.append_node(target)
 	context.target_data = target_data
-	var preview := GameplayEffectSpec.new(effect, context, ability_level)
-	target.asc._evaluate_spec(preview)
-	if preview.calculated_deltas.is_empty():
-		return effect
-
-	var has_damage := false
-	for attr_name in preview.calculated_deltas:
-		if float(preview.calculated_deltas[attr_name]) < 0.0:
-			has_damage = true
-			break
-	if not has_damage:
-		return effect
-
-	var critical := effect.duplicate(true) as GameplayEffect
-	critical.modifiers.clear()
-	critical.executions.clear()
-	for attr_name in preview.calculated_deltas:
-		var delta := float(preview.calculated_deltas[attr_name])
-		if not is_zero_approx(delta):
-			var modifier := GameplayEffectModifier.new()
-			modifier.attribute_name = String(attr_name)
-			modifier.operation = GameplayEffectModifier.Operation.ADD
-			modifier.magnitude = delta * (skill.crit_multiplier if delta < 0.0 else 1.0)
-			critical.modifiers.append(modifier)
-	if critical.modifiers.is_empty():
-		return effect
-	return critical
+	var spec := GameplayEffectSpec.new(effect, context, ability_level)
+	spec.set_set_by_caller_magnitude(SoulDamageExecution.CRIT_MULTIPLIER_TAG, crit_multiplier)
+	owner_asc.apply_effect_spec_to_target(spec, target.asc)
 
 
 ## 发一批投射物，等它们全部落地，返回打中了几支。

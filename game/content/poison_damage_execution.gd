@@ -12,6 +12,7 @@ func execute(spec: GameplayEffectSpec, target_asc: AbilitySystemComponent) -> Di
 
 	# SoulDamageExecution 返回的是负的 shield/health；两者绝对值之和就是最终伤害。
 	var damage := -float(result.get("health", 0.0)) - float(result.get("shield", 0.0))
-	if damage > 0.0:
-		result["poison"] = damage
+	var poison_amount: float = floor(damage)
+	if poison_amount > 0.0:
+		result["poison"] = poison_amount
 	return result

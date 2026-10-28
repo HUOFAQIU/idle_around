@@ -227,6 +227,8 @@ func _effect_display_name(spec: GameplayEffectSpec) -> String:
 		return "灼烧"
 	if PoisonTickExecution.is_poison_tick_effect(effect):
 		return "剧毒"
+	if RegenTickExecution.is_regen_tick_effect(effect):
+		return "生命再生"
 	if spec != null and not spec.display_name.is_empty():
 		return spec.display_name
 	if effect != null and not effect.resource_name.is_empty():
@@ -251,6 +253,8 @@ func _on_periodic_effect_ticked(_active_effect: ActiveGameplayEffect, spec: Game
 		_handle_burn_tick(spec)
 	elif PoisonTickExecution.is_poison_tick_effect(spec.effect_def):
 		_handle_poison_tick(spec)
+	elif RegenTickExecution.is_regen_tick_effect(spec.effect_def):
+		_handle_regen_tick(spec)
 
 
 func _handle_burn_tick(spec: GameplayEffectSpec) -> void:
@@ -272,6 +276,13 @@ func _handle_poison_tick(spec: GameplayEffectSpec) -> void:
 	if health_delta >= 0.0:
 		return
 	_log_poison_tick(-health_delta, spec)
+
+
+func _handle_regen_tick(spec: GameplayEffectSpec) -> void:
+	var health_delta := float(spec.calculated_deltas.get("health", 0.0))
+	if health_delta <= 0.0:
+		return
+	_log_regen_tick(health_delta, spec)
 
 
 ## 护盾吸收伤害的黄色日志和飘字
@@ -305,6 +316,18 @@ func _log_poison_tick(damage: float, spec: GameplayEffectSpec) -> void:
 	_log("%s 受到【%s】（来自 %s）%.0f 点伤害，HP %.0f → %.0f"
 		% [unit_name, effect_name, source_name, damage, old_value, health_attr.current_value], "#2e6b40")
 	_pop_number(damage, false, false, false, false, true)
+
+
+## 生命再生每跳：恢复生命，不净化；亮绿色日志/飘字。
+func _log_regen_tick(damage: float, spec: GameplayEffectSpec) -> void:
+	if damage <= 0.0:
+		return
+	var old_value := health_attr.current_value - damage
+	var source_name := _source_name(spec)
+	var effect_name := _effect_display_name(spec)
+	_log("%s 受到【%s】（来自 %s）影响，恢复 %.0f 点生命，HP %.0f → %.0f"
+		% [unit_name, effect_name, source_name, damage, old_value, health_attr.current_value], "#4dff66")
+	_pop_number(damage, true, false, false, false, false, true)
 
 
 func _source_name(spec: GameplayEffectSpec) -> String:
@@ -355,11 +378,12 @@ func _pop_number(
 	critical: bool = false,
 	burn: bool = false,
 	shield: bool = false,
-	poison: bool = false
+	poison: bool = false,
+	regen: bool = false
 ) -> void:
 	var number := DamageNumber.new()
 	add_child(number)  # 先入树，里面建补间要用
-	number.setup(amount, heal, critical, burn, shield, poison)
+	number.setup(amount, heal, critical, burn, shield, poison, regen)
 
 
 ## 延迟一帧确认死亡：先让 effect_received 写伤害日志，再写“倒下”；

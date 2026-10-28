@@ -23,8 +23,8 @@ func execute(_spec: GameplayEffectSpec, target_asc: AbilitySystemComponent) -> D
 	if poison_attr == null:
 		return {}
 
-	var stacks := maxf(poison_attr.current_value, 0.0)
-	if stacks <= 0.0:
+	var stacks := int(floor(maxf(poison_attr.current_value, 0.0)))
+	if stacks <= 0:
 		return {}
 
 	# 剧毒无视护盾，直接扣生命。

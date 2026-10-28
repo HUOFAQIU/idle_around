@@ -16,7 +16,7 @@ shader_parameter/progress = 0.0
 [resource]
 script = ExtResource("2_soul")
 skill = ExtResource("4_skill")
-equip_part = "TORSOSOUL"
+equip_part = "LEGSSOUL"
 item_name = "小鹿"
 type = "SOUL"
 icon = ExtResource("1_icon")

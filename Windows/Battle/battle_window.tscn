@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://dxwno0glbet88" path="res://Windows/Battle/battle_window.gd" id="1_nc1sn"]
 [ext_resource type="PackedScene" uid="uid://33uxpqaakhs" path="res://Windows/Battle/Maps/tile.tscn" id="2_7qkyi"]
 [ext_resource type="Script" uid="uid://dhkg54ofvcs6i" path="res://Windows/Battle/player_health_bar.gd" id="3_healthbar"]
-[ext_resource type="Script" uid="uid://sulro8qwh7y5" path="res://Windows/Battle/player_shield_bar.gd" id="4_shieldbar"]
+[ext_resource type="Script" uid="uid://emshu1chhtjv" path="res://Windows/Battle/player_status_bar.gd" id="4_statusbar"]
 
 [node name="BattleWindow" type="Window" unique_id=1101778887]
 oversampling_override = 1.0
@@ -105,7 +105,7 @@ theme_override_font_sizes/font_size = 12
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="PlayerShieldBar" type="Control" parent="CanvasLayer/Control" unique_id=75560579]
+[node name="PlayerRegenBar" type="Control" parent="CanvasLayer/Control" unique_id=1138860852]
 layout_mode = 1
 anchors_preset = 2
 anchor_top = 1.0
@@ -116,7 +116,48 @@ offset_right = 290.0
 offset_bottom = -34.0
 grow_vertical = 0
 mouse_filter = 2
-script = ExtResource("4_shieldbar")
+script = ExtResource("4_statusbar")
+attribute_name = "regen"
+fill_color = Color(0.25, 1, 0.4, 1)
+
+[node name="RegenLabel" type="Label" parent="CanvasLayer/Control/PlayerRegenBar" unique_id=768671362]
+layout_mode = 0
+offset_left = -58.0
+offset_bottom = 18.0
+theme_override_colors/font_color = Color(0.25, 1, 0.4, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.85)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 12
+text = "再生"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ValueLabel" type="Label" parent="CanvasLayer/Control/PlayerRegenBar" unique_id=543466483]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.85)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 12
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PlayerShieldBar" type="Control" parent="CanvasLayer/Control" unique_id=75560579]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 70.0
+offset_top = -74.0
+offset_right = 290.0
+offset_bottom = -56.0
+grow_vertical = 0
+mouse_filter = 2
+script = ExtResource("4_statusbar")
 
 [node name="ShieldLabel" type="Label" parent="CanvasLayer/Control/PlayerShieldBar" unique_id=1142958929]
 layout_mode = 0
@@ -131,6 +172,88 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="ValueLabel" type="Label" parent="CanvasLayer/Control/PlayerShieldBar" unique_id=1638380604]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.85)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 12
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PlayerBurnBar" type="Control" parent="CanvasLayer/Control" unique_id=1169130881]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 70.0
+offset_top = -96.0
+offset_right = 290.0
+offset_bottom = -78.0
+grow_vertical = 0
+mouse_filter = 2
+script = ExtResource("4_statusbar")
+attribute_name = "burn"
+fill_color = Color(1, 0.4, 0, 1)
+
+[node name="BurnLabel" type="Label" parent="CanvasLayer/Control/PlayerBurnBar" unique_id=862910920]
+layout_mode = 0
+offset_left = -58.0
+offset_bottom = 18.0
+theme_override_colors/font_color = Color(1, 0.4, 0, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.85)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 12
+text = "灼烧"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ValueLabel" type="Label" parent="CanvasLayer/Control/PlayerBurnBar" unique_id=1763822248]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.85)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 12
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PlayerPoisonBar" type="Control" parent="CanvasLayer/Control" unique_id=339929869]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 70.0
+offset_top = -118.0
+offset_right = 290.0
+offset_bottom = -100.0
+grow_vertical = 0
+mouse_filter = 2
+script = ExtResource("4_statusbar")
+attribute_name = "poison"
+fill_color = Color(0.18, 0.42, 0.25, 1)
+
+[node name="PoisonLabel" type="Label" parent="CanvasLayer/Control/PlayerPoisonBar" unique_id=451181862]
+layout_mode = 0
+offset_left = -58.0
+offset_bottom = 18.0
+theme_override_colors/font_color = Color(0.18, 0.42, 0.25, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.85)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 12
+text = "剧毒"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ValueLabel" type="Label" parent="CanvasLayer/Control/PlayerPoisonBar" unique_id=756909516]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0

@@ -29,7 +29,8 @@
 				"051f7adb-9b63-49c1-8e26-09f7615a5cc7",
 				"ca003893-c03d-462d-8530-fb6553c37cd8",
 				"2d44f95f-5926-4afb-9f2c-20a64393c01e",
-				"29fa349a-dcab-4ea5-8a8c-634a10391763"
+				"29fa349a-dcab-4ea5-8a8c-634a10391763",
+				"13de6c29-589d-41b3-91db-f392fe25f327"
 			]
 		},
 		{
@@ -100,6 +101,13 @@
 			"title": "New task",
 			"description": "/Users/huofaqiu/AppData/Local/Programs/Tabby\n\n\n\nC:\\Users\\huofaqiu\\AppData\\Local\\Microsoft\\WindowsApps\\pwsh.exe\n-noexit -command cd '{directory}'",
 			"category": "abd1801b-a241-4c02-8dd1-4e804d1e3bd5",
+			"steps": []
+		},
+		{
+			"uuid": "13de6c29-589d-41b3-91db-f392fe25f327",
+			"title": "图鉴",
+			"description": "仓库页上面的tab都去掉，新增图鉴窗口，点击魂灵添加进仓库",
+			"category": "dc17d4ed-a172-4464-9b98-2aeab52f9cdf",
 			"steps": []
 		}
 	],

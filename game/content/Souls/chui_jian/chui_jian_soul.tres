@@ -1,9 +1,9 @@
-[gd_resource type="Resource" script_class="SoulData" format=3]
+[gd_resource type="Resource" script_class="SoulData" format=3 uid="uid://bv1wn3xab3cbl"]
 
 [ext_resource type="Texture2D" uid="uid://cdjqqto2bjrem" path="res://Assets/souls/chuijian.png" id="1_icon"]
 [ext_resource type="Shader" uid="uid://c7gxmyf484kcn" path="res://Assets/Shader/soul_scanline.gdshader" id="2_shader"]
 [ext_resource type="Script" uid="uid://bbcxwqb4ef1cg" path="res://Windows/Inventory/grid_base_inventory_system/core/model/item/soul_data.gd" id="3_soul"]
-[ext_resource type="Resource" path="res://game/content/Souls/chui_jian/chui_jian_skill.tres" id="4_skill"]
+[ext_resource type="Resource" uid="uid://ns8msuld4ii5" path="res://game/content/Souls/chui_jian/chui_jian_skill.tres" id="4_skill"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_scan"]
 shader = ExtResource("2_shader")
@@ -20,7 +20,6 @@ equip_part = "ARMSSOUL"
 item_name = "吹箭"
 type = "SOUL"
 icon = ExtResource("1_icon")
-columns = 1
 rows = 2
 material = SubResource("ShaderMaterial_scan")
 metadata/_custom_type_script = "uid://bbcxwqb4ef1cg"

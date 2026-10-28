@@ -1,12 +1,18 @@
-[gd_resource type="Resource" script_class="SkillDefinition" format=3]
+[gd_resource type="Resource" script_class="SkillDefinition" format=3 uid="uid://ns8msuld4ii5"]
 
 [ext_resource type="Script" uid="uid://b7ovihaaijli7" path="res://addons/GodotGAS/effects/gameplay_execution_calculation.gd" id="1_exec_base"]
 [ext_resource type="Script" uid="uid://c81papidngxvg" path="res://addons/GodotGAS/effects/gameplay_effect.gd" id="2_effect"]
+[ext_resource type="Script" uid="uid://bcow77l0bnh0s" path="res://addons/GodotGAS/effects/gameplay_effect_modifier.gd" id="2_wh81g"]
 [ext_resource type="Script" uid="uid://ktr72cmavmyy" path="res://game/content/skill_definition.gd" id="3_skill"]
 [ext_resource type="Script" uid="uid://cf2mx3u4jfquk" path="res://game/content/target_rule.gd" id="4_rule"]
 [ext_resource type="Script" uid="uid://bygmfist4u0x3" path="res://game/content/poison_damage_execution.gd" id="5_poison_damage"]
-[ext_resource type="Resource" path="res://game/content/effects/poison_tick.tres" id="6_poison_tick"]
+[ext_resource type="Resource" uid="uid://eiwxffuc188x" path="res://game/content/effects/poison_tick.tres" id="6_poison_tick"]
 [ext_resource type="PackedScene" uid="uid://dy5x2eppw8sxv" path="res://game/battle/soul_projectile.tscn" id="7_projectile"]
+
+[sub_resource type="Resource" id="Resource_effect_cooldown"]
+script = ExtResource("2_effect")
+policy = 1
+duration = 3.0
 
 [sub_resource type="Resource" id="Resource_execution_poison_damage"]
 script = ExtResource("5_poison_damage")
@@ -15,11 +21,6 @@ base_damage = 10.0
 [sub_resource type="Resource" id="Resource_effect_poison_damage"]
 script = ExtResource("2_effect")
 executions = Array[ExtResource("1_exec_base")]([SubResource("Resource_execution_poison_damage")])
-
-[sub_resource type="Resource" id="Resource_effect_cooldown"]
-script = ExtResource("2_effect")
-policy = 1
-duration = 3.0
 
 [sub_resource type="Resource" id="Resource_target_rule"]
 script = ExtResource("4_rule")
@@ -34,4 +35,3 @@ effects = Array[ExtResource("2_effect")]([SubResource("Resource_effect_poison_da
 cooldown_effect = SubResource("Resource_effect_cooldown")
 target_rule = SubResource("Resource_target_rule")
 projectile_scene = ExtResource("7_projectile")
-projectile_speed = 420.0

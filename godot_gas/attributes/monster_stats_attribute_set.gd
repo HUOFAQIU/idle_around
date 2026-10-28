@@ -10,6 +10,8 @@ class_name MonsterStatsAttributeSet extends AttributeSet
 var max_health: AttributeData = AttributeData.new(500.0)
 var health: AttributeData = AttributeData.new(500.0)
 var cooldown_move: AttributeData = AttributeData.new(3.0)
+## 当前灼烧层数；每 0.5 秒按整数层数结算一次，然后衰减 3%
+var burn: AttributeData = AttributeData.new(0.0)
 
 
 ## The safety pipeline: Clamps stats before they are officially changed.
@@ -17,6 +19,8 @@ func pre_attribute_change(attribute_name: String, proposed_value: float) -> floa
 	match attribute_name:
 		"health":
 			return clamp(proposed_value, 0.0, max_health.current_value)
+		"burn":
+			return maxf(proposed_value, 0.0)
 
 	return proposed_value
 

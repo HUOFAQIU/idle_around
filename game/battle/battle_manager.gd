@@ -7,6 +7,9 @@
 
 class_name BattleManager extends Node
 
+## 任一单位改变格子时转发；触发型被动用它监听“敌方移动”。
+signal unit_moved(unit: BattleUnit, from_cell: Vector2i, to_cell: Vector2i)
+
 ## 刷怪间隔（秒）
 const SPAWN_INTERVAL : float = 0.2
 ## 只在这个距离之外刷怪
@@ -41,9 +44,14 @@ func setup() -> void:
 func add_unit(unit: BattleUnit) -> void:
 	units.append(unit)
 	unit.died.connect(_on_unit_died)
+	unit.moved.connect(_on_unit_moved)
 	# 战斗中才入场的单位从 0 开始充能，不然一入场就是满充能
 	if is_running:
 		unit.brain.begin_charge()
+
+
+func _on_unit_moved(unit: BattleUnit, from_cell: Vector2i, to_cell: Vector2i) -> void:
+	unit_moved.emit(unit, from_cell, to_cell)
 
 
 func start_battle() -> void:

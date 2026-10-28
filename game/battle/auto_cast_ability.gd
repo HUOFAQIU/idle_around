@@ -204,7 +204,12 @@ func _apply_effect_to_target(effect: GameplayEffect, target: BattleUnit, crit_mu
 	target_data.append_node(target)
 	context.target_data = target_data
 	var spec := GameplayEffectSpec.new(effect, context, ability_level)
-	spec.set_set_by_caller_magnitude(SoulDamageExecution.CRIT_MULTIPLIER_TAG, crit_multiplier)
+	if BurnTickExecution.is_burn_tick_effect(effect):
+		# 灼烧每一跳独立判定暴击，所以传“暴击率”而不是本次技能掷出的倍率
+		spec.set_set_by_caller_magnitude(BurnTickExecution.CRIT_CHANCE_TAG, skill.crit_chance)
+		spec.set_set_by_caller_magnitude(BurnTickExecution.CRIT_MULTIPLIER_TAG, skill.crit_multiplier)
+	else:
+		spec.set_set_by_caller_magnitude(SoulDamageExecution.CRIT_MULTIPLIER_TAG, crit_multiplier)
 	owner_asc.apply_effect_spec_to_target(spec, target.asc)
 
 

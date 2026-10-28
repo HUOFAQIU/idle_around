@@ -1,4 +1,4 @@
-## 单位头顶跳一下的数字：掉血红、回血绿，边升边淡出。
+## 单位头顶跳一下的数字：掉血红、回血绿、灼烧橙，边升边淡出。
 ##
 ## 挂在单位节点底下，所以单位走它跟着走、单位没了它跟着没，
 ## 不需要外面拿个容器管它们。
@@ -14,11 +14,13 @@ const CRIT_FONT_SIZE : int = 20
 const COLOR_DAMAGE := Color(1.0, 0.45, 0.4)
 const COLOR_HEAL := Color(0.5, 0.95, 0.5)
 const COLOR_CRIT := Color(1.0, 0.68, 0.25)
+## 灼烧用高饱和橙色，和普通伤害/暴击区分开
+const COLOR_BURN := Color(1.0, 0.40, 0.0)
 
 
-## amount 传正数；heal = true 表示这是回血。
+## amount 传正数；heal = true 表示这是回血，burn = true 表示灼烧。
 ## 注意：要先 add_child 再调这个 —— 建补间需要节点已经在树里
-func setup(amount: float, heal: bool, critical: bool = false) -> void:
+func setup(amount: float, heal: bool, critical: bool = false, burn: bool = false) -> void:
 	var text_value := ("+%d" % roundi(amount)) if heal else ("-%d" % roundi(amount))
 	if critical:
 		text_value += "!"
@@ -28,7 +30,8 @@ func setup(amount: float, heal: bool, critical: bool = false) -> void:
 	position = Vector2(-24.0, -46.0)
 	horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	add_theme_font_size_override("font_size", CRIT_FONT_SIZE if critical else FONT_SIZE)
-	add_theme_color_override("font_color", COLOR_CRIT if critical else (COLOR_HEAL if heal else COLOR_DAMAGE))
+	var color := COLOR_BURN if burn else (COLOR_CRIT if critical else (COLOR_HEAL if heal else COLOR_DAMAGE))
+	add_theme_color_override("font_color", color)
 
 	var tween := create_tween()
 	tween.set_parallel(true)

@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="PassiveTrigger" format=3 uid="uid://nsr8s2gw8dca"]
+
+[ext_resource type="Script" uid="uid://bgbp4lpfyqub" path="res://game/content/passive_trigger.gd" id="1_trigger"]
+[ext_resource type="Script" uid="uid://c81papidngxvg" path="res://addons/GodotGAS/effects/gameplay_effect.gd" id="2_effect"]
+[ext_resource type="Resource" uid="uid://bpj04jw1ld8ce" path="res://game/content/effects/burn_apply.tres" id="3_burn_apply"]
+[ext_resource type="Resource" uid="uid://dmsdlaiwop06p" path="res://game/content/effects/burn_tick.tres" id="4_burn_tick"]
+
+[resource]
+script = ExtResource("1_trigger")
+magnitude = 8.0
+effects = Array[ExtResource("2_effect")]([ExtResource("3_burn_apply"), ExtResource("4_burn_tick")])

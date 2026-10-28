@@ -153,6 +153,7 @@ func _clear_battle() -> void:
 # 注意是"一颗魂灵一个技能"：同一颗魂灵装两把也要各算各的冷却，不能去重
 func _spawn_player(slots: Array[SoulSlot]) -> BattleUnit:
 	var passive_effects: Array[GameplayEffect] = []
+	var passive_triggers: Array[PassiveTrigger] = []
 	for slot in slots:
 		var passive := slot.soul as PassiveSoulData
 		if passive == null:
@@ -160,10 +161,13 @@ func _spawn_player(slots: Array[SoulSlot]) -> BattleUnit:
 		for effect in passive.passive_effects:
 			if effect != null:
 				passive_effects.append(effect)
+		for trigger in passive.triggers:
+			if trigger != null:
+				passive_triggers.append(trigger)
 
 	var unit := PLAYER_SCENE.instantiate() as BattleUnit
 	units_root.add_child(unit)
-	unit.setup_from_scene(_battle, passive_effects)
+	unit.setup_from_scene(_battle, passive_effects, passive_triggers)
 	unit.set_cell(Vector2i.ZERO)
 	unit.died.connect(_on_player_died)
 	_battle.add_unit(unit)

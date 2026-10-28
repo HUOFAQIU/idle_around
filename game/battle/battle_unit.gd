@@ -18,6 +18,8 @@ class_name BattleUnit extends Node2D
 
 ## 单位倒下时发出
 signal died(unit: BattleUnit)
+## 单位逻辑位置发生变化时发出；出生/瞬移用的 set_cell() 不触发。
+signal moved(unit: BattleUnit, from_cell: Vector2i, to_cell: Vector2i)
 
 enum Team { PLAYER, ENEMY }
 
@@ -35,6 +37,8 @@ var asc: AbilitySystemComponent
 var brain: BattleBrain
 var is_dead: bool = false
 var _death_queued: bool = false
+## 玩家装备的触发型被动；目前只有“敌方移动”一种事件
+var passive_triggers: Array[PassiveTrigger] = []
 
 ## 战场格子坐标（逻辑位置）
 var cell: Vector2i = Vector2i.ZERO
@@ -46,14 +50,19 @@ var max_health_attr: AttributeData
 
 ## 从场景建号：ASC、外观、能力都由场景预先配置。
 ## 场景根节点已经入树（子节点的 _ready 跑过）之后调用。
-## passive_effects 只给玩家用：开战前挂上被动魂灵的属性效果。
-func setup_from_scene(p_battle: BattleManager, passive_effects: Array[GameplayEffect] = []) -> void:
+## passive_effects / passive_triggers 只给玩家用：开战前挂属性效果，并登记触发型被动。
+func setup_from_scene(
+	p_battle: BattleManager,
+	passive_effects: Array[GameplayEffect] = [],
+	p_passive_triggers: Array[PassiveTrigger] = []
+) -> void:
 	battle = p_battle
 
 	asc = get_node("AbilitySystemComponent")
 	# 属性集配在场景的 ASC 节点上，入树时框架已经深拷贝好；这里只写初始数值
 	_init_attributes()
 	_apply_passive_effects(passive_effects)
+	passive_triggers = p_passive_triggers
 
 	brain = get_node("BattleBrain")
 	brain.unit = self
@@ -75,6 +84,9 @@ func setup_from_scene(p_battle: BattleManager, passive_effects: Array[GameplayEf
 		name_label.text = unit_name
 
 	_connect_asc()
+	if not passive_triggers.is_empty() and battle != null:
+		if not battle.unit_moved.is_connected(_on_battle_unit_moved):
+			battle.unit_moved.connect(_on_battle_unit_moved)
 
 
 ## ASC 入树之后写初始属性：先设上限，血量的钳制依赖它
@@ -98,8 +110,7 @@ func _apply_passive_effects(effects: Array[GameplayEffect]) -> void:
 	var max_before := max_health_attr.current_value
 	for effect in effects:
 		if effect != null:
-			# 被动效果不写“获得/结束状态”日志
-			effect.set_meta("passive", true)
+			# 被动效果用 PassiveEffect 类型标记，不写“获得/结束状态”日志
 			asc.apply_gameplay_effect(effect, asc)
 	if not is_equal_approx(max_before, max_health_attr.current_value):
 		# 走 ASC 的钳制和重算；此时还未连接日志/血条，不会产生开场飘字
@@ -107,6 +118,34 @@ func _apply_passive_effects(effects: Array[GameplayEffect]) -> void:
 		var health_delta := target_health - health_attr.current_value
 		if not is_zero_approx(health_delta):
 			asc._apply_attribute_change("health", health_delta)
+
+
+## 战场上有单位改变格子。只有玩家装备了触发型被动时才需要处理。
+func _on_battle_unit_moved(moving_unit: BattleUnit, _from_cell: Vector2i, _to_cell: Vector2i) -> void:
+	if is_dead or battle == null or not battle.is_running:
+		return
+	if team != Team.PLAYER or moving_unit == null or moving_unit.is_dead:
+		return
+	if moving_unit.team != Team.ENEMY:
+		return
+
+	for trigger in passive_triggers:
+		if trigger == null or trigger.event != PassiveTrigger.Event.ENEMY_MOVED:
+			continue
+		for effect in trigger.effects:
+			_apply_trigger_effect(effect, moving_unit, trigger.magnitude)
+
+
+## 触发型被动对事件目标施加一个效果。事件来源是玩家自己。
+## 被动施加的灼烧不写暴击率；主动技能会自己把暴击率写进 spec。
+func _apply_trigger_effect(effect: GameplayEffect, target: BattleUnit, magnitude: float) -> void:
+	if effect == null or asc == null or target == null or target.asc == null:
+		return
+	var context := GameplayEffectContext.new(self, self)
+	context.target_data.append_node(target)
+	var spec := GameplayEffectSpec.new(effect, context, 1.0)
+	spec.set_set_by_caller_magnitude(PassiveTrigger.MAGNITUDE_TAG, magnitude)
+	asc.apply_effect_spec_to_target(spec, target.asc)
 
 
 ## 把一批魂灵变成技能；返回与输入等长的能力数组，null 表示这颗魂灵没有技能。
@@ -144,8 +183,12 @@ func set_cell(p_cell: Vector2i) -> void:
 
 ## 挪到相邻格：逻辑立刻到位（选目标马上就按新位置算），视觉用补间追过去
 func move_to_cell(p_cell: Vector2i) -> void:
+	if p_cell == cell:
+		return
+	var from_cell := cell
 	cell = p_cell
 	create_tween().tween_property(self, "position", battle.cell_to_world(p_cell), 0.15)
+	moved.emit(self, from_cell, p_cell)
 
 
 ## 血量百分比（0~1），TargetRule 的 LOWEST_HP_PERCENT 规则用它排序
@@ -159,10 +202,43 @@ func _log(text: String, color: String = "white") -> void:
 		battle.log_line(text, color)
 
 
-## 血条和死亡只看属性变化；伤害/治疗叙事走 effect_received。
-func _on_attribute_changed(attribute_name: String, _old_value: float, new_value: float, _spec: GameplayEffectSpec) -> void:
-	if attribute_name == "health" and new_value <= 0.0:
+## 效果显示名：灼烧周期效果优先显示“灼烧”；
+## 其余优先 resource_name，没填就退回文件名，避免出现空名字。
+func _effect_display_name(effect: GameplayEffect) -> String:
+	if BurnTickExecution.is_burn_tick_effect(effect):
+		return "灼烧"
+	if effect != null and not effect.resource_name.is_empty():
+		return effect.resource_name
+	if effect != null and not effect.resource_path.is_empty():
+		return effect.resource_path.get_file().get_basename()
+	return "未知效果"
+
+
+## 血条和死亡看属性变化。普通伤害/治疗叙事走 effect_received；
+## 周期效果不会逐跳触发 effect_received，所以灼烧在这里单独补日志和飘字。
+func _on_attribute_changed(attribute_name: String, old_value: float, new_value: float, spec: GameplayEffectSpec) -> void:
+	if attribute_name != "health":
+		return
+	if spec != null and BurnTickExecution.is_burn_tick_effect(spec.effect_def):
+		_log_burn_tick(old_value, new_value, spec)
+	if new_value <= 0.0:
 		_queue_death()
+
+
+## 灼烧每跳的实际伤害（经过血量钳制后的 old → new）
+func _log_burn_tick(old_value: float, new_value: float, spec: GameplayEffectSpec) -> void:
+	var damage := old_value - new_value
+	if damage <= 0.0:
+		return
+	var source_name := "未知来源"
+	if spec.context and spec.context.instigator is BattleUnit:
+		source_name = (spec.context.instigator as BattleUnit).unit_name
+	var effect_name := _effect_display_name(spec.effect_def)
+	var critical := spec.has_tag(GameplayTags.Event_Combat_Critical)
+	var crit_suffix := "（暴击）" if critical else ""
+	_log("%s 受到【%s】（来自 %s）%.0f 点伤害%s，HP %.0f → %.0f"
+		% [unit_name, effect_name, source_name, damage, crit_suffix, old_value, new_value], "#ff6600")
+	_pop_number(damage, false, critical, true)
 
 
 ## 效果生命周期：只有对方真正收到效果时才写伤害/治疗日志和飘字。
@@ -170,7 +246,11 @@ func _on_attribute_changed(attribute_name: String, _old_value: float, new_value:
 func _on_effect_received(_source_asc: AbilitySystemComponent, spec: GameplayEffectSpec) -> void:
 	if spec == null:
 		return
-	if spec.effect_def != null and bool(spec.effect_def.get_meta("passive", false)):
+	if spec.effect_def is PassiveEffect:
+		return
+	# 周期效果在施加时只做了预览计算，并没有真正扣血；
+	# 伤害要等每一跳通过 attribute_changed 单独记账。
+	if spec.period > 0.0:
 		return
 	var delta := float(spec.calculated_deltas.get("health", 0.0))
 	if is_zero_approx(delta):
@@ -181,9 +261,7 @@ func _on_effect_received(_source_asc: AbilitySystemComponent, spec: GameplayEffe
 	var source_name := "未知来源"
 	if spec.context and spec.context.instigator is BattleUnit:
 		source_name = (spec.context.instigator as BattleUnit).unit_name
-	var effect_name := "未知效果"
-	if spec.effect_def and spec.effect_def.resource_name != "":
-		effect_name = spec.effect_def.resource_name
+	var effect_name := _effect_display_name(spec.effect_def)
 	var critical := spec.has_tag(GameplayTags.Event_Combat_Critical)
 	var crit_suffix := "（暴击）" if critical else ""
 
@@ -198,10 +276,10 @@ func _on_effect_received(_source_asc: AbilitySystemComponent, spec: GameplayEffe
 
 
 ## 头顶跳一个数字
-func _pop_number(amount: float, heal: bool, critical: bool = false) -> void:
+func _pop_number(amount: float, heal: bool, critical: bool = false, burn: bool = false) -> void:
 	var number := DamageNumber.new()
 	add_child(number)  # 先入树，里面建补间要用
-	number.setup(amount, heal, critical)
+	number.setup(amount, heal, critical, burn)
 
 
 ## 延迟一帧确认死亡：先让 effect_received 写伤害日志，再写“倒下”；
@@ -228,16 +306,17 @@ func cleanup_asc() -> void:
 
 func _on_active_effect_added(active_effect: ActiveGameplayEffect) -> void:
 	var def := active_effect.get_effect_def()
-	if is_dead or def == null or def.policy == GameplayEffect.DurationPolicy.INSTANT or bool(def.get_meta("passive", false)):
+	if is_dead or def == null or def.policy == GameplayEffect.DurationPolicy.INSTANT or def is PassiveEffect:
 		return
-	_log("%s 获得状态【%s】（%.1f 秒）" % [unit_name, def.resource_name, active_effect.time_remaining], "#57d9e8")
+	var duration_text := "持续" if def.policy == GameplayEffect.DurationPolicy.INFINITE else "%.1f 秒" % active_effect.time_remaining
+	_log("%s 获得状态【%s】（%s）" % [unit_name, _effect_display_name(def), duration_text], "#57d9e8")
 
 
 func _on_active_effect_removed(active_effect: ActiveGameplayEffect) -> void:
 	var def := active_effect.get_effect_def()
-	if is_dead or def == null or def.policy == GameplayEffect.DurationPolicy.INSTANT or bool(def.get_meta("passive", false)):
+	if is_dead or def == null or def.policy == GameplayEffect.DurationPolicy.INSTANT or def is PassiveEffect:
 		return
-	_log("%s 的状态【%s】结束" % [unit_name, def.resource_name], "gray")
+	_log("%s 的状态【%s】结束" % [unit_name, _effect_display_name(def)], "gray")
 
 
 func _die() -> void:

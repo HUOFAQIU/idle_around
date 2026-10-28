@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="GameplayEffect" format=3 uid="uid://dmsdlaiwop06p"]
+
+[ext_resource type="Script" uid="uid://c81papidngxvg" path="res://addons/GodotGAS/effects/gameplay_effect.gd" id="1_effect"]
+[ext_resource type="Script" uid="uid://b7ovihaaijli7" path="res://addons/GodotGAS/effects/gameplay_execution_calculation.gd" id="2_execution"]
+[ext_resource type="Script" uid="uid://dyduh45xabujm" path="res://game/content/burn_tick_execution.gd" id="3_burn_execution"]
+[ext_resource type="Script" uid="uid://bcow77l0bnh0s" path="res://addons/GodotGAS/effects/gameplay_effect_modifier.gd" id="3_ml0ex"]
+
+[sub_resource type="Resource" id="Resource_execution_burn"]
+script = ExtResource("3_burn_execution")
+
+[resource]
+script = ExtResource("1_effect")
+stacking_policy = 1
+policy = 2
+period = 0.5
+max_stacks = 1
+executions = Array[ExtResource("2_execution")]([SubResource("Resource_execution_burn")])
+granted_tags = Array[StringName]([&"State.Burning"])

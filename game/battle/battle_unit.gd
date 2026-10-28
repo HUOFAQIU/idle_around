@@ -113,11 +113,25 @@ func _apply_passive_effects(effects: Array[GameplayEffect]) -> void:
 			# 被动效果用 PassiveEffect 类型标记，不写“获得/结束状态”日志
 			asc.apply_gameplay_effect(effect, asc)
 	if not is_equal_approx(max_before, max_health_attr.current_value):
-		# 走 ASC 的钳制和重算；此时还未连接日志/血条，不会产生开场飘字
+		# 用瞬时 GameplayEffect 同步当前生命，仍然走 GAS 的钳制和重算。
+		# 此时还未连接日志/血条，不会产生开场飘字。
 		var target_health := max_health_attr.current_value * health_ratio
 		var health_delta := target_health - health_attr.current_value
-		if not is_zero_approx(health_delta):
-			asc._apply_attribute_change("health", health_delta)
+		_apply_health_delta_effect(health_delta)
+
+
+## 用运行时 INSTANT 效果修改生命，避免绕过 GameplayEffect 直接写属性。
+func _apply_health_delta_effect(health_delta: float) -> void:
+	if is_zero_approx(health_delta) or asc == null:
+		return
+	var sync_effect := GameplayEffect.new()
+	sync_effect.policy = GameplayEffect.DurationPolicy.INSTANT
+	var modifier := GameplayEffectModifier.new()
+	modifier.attribute_name = "health"
+	modifier.operation = GameplayEffectModifier.Operation.ADD
+	modifier.magnitude = health_delta
+	sync_effect.modifiers.append(modifier)
+	asc.apply_gameplay_effect(sync_effect, asc)
 
 
 ## 战场上有单位改变格子。只有玩家装备了触发型被动时才需要处理。
@@ -168,6 +182,7 @@ func _connect_asc() -> void:
 	asc.active_effect_added.connect(_on_active_effect_added)
 	asc.active_effect_removed.connect(_on_active_effect_removed)
 	asc.effect_received.connect(_on_effect_received)
+	asc.periodic_effect_ticked.connect(_on_periodic_effect_ticked)
 
 
 ## 血条颜色：敌红我绿
@@ -214,22 +229,28 @@ func _effect_display_name(effect: GameplayEffect) -> String:
 	return "未知效果"
 
 
-## 血条和死亡看属性变化。普通伤害/治疗叙事走 effect_received；
-## 周期效果不会逐跳触发 effect_received，所以灼烧在这里单独补日志和飘字。
-func _on_attribute_changed(attribute_name: String, old_value: float, new_value: float, spec: GameplayEffectSpec) -> void:
-	if attribute_name != "health":
-		return
-	if spec != null and BurnTickExecution.is_burn_tick_effect(spec.effect_def):
-		_log_burn_tick(old_value, new_value, spec)
-	if new_value <= 0.0:
+## 血条和死亡只看属性变化；伤害/治疗叙事走 effect_received。
+func _on_attribute_changed(attribute_name: String, _old_value: float, new_value: float, _spec: GameplayEffectSpec) -> void:
+	if attribute_name == "health" and new_value <= 0.0:
 		_queue_death()
 
 
-## 灼烧每跳的实际伤害（经过血量钳制后的 old → new）
-func _log_burn_tick(old_value: float, new_value: float, spec: GameplayEffectSpec) -> void:
-	var damage := old_value - new_value
+## 周期效果每跳提交后由 ASC 发出；这里专门处理灼烧的每跳叙事。
+## 用 calculated_deltas 拿到经过血量钳制后的真实伤害，不再借用 attribute_changed。
+func _on_periodic_effect_ticked(_active_effect: ActiveGameplayEffect, spec: GameplayEffectSpec) -> void:
+	if spec == null or not BurnTickExecution.is_burn_tick_effect(spec.effect_def):
+		return
+	var delta := float(spec.calculated_deltas.get("health", 0.0))
+	if delta >= 0.0:
+		return
+	_log_burn_tick(-delta, spec)
+
+
+## 灼烧每跳的实际伤害（经过血量钳制后的值）
+func _log_burn_tick(damage: float, spec: GameplayEffectSpec) -> void:
 	if damage <= 0.0:
 		return
+	var old_value := health_attr.current_value + damage
 	var source_name := "未知来源"
 	if spec.context and spec.context.instigator is BattleUnit:
 		source_name = (spec.context.instigator as BattleUnit).unit_name
@@ -237,7 +258,7 @@ func _log_burn_tick(old_value: float, new_value: float, spec: GameplayEffectSpec
 	var critical := spec.has_tag(GameplayTags.Event_Combat_Critical)
 	var crit_suffix := "（暴击）" if critical else ""
 	_log("%s 受到【%s】（来自 %s）%.0f 点伤害%s，HP %.0f → %.0f"
-		% [unit_name, effect_name, source_name, damage, crit_suffix, old_value, new_value], "#ff6600")
+		% [unit_name, effect_name, source_name, damage, crit_suffix, old_value, health_attr.current_value], "#ff6600")
 	_pop_number(damage, false, critical, true)
 
 

@@ -42,9 +42,14 @@ signal active_effect_removed(active_effect: ActiveGameplayEffect)
 ## The payload dictionary contains context (e.g., {"tags": [array of blocking tags]}).
 signal ability_activation_failed(ability: GameplayAbility, reason: ActivationError, payload: Dictionary)
 
-## Fired when THIS ASC receives an effect from someone else. 
+## Fired when THIS ASC receives an effect from someone else.
 ## UI listens to this to spawn Damage Numbers, "Miss!", or "Blocked!" text.
 signal effect_received(source_asc: AbilitySystemComponent, spec: GameplayEffectSpec)
+
+## Fired after a periodic (or turn-based periodic) effect commits one tick.
+## The spec's calculated_deltas contain the actual clamped changes for this tick,
+## so DoT/HoT narrative can listen here instead of abusing attribute_changed.
+signal periodic_effect_ticked(active_effect: ActiveGameplayEffect, spec: GameplayEffectSpec)
 
 ## Fired when an ability is added to this ASC
 ## Holds reference to the ability that was added..
@@ -170,8 +175,10 @@ func _process(delta: float) -> void:
 						
 					# 3. Re-Evaluate and Apply the math natively
 					# Doing this per tick allows DoTs to dynamically update if attacker stats change!
-					_evaluate_spec(active_effect.spec) 
+					_evaluate_spec(active_effect.spec)
 					_commit_spec_math(active_effect.spec)
+					# Notify game-side narrative listeners after the real math is committed
+					periodic_effect_ticked.emit(active_effect, active_effect.spec)
 				
 				# Reset the clock for the next tick
 				active_effect.time_until_next_tick += active_effect.spec.period
@@ -205,6 +212,8 @@ func advance_turn() -> void:
 					# 1c. Re-evaluate and apply math
 					_evaluate_spec(spec)
 					_commit_spec_math(spec)
+					# 1d. Notify game-side narrative listeners after commit
+					periodic_effect_ticked.emit(active_effect, spec)
 			
 			# 2. Decrement the turn counter
 			spec.remaining_turns -= 1

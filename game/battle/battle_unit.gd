@@ -102,7 +102,11 @@ func _apply_passive_effects(effects: Array[GameplayEffect]) -> void:
 			effect.set_meta("passive", true)
 			asc.apply_gameplay_effect(effect, asc)
 	if not is_equal_approx(max_before, max_health_attr.current_value):
-		health_attr.base_value = max_health_attr.current_value * health_ratio
+		# 走 ASC 的钳制和重算；此时还未连接日志/血条，不会产生开场飘字
+		var target_health := max_health_attr.current_value * health_ratio
+		var health_delta := target_health - health_attr.current_value
+		if not is_zero_approx(health_delta):
+			asc._apply_attribute_change("health", health_delta)
 
 
 ## 把一批魂灵变成技能；返回与输入等长的能力数组，null 表示这颗魂灵没有技能。

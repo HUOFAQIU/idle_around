@@ -3,11 +3,12 @@
 [ext_resource type="Script" uid="uid://dxwno0glbet88" path="res://Windows/Battle/battle_window.gd" id="1_nc1sn"]
 [ext_resource type="PackedScene" uid="uid://33uxpqaakhs" path="res://Windows/Battle/Maps/tile.tscn" id="2_7qkyi"]
 [ext_resource type="Script" uid="uid://dhkg54ofvcs6i" path="res://Windows/Battle/player_health_bar.gd" id="3_healthbar"]
+[ext_resource type="Script" uid="uid://sulro8qwh7y5" path="res://Windows/Battle/player_shield_bar.gd" id="4_shieldbar"]
 
 [node name="BattleWindow" type="Window" unique_id=1101778887]
 oversampling_override = 1.0
 position = Vector2i(0, 36)
-size = Vector2i(1000, 1000)
+size = Vector2i(1000, 1100)
 script = ExtResource("1_nc1sn")
 
 [node name="Tile" parent="." unique_id=2019690502 instance=ExtResource("2_7qkyi")]
@@ -66,27 +67,76 @@ layout_mode = 2
 text = "10x"
 
 [node name="PlayerHealthBar" type="Control" parent="CanvasLayer/Control" unique_id=874031946]
-visible = false
 layout_mode = 1
 anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
-offset_left = 12.0
+offset_left = 70.0
 offset_top = -30.0
-offset_right = 232.0
+offset_right = 290.0
 offset_bottom = -12.0
 grow_vertical = 0
 mouse_filter = 2
 script = ExtResource("3_healthbar")
 
-[node name="ValueLabel" type="Label" parent="CanvasLayer/Control/PlayerHealthBar"]
+[node name="HealthLabel" type="Label" parent="CanvasLayer/Control/PlayerHealthBar" unique_id=39553474]
+layout_mode = 0
+offset_left = -58.0
+offset_bottom = 18.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.85)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 12
+text = "生命"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ValueLabel" type="Label" parent="CanvasLayer/Control/PlayerHealthBar" unique_id=249381471]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.85)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 12
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PlayerShieldBar" type="Control" parent="CanvasLayer/Control" unique_id=75560579]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 70.0
+offset_top = -52.0
+offset_right = 290.0
+offset_bottom = -34.0
+grow_vertical = 0
 mouse_filter = 2
+script = ExtResource("4_shieldbar")
+
+[node name="ShieldLabel" type="Label" parent="CanvasLayer/Control/PlayerShieldBar" unique_id=1142958929]
+layout_mode = 0
+offset_left = -58.0
+offset_bottom = 18.0
+theme_override_colors/font_color = Color(1, 0.85, 0.1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.85)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 12
+text = "护盾"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ValueLabel" type="Label" parent="CanvasLayer/Control/PlayerShieldBar" unique_id=1638380604]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 0.85)
 theme_override_constants/outline_size = 3

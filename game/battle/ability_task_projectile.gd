@@ -22,7 +22,12 @@ var _pending : int = 0
 
 
 ## targets 里每个单位都会被瞄准"此刻"的坐标射一支
-func execute(caster: BattleUnit, targets: Array[BattleUnit], projectile_scene: PackedScene) -> void:
+func execute(
+	caster: BattleUnit,
+	targets: Array[BattleUnit],
+	projectile_scene: PackedScene,
+	speed: float = SoulProjectile.DEFAULT_SPEED
+) -> void:
 	if is_aborted:
 		return
 	if caster == null or projectile_scene == null or targets.is_empty():
@@ -40,7 +45,7 @@ func execute(caster: BattleUnit, targets: Array[BattleUnit], projectile_scene: P
 		if projectile == null:
 			continue
 		parent.add_child(projectile)
-		projectile.setup(caster, target.position)
+		projectile.setup(caster, target.position, speed)
 		projectile.finished.connect(_on_projectile_finished)
 		_pending += 1
 

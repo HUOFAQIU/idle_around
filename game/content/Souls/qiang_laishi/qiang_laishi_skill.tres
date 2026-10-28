@@ -1,0 +1,33 @@
+[gd_resource type="Resource" script_class="SkillDefinition" format=3 uid="uid://ci2pv5v7onmiv"]
+
+[ext_resource type="Script" uid="uid://b7ovihaaijli7" path="res://addons/GodotGAS/effects/gameplay_execution_calculation.gd" id="1_exec_base"]
+[ext_resource type="Script" uid="uid://bcow77l0bnh0s" path="res://addons/GodotGAS/effects/gameplay_effect_modifier.gd" id="2_6ppkn"]
+[ext_resource type="Script" uid="uid://c81papidngxvg" path="res://addons/GodotGAS/effects/gameplay_effect.gd" id="2_effect"]
+[ext_resource type="Script" uid="uid://ktr72cmavmyy" path="res://game/content/skill_definition.gd" id="3_skill"]
+[ext_resource type="Script" uid="uid://cf2mx3u4jfquk" path="res://game/content/target_rule.gd" id="4_rule"]
+[ext_resource type="Script" uid="uid://0gyrmbkubn73" path="res://game/content/shield_execution.gd" id="5_shield"]
+
+[sub_resource type="Resource" id="Resource_effect_cooldown"]
+script = ExtResource("2_effect")
+policy = 1
+duration = 3.0
+
+[sub_resource type="Resource" id="Resource_execution_shield"]
+script = ExtResource("5_shield")
+base_shield = 10.0
+
+[sub_resource type="Resource" id="Resource_effect_shield"]
+script = ExtResource("2_effect")
+executions = Array[ExtResource("1_exec_base")]([SubResource("Resource_execution_shield")])
+
+[sub_resource type="Resource" id="Resource_target_rule"]
+script = ExtResource("4_rule")
+camp = 2
+
+[resource]
+script = ExtResource("3_skill")
+id = "qianglaishi"
+description = "冷却 3 秒，获得 10 护盾。"
+effects = Array[ExtResource("2_effect")]([SubResource("Resource_effect_shield")])
+cooldown_effect = SubResource("Resource_effect_cooldown")
+target_rule = SubResource("Resource_target_rule")

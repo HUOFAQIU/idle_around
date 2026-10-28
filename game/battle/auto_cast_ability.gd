@@ -157,7 +157,7 @@ func _cast_projectiles(battle: BattleManager, groups: Array) -> bool:
 	if targets.is_empty():
 		return true
 
-	var hit_count := await task_projectile(caster, targets, skill.projectile_scene)
+	var hit_count := await task_projectile(caster, targets, skill.projectile_scene, skill.projectile_speed)
 	if not is_active:
 		return false
 	if not battle.is_running:
@@ -204,23 +204,25 @@ func _apply_effect_to_target(effect: GameplayEffect, target: BattleUnit, crit_mu
 	target_data.append_node(target)
 	context.target_data = target_data
 	var spec := GameplayEffectSpec.new(effect, context, ability_level)
-	if BurnTickExecution.is_burn_tick_effect(effect):
-		# 灼烧每一跳独立判定暴击，所以传“暴击率”而不是本次技能掷出的倍率
-		spec.set_set_by_caller_magnitude(BurnTickExecution.CRIT_CHANCE_TAG, skill.crit_chance)
-		spec.set_set_by_caller_magnitude(BurnTickExecution.CRIT_MULTIPLIER_TAG, skill.crit_multiplier)
-	else:
-		spec.set_set_by_caller_magnitude(SoulDamageExecution.CRIT_MULTIPLIER_TAG, crit_multiplier)
+	spec.display_name = ability_name
+	# 异常状态的暴击在释放时已经结算进施加数值；后续每跳不再乘倍率。
+	spec.set_set_by_caller_magnitude(SoulDamageExecution.CRIT_MULTIPLIER_TAG, crit_multiplier)
 	owner_asc.apply_effect_spec_to_target(spec, target.asc)
 
 
 ## 发一批投射物，等它们全部落地，返回打中了几支。
 ## 飞行物本身的"走到哪算到哪"在 SoulProjectile 里；这里负责发、以及等最后一下收场。
 ## 只取一个计数不取名单：先落地的箭可能已经把目标打死了，名单会变成已释放对象
-func task_projectile(caster: BattleUnit, targets: Array[BattleUnit], projectile_scene: PackedScene) -> int:
+func task_projectile(
+	caster: BattleUnit,
+	targets: Array[BattleUnit],
+	projectile_scene: PackedScene,
+	projectile_speed: float
+) -> int:
 	var task := AbilityTask_Projectile.new()
 	bind_task(task)
 	task.projectile_landed.connect(_on_projectile_landed)
-	task.execute(caster, targets, projectile_scene)
+	task.execute(caster, targets, projectile_scene, projectile_speed)
 	var result = await task.task_finished
 	return result if result is int else 0
 

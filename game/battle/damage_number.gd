@@ -1,4 +1,4 @@
-## 单位头顶跳一下的数字：掉血红、回血绿、灼烧橙，边升边淡出。
+## 单位头顶跳一下的数字：掉血红、回血绿、灼烧橙、护盾黄、剧毒墨绿，边升边淡出。
 ##
 ## 挂在单位节点底下，所以单位走它跟着走、单位没了它跟着没，
 ## 不需要外面拿个容器管它们。
@@ -16,11 +16,22 @@ const COLOR_HEAL := Color(0.5, 0.95, 0.5)
 const COLOR_CRIT := Color(1.0, 0.68, 0.25)
 ## 灼烧用高饱和橙色，和普通伤害/暴击区分开
 const COLOR_BURN := Color(1.0, 0.40, 0.0)
+## 护盾吸收用高饱和黄色
+const COLOR_SHIELD := Color(1.0, 0.85, 0.10)
+## 剧毒用墨绿色
+const COLOR_POISON := Color(0.18, 0.42, 0.25)
 
 
-## amount 传正数；heal = true 表示这是回血，burn = true 表示灼烧。
+## amount 传正数；heal = true 表示这是回血，burn = true 表示灼烧，shield = true 表示护盾吸收，poison = true 表示剧毒。
 ## 注意：要先 add_child 再调这个 —— 建补间需要节点已经在树里
-func setup(amount: float, heal: bool, critical: bool = false, burn: bool = false) -> void:
+func setup(
+	amount: float,
+	heal: bool,
+	critical: bool = false,
+	burn: bool = false,
+	shield: bool = false,
+	poison: bool = false
+) -> void:
 	var text_value := ("+%d" % roundi(amount)) if heal else ("-%d" % roundi(amount))
 	if critical:
 		text_value += "!"
@@ -30,7 +41,7 @@ func setup(amount: float, heal: bool, critical: bool = false, burn: bool = false
 	position = Vector2(-24.0, -46.0)
 	horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	add_theme_font_size_override("font_size", CRIT_FONT_SIZE if critical else FONT_SIZE)
-	var color := COLOR_BURN if burn else (COLOR_CRIT if critical else (COLOR_HEAL if heal else COLOR_DAMAGE))
+	var color := COLOR_SHIELD if shield else (COLOR_POISON if poison else (COLOR_BURN if burn else (COLOR_CRIT if critical else (COLOR_HEAL if heal else COLOR_DAMAGE))))
 	add_theme_color_override("font_color", color)
 
 	var tween := create_tween()

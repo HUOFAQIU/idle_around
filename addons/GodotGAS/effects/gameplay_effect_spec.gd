@@ -17,6 +17,10 @@ var context: GameplayEffectContext
 ## The level of the ability/effect, used later to scale mathematical modifiers.
 var level: float = 1.0
 
+## Optional player-facing label for this application (e.g. the skill/item name).
+## Keeps logs readable without renaming GameplayEffect resources.
+var display_name: String = ""
+
 ## The exact time this effect was applied (useful for durations).
 var application_time: float = 0.0
 

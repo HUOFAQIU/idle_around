@@ -12,7 +12,7 @@ script = ExtResource("1_window")
 [node name="GridContainer" type="GridContainer" parent="." unique_id=49732532]
 offset_right = 833.0
 offset_bottom = 45.0
-columns = 11
+columns = 13
 
 [node name="Button" type="Button" parent="GridContainer" unique_id=1713601447]
 custom_minimum_size = Vector2(60, 40)
@@ -68,6 +68,16 @@ text = "健身房"
 custom_minimum_size = Vector2(60, 40)
 layout_mode = 2
 text = "蹈火术"
+
+[node name="Button12" type="Button" parent="GridContainer"]
+custom_minimum_size = Vector2(60, 40)
+layout_mode = 2
+text = "墙莱士"
+
+[node name="Button13" type="Button" parent="GridContainer"]
+custom_minimum_size = Vector2(60, 40)
+layout_mode = 2
+text = "吹箭"
 
 [node name="InventoryView" type="Control" parent="." unique_id=1654115602]
 layout_mode = 3

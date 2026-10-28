@@ -2,6 +2,7 @@
 ##
 ## 伤害 = (base_damage + 施法者 damage_bonus) × 暴击倍率
 ## 暴击倍率由 AutoCastAbility 通过 spec 的 SetByCaller 传入。
+## 最终伤害交给 DamageResolver 先扣护盾，再扣生命。
 ##
 ## 灼烧/剧毒/治疗不要挂这个 execution，它们走自己的效果。
 class_name SoulDamageExecution extends GameplayExecutionCalculation
@@ -13,7 +14,7 @@ const CRIT_MULTIPLIER_TAG : StringName = &"Data.CritMultiplier"
 @export var base_damage: float = 0.0
 
 
-func execute(spec: GameplayEffectSpec, _target_asc: AbilitySystemComponent) -> Dictionary:
+func execute(spec: GameplayEffectSpec, target_asc: AbilitySystemComponent) -> Dictionary:
 	var damage_bonus := 0.0
 	var source_asc := _source_asc(spec)
 	if source_asc != null:
@@ -30,7 +31,7 @@ func execute(spec: GameplayEffectSpec, _target_asc: AbilitySystemComponent) -> D
 		return {}
 	if crit_multiplier > 1.0:
 		spec.inject_tag(GameplayTags.Event_Combat_Critical)
-	return {"health": -damage}
+	return DamageResolver.split_damage(target_asc, damage, 1.0)
 
 
 ## 施法者的 ASC；context.instigator 通常是 BattleUnit

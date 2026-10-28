@@ -12,6 +12,7 @@ class_name GameplayTags
 const Event_Combat_Critical: StringName = &"Event.Combat.Critical"
 const State_Burning: StringName = &"State.Burning"
 const State_Dead: StringName = &"State.Dead"
+const State_Poisoned: StringName = &"State.Poisoned"
 const State_Wounded: StringName = &"State.Wounded"
 const Team_Enemy: StringName = &"Team.Enemy"
 const Team_Player: StringName = &"Team.Player"

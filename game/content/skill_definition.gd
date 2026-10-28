@@ -42,6 +42,9 @@ class_name SkillDefinition extends Resource
 ## 飞空了就是空了 —— 空箭是设计的一部分，不是 bug。
 @export var projectile_scene: PackedScene
 
+## 投射物飞行速度（像素/秒）；0 或负数使用投射物默认速度
+@export var projectile_speed: float = 420.0
+
 ## 吟唱时间（秒）；0 = 瞬发。吟唱结束会重新选目标，避免对着尸体放大。
 @export_range(0.0, 10.0, 0.1) var cast_time: float = 0.0
 

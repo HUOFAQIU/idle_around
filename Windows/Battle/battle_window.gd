@@ -19,6 +19,7 @@ const SHOW_DEBUG_DISTANCE : bool = false
 @onready var units_root: Node2D = $Tile/Units
 
 @onready var player_health_bar: PlayerHealthBar = $CanvasLayer/Control/PlayerHealthBar
+@onready var player_shield_bar: PlayerShieldBar = $CanvasLayer/Control/PlayerShieldBar
 @onready var info_button: Button = $CanvasLayer/Control/GridContainer/InfoButton
 @onready var start_button: Button = $CanvasLayer/Control/GridContainer/StartButton
 @onready var speed_1_button: Button = $CanvasLayer/Control/GridContainer/Speed1Button
@@ -136,6 +137,7 @@ func _end_battle() -> void:
 
 func _clear_battle() -> void:
 	player_health_bar.visible = false
+	player_shield_bar.visible = false
 	for soul in _battle_souls:
 		soul.clear_battle_status()
 	_soul_abilities.clear()
@@ -173,6 +175,7 @@ func _spawn_player(slots: Array[SoulSlot]) -> BattleUnit:
 	_battle.add_unit(unit)
 	player_health_bar.bind(unit.health_attr, unit.max_health_attr, unit.asc)
 	player_health_bar.visible = true
+	player_shield_bar.bind(unit.shield_attr, unit.asc)
 
 	# 魂灵 → 技能：和怪物走同一条管线
 	_soul_abilities = unit.add_soul_abilities(_battle_souls)

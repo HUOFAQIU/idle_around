@@ -46,6 +46,7 @@ var cell: Vector2i = Vector2i.ZERO
 ## 缓存（ASC _ready 会深拷贝属性集，所以要在 add_child 之后再取引用）
 var health_attr: AttributeData
 var max_health_attr: AttributeData
+var shield_attr: AttributeData
 
 
 ## 从场景建号：ASC、外观、能力都由场景预先配置。
@@ -96,6 +97,7 @@ func _init_attributes() -> void:
 
 	health_attr = asc.get_attribute("health")
 	max_health_attr = asc.get_attribute("max_health")
+	shield_attr = asc.get_attribute("shield")
 
 	# 阵营标签（本案例逻辑以 team 字段为准；标签留给未来的标签过滤器用）
 	asc.add_tag(GameplayTags.Team_Player if team == Team.PLAYER else GameplayTags.Team_Enemy)
@@ -217,11 +219,16 @@ func _log(text: String, color: String = "white") -> void:
 		battle.log_line(text, color)
 
 
-## 效果显示名：灼烧周期效果优先显示“灼烧”；
-## 其余优先 resource_name，没填就退回文件名，避免出现空名字。
-func _effect_display_name(effect: GameplayEffect) -> String:
+## 效果显示名：灼烧/剧毒周期效果优先显示中文；
+## 其余优先 spec 上由技能写入的显示名，再退回 resource_name / 文件名。
+func _effect_display_name(spec: GameplayEffectSpec) -> String:
+	var effect := spec.effect_def if spec != null else null
 	if BurnTickExecution.is_burn_tick_effect(effect):
 		return "灼烧"
+	if PoisonTickExecution.is_poison_tick_effect(effect):
+		return "剧毒"
+	if spec != null and not spec.display_name.is_empty():
+		return spec.display_name
 	if effect != null and not effect.resource_name.is_empty():
 		return effect.resource_name
 	if effect != null and not effect.resource_path.is_empty():
@@ -238,28 +245,72 @@ func _on_attribute_changed(attribute_name: String, _old_value: float, new_value:
 ## 周期效果每跳提交后由 ASC 发出；这里专门处理灼烧的每跳叙事。
 ## 用 calculated_deltas 拿到经过血量钳制后的真实伤害，不再借用 attribute_changed。
 func _on_periodic_effect_ticked(_active_effect: ActiveGameplayEffect, spec: GameplayEffectSpec) -> void:
-	if spec == null or not BurnTickExecution.is_burn_tick_effect(spec.effect_def):
+	if spec == null:
 		return
-	var delta := float(spec.calculated_deltas.get("health", 0.0))
-	if delta >= 0.0:
-		return
-	_log_burn_tick(-delta, spec)
+	if BurnTickExecution.is_burn_tick_effect(spec.effect_def):
+		_handle_burn_tick(spec)
+	elif PoisonTickExecution.is_poison_tick_effect(spec.effect_def):
+		_handle_poison_tick(spec)
 
 
-## 灼烧每跳的实际伤害（经过血量钳制后的值）
+func _handle_burn_tick(spec: GameplayEffectSpec) -> void:
+	var health_delta := float(spec.calculated_deltas.get("health", 0.0))
+	var shield_delta := float(spec.calculated_deltas.get("shield", 0.0))
+	if health_delta >= 0.0 and shield_delta >= 0.0:
+		return
+
+	var source_name := _source_name(spec)
+	var effect_name := _effect_display_name(spec)
+	if shield_delta < 0.0:
+		_log_shield_absorb(-shield_delta, source_name, effect_name)
+	if health_delta < 0.0:
+		_log_burn_tick(-health_delta, spec)
+
+
+func _handle_poison_tick(spec: GameplayEffectSpec) -> void:
+	var health_delta := float(spec.calculated_deltas.get("health", 0.0))
+	if health_delta >= 0.0:
+		return
+	_log_poison_tick(-health_delta, spec)
+
+
+## 护盾吸收伤害的黄色日志和飘字
+func _log_shield_absorb(amount: float, source_name: String, effect_name: String) -> void:
+	if amount <= 0.0:
+		return
+	_log("%s 的护盾吸收 %.0f 点【%s】伤害（来自 %s）"
+		% [unit_name, amount, effect_name, source_name], "#ffd60a")
+	_pop_number(amount, false, false, false, true)
+
+
+## 灼烧每跳的实际生命伤害（经过血量钳制后的值）
 func _log_burn_tick(damage: float, spec: GameplayEffectSpec) -> void:
 	if damage <= 0.0:
 		return
 	var old_value := health_attr.current_value + damage
-	var source_name := "未知来源"
-	if spec.context and spec.context.instigator is BattleUnit:
-		source_name = (spec.context.instigator as BattleUnit).unit_name
-	var effect_name := _effect_display_name(spec.effect_def)
-	var critical := spec.has_tag(GameplayTags.Event_Combat_Critical)
-	var crit_suffix := "（暴击）" if critical else ""
-	_log("%s 受到【%s】（来自 %s）%.0f 点伤害%s，HP %.0f → %.0f"
-		% [unit_name, effect_name, source_name, damage, crit_suffix, old_value, health_attr.current_value], "#ff6600")
-	_pop_number(damage, false, critical, true)
+	var source_name := _source_name(spec)
+	var effect_name := _effect_display_name(spec)
+	_log("%s 受到【%s】（来自 %s）%.0f 点伤害，HP %.0f → %.0f"
+		% [unit_name, effect_name, source_name, damage, old_value, health_attr.current_value], "#ff6600")
+	_pop_number(damage, false, false, true)
+
+
+## 剧毒每跳：无视护盾，直接扣生命；墨绿日志/飘字。
+func _log_poison_tick(damage: float, spec: GameplayEffectSpec) -> void:
+	if damage <= 0.0:
+		return
+	var old_value := health_attr.current_value + damage
+	var source_name := _source_name(spec)
+	var effect_name := _effect_display_name(spec)
+	_log("%s 受到【%s】（来自 %s）%.0f 点伤害，HP %.0f → %.0f"
+		% [unit_name, effect_name, source_name, damage, old_value, health_attr.current_value], "#2e6b40")
+	_pop_number(damage, false, false, false, false, true)
+
+
+func _source_name(spec: GameplayEffectSpec) -> String:
+	if spec != null and spec.context and spec.context.instigator is BattleUnit:
+		return (spec.context.instigator as BattleUnit).unit_name
+	return "未知来源"
 
 
 ## 效果生命周期：只有对方真正收到效果时才写伤害/治疗日志和飘字。
@@ -270,37 +321,45 @@ func _on_effect_received(_source_asc: AbilitySystemComponent, spec: GameplayEffe
 	if spec.effect_def is PassiveEffect:
 		return
 	# 周期效果在施加时只做了预览计算，并没有真正扣血；
-	# 伤害要等每一跳通过 attribute_changed 单独记账。
+	# 伤害要等每一跳通过 periodic_effect_ticked 单独记账。
 	if spec.period > 0.0:
 		return
-	var delta := float(spec.calculated_deltas.get("health", 0.0))
-	if is_zero_approx(delta):
+	var health_delta := float(spec.calculated_deltas.get("health", 0.0))
+	var shield_delta := float(spec.calculated_deltas.get("shield", 0.0))
+	if is_zero_approx(health_delta) and shield_delta >= 0.0:
 		return
 
 	var current := health_attr.current_value
-	var old_value := current - delta
-	var source_name := "未知来源"
-	if spec.context and spec.context.instigator is BattleUnit:
-		source_name = (spec.context.instigator as BattleUnit).unit_name
-	var effect_name := _effect_display_name(spec.effect_def)
+	var old_value := current - health_delta
+	var source_name := _source_name(spec)
+	var effect_name := _effect_display_name(spec)
 	var critical := spec.has_tag(GameplayTags.Event_Combat_Critical)
 	var crit_suffix := "（暴击）" if critical else ""
 
-	if delta < 0.0:
+	if shield_delta < 0.0:
+		_log_shield_absorb(-shield_delta, source_name, effect_name)
+	if health_delta < 0.0:
 		_log("%s 受到【%s】（来自 %s）%.0f 点伤害%s，HP %.0f → %.0f"
-			% [unit_name, effect_name, source_name, -delta, crit_suffix, old_value, current], "#ff6e6e")
-		_pop_number(-delta, false, critical)
-	elif delta > 0.0:
+			% [unit_name, effect_name, source_name, -health_delta, crit_suffix, old_value, current], "#ff6e6e")
+		_pop_number(-health_delta, false, critical)
+	elif health_delta > 0.0:
 		_log("%s 回复 %.0f 点生命%s，HP %.0f → %.0f"
-			% [unit_name, delta, crit_suffix, old_value, current], "#7ddf7d")
-		_pop_number(delta, true, critical)
+			% [unit_name, health_delta, crit_suffix, old_value, current], "#7ddf7d")
+		_pop_number(health_delta, true, critical)
 
 
 ## 头顶跳一个数字
-func _pop_number(amount: float, heal: bool, critical: bool = false, burn: bool = false) -> void:
+func _pop_number(
+	amount: float,
+	heal: bool,
+	critical: bool = false,
+	burn: bool = false,
+	shield: bool = false,
+	poison: bool = false
+) -> void:
 	var number := DamageNumber.new()
 	add_child(number)  # 先入树，里面建补间要用
-	number.setup(amount, heal, critical, burn)
+	number.setup(amount, heal, critical, burn, shield, poison)
 
 
 ## 延迟一帧确认死亡：先让 effect_received 写伤害日志，再写“倒下”；
@@ -330,14 +389,14 @@ func _on_active_effect_added(active_effect: ActiveGameplayEffect) -> void:
 	if is_dead or def == null or def.policy == GameplayEffect.DurationPolicy.INSTANT or def is PassiveEffect:
 		return
 	var duration_text := "持续" if def.policy == GameplayEffect.DurationPolicy.INFINITE else "%.1f 秒" % active_effect.time_remaining
-	_log("%s 获得状态【%s】（%s）" % [unit_name, _effect_display_name(def), duration_text], "#57d9e8")
+	_log("%s 获得状态【%s】（%s）" % [unit_name, _effect_display_name(active_effect.spec), duration_text], "#57d9e8")
 
 
 func _on_active_effect_removed(active_effect: ActiveGameplayEffect) -> void:
 	var def := active_effect.get_effect_def()
 	if is_dead or def == null or def.policy == GameplayEffect.DurationPolicy.INSTANT or def is PassiveEffect:
 		return
-	_log("%s 的状态【%s】结束" % [unit_name, _effect_display_name(def)], "gray")
+	_log("%s 的状态【%s】结束" % [unit_name, _effect_display_name(active_effect.spec)], "gray")
 
 
 func _die() -> void:

@@ -11,8 +11,8 @@ class_name SoulProjectile extends Sprite2D
 ## 飞完了。hit_unit 为 null 表示这一支飞空了
 signal finished(projectile: SoulProjectile, hit_unit: BattleUnit)
 
-## 飞行速度（像素/秒）
-const SPEED : float = 420.0
+## 默认飞行速度（像素/秒）；技能可以覆盖
+const DEFAULT_SPEED : float = 420.0
 ## 离单位多近算打中。单位贴图是 32×32（半径 16），箭自己也是 32×32 ——
 ## 半径小于 16 的话，画面上两个图都叠上了判定却说没碰到，看着就是"打中了不掉血"。
 ## 所以这里要大于贴图半径，宁可判定松一点
@@ -25,12 +25,14 @@ var _caster : BattleUnit
 var _battle : BattleManager
 var _life : float = 0.0
 var _done : bool = false
+var _speed : float = DEFAULT_SPEED
 
 
 ## 摆好起点和朝向。aim_position 是"选择目标时"的坐标，之后目标走开也不管
-func setup(caster: BattleUnit, aim_position: Vector2) -> void:
+func setup(caster: BattleUnit, aim_position: Vector2, speed: float = DEFAULT_SPEED) -> void:
 	_caster = caster
 	_battle = caster.battle
+	_speed = speed if speed > 0.0 else DEFAULT_SPEED
 	position = caster.position
 	
 	var aim_offset := aim_position - caster.position
@@ -51,7 +53,7 @@ func _process(delta: float) -> void:
 	
 	# 一小步一小步往前挪着查命中：一帧能飞出去好几像素，
 	# 分步查才不会直接从单位身上穿过去
-	var distance := SPEED * delta
+	var distance := _speed * delta
 	while distance > 0.0:
 		var step := minf(distance, HIT_RADIUS * 0.5)
 		position += _direction * step

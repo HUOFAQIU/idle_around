@@ -12,6 +12,10 @@ var health: AttributeData = AttributeData.new(500.0)
 var cooldown_move: AttributeData = AttributeData.new(3.0)
 ## 当前灼烧层数；每 0.5 秒按整数层数结算一次，然后衰减 3%
 var burn: AttributeData = AttributeData.new(0.0)
+## 当前护盾值；优先承受伤害，无上限、无持续时间
+var shield: AttributeData = AttributeData.new(0.0)
+## 当前剧毒值；每秒结算一次，不衰减，无视护盾
+var poison: AttributeData = AttributeData.new(0.0)
 
 
 ## The safety pipeline: Clamps stats before they are officially changed.
@@ -20,6 +24,10 @@ func pre_attribute_change(attribute_name: String, proposed_value: float) -> floa
 		"health":
 			return clamp(proposed_value, 0.0, max_health.current_value)
 		"burn":
+			return maxf(proposed_value, 0.0)
+		"shield":
+			return maxf(proposed_value, 0.0)
+		"poison":
 			return maxf(proposed_value, 0.0)
 
 	return proposed_value

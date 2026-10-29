@@ -26,6 +26,7 @@ run/max_fps=60
 GameGlobal="*uid://d4mr5auojqyxl"
 GBIS="*uid://dit4hlufoh182"
 GameplayCueManager="*uid://bh6ixabs0w700"
+CollectionDB="*uid://b76qj7km7m8ad"
 
 [display]
 

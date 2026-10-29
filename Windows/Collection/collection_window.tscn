@@ -1,17 +1,85 @@
-[gd_scene format=3 uid="uid://dcymb2xgnhr2c"]
+[gd_scene load_steps=2 format=3 uid="uid://dcymb2xgnhr2c"]
 
 [ext_resource type="Script" uid="uid://ccnlh3othlrsn" path="res://Windows/Collection/collection_window.gd" id="1_okmvx"]
 
-[node name="CollectionWindow" type="Window" unique_id=1694343200]
+[node name="CollectionWindow" type="Window"]
 oversampling_override = 1.0
 position = Vector2i(0, 36)
 size = Vector2i(600, 600)
+minimize_disabled = true
+maximize_disabled = true
+unresizable = true
 script = ExtResource("1_okmvx")
 
-[node name="Control" type="Control" parent="." unique_id=1059958841]
-layout_mode = 3
+[node name="Root" type="MarginContainer" parent="."]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="VBox" type="VBoxContainer" parent="Root"]
+layout_mode = 2
+
+[node name="KindRow" type="HBoxContainer" parent="Root/VBox"]
+layout_mode = 2
+
+[node name="MonsterButton" type="Button" parent="Root/VBox/KindRow"]
+layout_mode = 2
+toggle_mode = true
+text = "怪物"
+
+[node name="SoulButton" type="Button" parent="Root/VBox/KindRow"]
+layout_mode = 2
+toggle_mode = true
+text = "魂灵"
+
+[node name="Body" type="HBoxContainer" parent="Root/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Scroll" type="ScrollContainer" parent="Root/VBox/Body"]
+layout_mode = 2
+size_flags_horizontal = 3
+horizontal_scroll_mode = 0
+
+[node name="EntryGrid" type="GridContainer" parent="Root/VBox/Body/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+columns = 3
+
+[node name="DetailPanel" type="PanelContainer" parent="Root/VBox/Body"]
+custom_minimum_size = Vector2(240, 0)
+layout_mode = 2
+
+[node name="DetailMargin" type="MarginContainer" parent="Root/VBox/Body/DetailPanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="DetailBox" type="VBoxContainer" parent="Root/VBox/Body/DetailPanel/DetailMargin"]
+layout_mode = 2
+
+[node name="DetailIcon" type="TextureRect" parent="Root/VBox/Body/DetailPanel/DetailMargin/DetailBox"]
+custom_minimum_size = Vector2(160, 160)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="DetailName" type="Label" parent="Root/VBox/Body/DetailPanel/DetailMargin/DetailBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+
+[node name="DetailMeta" type="Label" parent="Root/VBox/Body/DetailPanel/DetailMargin/DetailBox"]
+layout_mode = 2
+
+[node name="DetailText" type="RichTextLabel" parent="Root/VBox/Body/DetailPanel/DetailMargin/DetailBox"]
+layout_mode = 2
+size_flags_vertical = 3
+bbcode_enabled = true

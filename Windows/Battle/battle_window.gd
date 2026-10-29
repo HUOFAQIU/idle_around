@@ -4,9 +4,8 @@ extends BaseWindow
 ## 角色倒下后多久重开一整场
 const REVIVE_DELAY : float = 3.0
 
-## 双方单位：配置好的场景，开战时直接实例化
+## 玩家单位：配置好的场景，开战时直接实例化
 const PLAYER_SCENE := preload("res://game/content/Player/player.tscn")
-const SNAKE_SCENE := preload("res://game/content/Monster/snake/snake.tscn")
 
 ## 魂灵窗口里那四个格子（容器名，见 equipment_window.tscn）
 const SOUL_SLOT_NAMES : Array[String] = ["cell_0", "cell_1", "cell_2", "cell_3"]
@@ -218,13 +217,24 @@ func _spawn_player(slots: Array[SoulSlot]) -> BattleUnit:
 	return unit
 
 
-# 蛇：场景里配置好的单位，直接实例化
+# 怪物：数据从见闻 registry 里随机挑，场景只负责战斗表现
 func _spawn_enemy(cell: Vector2i) -> void:
-	var unit := SNAKE_SCENE.instantiate() as BattleUnit
+	var monster := CollectionDB.pick_random_monster()
+	if monster == null:
+		return
+	var unit := monster.battle_scene.instantiate() as BattleUnit
+	if unit == null:
+		push_warning("见闻：怪物场景根节点不是 BattleUnit")
+		return
+	unit.unit_name = monster.display_name
+	unit.max_health = monster.max_health
+	unit.drops = monster.drops
+	unit.souls = monster.souls
 	units_root.add_child(unit)
 	unit.setup_from_scene(_battle)
 	unit.set_cell(cell)
 	_battle.add_unit(unit)
+	CollectionDB.mark_monster_seen(monster)
 
 
 ## 装备着的魂灵：魂灵窗口里那四个格子，每个其实是一个只收 SOUL 的小背包。

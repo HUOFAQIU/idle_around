@@ -9,6 +9,9 @@ signal sig_scanline_progress(value: float)
 ## 空着 = 装上去也不提供任何技能
 @export var skill: SkillDefinition
 
+## 图鉴文案（本项目扩展）；主动魂灵留空时，图鉴回退到 skill.description
+@export_multiline var description: String = ""
+
 ## 可装备的部位；ANY = 不限
 @export_enum("ANY", "HEADSOUL", "TORSOSOUL", "ARMSSOUL", "LEGSSOUL")
 var equip_part: String = "ANY"

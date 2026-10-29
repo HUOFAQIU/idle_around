@@ -104,7 +104,7 @@ text = "战！"
 [node name="Button6" type="Button" parent="GridContainer" unique_id=1960515822]
 custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
-text = "图鉴"
+text = "见闻"
 
 [node name="Button7" type="Button" parent="GridContainer" unique_id=1732763487]
 custom_minimum_size = Vector2(80, 80)
@@ -137,6 +137,7 @@ open_position = Vector2i(240, 165)
 visible = false
 
 [node name="CollectionWindow" parent="." unique_id=1694343200 instance=ExtResource("9_nu5lx")]
+visible = false
 
 [node name="TooltipWindow" parent="." unique_id=143098148 instance=ExtResource("9_c4peb")]
 

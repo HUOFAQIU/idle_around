@@ -47,6 +47,7 @@ TestAPI.stop_battle()
 | `stop_battle() -> void` | 结束战斗并还原时间倍率 |
 | `spawn_monster(monster_id) -> bool` | 在远处空位刷一只指定怪 |
 | `apply_burn(target := "player") -> bool` | 对战斗单位施加灼烧（测试状态与火焰 Cue） |
+| `apply_poison(target := "player") -> bool` | 对战斗单位施加剧毒（测试飞溅与气泡 Cue） |
 | `has_status(tag, target := "player") -> bool` | 单位是否拥有某个状态标签 |
 | `get_battle_state() -> Dictionary` | 战斗快照 |
 | `set_time_scale(scale) -> void` | 全局时间倍率，范围 0.1～20 |
@@ -58,6 +59,9 @@ TestAPI.stop_battle()
 ```gdscript
 TestAPI.apply_burn("player")
 print(TestAPI.has_status(&"State.Burning", "player"))
+
+TestAPI.apply_poison("enemy")
+print(TestAPI.has_status(&"State.Poisoned", "enemy"))
 ```
 
 快照结构：

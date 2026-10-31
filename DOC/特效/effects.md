@@ -87,6 +87,10 @@ application_cue_tags = Array[StringName]([&"Cue.Combat.Hit"])
 
 **到这儿就完了** —— 框架会自动：命中时把场景挂到被打的单位身上 → 播 → 到点收回池子。
 
+重复施加一个已经在生效的周期效果时，框架在刷新持续时间的分支里也会重新触发 `application_cue_tags`。
+所以 `poison_tick.tres` 同时挂了 `Cue.Combat.PoisonApply`（每次施毒爆一下）和 `Cue.Status.Poison`（持续气泡），
+两段表现共用一个效果资源。
+
 ---
 
 ## 三、其它触发方式
@@ -183,5 +187,7 @@ print(img.get_pixel(x, y))          # 窗口内部坐标
 | 基类 | `addons/GodotGAS/cues/gameplay_cue_notify.gd` |
 | 挂点字段 | `addons/GodotGAS/effects/gameplay_effect.gd` 的 Cue Management 一节 |
 | 灼烧光环 | `game/battle/cues/burn_cue.tscn`；标签 `Cue.Status.Burn`；挂在 `game/content/effects/burn_tick.tres` 的 `persistent_cue_tags` |
+| 剧毒施加飞溅 | `game/battle/cues/poison_splash_cue.tscn`；标签 `Cue.Combat.PoisonApply`；挂在 `game/content/effects/poison_tick.tres` 的 `application_cue_tags` |
+| 中毒气泡光环 | `game/battle/cues/poison_aura_cue.tscn`；标签 `Cue.Status.Poison`；挂在 `poison_tick.tres` 的 `persistent_cue_tags` |
 
 （项目里原本有一个示例"受击火花"，后来按需要删掉了 —— 自己写的时候照上面三步来就行。）

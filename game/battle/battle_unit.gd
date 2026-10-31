@@ -296,6 +296,10 @@ func _on_periodic_effect_ticked(active_effect: ActiveGameplayEffect, spec: Gamep
 			asc.remove_active_effect(active_effect)
 	elif PoisonTickExecution.is_poison_tick_effect(spec.effect_def):
 		_handle_poison_tick(spec)
+		# 剧毒被治疗净化到 0 后移除周期效果：State.Poisoned 和中毒光环 Cue 一起结束
+		var poison_attr := asc.get_attribute("poison")
+		if poison_attr != null and poison_attr.current_value <= 0.0:
+			asc.remove_active_effect(active_effect)
 	elif RegenTickExecution.is_regen_tick_effect(spec.effect_def):
 		_handle_regen_tick(spec)
 

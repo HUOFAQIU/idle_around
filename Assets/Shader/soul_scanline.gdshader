@@ -11,7 +11,7 @@ shader_type canvas_item;
 // 扫过的是整个物品格子，不只是图案的实体部分。
 
 // 光带颜色
-uniform vec4 line_color : source_color = vec4(0.55, 0.85, 1.0, 1.0);
+uniform vec4 line_color : source_color = vec4(0.54902, 0.85098, 1.0, 1.0);
 // 光带半宽（占物品高度的比例），越大越柔
 uniform float band_width : hint_range(0.01, 0.5) = 0.16;
 // 光带强度：既是染上去的比例，也是它在透明区上的不透明度

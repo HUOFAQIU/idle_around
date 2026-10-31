@@ -16,6 +16,9 @@ const SOUL_CELLS := {
 ## 测试用灼烧效果：施加 + 周期
 const BURN_APPLY : GameplayEffect = preload("res://game/content/effects/burn_apply.tres")
 const BURN_TICK : GameplayEffect = preload("res://game/content/effects/burn_tick.tres")
+## 测试用剧毒效果：施加 + 周期
+const POISON_APPLY : GameplayEffect = preload("res://game/content/effects/poison_apply.tres")
+const POISON_TICK : GameplayEffect = preload("res://game/content/effects/poison_tick.tres")
 
 
 #region 背包 / 见闻
@@ -132,6 +135,16 @@ static func apply_burn(target : String = "player") -> bool:
 		return false
 	unit.asc.apply_gameplay_effect(BURN_APPLY)
 	unit.asc.apply_gameplay_effect(BURN_TICK)
+	return true
+
+
+## 对战斗中的单位施加剧毒（用于测试毒液飞溅与中毒光环 Cue）
+static func apply_poison(target : String = "player") -> bool:
+	var unit := _find_unit(target)
+	if unit == null or unit.asc == null:
+		return false
+	unit.asc.apply_gameplay_effect(POISON_APPLY)
+	unit.asc.apply_gameplay_effect(POISON_TICK)
 	return true
 
 

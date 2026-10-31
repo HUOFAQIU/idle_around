@@ -4,6 +4,7 @@
 [ext_resource type="Shader" uid="uid://c7gxmyf484kcn" path="res://Assets/Shader/soul_scanline.gdshader" id="2_2ako6"]
 [ext_resource type="Script" uid="uid://bbcxwqb4ef1cg" path="res://Windows/Inventory/grid_base_inventory_system/core/model/item/soul_data.gd" id="3_hwmqp"]
 [ext_resource type="Resource" uid="uid://chnvje3gcafxo" path="res://game/content/Souls/jian_ya/jian_ya_skill.tres" id="4_nieve"]
+[ext_resource type="Script" uid="uid://bgbp4lpfyqub" path="res://game/content/passive_trigger.gd" id="5_2ako6"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_snake"]
 atlas = ExtResource("1_l6iot")
@@ -16,11 +17,13 @@ shader_parameter/band_width = 0.16
 shader_parameter/intensity = 1.0
 shader_parameter/enable = 0.0
 shader_parameter/progress = 0.0
+shader_parameter/freeze = 0.0
+shader_parameter/freeze_color = Color(0.58, 0.86, 1, 1)
 
 [resource]
 script = ExtResource("3_hwmqp")
 skill = ExtResource("4_nieve")
-equip_part = "HEADSOUL"
+tags = Array[StringName]([&"Soul.Small"])
 item_name = "尖牙"
 type = "SOUL"
 icon = SubResource("AtlasTexture_snake")

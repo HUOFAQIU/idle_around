@@ -18,7 +18,8 @@ shader_parameter/progress = 0.0
 [resource]
 script = ExtResource("3_soul")
 passive_effects = Array[ExtResource("5_effect_script")]([ExtResource("4_effect")])
-equip_part = "TORSOSOUL"
+tags = Array[StringName]([&"Soul.Large"])
+equip_part = "ANY"
 item_name = "健身房"
 type = "SOUL"
 icon = ExtResource("1_icon")

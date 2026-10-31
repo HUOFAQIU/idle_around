@@ -240,6 +240,62 @@ func _apply_trigger_effect(
 	if suppress_state_log:
 		spec.inject_tag(SUPPRESS_STATE_LOG_TAG)
 	asc.apply_effect_spec_to_target(spec, target.asc)
+	# 触发器造成的冻结同样广播“有怪物被冻结”
+	if effect.granted_tags.has(GameplayTags.State_Frozen):
+		notify_freeze_applied(target)
+
+
+## 某个魂灵技能成功激活（含空放）：派发 OTHER_SOUL_USED 触发器。
+## 排除“自己使用自己”，再按标签/相邻条件过滤被使用的魂灵。
+func notify_soul_used(used: ChargedAbility) -> void:
+	if is_dead or battle == null or not battle.is_running:
+		return
+	for binding in _trigger_bindings:
+		var trigger := binding.trigger
+		if trigger == null or trigger.event != PassiveTrigger.Event.OTHER_SOUL_USED:
+			continue
+		if binding.ability == used:
+			continue
+		if not _matches_used_soul(binding, used):
+			continue
+		_fire_trigger(binding, self)
+
+
+## 被使用的魂灵是否满足触发器的标签/相邻条件
+func _matches_used_soul(binding: SoulTriggerBinding, used: ChargedAbility) -> bool:
+	var trigger := binding.trigger
+	if not trigger.required_soul_tags.is_empty():
+		var used_soul: SoulData = null
+		if used is AutoCastAbility:
+			used_soul = (used as AutoCastAbility).soul_data
+		if used_soul == null:
+			return false
+		for tag in trigger.required_soul_tags:
+			if not used_soul.tags.has(tag):
+				return false
+	if trigger.require_adjacent:
+		return SoulTargetRule.is_adjacent(binding.ability, used)
+	return true
+
+
+## 有单位被冻结：向所有“以该单位为敌”的己方单位广播 FREEZE_APPLIED。
+## 不区分冻结来源，只要怪物被冻住就按只数触发；重复冻结同一目标也算一次。
+func notify_freeze_applied(event_target: BattleUnit) -> void:
+	if battle == null or not battle.is_running or event_target == null:
+		return
+	for unit in battle.units:
+		if unit == null or unit.is_dead or unit.team == event_target.team:
+			continue
+		unit._fire_freeze_applied(event_target)
+
+
+## 派发本单位的 FREEZE_APPLIED 触发器
+func _fire_freeze_applied(event_target: BattleUnit) -> void:
+	for binding in _trigger_bindings:
+		var trigger := binding.trigger
+		if trigger == null or trigger.event != PassiveTrigger.Event.FREEZE_APPLIED:
+			continue
+		_fire_trigger(binding, event_target)
 
 
 ## 把一批魂灵变成技能；返回与输入等长的能力数组，null 表示这颗魂灵没有技能。
@@ -253,6 +309,7 @@ func add_soul_abilities(soul_list: Array[SoulData]) -> Array[AutoCastAbility]:
 			continue
 		var ability := AutoCastAbility.new()
 		ability.apply_definition(soul.skill, soul.item_name)
+		ability.soul_data = soul
 		brain.add_ability(ability)
 		result[i] = ability
 	_register_soul_triggers(soul_list, result)

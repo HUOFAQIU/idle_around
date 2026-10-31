@@ -19,6 +19,9 @@ const BURN_TICK : GameplayEffect = preload("res://game/content/effects/burn_tick
 ## 测试用剧毒效果：施加 + 周期
 const POISON_APPLY : GameplayEffect = preload("res://game/content/effects/poison_apply.tres")
 const POISON_TICK : GameplayEffect = preload("res://game/content/effects/poison_tick.tres")
+## 测试用生命再生效果：施加 + 周期
+const REGEN_APPLY : GameplayEffect = preload("res://game/content/effects/regen_apply.tres")
+const REGEN_TICK : GameplayEffect = preload("res://game/content/effects/regen_tick.tres")
 ## 测试用单位冻结效果
 const FREEZE_UNIT : GameplayEffect = preload("res://game/content/effects/freeze_unit.tres")
 
@@ -94,6 +97,14 @@ static func get_soul_ids() -> Array[StringName]:
 	return CollectionDB.get_soul_ids()
 
 
+## 魂灵标签（registry ID），例如 &"Soul.RealEstate"
+static func get_soul_tags(id : StringName) -> Array[StringName]:
+	var soul := CollectionDB.get_soul(id)
+	if soul == null:
+		return []
+	return soul.tags.duplicate()
+
+
 static func get_monster_ids() -> Array[StringName]:
 	return CollectionDB.get_monster_ids()
 
@@ -150,6 +161,16 @@ static func apply_poison(target : String = "player") -> bool:
 	return true
 
 
+## 对战斗中的单位施加生命再生（用于验证剧毒/再生相减）
+static func apply_regen(target : String = "player") -> bool:
+	var unit := _find_unit(target)
+	if unit == null or unit.asc == null:
+		return false
+	unit.asc.apply_gameplay_effect(REGEN_APPLY)
+	unit.asc.apply_gameplay_effect(REGEN_TICK)
+	return true
+
+
 ## 对战斗中的单位施加冻结（用于测试冻结 Cue 与状态标签）
 static func apply_freeze(target : String = "player", seconds : float = 3.0) -> bool:
 	var unit := _find_unit(target)
@@ -160,19 +181,40 @@ static func apply_freeze(target : String = "player", seconds : float = 3.0) -> b
 	var spec := GameplayEffectSpec.new(FREEZE_UNIT, context)
 	spec.duration = seconds
 	unit.asc.apply_effect_spec(spec)
+	# 真实冻结会广播 FREEZE_APPLIED；测试接口保持一致，便于验证温泉/冷冻间
+	unit.notify_freeze_applied(unit)
 	return true
 
 
 ## 对已装备的某个魂灵施加冻结（用于测试仙子/魂灵冻结显示）
 static func apply_soul_freeze(soul_name : String, seconds : float = 1.0, target : String = "player") -> bool:
-	var unit := _find_unit(target)
-	if unit == null or unit.brain == null or seconds <= 0.0:
+	if seconds <= 0.0:
 		return false
-	for ability in unit.brain.abilities:
-		var charged := ability as ChargedAbility
-		if charged != null and charged.ability_name == soul_name:
-			return charged.apply_freeze(seconds)
-	return false
+	var charged := _find_equipped_ability(soul_name, target)
+	if charged == null:
+		return false
+	return charged.apply_freeze(seconds)
+
+
+## 模拟某个已装备魂灵被“使用”一次（不动冷却），用于确定性地测 OTHER_SOUL_USED 触发器
+static func simulate_soul_used(soul_name : String, target : String = "player") -> bool:
+	var charged := _find_equipped_ability(soul_name, target)
+	var unit := _find_unit(target)
+	if charged == null or unit == null:
+		return false
+	unit.notify_soul_used(charged)
+	return true
+
+
+## 给已装备的某个魂灵直接充能（秒）
+static func charge_soul(soul_name : String, seconds : float, target : String = "player") -> bool:
+	if seconds <= 0.0:
+		return false
+	var charged := _find_equipped_ability(soul_name, target)
+	if charged == null:
+		return false
+	charged.add_charge(seconds)
+	return true
 
 
 ## 对单位造成伤害（用于把生命值打到阈值以下，测试半血触发）
@@ -227,6 +269,18 @@ static func get_fps_text() -> String:
 
 
 #region 内部
+
+## 按显示名找某个单位已装备的魂灵技能
+static func _find_equipped_ability(soul_name : String, target : String) -> ChargedAbility:
+	var unit := _find_unit(target)
+	if unit == null or unit.brain == null:
+		return null
+	for ability in unit.brain.abilities:
+		var charged := ability as ChargedAbility
+		if charged != null and charged.ability_name == soul_name:
+			return charged
+	return null
+
 
 ## target："player" / "enemy" / 单位名
 static func _find_unit(target : String) -> BattleUnit:

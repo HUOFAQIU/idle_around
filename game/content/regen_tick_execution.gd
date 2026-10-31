@@ -1,6 +1,7 @@
 ## 生命再生的周期结算。
 ##
-## 每秒恢复当前再生值的生命；不衰减，溢出部分由生命值上限丢弃。
+## 每秒把当前再生与剧毒直接相减，再生多时才恢复差值生命；不衰减，溢出部分由生命值上限丢弃。
+## 属性原值不改动，反向比较由剧毒周期结算负责。
 ## 再生不是治疗，不触发治疗净化。
 ## 再生状态只在施加时判定暴击，之后每跳都不再暴击。
 class_name RegenTickExecution extends GameplayExecutionCalculation
@@ -20,12 +21,8 @@ static func is_regen_tick_effect(effect: GameplayEffect) -> bool:
 
 
 func execute(_spec: GameplayEffectSpec, target_asc: AbilitySystemComponent) -> Dictionary:
-	var regen_attr := target_asc.get_attribute("regen") if target_asc != null else null
-	if regen_attr == null:
+	var net_stacks := StatusNetRule.regen_minus_poison(target_asc)
+	if net_stacks <= 0:
 		return {}
 
-	var stacks := int(floor(maxf(regen_attr.current_value, 0.0)))
-	if stacks <= 0:
-		return {}
-
-	return {"health": stacks * heal_per_stack}
+	return {"health": net_stacks * heal_per_stack}

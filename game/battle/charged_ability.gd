@@ -138,6 +138,10 @@ func charge_ratio() -> float:
 
 
 ## 给 UI / 日志用的秒数
+func charge_seconds() -> float:
+	return float(charge_units) / float(UNITS_PER_SECOND)
+
+
 func haste_seconds() -> float:
 	return float(haste_units) / float(UNITS_PER_SECOND)
 

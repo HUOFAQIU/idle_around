@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="PassiveTrigger" format=3 uid="uid://bt6dm7v3c2g73"]
+
+[ext_resource type="Script" uid="uid://bgbp4lpfyqub" path="res://game/content/passive_trigger.gd" id="1_trigger"]
+
+[resource]
+script = ExtResource("1_trigger")
+event = 3
+target_scope = 1
+charge_source_seconds = 3.0

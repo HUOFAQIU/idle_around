@@ -1,8 +1,8 @@
 # AI 测试接口 TestAPI
 
-> 类型：指南 | 状态：有效 | 核对：2026-10-31
+> 类型：指南 | 状态：有效 | 核对：2026-11-01
 > 何时读：写自动化测试/探针、构造战斗或背包场景、验证新功能
-> 关键词：测试 TestAPI 探针 自动化 战斗快照 魂灵 仓库 见闻 冷却 冻结 触发器
+> 关键词：测试 TestAPI 探针 自动化 战斗快照 魂灵 仓库 见闻 冷却 冻结 触发器 标签 充能
 > 代码：`Scripts/test_api.gd`、`Windows/Battle/battle_window.gd`、`Scripts/collection_db.gd`
 > 约定：新增功能/内容时，同步补 TestAPI 方法并更新本文。
 
@@ -36,6 +36,7 @@ TestAPI.stop_battle()
 | `get_seen_ids(kind) -> Array[StringName]` | 真实已解锁 ID |
 | `is_seen(kind, id) -> bool` | 单个条目是否解锁 |
 | `get_soul_ids()` / `get_monster_ids()` | 列出 registry 条目 |
+| `get_soul_tags(id) -> Array[StringName]` | 魂灵标签，如 `Soul.Medium`、`Soul.RealEstate` |
 
 `kind` 用 `CollectionDB.Kind.SOUL` / `CollectionDB.Kind.MONSTER`。
 
@@ -48,8 +49,11 @@ TestAPI.stop_battle()
 | `spawn_monster(monster_id) -> bool` | 在远处空位刷一只指定怪 |
 | `apply_burn(target := "player") -> bool` | 对战斗单位施加灼烧（测试状态与火焰 Cue） |
 | `apply_poison(target := "player") -> bool` | 对战斗单位施加剧毒（测试飞溅与气泡 Cue） |
-| `apply_freeze(target := "player", seconds := 3.0) -> bool` | 对战斗单位施加冻结（测试冻结 Cue 与 `State.Frozen`） |
+| `apply_regen(target := "player") -> bool` | 对战斗单位施加生命再生（测试剧毒/再生相减） |
+| `apply_freeze(target := "player", seconds := 3.0) -> bool` | 对战斗单位施加冻结（测试冻结 Cue 与 `State.Frozen`）；会广播 `FREEZE_APPLIED` |
 | `apply_soul_freeze(soul_name, seconds := 1.0, target := "player") -> bool` | 对已装备的指定魂灵施加魂灵级冻结（测试冰霜 shader 与徽章） |
+| `simulate_soul_used(soul_name, target := "player") -> bool` | 模拟“魂灵被使用”（不动冷却），确定性验证 `OTHER_SOUL_USED` 触发器 |
+| `charge_soul(soul_name, seconds, target := "player") -> bool` | 给已装备魂灵直接充能，用于快速触发主动技能 |
 | `damage_unit(target := "player", amount := 1.0) -> bool` | 对单位造成伤害，用于把生命值打到阈值以下（测温泉半血触发） |
 | `has_status(tag, target := "player") -> bool` | 单位是否拥有某个状态标签 |
 | `get_battle_state() -> Dictionary` | 战斗快照 |
@@ -66,13 +70,29 @@ print(TestAPI.has_status(&"State.Burning", "player"))
 TestAPI.apply_poison("enemy")
 print(TestAPI.has_status(&"State.Poisoned", "enemy"))
 
+# 剧毒/再生直接相减：毒 8、再生 5 时每秒净扣 3 点生命
+TestAPI.apply_regen("enemy")
+await get_tree().create_timer(1.3).timeout
+print(TestAPI.get_battle_state()["enemies"][0]["hp"])
+
 TestAPI.apply_freeze("enemy", 3.0)
 print(TestAPI.has_status(&"State.Frozen", "enemy"))
 TestAPI.apply_soul_freeze("尖牙", 1.0)
 
-# 温泉：把玩家打到半血以下，触发全体冻结
+# 温泉：把玩家打到半血以下，触发全体冻结；每有一只怪物被冻结，温泉额外充能 3 秒
 TestAPI.damage_unit("player", 300.0)
 print(TestAPI.has_status(&"State.Frozen", "enemy"))
+
+# 冷冻间：同栏再放一颗相邻的地产魂灵（温泉），模拟被使用时应给冷冻间 +1 秒
+TestAPI.equip_soul(&"leng_dong_jian_soul")
+GBIS.add_item("cell_0", CollectionDB.get_soul(&"wen_quan_soul"))
+TestAPI.start_battle(&"snake_data")
+TestAPI.charge_soul("冷冻间", 5.0)
+await get_tree().physics_frame
+print(TestAPI.get_battle_state()["player"]["regen"])
+
+TestAPI.simulate_soul_used("温泉")
+print(TestAPI.get_battle_state()["player_souls"])
 ```
 
 快照结构：
@@ -82,13 +102,13 @@ print(TestAPI.has_status(&"State.Frozen", "enemy"))
   "running": true,
   "elapsed": 12.3,
   "time_scale": 1.0,
-  "player": {"name", "hp", "max_hp", "shield", "dead", "frozen", "cell", "souls"},
-  "enemies": [{"name", "hp", "max_hp", "shield", "dead", "frozen", "cell", "souls"}],
-  "player_souls": [{"name", "cooldown", "charge_ratio", "haste", "slow", "freeze", "frozen"}]
+  "player": {"name", "hp", "max_hp", "shield", "regen", "poison", "dead", "frozen", "cell", "souls"},
+  "enemies": [{"name", "hp", "max_hp", "shield", "regen", "poison", "dead", "frozen", "cell", "souls"}],
+  "player_souls": [{"name", "cooldown", "charge_ratio", "charge_seconds", "haste", "slow", "freeze", "frozen"}]
 }
 ```
 
-`player_souls[].freeze` 是魂灵级冻结剩余秒数；`frozen` 是 `is_frozen()`（自身冻结或单位冻结）。单位的 `frozen` 只表示 `State.Frozen` 标签。
+`player_souls[].freeze` 是魂灵级冻结剩余秒数；`frozen` 是 `is_frozen()`（自身冻结或单位冻结）。单位的 `frozen` 只表示 `State.Frozen` 标签。`charge_seconds` 用于精确验证充能触发（例如相邻地产魂灵被使用后 +1 秒）。
 
 ## 注意
 

@@ -19,6 +19,8 @@ class_name AutoCastAbility extends ChargedAbility
 
 ## 本技能的数据定义（由 BattleUnit.add_soul_abilities() 注入）
 @export var skill: SkillDefinition
+## 本技能来源的魂灵数据；用于 OTHER_SOUL_USED 触发器的标签过滤
+var soul_data: SoulData
 
 
 func _ready() -> void:
@@ -56,6 +58,8 @@ func _activate_ability() -> bool:
 	# ① 充满就放，不等任何东西 —— 先扣费并清空充能（扫描线从头重扫）
 	commit_cost()
 	reset_charge()
+	# 空放也算“使用”：先广播，让 OTHER_SOUL_USED 触发器有机会充能别的魂灵
+	_notify_soul_used()
 
 	# 只对施法者自己结算的效果（例如温泉的再生），不管有没有选中敌人都会生效
 	_apply_self_effects(battle)
@@ -217,7 +221,7 @@ func _apply_effect_list_to_target(effects: Array[GameplayEffect], target: Battle
 func _apply_effect_to_target(effect: GameplayEffect, target: BattleUnit, crit_multiplier: float) -> void:
 	if owner_asc == null or target == null or target.asc == null:
 		return
-	var caster := owner_asc.get_parent()
+	var caster := owner_asc.get_parent() as BattleUnit
 	if caster == null:
 		return
 	var context := GameplayEffectContext.new(caster, caster)
@@ -229,6 +233,16 @@ func _apply_effect_to_target(effect: GameplayEffect, target: BattleUnit, crit_mu
 	# 异常状态的暴击在释放时已经结算进施加数值；后续每跳不再乘倍率。
 	spec.set_set_by_caller_magnitude(SoulDamageExecution.CRIT_MULTIPLIER_TAG, crit_multiplier)
 	owner_asc.apply_effect_spec_to_target(spec, target.asc)
+	# 每冻住一个目标算一次冻结事件；全场任何单位的冻结触发器都会收到广播
+	if effect.granted_tags.has(GameplayTags.State_Frozen):
+		caster.notify_freeze_applied(target)
+
+
+## 广播“本魂灵被使用”；空放也广播，因为冷却已经消耗
+func _notify_soul_used() -> void:
+	var caster := _caster_unit()
+	if caster != null:
+		caster.notify_soul_used(self)
 
 
 ## 发一批投射物，等它们全部落地，返回打中了几支。

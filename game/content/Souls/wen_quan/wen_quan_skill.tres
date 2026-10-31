@@ -22,7 +22,7 @@ mode = 3
 [resource]
 script = ExtResource("6_dktrl")
 id = "wenquan"
-description = "冷却 4 秒，对最近的怪物造成 24 灼烧，并提高自身 24 点生命再生。生命值首次降至一半以下时，冻结场上所有怪物 3 秒并充能 3 秒。"
+description = "冷却 4 秒，对最近的怪物造成 24 灼烧，并提高自身 24 点生命再生。生命值首次降至一半以下时，冻结场上所有怪物 3 秒；每有一只怪物被冻结，充能此魂灵 3 秒。"
 effects = Array[ExtResource("3_6de15")]([ExtResource("4_0dfuw"), ExtResource("5_mvskf")])
 self_effects = Array[ExtResource("3_6de15")]([ExtResource("7_aa0wg"), ExtResource("8_f2nrs")])
 cooldown_effect = SubResource("Resource_enwbk")

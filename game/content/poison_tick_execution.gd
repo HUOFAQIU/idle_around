@@ -1,6 +1,7 @@
 ## 剧毒的周期结算。
 ##
-## 每秒造成当前剧毒值的伤害，伤害不衰减、无视护盾。
+## 每秒把当前剧毒与再生直接相减，剧毒多时才造成差值伤害；伤害不衰减、无视护盾。
+## 属性原值不改动，反向比较由再生周期结算负责。
 ## 异常状态的暴击只在施加时判定；施加后的每跳都不再暴击。
 class_name PoisonTickExecution extends GameplayExecutionCalculation
 
@@ -19,13 +20,9 @@ static func is_poison_tick_effect(effect: GameplayEffect) -> bool:
 
 
 func execute(_spec: GameplayEffectSpec, target_asc: AbilitySystemComponent) -> Dictionary:
-	var poison_attr := target_asc.get_attribute("poison") if target_asc != null else null
-	if poison_attr == null:
-		return {}
-
-	var stacks := int(floor(maxf(poison_attr.current_value, 0.0)))
-	if stacks <= 0:
+	var net_stacks := StatusNetRule.poison_minus_regen(target_asc)
+	if net_stacks <= 0:
 		return {}
 
 	# 剧毒无视护盾，直接扣生命。
-	return {"health": -stacks * damage_per_stack}
+	return {"health": -net_stacks * damage_per_stack}

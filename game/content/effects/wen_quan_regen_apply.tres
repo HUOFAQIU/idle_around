@@ -8,6 +8,7 @@
 [sub_resource type="Resource" id="Resource_cvb4f"]
 script = ExtResource("2_6pwgw")
 attribute_name = "regen"
+base_amount = 24.0
 
 [resource]
 script = ExtResource("4_t1m15")

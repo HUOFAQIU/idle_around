@@ -11,6 +11,8 @@ const MAGNITUDE_TAG : StringName = &"Data.TriggerMagnitude"
 enum Event {
 	ENEMY_MOVED,
 	SELF_HEALTH_BELOW_PERCENT,
+	OTHER_SOUL_USED,  ## 另一个魂灵被使用（技能成功激活）
+	FREEZE_APPLIED,   ## 本魂灵造成的冻结成功施加到一个单位
 }
 
 ## 效果施加范围
@@ -35,5 +37,9 @@ enum TargetScope {
 @export var once_per_battle: bool = false
 ## 触发时给来源魂灵技能充能的秒数；0 = 不充能
 @export_range(0.0, 60.0, 0.1) var charge_source_seconds: float = 0.0
+## OTHER_SOUL_USED 事件：被使用的魂灵必须带齐这些标签；空 = 不限
+@export var required_soul_tags: Array[StringName] = []
+## OTHER_SOUL_USED 事件：被使用的魂灵必须与本魂灵同一部位栏、左右紧邻
+@export var require_adjacent: bool = false
 ## 触发日志里显示的名字；留空则不写触发日志
 @export var trigger_name: String = ""

@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="SkillDefinition" format=3 uid="uid://jp15vnoql4k0"]
+
+[ext_resource type="Script" uid="uid://c81papidngxvg" path="res://addons/GodotGAS/effects/gameplay_effect.gd" id="1_effect"]
+[ext_resource type="Script" uid="uid://ktr72cmavmyy" path="res://game/content/skill_definition.gd" id="2_skill"]
+[ext_resource type="Script" uid="uid://cf2mx3u4jfquk" path="res://game/content/target_rule.gd" id="3_target"]
+[ext_resource type="Resource" path="res://game/content/effects/freeze_unit_short.tres" id="4_freeze"]
+
+[sub_resource type="Resource" id="Resource_cooldown"]
+script = ExtResource("1_effect")
+policy = 1
+duration = 7.0
+
+[sub_resource type="Resource" id="Resource_target"]
+script = ExtResource("3_target")
+mode = 0
+count = 2
+
+[resource]
+script = ExtResource("2_skill")
+id = "bing_che"
+description = "冷却 7 秒，冻结随机 2 个怪物 1 秒。当你使用另一个魂灵时，充能此物品 1 秒。"
+effects = Array[ExtResource("1_effect")]([ExtResource("4_freeze")])
+cooldown_effect = SubResource("Resource_cooldown")
+target_rule = SubResource("Resource_target")
+metadata/_custom_type_script = "uid://ktr72cmavmyy"

@@ -57,11 +57,7 @@ func resolve(caster: ChargedAbility, rng: RandomNumberGenerator) -> Array[Charge
 					break
 		Mode.BOTH_SIDES:
 			for ability in candidates:
-				if ability.soul_container != caster.soul_container:
-					continue
-				var is_left := ability.soul_column + ability.soul_width == caster.soul_column
-				var is_right := ability.soul_column == caster.soul_column + caster.soul_width
-				if is_left or is_right:
+				if is_adjacent(ability, caster):
 					result.append(ability)
 		Mode.RANDOM:
 			var pool: Array[ChargedAbility] = []
@@ -77,6 +73,17 @@ func resolve(caster: ChargedAbility, rng: RandomNumberGenerator) -> Array[Charge
 				result.append(ability)
 
 	return result
+
+
+## 两颗魂灵是否同一部位栏内左右紧贴；中间空一格不算相邻。
+## 当前只比较列区间，不区分行（现有魂灵都是 2 行高）；以后同栏出现多排时需要把行信息补进 SoulSlot。
+static func is_adjacent(a: ChargedAbility, b: ChargedAbility) -> bool:
+	if a == null or b == null or a.soul_container != b.soul_container:
+		return false
+	return (
+		a.soul_column + a.soul_width == b.soul_column
+		or b.soul_column + b.soul_width == a.soul_column
+	)
 
 
 ## 从池子里随机抽 n 个（不重复）

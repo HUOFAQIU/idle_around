@@ -446,6 +446,7 @@ func get_test_state() -> Dictionary:
 			"name": soul.item_name,
 			"cooldown": ability.cooldown if ability != null else 0.0,
 			"charge_ratio": ability.charge_ratio() if ability != null else 0.0,
+			"charge_seconds": ability.charge_seconds() if ability != null else 0.0,
 			"haste": ability.haste_seconds() if ability != null else 0.0,
 			"slow": ability.slow_seconds() if ability != null else 0.0,
 			"freeze": ability.freeze_seconds() if ability != null else 0.0,
@@ -467,11 +468,15 @@ func _unit_test_state(unit : BattleUnit) -> Dictionary:
 	for soul in unit.souls:
 		if soul != null:
 			soul_names.append(soul.item_name)
+	var regen_attr := unit.asc.get_attribute("regen") if unit.asc != null else null
+	var poison_attr := unit.asc.get_attribute("poison") if unit.asc != null else null
 	return {
 		"name": unit.unit_name,
 		"hp": unit.health_attr.current_value if unit.health_attr != null else 0.0,
 		"max_hp": unit.max_health_attr.current_value if unit.max_health_attr != null else 0.0,
 		"shield": unit.shield_attr.current_value if unit.shield_attr != null else 0.0,
+		"regen": regen_attr.current_value if regen_attr != null else 0.0,
+		"poison": poison_attr.current_value if poison_attr != null else 0.0,
 		"dead": unit.is_dead,
 		"frozen": unit.asc.has_tag(GameplayTags.State_Frozen) if unit.asc != null else false,
 		"cell": [unit.cell.x, unit.cell.y],

@@ -6,6 +6,7 @@
 [ext_resource type="Resource" uid="uid://c6toxe2smgbo2" path="res://game/content/Souls/wen_quan/wen_quan_skill.tres" id="4_yesjq"]
 [ext_resource type="Script" uid="uid://bgbp4lpfyqub" path="res://game/content/passive_trigger.gd" id="5_ueoqg"]
 [ext_resource type="Resource" uid="uid://c5x7oeot7mtkk" path="res://game/content/Souls/wen_quan/wen_quan_trigger.tres" id="6_7n23i"]
+[ext_resource type="Resource" uid="uid://bt6dm7v3c2g73" path="res://game/content/Souls/wen_quan/wen_quan_freeze_trigger.tres" id="7_freeze_charge"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_d4cpy"]
 shader = ExtResource("2_2kimx")
@@ -20,8 +21,8 @@ shader_parameter/freeze_color = Color(0.58, 0.86, 1, 1)
 [resource]
 script = ExtResource("3_bt7pb")
 skill = ExtResource("4_yesjq")
-triggers = Array[ExtResource("5_ueoqg")]([ExtResource("6_7n23i")])
-equip_part = "ARMSSOUL"
+triggers = Array[ExtResource("5_ueoqg")]([ExtResource("6_7n23i"), ExtResource("7_freeze_charge")])
+tags = Array[StringName]([&"Soul.Large", &"Soul.RealEstate"])
 item_name = "温泉"
 type = "SOUL"
 icon = ExtResource("1_edfvm")

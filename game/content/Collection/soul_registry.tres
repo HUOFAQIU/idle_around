@@ -28,14 +28,17 @@ _uids_to_string_ids = Dictionary[StringName, StringName]({
 &"uid://coduc2kbaetoy": &"hua_liu_shen_soul_2",
 &"uid://cooi7q46e2n0g": &"dun_soul",
 &"uid://ddrvsystwojbt": &"mian_bao_soul",
+&"uid://dqxy2ldtoeibe": &"bing_che_soul",
 &"uid://dsb8s8aswjvsm": &"dian_chi_soul",
 &"uid://dtaommcuqolre": &"wa_soul",
 &"uid://dvx1wmobngo6l": &"song_shu_soul",
 &"uid://ot6pgn6lm1ih": &"dao_huo_shu_soul",
+&"uid://waj6y1w75lxw": &"leng_dong_jian_soul",
 &"uid://wexn2ojsabyn": &"xian_zi_soul",
 &"uid://x5f4gkadb7fx": &"qiang_laishi_soul"
 })
 _string_ids_to_uids = Dictionary[StringName, StringName]({
+&"bing_che_soul": &"uid://dqxy2ldtoeibe",
 &"chang_gong_soul": &"uid://cm36iux28esvj",
 &"chui_jian_soul": &"uid://bv1wn3xab3cbl",
 &"dao_huo_shu_soul": &"uid://ot6pgn6lm1ih",
@@ -46,6 +49,7 @@ _string_ids_to_uids = Dictionary[StringName, StringName]({
 &"jian_shen_fang_soul": &"uid://bjdwjqe7vrulf",
 &"jian_ya_soul": &"uid://bgqrj3i0tufqg",
 &"ka_fei_soul": &"uid://bs25wre0jeslj",
+&"leng_dong_jian_soul": &"uid://waj6y1w75lxw",
 &"mian_bao_soul": &"uid://ddrvsystwojbt",
 &"qiang_laishi_soul": &"uid://x5f4gkadb7fx",
 &"song_shu_soul": &"uid://dvx1wmobngo6l",

@@ -16,8 +16,8 @@
 			"uuid": "13cb6bda-ffb7-4ee9-879a-a4735482d3aa",
 			"title": "Todo",
 			"tasks": [
-				"a31f774e-4cb0-434c-95f3-e578f59c9212",
-				"90ca3725-b67b-41d3-b2dd-2c2245c32624"
+				"90ca3725-b67b-41d3-b2dd-2c2245c32624",
+				"26361578-4bc6-417f-8809-eb847809f170"
 			]
 		},
 		{
@@ -35,7 +35,8 @@
 			"uuid": "00cc217b-6c96-4fd1-acab-fa03554e6f0f",
 			"title": "Done",
 			"tasks": [
-				"30215f06-69cc-4210-a19e-64f59d5297cb"
+				"30215f06-69cc-4210-a19e-64f59d5297cb",
+				"a31f774e-4cb0-434c-95f3-e578f59c9212"
 			]
 		}
 	],
@@ -84,7 +85,7 @@
 		},
 		{
 			"uuid": "29fa349a-dcab-4ea5-8a8c-634a10391763",
-			"title": "怪物掉落池",
+			"title": "怪物掉落",
 			"description": "",
 			"category": "abd1801b-a241-4c02-8dd1-4e804d1e3bd5",
 			"steps": []
@@ -108,6 +109,13 @@
 			"title": "图鉴",
 			"description": "仓库页上面的tab都去掉，新增图鉴窗口，点击魂灵添加进仓库",
 			"category": "dc17d4ed-a172-4464-9b98-2aeab52f9cdf",
+			"steps": []
+		},
+		{
+			"uuid": "26361578-4bc6-417f-8809-eb847809f170",
+			"title": "窗口移动的补间动画",
+			"description": "",
+			"category": "abd1801b-a241-4c02-8dd1-4e804d1e3bd5",
 			"steps": []
 		}
 	],

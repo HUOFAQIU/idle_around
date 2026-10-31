@@ -12,6 +12,8 @@ const SOUL_SLOT_NAMES : Array[String] = ["cell_0", "cell_1", "cell_2", "cell_3"]
 
 ## 格子上画距离数字（调试用）
 const SHOW_DEBUG_DISTANCE : bool = false
+## FPS 文本刷新间隔（渲染帧）
+const FPS_UPDATE_FRAMES : int = 15
 
 @onready var ground_tilemaplayer: TileMapLayer = $Tile/GroundTileMapLayer
 ## 单位的家：跟地图同一个坐标系，所以单位直接挂这儿
@@ -28,6 +30,7 @@ const SHOW_DEBUG_DISTANCE : bool = false
 @onready var speed_2_button: Button = $CanvasLayer/Control/GridContainer/Speed2Button
 @onready var speed_3_button: Button = $CanvasLayer/Control/GridContainer/Speed3Button
 @onready var speed_10_button: Button = $CanvasLayer/Control/GridContainer/Speed10Button
+@onready var fps_label: Label = $CanvasLayer/Control/FpsLabel
 
 ## 现在这一场。开打时建，关窗/重开时整个销毁 —— 单位的属性、标签、冷却
 ## 全挂在它下面的节点上，所以销毁就等于全清，不用写复原逻辑
@@ -36,6 +39,8 @@ var _battle : BattleManager
 var _run_id : int = 0
 ## 测试接口：下一次刷怪强制使用这个 ID，刷出后清空
 var _test_monster_id : StringName = &""
+## FPS 文本刷新计数
+var _fps_frames : int = 0
 ## 这一场参战的魂灵（开打时从装备格里抓的，用来推扫描线）
 var _battle_souls : Array[SoulData] = []
 ## 与 _battle_souls 同下标：魂灵在装备栏里的位置（左右/触发顺序用）
@@ -95,6 +100,20 @@ func _ready() -> void:
 				label.add_theme_color_override("font_color", Color.BLACK)
 			label.text = str(d)
 			ground_tilemaplayer.add_child(label)
+
+
+func _process(_delta: float) -> void:
+	# 窗口没开着就不统计
+	if not visible:
+		return
+
+	_fps_frames += 1
+	if _fps_frames % FPS_UPDATE_FRAMES != 0:
+		return
+
+	var fps := Engine.get_frames_per_second()
+	fps_label.text = "FPS %d" % fps
+	fps_label.add_theme_color_override("font_color", _fps_color(fps))
 
 
 func _physics_process(_delta: float) -> void:
@@ -361,6 +380,15 @@ func _is_mouse_inside() -> bool:
 	return Rect2i(position, size).has_point(DisplayServer.mouse_get_position())
 
 
+# FPS 颜色：绿 / 黄 / 红
+func _fps_color(fps : int) -> Color:
+	if fps >= 55:
+		return Color(0.55, 1.0, 0.6)
+	if fps >= 30:
+		return Color(1.0, 0.85, 0.35)
+	return Color(1.0, 0.4, 0.35)
+
+
 #region 测试接口（TestAPI 调用）
 
 ## 测试：开战；monster_id 非空时首只必刷该怪
@@ -428,6 +456,11 @@ func get_test_state() -> Dictionary:
 		})
 	state["player_souls"] = souls
 	return state
+
+
+## 测试：战斗窗口右上角的 FPS 文本
+func get_fps_text_for_test() -> String:
+	return fps_label.text
 
 
 func _unit_test_state(unit : BattleUnit) -> Dictionary:

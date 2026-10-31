@@ -1,0 +1,73 @@
+[gd_scene format=3 uid="uid://de7rdjb50l7fj"]
+
+[ext_resource type="Script" uid="uid://dxjlu7hoslv85" path="res://game/battle/cues/burn_cue.gd" id="1_burn"]
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_add"]
+blend_mode = 1
+
+[sub_resource type="Gradient" id="Gradient_soft"]
+offsets = PackedFloat32Array(0, 0.45, 1)
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0.65, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_soft"]
+gradient = SubResource("Gradient_soft")
+width = 32
+height = 32
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 0.5)
+
+[sub_resource type="Gradient" id="Gradient_flame"]
+offsets = PackedFloat32Array(0, 0.25, 0.6, 1)
+colors = PackedColorArray(1, 0.85, 0.35, 1, 1, 0.5, 0.08, 1, 0.9, 0.16, 0.02, 0.85, 0.4, 0.02, 0, 0)
+
+[sub_resource type="Gradient" id="Gradient_embers"]
+offsets = PackedFloat32Array(0, 0.5, 1)
+colors = PackedColorArray(1, 0.75, 0.2, 1, 1, 0.35, 0.05, 0.95, 0.5, 0.05, 0, 0)
+
+[node name="BurnCue" type="Node2D" unique_id=1613088329]
+z_index = 1
+script = ExtResource("1_burn")
+auto_destroy = false
+
+[node name="Flame" type="CPUParticles2D" parent="." unique_id=143747860]
+material = SubResource("CanvasItemMaterial_add")
+position = Vector2(0, -4)
+emitting = false
+amount = 20
+texture = SubResource("GradientTexture2D_soft")
+lifetime = 0.75
+preprocess = 0.25
+randomness = 0.55
+lifetime_randomness = 0.2
+local_coords = true
+emission_shape = 3
+emission_rect_extents = Vector2(9, 3)
+direction = Vector2(0, -1)
+spread = 28.0
+gravity = Vector2(0, -50)
+initial_velocity_min = 20.0
+initial_velocity_max = 45.0
+scale_amount_min = 0.32
+scale_amount_max = 0.58
+color_ramp = SubResource("Gradient_flame")
+
+[node name="Embers" type="CPUParticles2D" parent="." unique_id=22296989]
+material = SubResource("CanvasItemMaterial_add")
+position = Vector2(0, -7)
+emitting = false
+texture = SubResource("GradientTexture2D_soft")
+preprocess = 0.3
+randomness = 0.7
+lifetime_randomness = 0.25
+local_coords = true
+emission_shape = 3
+emission_rect_extents = Vector2(6, 2)
+direction = Vector2(0, -1)
+spread = 18.0
+gravity = Vector2(0, -90)
+initial_velocity_min = 25.0
+initial_velocity_max = 50.0
+scale_amount_min = 0.14
+scale_amount_max = 0.26
+color_ramp = SubResource("Gradient_embers")

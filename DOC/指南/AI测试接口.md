@@ -46,9 +46,19 @@ TestAPI.stop_battle()
 | `start_battle(monster_id := &"") -> bool` | 显示战斗窗口并开战；首只必刷指定怪 |
 | `stop_battle() -> void` | 结束战斗并还原时间倍率 |
 | `spawn_monster(monster_id) -> bool` | 在远处空位刷一只指定怪 |
+| `apply_burn(target := "player") -> bool` | 对战斗单位施加灼烧（测试状态与火焰 Cue） |
+| `has_status(tag, target := "player") -> bool` | 单位是否拥有某个状态标签 |
 | `get_battle_state() -> Dictionary` | 战斗快照 |
 | `set_time_scale(scale) -> void` | 全局时间倍率，范围 0.1～20 |
 | `get_battle_log() -> String` | 当前战斗日志纯文本 |
+| `get_fps_text() -> String` | 战斗窗口右上角的 FPS 文本 |
+
+`target` 支持 `"player"`、`"enemy"` 或单位名。灼烧测试可用：
+
+```gdscript
+TestAPI.apply_burn("player")
+print(TestAPI.has_status(&"State.Burning", "player"))
+```
 
 快照结构：
 

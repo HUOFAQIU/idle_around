@@ -182,5 +182,6 @@ print(img.get_pixel(x, y))          # 窗口内部坐标
 | 管理器（autoload） | `addons/GodotGAS/managers/gameplay_cue_manager.gd` |
 | 基类 | `addons/GodotGAS/cues/gameplay_cue_notify.gd` |
 | 挂点字段 | `addons/GodotGAS/effects/gameplay_effect.gd` 的 Cue Management 一节 |
+| 灼烧光环 | `game/battle/cues/burn_cue.tscn`；标签 `Cue.Status.Burn`；挂在 `game/content/effects/burn_tick.tres` 的 `persistent_cue_tags` |
 
 （项目里原本有一个示例"受击火花"，后来按需要删掉了 —— 自己写的时候照上面三步来就行。）

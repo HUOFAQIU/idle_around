@@ -14,5 +14,6 @@ stacking_policy = 1
 policy = 2
 period = 0.5
 max_stacks = 1
+persistent_cue_tags = Array[StringName]([&"Cue.Status.Burn"])
 executions = Array[ExtResource("2_execution")]([SubResource("Resource_execution_burn")])
 granted_tags = Array[StringName]([&"State.Burning"])

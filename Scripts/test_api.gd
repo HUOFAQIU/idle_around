@@ -13,6 +13,9 @@ const SOUL_CELLS := {
 	"ARMSSOUL": "cell_2",
 	"LEGSSOUL": "cell_3",
 }
+## 测试用灼烧效果：施加 + 周期
+const BURN_APPLY : GameplayEffect = preload("res://game/content/effects/burn_apply.tres")
+const BURN_TICK : GameplayEffect = preload("res://game/content/effects/burn_tick.tres")
 
 
 #region 背包 / 见闻
@@ -122,6 +125,22 @@ static func spawn_monster(monster_id : StringName) -> bool:
 	return window.spawn_monster_for_test(monster_id)
 
 
+## 对战斗中的单位施加灼烧（用于测试状态与火焰 Cue）
+static func apply_burn(target : String = "player") -> bool:
+	var unit := _find_unit(target)
+	if unit == null or unit.asc == null:
+		return false
+	unit.asc.apply_gameplay_effect(BURN_APPLY)
+	unit.asc.apply_gameplay_effect(BURN_TICK)
+	return true
+
+
+## 单位当前是否拥有某个状态标签
+static func has_status(tag : StringName, target : String = "player") -> bool:
+	var unit := _find_unit(target)
+	return unit != null and unit.asc != null and unit.asc.has_tag(tag)
+
+
 ## 当前战斗快照；没有战斗时 running = false
 static func get_battle_state() -> Dictionary:
 	var window := _battle_window()
@@ -141,10 +160,39 @@ static func get_battle_log() -> String:
 		return ""
 	return InfoWindow.instance.log_label.get_parsed_text()
 
+
+## 战斗窗口右上角的 FPS 文本
+static func get_fps_text() -> String:
+	var window := _battle_window()
+	return "" if window == null else window.get_fps_text_for_test()
+
 #endregion
 
 
 #region 内部
+
+## target："player" / "enemy" / 单位名
+static func _find_unit(target : String) -> BattleUnit:
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree == null:
+		return null
+	var root : Node = tree.current_scene
+	if root == null:
+		root = tree.root
+	for node in root.find_children("*", "", true, false):
+		if not node is BattleUnit:
+			continue
+		var unit := node as BattleUnit
+		if unit.is_dead or unit.asc == null:
+			continue
+		if target == "player" and unit.team == BattleUnit.Team.PLAYER:
+			return unit
+		if target == "enemy" and unit.team == BattleUnit.Team.ENEMY:
+			return unit
+		if unit.unit_name == target:
+			return unit
+	return null
+
 
 static func _battle_window() -> BattleWindow:
 	var tree := Engine.get_main_loop() as SceneTree

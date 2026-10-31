@@ -285,11 +285,15 @@ func _on_attribute_changed(attribute_name: String, _old_value: float, new_value:
 
 ## 周期效果每跳提交后由 ASC 发出；这里专门处理灼烧的每跳叙事。
 ## 用 calculated_deltas 拿到经过血量钳制后的真实伤害，不再借用 attribute_changed。
-func _on_periodic_effect_ticked(_active_effect: ActiveGameplayEffect, spec: GameplayEffectSpec) -> void:
+func _on_periodic_effect_ticked(active_effect: ActiveGameplayEffect, spec: GameplayEffectSpec) -> void:
 	if spec == null:
 		return
 	if BurnTickExecution.is_burn_tick_effect(spec.effect_def):
 		_handle_burn_tick(spec)
+		# 层数归零后移除周期效果：State.Burning 和灼烧火焰 Cue 一起结束
+		var burn_attr := asc.get_attribute("burn")
+		if burn_attr != null and burn_attr.current_value <= 0.0:
+			asc.remove_active_effect(active_effect)
 	elif PoisonTickExecution.is_poison_tick_effect(spec.effect_def):
 		_handle_poison_tick(spec)
 	elif RegenTickExecution.is_regen_tick_effect(spec.effect_def):

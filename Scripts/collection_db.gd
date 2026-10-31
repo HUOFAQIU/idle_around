@@ -20,7 +20,8 @@ const MONSTER_REGISTRY: Registry = preload("res://game/content/Collection/monste
 const SAVE_PATH: String = "user://collection.cfg"
 ## 测试期开关：见闻条目全部默认解锁；正式上线前改回 false。
 ## 只影响显示，不写存档，关掉后按真实解锁进度显示。
-const UNLOCK_ALL_FOR_TESTING: bool = true
+## 测试接口可用 set_unlock_all_for_testing() 临时切换。
+var unlock_all_for_testing: bool = true
 
 ## registry 字符串 ID → 资源
 var _souls: Dictionary[StringName, SoulData] = {}
@@ -63,10 +64,23 @@ func get_monster(id: StringName) -> MonsterData:
 
 
 func is_seen(kind: int, id: StringName) -> bool:
-	if UNLOCK_ALL_FOR_TESTING:
+	if unlock_all_for_testing:
 		return true
 	var seen: Dictionary = _seen.get(kind, {})
 	return seen.has(id)
+
+
+## 测试接口：临时切换“全部已解锁”，不改存档
+func set_unlock_all_for_testing(enabled: bool) -> void:
+	unlock_all_for_testing = enabled
+
+
+## 真实已解锁的 registry ID（不受测试开关影响）
+func get_seen_ids(kind: int) -> Array[StringName]:
+	var ids: Array[StringName] = []
+	var seen: Dictionary = _seen.get(kind, {})
+	ids.assign(seen.keys())
+	return ids
 
 
 ## 随机挑一只配了战斗场景的怪物；刷怪用它

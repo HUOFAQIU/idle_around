@@ -34,6 +34,8 @@ const SHOW_DEBUG_DISTANCE : bool = false
 var _battle : BattleManager
 ## 重开代次：角色倒下要等 3 秒，这期间玩家自己点了重开的话，那次等待作废
 var _run_id : int = 0
+## 测试接口：下一次刷怪强制使用这个 ID，刷出后清空
+var _test_monster_id : StringName = &""
 ## 这一场参战的魂灵（开打时从装备格里抓的，用来推扫描线）
 var _battle_souls : Array[SoulData] = []
 ## 与 _battle_souls 同下标：魂灵在装备栏里的位置（左右/触发顺序用）
@@ -207,7 +209,12 @@ func _spawn_player(slots: Array[SoulSlot]) -> BattleUnit:
 
 # 怪物：数据从见闻 registry 里随机挑，场景只负责战斗表现
 func _spawn_enemy(cell: Vector2i) -> void:
-	var monster := CollectionDB.pick_random_monster()
+	var monster : MonsterData = null
+	if _test_monster_id.is_empty():
+		monster = CollectionDB.pick_random_monster()
+	else:
+		monster = CollectionDB.get_monster(_test_monster_id)
+		_test_monster_id = &""
 	if monster == null:
 		return
 	var unit := monster.battle_scene.instantiate() as BattleUnit
@@ -352,3 +359,92 @@ func _update_coord_tooltip() -> void:
 # 鼠标在不在本窗口的屏幕范围里（窗口是独立 OS 窗口，所以拿屏幕坐标比）
 func _is_mouse_inside() -> bool:
 	return Rect2i(position, size).has_point(DisplayServer.mouse_get_position())
+
+
+#region 测试接口（TestAPI 调用）
+
+## 测试：开战；monster_id 非空时首只必刷该怪
+func start_battle_for_test(monster_id : StringName = &"") -> void:
+	_test_monster_id = monster_id
+	_start_battle()
+
+
+## 测试：结束当前战斗
+func stop_battle_for_test() -> void:
+	_end_battle()
+
+
+## 测试：立刻在远处空位刷一只指定怪物
+func spawn_monster_for_test(monster_id : StringName) -> bool:
+	if _battle == null or not _battle.is_running:
+		return false
+	if CollectionDB.get_monster(monster_id) == null:
+		return false
+	var before := _battle.units.size()
+	_test_monster_id = monster_id
+	_battle.spawn_one()
+	if _battle.units.size() > before:
+		return true
+	_test_monster_id = &""
+	return false
+
+
+## 测试：当前战斗快照；没有战斗时 running = false
+func get_test_state() -> Dictionary:
+	var state := {
+		"running": false,
+		"elapsed": 0.0,
+		"time_scale": Engine.time_scale,
+		"player": {},
+		"enemies": [],
+		"player_souls": [],
+	}
+	if _battle == null:
+		return state
+
+	state["running"] = _battle.is_running
+	state["elapsed"] = _battle.elapsed_seconds()
+	state["player"] = _unit_test_state(_battle.player)
+
+	var enemies : Array = []
+	for unit in _battle.units:
+		if unit != _battle.player:
+			enemies.append(_unit_test_state(unit))
+	state["enemies"] = enemies
+
+	var souls : Array = []
+	for i in _battle_souls.size():
+		var soul := _battle_souls[i]
+		var ability : AutoCastAbility = null
+		if i < _soul_abilities.size():
+			ability = _soul_abilities[i]
+		souls.append({
+			"name": soul.item_name,
+			"cooldown": ability.cooldown if ability != null else 0.0,
+			"charge_ratio": ability.charge_ratio() if ability != null else 0.0,
+			"haste": ability.haste_seconds() if ability != null else 0.0,
+			"slow": ability.slow_seconds() if ability != null else 0.0,
+			"frozen": ability.is_frozen() if ability != null else false,
+		})
+	state["player_souls"] = souls
+	return state
+
+
+func _unit_test_state(unit : BattleUnit) -> Dictionary:
+	if unit == null:
+		return {}
+	var soul_names : Array[String] = []
+	for soul in unit.souls:
+		if soul != null:
+			soul_names.append(soul.item_name)
+	return {
+		"name": unit.unit_name,
+		"hp": unit.health_attr.current_value if unit.health_attr != null else 0.0,
+		"max_hp": unit.max_health_attr.current_value if unit.max_health_attr != null else 0.0,
+		"shield": unit.shield_attr.current_value if unit.shield_attr != null else 0.0,
+		"dead": unit.is_dead,
+		"cell": [unit.cell.x, unit.cell.y],
+		"souls": soul_names,
+	}
+
+#endregion

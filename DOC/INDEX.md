@@ -17,6 +17,7 @@
 | 按完整链路理解系统 | `架构/关键流程.md` | `game/battle/`、`Windows/Inventory/` |
 | 新增魂灵/怪物/技能/窗口/特效 | `架构/扩展点.md` | `game/content/`、`Main/control.gd` |
 | 确认功能是否已实现/已知坑 | `架构/现状与注意.md` | — |
+| AI/自动化测试、构造战斗或背包场景 | `指南/AI测试接口.md` | `Scripts/test_api.gd` |
 | 改魂灵冷却/充能/主动效果 | `魂灵/主动魂灵.md` | `game/content/`、`game/battle/charged_ability.gd` |
 | 改被动魂灵/触发效果 | `魂灵/被动魂灵.md` | `game/content/passive_soul_data.gd`、`passive_effect.gd`、`passive_trigger.gd` |
 | 确认四部位定位 | `魂灵/魂灵.md` | `Windows/Equipment/` |
@@ -44,6 +45,7 @@
 | `魂灵/开发指导文件.md` | 设计 | 设计 | 2026-10-31 |
 | `魂灵/souls.xlsx` | 数据 | 未处理（二进制，Claude 不可读） | — |
 | `特效/effects.md` | 指南 | 有效 | 2026-10-31 |
+| `指南/AI测试接口.md` | 指南 | 有效 | 2026-10-31 |
 | `背景故事/背景故事.md` | 设计 | 占位 | 2026-10-31 |
 | `CLI/给AI玩的游戏.md` | 记录 | 占位 | 2026-10-31 |
 | `架构/00_总览.md` | 实现 | 有效 | 2026-10-28 |
@@ -96,6 +98,7 @@
 5. 设计文档写「应该怎样」，架构文档写「现在怎样」；冲突时以代码为准并标注差异。
 6. 过期内容移到 `DOC/archive/` 或删除，不留在正文。
 7. 改代码时同步更新文档头的核对日期；新增/删除文档时更新本页。
+8. 新增功能/内容时，同步在 `Scripts/test_api.gd` 暴露测试方法，并更新 `指南/AI测试接口.md`。
 
 ## 检索协议（配合 CLAUDE.md）
 

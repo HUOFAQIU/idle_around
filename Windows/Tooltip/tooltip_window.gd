@@ -46,7 +46,10 @@ func show_tip(owner: Object, layer: int, title_name: String) -> void:
 		return
 	_owner = owner
 	_layer = layer
-	title = title_name
+	# 标题栏是原生窗口的一部分，同一个字符串反复写也会让系统重绘标题栏。
+	# 战斗窗口每个物理帧都会调进来，所以只在文字真的变了才写。
+	if title != title_name:
+		title = title_name
 	_hide_armed = false
 	_want_visible = true
 
@@ -76,4 +79,8 @@ func _place_near(anchor: Vector2, bounds: Vector2) -> void:
 	
 	pos.x = clampf(pos.x, 0.0, maxf(0.0, bounds.x - tip.x))
 	pos.y = clampf(pos.y, 0.0, maxf(0.0, bounds.y - tip.y))
-	position = pos
+	# 原生窗口每写一次 position 都是一次 OS 调用。鼠标停着不动时，
+	# 每帧重复写同一个坐标会让窗口管理器做无用功，看起来就是“卡”。
+	var target := Vector2i(pos)
+	if position != target:
+		position = target

@@ -18,6 +18,9 @@ enum Kind {
 const SOUL_REGISTRY: Registry = preload("res://game/content/Collection/soul_registry.tres")
 const MONSTER_REGISTRY: Registry = preload("res://game/content/Collection/monster_registry.tres")
 const SAVE_PATH: String = "user://collection.cfg"
+## 测试期开关：见闻条目全部默认解锁；正式上线前改回 false。
+## 只影响显示，不写存档，关掉后按真实解锁进度显示。
+const UNLOCK_ALL_FOR_TESTING: bool = true
 
 ## registry 字符串 ID → 资源
 var _souls: Dictionary[StringName, SoulData] = {}
@@ -60,6 +63,8 @@ func get_monster(id: StringName) -> MonsterData:
 
 
 func is_seen(kind: int, id: StringName) -> bool:
+	if UNLOCK_ALL_FOR_TESTING:
+		return true
 	var seen: Dictionary = _seen.get(kind, {})
 	return seen.has(id)
 

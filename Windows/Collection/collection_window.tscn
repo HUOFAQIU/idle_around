@@ -1,17 +1,17 @@
-[gd_scene load_steps=2 format=3 uid="uid://dcymb2xgnhr2c"]
+[gd_scene format=3 uid="uid://dcymb2xgnhr2c"]
 
 [ext_resource type="Script" uid="uid://ccnlh3othlrsn" path="res://Windows/Collection/collection_window.gd" id="1_okmvx"]
 
-[node name="CollectionWindow" type="Window"]
+[node name="CollectionWindow" type="Window" unique_id=1627520982]
 oversampling_override = 1.0
 position = Vector2i(0, 36)
 size = Vector2i(600, 600)
+unresizable = true
 minimize_disabled = true
 maximize_disabled = true
-unresizable = true
 script = ExtResource("1_okmvx")
 
-[node name="Root" type="MarginContainer" parent="."]
+[node name="Root" type="MarginContainer" parent="." unique_id=1628027167]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -22,64 +22,69 @@ theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 8
 theme_override_constants/margin_bottom = 8
 
-[node name="VBox" type="VBoxContainer" parent="Root"]
+[node name="VBox" type="VBoxContainer" parent="Root" unique_id=224335190]
 layout_mode = 2
 
-[node name="KindRow" type="HBoxContainer" parent="Root/VBox"]
+[node name="KindRow" type="HBoxContainer" parent="Root/VBox" unique_id=79992925]
 layout_mode = 2
 
-[node name="MonsterButton" type="Button" parent="Root/VBox/KindRow"]
+[node name="MonsterButton" type="Button" parent="Root/VBox/KindRow" unique_id=1131338578]
 layout_mode = 2
 toggle_mode = true
 text = "怪物"
 
-[node name="SoulButton" type="Button" parent="Root/VBox/KindRow"]
+[node name="SoulButton" type="Button" parent="Root/VBox/KindRow" unique_id=584031568]
 layout_mode = 2
 toggle_mode = true
 text = "魂灵"
 
-[node name="Body" type="HBoxContainer" parent="Root/VBox"]
+[node name="Body" type="HBoxContainer" parent="Root/VBox" unique_id=631710448]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="Scroll" type="ScrollContainer" parent="Root/VBox/Body"]
+[node name="Scroll" type="ScrollContainer" parent="Root/VBox/Body" unique_id=1261668872]
 layout_mode = 2
 size_flags_horizontal = 3
 horizontal_scroll_mode = 0
 
-[node name="EntryGrid" type="GridContainer" parent="Root/VBox/Body/Scroll"]
+[node name="EntryGrid" type="GridContainer" parent="Root/VBox/Body/Scroll" unique_id=1839493943]
 layout_mode = 2
 size_flags_horizontal = 3
 columns = 3
 
-[node name="DetailPanel" type="PanelContainer" parent="Root/VBox/Body"]
+[node name="DetailPanel" type="PanelContainer" parent="Root/VBox/Body" unique_id=1653633611]
 custom_minimum_size = Vector2(240, 0)
 layout_mode = 2
 
-[node name="DetailMargin" type="MarginContainer" parent="Root/VBox/Body/DetailPanel"]
+[node name="DetailMargin" type="MarginContainer" parent="Root/VBox/Body/DetailPanel" unique_id=2123010428]
 layout_mode = 2
 theme_override_constants/margin_left = 8
 theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 8
 theme_override_constants/margin_bottom = 8
 
-[node name="DetailBox" type="VBoxContainer" parent="Root/VBox/Body/DetailPanel/DetailMargin"]
+[node name="DetailBox" type="VBoxContainer" parent="Root/VBox/Body/DetailPanel/DetailMargin" unique_id=1561398270]
 layout_mode = 2
 
-[node name="DetailIcon" type="TextureRect" parent="Root/VBox/Body/DetailPanel/DetailMargin/DetailBox"]
+[node name="DetailIcon" type="TextureRect" parent="Root/VBox/Body/DetailPanel/DetailMargin/DetailBox" unique_id=970312396]
 custom_minimum_size = Vector2(160, 160)
 layout_mode = 2
 expand_mode = 1
 stretch_mode = 5
 
-[node name="DetailName" type="Label" parent="Root/VBox/Body/DetailPanel/DetailMargin/DetailBox"]
+[node name="DetailName" type="Label" parent="Root/VBox/Body/DetailPanel/DetailMargin/DetailBox" unique_id=1817433802]
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
 
-[node name="DetailMeta" type="Label" parent="Root/VBox/Body/DetailPanel/DetailMargin/DetailBox"]
+[node name="DetailMeta" type="Label" parent="Root/VBox/Body/DetailPanel/DetailMargin/DetailBox" unique_id=732670177]
 layout_mode = 2
 
-[node name="DetailText" type="RichTextLabel" parent="Root/VBox/Body/DetailPanel/DetailMargin/DetailBox"]
+[node name="DetailText" type="RichTextLabel" parent="Root/VBox/Body/DetailPanel/DetailMargin/DetailBox" unique_id=1169642132]
 layout_mode = 2
 size_flags_vertical = 3
 bbcode_enabled = true
+
+[node name="AddToInventoryButton" type="Button" parent="Root/VBox/Body/DetailPanel/DetailMargin/DetailBox" unique_id=405597429]
+visible = false
+layout_mode = 2
+text = "放入仓库"

@@ -1,5 +1,11 @@
 # 给游戏加特效（GameplayCue）
 
+> 类型：指南 | 状态：有效 | 整理：2026-10-31
+> 何时读：新增/调试 GameplayCue 特效
+> 关键词：特效 GameplayCue Cue 场景 对象池 补间 注册 挂钩
+> 代码：`godot_gas/cue_registry.tres`、`addons/GodotGAS/cues/`
+> 相关：`架构/GAS.md`
+
 框架自带一套 Cue 系统：**一个标签对应一个场景**。命中该冒什么火花、中毒每跳该闪什么、buff 该罩什么光，
 全由数据说，不用写代码。但**接线有三步**，少一步就不出效果。
 

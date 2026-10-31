@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="SkillDefinition" format=3 uid="uid://y5yro1kosrer"]
+
+[ext_resource type="Script" uid="uid://c81papidngxvg" path="res://addons/GodotGAS/effects/gameplay_effect.gd" id="1_effect"]
+[ext_resource type="Script" uid="uid://b7ovihaaijli7" path="res://addons/GodotGAS/effects/gameplay_execution_calculation.gd" id="1_ymt8q"]
+[ext_resource type="Script" uid="uid://bcow77l0bnh0s" path="res://addons/GodotGAS/effects/gameplay_effect_modifier.gd" id="2_ddpu0"]
+[ext_resource type="Script" uid="uid://ktr72cmavmyy" path="res://game/content/skill_definition.gd" id="2_skill"]
+[ext_resource type="Script" uid="uid://urle87hlfidy" path="res://game/content/soul_target_rule.gd" id="3_soul_rule"]
+
+[sub_resource type="Resource" id="Resource_effect_cooldown"]
+script = ExtResource("1_effect")
+policy = 1
+duration = 4.0
+
+[sub_resource type="Resource" id="Resource_soul_target"]
+script = ExtResource("3_soul_rule")
+mode = 2
+
+[resource]
+script = ExtResource("2_skill")
+id = "hualiushen"
+description = "冷却 4 秒，加速自身任意一颗魂灵 2 秒（不受位置和部位限制）。"
+cooldown_effect = SubResource("Resource_effect_cooldown")
+target_rule = SubResource("Resource_soul_target")
+haste_duration = 2.0
+metadata/_custom_type_script = "uid://ktr72cmavmyy"

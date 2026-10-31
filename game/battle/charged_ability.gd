@@ -21,7 +21,7 @@ var charge_units: int = 0
 var haste_units: int = 0
 var slow_units: int = 0
 
-## 装备位置（只对玩家魂灵有效；没有位置时为空 / -1）
+## 装备位置（玩家来自装备容器，怪物来自配置生成的虚拟魂灵栏；没有位置时为空 / -1）
 var soul_container: String = ""
 var soul_column: int = -1
 var soul_width: int = 1

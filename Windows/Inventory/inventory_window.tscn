@@ -9,90 +9,10 @@ position = Vector2i(0, 36)
 size = Vector2i(850, 850)
 script = ExtResource("1_window")
 
-[node name="GridContainer" type="GridContainer" parent="." unique_id=49732532]
-offset_right = 833.0
-offset_bottom = 45.0
-columns = 15
-
-[node name="Button" type="Button" parent="GridContainer" unique_id=1713601447]
-custom_minimum_size = Vector2(60, 40)
-layout_mode = 2
-text = "小鹿"
-
-[node name="Button2" type="Button" parent="GridContainer" unique_id=279295495]
-custom_minimum_size = Vector2(60, 40)
-layout_mode = 2
-text = "盾"
-
-[node name="Button3" type="Button" parent="GridContainer" unique_id=1732713918]
-custom_minimum_size = Vector2(60, 40)
-layout_mode = 2
-text = "长弓"
-
-[node name="Button4" type="Button" parent="GridContainer"]
-custom_minimum_size = Vector2(60, 40)
-layout_mode = 2
-text = "松鼠"
-
-[node name="Button5" type="Button" parent="GridContainer"]
-custom_minimum_size = Vector2(60, 40)
-layout_mode = 2
-text = "咖啡"
-
-[node name="Button6" type="Button" parent="GridContainer"]
-custom_minimum_size = Vector2(60, 40)
-layout_mode = 2
-text = "鱼"
-
-[node name="Button7" type="Button" parent="GridContainer"]
-custom_minimum_size = Vector2(60, 40)
-layout_mode = 2
-text = "蛙"
-
-[node name="Button8" type="Button" parent="GridContainer"]
-custom_minimum_size = Vector2(60, 40)
-layout_mode = 2
-text = "电池"
-
-[node name="Button9" type="Button" parent="GridContainer"]
-custom_minimum_size = Vector2(60, 40)
-layout_mode = 2
-text = "腰带"
-
-[node name="Button10" type="Button" parent="GridContainer"]
-custom_minimum_size = Vector2(60, 40)
-layout_mode = 2
-text = "健身房"
-
-[node name="Button11" type="Button" parent="GridContainer"]
-custom_minimum_size = Vector2(60, 40)
-layout_mode = 2
-text = "蹈火术"
-
-[node name="Button12" type="Button" parent="GridContainer"]
-custom_minimum_size = Vector2(60, 40)
-layout_mode = 2
-text = "墙莱士"
-
-[node name="Button13" type="Button" parent="GridContainer"]
-custom_minimum_size = Vector2(60, 40)
-layout_mode = 2
-text = "吹箭"
-
-[node name="Button14" type="Button" parent="GridContainer"]
-custom_minimum_size = Vector2(60, 40)
-layout_mode = 2
-text = "异常护腕"
-
-[node name="Button15" type="Button" parent="GridContainer"]
-custom_minimum_size = Vector2(60, 40)
-layout_mode = 2
-text = "面包"
-
 [node name="InventoryView" type="Control" parent="." unique_id=1654115602]
 layout_mode = 3
 anchors_preset = 0
-offset_top = 49.0
+offset_top = 0.0
 offset_right = 832.0
 offset_bottom = 817.0
 script = ExtResource("2_5mbsx")

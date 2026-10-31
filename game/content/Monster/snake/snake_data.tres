@@ -1,24 +1,35 @@
 [gd_resource type="Resource" script_class="MonsterData" format=3 uid="uid://j7k0xifp8w6s"]
 
-[ext_resource type="PackedScene" path="res://game/content/Monster/snake/snake.tscn" id="1_iql05"]
-[ext_resource type="Script" path="res://game/content/drops/drop_entry.gd" id="2_amjyq"]
-[ext_resource type="Resource" path="res://game/content/Souls/jian_ya/jian_ya_soul.tres" id="3_owiqb"]
-[ext_resource type="Texture2D" path="res://Assets/tokens.png" id="4_kdh31"]
-[ext_resource type="Script" path="res://game/content/monster_data.gd" id="5_sdldj"]
-[ext_resource type="Script" path="res://Windows/Inventory/grid_base_inventory_system/core/model/item/soul_data.gd" id="6_yxv4s"]
+[ext_resource type="PackedScene" uid="uid://bwro0807h6ekx" path="res://game/content/Monster/snake/snake.tscn" id="1_scene"]
+[ext_resource type="Script" uid="uid://3n34ucprqx0ue" path="res://game/content/monster_soul_entry.gd" id="2_entry"]
+[ext_resource type="Resource" uid="uid://ezvvxavaaebod" path="res://game/content/Souls/du_ya/du_ya_soul.tres" id="3_duya"]
+[ext_resource type="Resource" uid="uid://bgqrj3i0tufqg" path="res://game/content/Souls/jian_ya/jian_ya_soul.tres" id="4_jianya"]
+[ext_resource type="Resource" uid="uid://n9lg38b1xzgx9" path="res://game/content/Souls/hua_liu_shen/hua_liu_shen_soul.tres" id="5_hualiushen"]
+[ext_resource type="Texture2D" uid="uid://deaj7ddfwbqwh" path="res://Assets/tokens.png" id="6_icon"]
+[ext_resource type="Script" uid="uid://c2igyvamknn3f" path="res://game/content/monster_data.gd" id="7_data"]
 
-[sub_resource type="Resource" id="Resource_h8hwk"]
-script = ExtResource("2_amjyq")
-item = ExtResource("3_owiqb")
+[sub_resource type="Resource" id="Resource_soul_duya"]
+script = ExtResource("2_entry")
+soul = ExtResource("3_duya")
+drop_chance = 0.2
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_jlxgm"]
-atlas = ExtResource("4_kdh31")
+[sub_resource type="Resource" id="Resource_soul_jianya"]
+script = ExtResource("2_entry")
+soul = ExtResource("4_jianya")
+drop_chance = 0.2
+
+[sub_resource type="Resource" id="Resource_soul_hualiushen"]
+script = ExtResource("2_entry")
+soul = ExtResource("5_hualiushen")
+drop_chance = 0.2
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_snake"]
+atlas = ExtResource("6_icon")
 region = Rect2(64, 0, 32, 32)
 
 [resource]
-script = ExtResource("5_sdldj")
+script = ExtResource("7_data")
 display_name = "蛇"
-icon = SubResource("AtlasTexture_jlxgm")
-drops = Array[ExtResource("2_amjyq")]([SubResource("Resource_h8hwk")])
-souls = Array[ExtResource("6_yxv4s")]([ExtResource("3_owiqb")])
-battle_scene = ExtResource("1_iql05")
+icon = SubResource("AtlasTexture_snake")
+soul_entries = Array[ExtResource("2_entry")]([SubResource("Resource_soul_duya"), SubResource("Resource_soul_jianya"), SubResource("Resource_soul_hualiushen")])
+battle_scene = ExtResource("1_scene")

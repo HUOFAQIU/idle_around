@@ -7,7 +7,8 @@
 ##   SELF          自己
 ##   ALL           全部有冷却的魂灵
 ##
-## 目标只从施法者所属单位的魂灵栏里选；当前只支持玩家已装备的魂灵。
+## 目标只从施法者所属单位的魂灵栏里选：玩家来自装备容器，
+## 怪物来自 MonsterData.soul_entries 生成的虚拟魂灵栏。
 
 class_name SoulTargetRule extends TargetRuleBase
 

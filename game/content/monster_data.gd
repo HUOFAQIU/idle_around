@@ -13,9 +13,29 @@ class_name MonsterData extends Resource
 
 ## 血量上限（战斗时写入 ASC）
 @export var max_health: float = 100.0
-## 死亡掉落
-@export var drops: Array[DropEntry] = []
-## 携带的魂灵：图鉴展示用，战斗时由 BattleUnit 生成对应技能
-@export var souls: Array[SoulData] = []
+## 携带的魂灵与各自的掉落几率；部位由魂灵自身的 equip_part 决定
+@export var soul_entries: Array[MonsterSoulEntry] = []
 ## 战斗时实例化的场景
 @export var battle_scene: PackedScene
+
+
+## 按配置顺序取出魂灵，交给 BattleUnit.add_soul_abilities() 生成技能
+func soul_list() -> Array[SoulData]:
+	var result : Array[SoulData] = []
+	for entry in soul_entries:
+		if entry != null and entry.soul != null:
+			result.append(entry.soul)
+	return result
+
+
+## 每颗携带的魂灵都是一条掉落：死亡时逐条独立掷骰
+func drop_entries() -> Array[DropEntry]:
+	var result : Array[DropEntry] = []
+	for entry in soul_entries:
+		if entry == null or entry.soul == null:
+			continue
+		var drop := DropEntry.new()
+		drop.item = entry.soul
+		drop.chance = entry.drop_chance
+		result.append(drop)
+	return result

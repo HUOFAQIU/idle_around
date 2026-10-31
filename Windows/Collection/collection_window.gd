@@ -13,6 +13,8 @@ const PART_NAMES := {
 	"ARMSSOUL": "手部",
 	"LEGSSOUL": "腿部",
 }
+## 仓库窗口展示的容器；「放入仓库」直接往这里塞
+const WAREHOUSE_CONTAINER: String = "inventory_0"
 
 @onready var monster_button: Button = $Root/VBox/KindRow/MonsterButton
 @onready var soul_button: Button = $Root/VBox/KindRow/SoulButton
@@ -21,6 +23,7 @@ const PART_NAMES := {
 @onready var detail_name: Label = $Root/VBox/Body/DetailPanel/DetailMargin/DetailBox/DetailName
 @onready var detail_meta: Label = $Root/VBox/Body/DetailPanel/DetailMargin/DetailBox/DetailMeta
 @onready var detail_text: RichTextLabel = $Root/VBox/Body/DetailPanel/DetailMargin/DetailBox/DetailText
+@onready var add_to_inventory_button: Button = $Root/VBox/Body/DetailPanel/DetailMargin/DetailBox/AddToInventoryButton
 
 ## 当前分类：CollectionDB.Kind
 var _kind: int = CollectionDB.Kind.MONSTER
@@ -34,6 +37,7 @@ func _ready() -> void:
 	monster_button.pressed.connect(_select_kind.bind(CollectionDB.Kind.MONSTER))
 	soul_button.pressed.connect(_select_kind.bind(CollectionDB.Kind.SOUL))
 	CollectionDB.entry_unlocked.connect(_on_entry_unlocked)
+	add_to_inventory_button.pressed.connect(_on_add_to_inventory_pressed)
 	_select_kind(CollectionDB.Kind.MONSTER)
 
 
@@ -130,6 +134,7 @@ func _show_detail(id: StringName) -> void:
 
 
 func _show_monster_detail(id: StringName) -> void:
+	add_to_inventory_button.visible = false
 	var monster := CollectionDB.get_monster(id)
 	if monster == null:
 		return
@@ -140,22 +145,21 @@ func _show_monster_detail(id: StringName) -> void:
 
 	var lines := PackedStringArray()
 	lines.append(monster.description if not monster.description.is_empty() else "暂无记载。")
-	if not monster.drops.is_empty():
-		lines.append("\n[b]掉落[/b]")
-		for entry in monster.drops:
-			if entry == null or entry.item == null:
+	if not monster.soul_entries.is_empty():
+		lines.append("\n[b]携带魂灵（可掉落）[/b]")
+		for entry in monster.soul_entries:
+			if entry == null or entry.soul == null:
 				continue
-			lines.append("· %s（%d%%）" % [entry.item.item_name, roundi(entry.chance * 100.0)])
-	if not monster.souls.is_empty():
-		lines.append("\n[b]携带魂灵[/b]")
-		for soul in monster.souls:
-			if soul != null:
-				lines.append("· " + soul.item_name)
+			var part := entry.part()
+			var part_name: String = PART_NAMES.get(part, part)
+			lines.append("· %s：%s（%d%%）"
+				% [part_name, entry.soul.item_name, roundi(entry.drop_chance * 100.0)])
 	detail_text.text = "\n".join(lines)
 
 
 func _show_soul_detail(id: StringName) -> void:
 	var soul := CollectionDB.get_soul(id)
+	add_to_inventory_button.visible = soul != null
 	if soul == null:
 		return
 	detail_icon.texture = soul.icon
@@ -192,6 +196,7 @@ func _show_soul_detail(id: StringName) -> void:
 
 
 func _show_locked_detail() -> void:
+	add_to_inventory_button.visible = false
 	detail_icon.texture = null
 	detail_icon.visible = false
 	detail_name.text = LOCKED_NAME
@@ -204,6 +209,7 @@ func _show_locked_detail() -> void:
 
 
 func _show_empty_detail() -> void:
+	add_to_inventory_button.visible = false
 	detail_icon.texture = null
 	detail_icon.visible = false
 	detail_name.text = "暂无条目"
@@ -214,3 +220,11 @@ func _show_empty_detail() -> void:
 func _on_entry_unlocked(kind: int, _id: StringName) -> void:
 	if kind == _kind:
 		_refresh()
+
+
+func _on_add_to_inventory_pressed() -> void:
+	var soul := CollectionDB.get_soul(_selected_id)
+	if soul == null:
+		return
+	if not GBIS.add_item(WAREHOUSE_CONTAINER, soul):
+		push_warning("见闻：魂灵放入仓库失败「%s」" % soul.item_name)

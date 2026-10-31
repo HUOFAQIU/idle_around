@@ -73,7 +73,8 @@ func setup_from_scene(
 		if child is GameplayAbility:
 			brain.abilities.append(child as GameplayAbility)
 	# 场景配置的魂灵 → 技能（玩家场景 souls 为空，由 BattleWindow 从装备读取后调用）
-	add_soul_abilities(souls)
+	var soul_abilities := add_soul_abilities(souls)
+	apply_soul_slots(_build_soul_slots(souls), soul_abilities)
 
 	var health_bar := get_node_or_null("HealthBar") as UnitHealthBar
 	if health_bar != null:
@@ -177,6 +178,44 @@ func add_soul_abilities(soul_list: Array[SoulData]) -> Array[AutoCastAbility]:
 		brain.add_ability(ability)
 		result[i] = ability
 	return result
+
+
+## 把魂灵栏位置写进技能，供左右相邻/随机等“选魂灵”规则使用。
+## slots 与 abilities 同下标；abilities 为 null 表示该魂灵没有技能（被动/未配）。
+func apply_soul_slots(slots: Array[SoulSlot], abilities: Array[AutoCastAbility]) -> void:
+	var loadout : Array[ChargedAbility] = []
+	for ability in abilities:
+		if ability != null:
+			loadout.append(ability)
+	for i in mini(slots.size(), abilities.size()):
+		var ability := abilities[i]
+		if ability == null or slots[i] == null:
+			continue
+		ability.soul_container = slots[i].container_name
+		ability.soul_column = slots[i].column
+		ability.soul_width = slots[i].width
+	for ability in loadout:
+		ability.soul_loadout = loadout
+
+
+## 怪物没有真实的魂灵容器：按配置顺序、按部位分组排成虚拟魂灵栏。
+## 只处理实际配置的部位，蛇不会凭空多出手/腿。
+func _build_soul_slots(soul_list: Array[SoulData]) -> Array[SoulSlot]:
+	var slots : Array[SoulSlot] = []
+	var part_columns : Dictionary = {}
+	for soul in soul_list:
+		if soul == null:
+			slots.append(null)
+			continue
+		var part := soul.equip_part if not soul.equip_part.is_empty() else "ANY"
+		var slot := SoulSlot.new()
+		slot.soul = soul
+		slot.container_name = part
+		slot.column = int(part_columns.get(part, 0))
+		slot.width = maxi(soul.columns, 1)
+		part_columns[part] = slot.column + slot.width
+		slots.append(slot)
+	return slots
 
 
 func _connect_asc() -> void:

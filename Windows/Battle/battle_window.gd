@@ -192,20 +192,8 @@ func _spawn_player(slots: Array[SoulSlot]) -> BattleUnit:
 
 	# 魂灵 → 技能：和怪物走同一条管线
 	_soul_abilities = unit.add_soul_abilities(_battle_souls)
-
 	# 把装备位置和整场魂灵名单交给每个技能，供“左/右/随机”选目标
-	var loadout: Array[ChargedAbility] = []
-	for ability in _soul_abilities:
-		if ability != null:
-			loadout.append(ability)
-	for i in slots.size():
-		if i >= _soul_abilities.size() or _soul_abilities[i] == null:
-			continue
-		var ability := _soul_abilities[i]
-		ability.soul_container = slots[i].container_name
-		ability.soul_column = slots[i].column
-		ability.soul_width = slots[i].width
-		ability.soul_loadout = loadout
+	unit.apply_soul_slots(slots, _soul_abilities)
 
 	var granted := 0
 	for ability in _soul_abilities:
@@ -228,8 +216,8 @@ func _spawn_enemy(cell: Vector2i) -> void:
 		return
 	unit.unit_name = monster.display_name
 	unit.max_health = monster.max_health
-	unit.drops = monster.drops
-	unit.souls = monster.souls
+	unit.drops = monster.drop_entries()
+	unit.souls = monster.soul_list()
 	units_root.add_child(unit)
 	unit.setup_from_scene(_battle)
 	unit.set_cell(cell)

@@ -2,7 +2,7 @@
 
 > 类型：指南 | 状态：有效 | 核对：2026-10-31
 > 何时读：写自动化测试/探针、构造战斗或背包场景、验证新功能
-> 关键词：测试 TestAPI 探针 自动化 战斗快照 魂灵 仓库 见闻 冷却
+> 关键词：测试 TestAPI 探针 自动化 战斗快照 魂灵 仓库 见闻 冷却 冻结 触发器
 > 代码：`Scripts/test_api.gd`、`Windows/Battle/battle_window.gd`、`Scripts/collection_db.gd`
 > 约定：新增功能/内容时，同步补 TestAPI 方法并更新本文。
 
@@ -48,6 +48,9 @@ TestAPI.stop_battle()
 | `spawn_monster(monster_id) -> bool` | 在远处空位刷一只指定怪 |
 | `apply_burn(target := "player") -> bool` | 对战斗单位施加灼烧（测试状态与火焰 Cue） |
 | `apply_poison(target := "player") -> bool` | 对战斗单位施加剧毒（测试飞溅与气泡 Cue） |
+| `apply_freeze(target := "player", seconds := 3.0) -> bool` | 对战斗单位施加冻结（测试冻结 Cue 与 `State.Frozen`） |
+| `apply_soul_freeze(soul_name, seconds := 1.0, target := "player") -> bool` | 对已装备的指定魂灵施加魂灵级冻结（测试冰霜 shader 与徽章） |
+| `damage_unit(target := "player", amount := 1.0) -> bool` | 对单位造成伤害，用于把生命值打到阈值以下（测温泉半血触发） |
 | `has_status(tag, target := "player") -> bool` | 单位是否拥有某个状态标签 |
 | `get_battle_state() -> Dictionary` | 战斗快照 |
 | `set_time_scale(scale) -> void` | 全局时间倍率，范围 0.1～20 |
@@ -62,6 +65,14 @@ print(TestAPI.has_status(&"State.Burning", "player"))
 
 TestAPI.apply_poison("enemy")
 print(TestAPI.has_status(&"State.Poisoned", "enemy"))
+
+TestAPI.apply_freeze("enemy", 3.0)
+print(TestAPI.has_status(&"State.Frozen", "enemy"))
+TestAPI.apply_soul_freeze("尖牙", 1.0)
+
+# 温泉：把玩家打到半血以下，触发全体冻结
+TestAPI.damage_unit("player", 300.0)
+print(TestAPI.has_status(&"State.Frozen", "enemy"))
 ```
 
 快照结构：
@@ -71,11 +82,13 @@ print(TestAPI.has_status(&"State.Poisoned", "enemy"))
   "running": true,
   "elapsed": 12.3,
   "time_scale": 1.0,
-  "player": {"name", "hp", "max_hp", "shield", "dead", "cell", "souls"},
-  "enemies": [{"name", "hp", "max_hp", "shield", "dead", "cell", "souls"}],
-  "player_souls": [{"name", "cooldown", "charge_ratio", "haste", "slow", "frozen"}]
+  "player": {"name", "hp", "max_hp", "shield", "dead", "frozen", "cell", "souls"},
+  "enemies": [{"name", "hp", "max_hp", "shield", "dead", "frozen", "cell", "souls"}],
+  "player_souls": [{"name", "cooldown", "charge_ratio", "haste", "slow", "freeze", "frozen"}]
 }
 ```
+
+`player_souls[].freeze` 是魂灵级冻结剩余秒数；`frozen` 是 `is_frozen()`（自身冻结或单位冻结）。单位的 `frozen` 只表示 `State.Frozen` 标签。
 
 ## 注意
 
@@ -85,5 +98,6 @@ print(TestAPI.has_status(&"State.Poisoned", "enemy"))
 - `player.souls` 是场景配置（玩家通常为空）；玩家装备的魂灵看 `player_souls`。
 - `start_battle` 会显示战斗窗口；找不到 `BattleWindow` 时返回 `false`。
 - `stop_battle` 会把 `Engine.time_scale` 还原为 1。
+- 高倍速下控制台战斗日志每秒最多 20 条；`get_battle_log()` 读的是战斗窗口里的完整日志，不受影响。
 - 新增全局类后，如果 headless 直接跑提示 `TestAPI` 未声明，先用编辑器打开一次项目（或 `--headless --editor --quit`）刷新全局类缓存。
 - 新增魂灵/怪物/技能/窗口时，先看这里要不要补方法。

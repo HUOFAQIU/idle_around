@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="GameplayEffect" format=3 uid="uid://bxvxmcqhhxmq4"]
+
+[ext_resource type="Script" uid="uid://b7ovihaaijli7" path="res://addons/GodotGAS/effects/gameplay_execution_calculation.gd" id="1_qtp23"]
+[ext_resource type="Script" uid="uid://xfupsfk5gb0g" path="res://game/content/status_apply_execution.gd" id="2_6pwgw"]
+[ext_resource type="Script" uid="uid://bcow77l0bnh0s" path="res://addons/GodotGAS/effects/gameplay_effect_modifier.gd" id="3_uxm6t"]
+[ext_resource type="Script" uid="uid://c81papidngxvg" path="res://addons/GodotGAS/effects/gameplay_effect.gd" id="4_t1m15"]
+
+[sub_resource type="Resource" id="Resource_cvb4f"]
+script = ExtResource("2_6pwgw")
+attribute_name = "regen"
+
+[resource]
+script = ExtResource("4_t1m15")
+executions = Array[ExtResource("1_qtp23")]([SubResource("Resource_cvb4f")])

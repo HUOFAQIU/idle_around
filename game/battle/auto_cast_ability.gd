@@ -57,7 +57,10 @@ func _activate_ability() -> bool:
 	commit_cost()
 	reset_charge()
 
-	# 魂灵目标技能（加速/减速/充能）：目标不是战斗单位
+	# 只对施法者自己结算的效果（例如温泉的再生），不管有没有选中敌人都会生效
+	_apply_self_effects(battle)
+
+	# 魂灵目标技能（加速/减速/冻结/充能）：目标不是战斗单位
 	if skill.target_rule is SoulTargetRule:
 		return await _activate_soul_skill(battle)
 
@@ -99,8 +102,7 @@ func _activate_ability() -> bool:
 	return true
 
 
-## 魂灵目标技能：选魂灵、施加加速；空放也照常消耗冷却。
-## 当前只支持加速；减速/充能以后在这条分支里扩。
+## 魂灵目标技能：选魂灵、施加加速/减速/冻结/充能；空放也照常消耗冷却。
 func _activate_soul_skill(battle: BattleManager) -> bool:
 	var rule := skill.target_rule as SoulTargetRule
 	if rule == null:
@@ -137,8 +139,10 @@ func _activate_soul_skill(battle: BattleManager) -> bool:
 			battle.log_line("%s 获得状态【加速】（%.1f 秒）" % [target.ability_name, skill.haste_duration], "#57d9e8")
 		if skill.slow_duration > 0.0 and target.apply_slow(skill.slow_duration):
 			battle.log_line("%s 获得状态【减速】（%.1f 秒）" % [target.ability_name, skill.slow_duration], "#57d9e8")
+		if skill.freeze_duration > 0.0 and target.apply_freeze(skill.freeze_duration):
+			battle.log_line("%s 获得状态【冻结】（%.1f 秒）" % [target.ability_name, skill.freeze_duration], "#57d9e8")
 		# 充能满就同帧释放：避免目标晚一帧归零，之后和充能者相位锁死。
-		# 冰冻目标不释放，留到解冻后的下一物理帧由 BattleBrain 统一处理。
+		# 冻结目标不释放，留到解冻后的下一物理帧由 BattleBrain 统一处理。
 		if charge_applied and target.is_ready() and not target.is_active and not target.is_frozen():
 			target.try_activate()
 	return true
@@ -177,6 +181,19 @@ func _on_projectile_landed(hit_unit: BattleUnit) -> void:
 	_apply_effects_to_target(hit_unit)
 
 
+## 对施法者自己结算 self_effects；每次释放独立掷一次暴击。
+## 即使目标规则空放，也照常生效（温泉没有怪物时也会提高再生）。
+func _apply_self_effects(battle: BattleManager) -> void:
+	if skill == null or skill.self_effects.is_empty():
+		return
+	var caster := _caster_unit()
+	if caster == null or caster.is_dead:
+		return
+	var is_crit := skill.crit_chance > 0.0 and battle.rng.randf() < skill.crit_chance
+	var crit_multiplier := skill.crit_multiplier if is_crit else 1.0
+	_apply_effect_list_to_target(skill.self_effects, caster, crit_multiplier)
+
+
 ## 对单个目标结算技能效果；每支箭/每个目标独立掷一次暴击
 func _apply_effects_to_target(target: BattleUnit) -> void:
 	if target == null:
@@ -186,7 +203,11 @@ func _apply_effects_to_target(target: BattleUnit) -> void:
 		return
 	var is_crit := skill.crit_chance > 0.0 and battle.rng.randf() < skill.crit_chance
 	var crit_multiplier := skill.crit_multiplier if is_crit else 1.0
-	for effect in skill.effects:
+	_apply_effect_list_to_target(skill.effects, target, crit_multiplier)
+
+
+func _apply_effect_list_to_target(effects: Array[GameplayEffect], target: BattleUnit, crit_multiplier: float) -> void:
+	for effect in effects:
 		if effect != null:
 			_apply_effect_to_target(effect, target, crit_multiplier)
 

@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="PassiveTrigger" format=3 uid="uid://c5x7oeot7mtkk"]
+
+[ext_resource type="Script" path="res://addons/GodotGAS/effects/gameplay_effect.gd" id="1_66uk1"]
+[ext_resource type="Resource" path="res://game/content/effects/freeze_unit.tres" id="2_8b4wi"]
+[ext_resource type="Script" path="res://game/content/passive_trigger.gd" id="3_f8mlu"]
+
+[resource]
+script = ExtResource("3_f8mlu")
+event = 1
+effects = Array[ExtResource("1_66uk1")]([ExtResource("2_8b4wi")])
+threshold_ratio = 0.5
+target_scope = 2
+once_per_battle = true
+charge_source_seconds = 3.0
+trigger_name = "冻结"

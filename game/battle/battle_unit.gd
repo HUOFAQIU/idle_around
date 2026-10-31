@@ -23,6 +23,9 @@ signal moved(unit: BattleUnit, from_cell: Vector2i, to_cell: Vector2i)
 
 enum Team { PLAYER, ENEMY }
 
+## 批量触发时的临时 spec 标记：不逐目标写“获得/结束状态”日志
+const SUPPRESS_STATE_LOG_TAG : StringName = &"Data.SuppressStateLog"
+
 @export var unit_name: String = ""
 @export var team: Team = Team.PLAYER
 ## 血量上限（在场景根节点上配置）
@@ -37,8 +40,8 @@ var asc: AbilitySystemComponent
 var brain: BattleBrain
 var is_dead: bool = false
 var _death_queued: bool = false
-## 玩家装备的触发型被动；目前只有“敌方移动”一种事件
-var passive_triggers: Array[PassiveTrigger] = []
+## 本场从魂灵上收集到的触发器绑定（来源技能 + 是否已触发）
+var _trigger_bindings: Array[SoulTriggerBinding] = []
 
 ## 战场格子坐标（逻辑位置）
 var cell: Vector2i = Vector2i.ZERO
@@ -51,11 +54,11 @@ var shield_attr: AttributeData
 
 ## 从场景建号：ASC、外观、能力都由场景预先配置。
 ## 场景根节点已经入树（子节点的 _ready 跑过）之后调用。
-## passive_effects / passive_triggers 只给玩家用：开战前挂属性效果，并登记触发型被动。
+## passive_effects 只给玩家用：开战前挂属性效果，不写开场状态日志。
+## 魂灵触发器在 add_soul_abilities() 里按“来源魂灵 + 技能”统一登记。
 func setup_from_scene(
 	p_battle: BattleManager,
-	passive_effects: Array[GameplayEffect] = [],
-	p_passive_triggers: Array[PassiveTrigger] = []
+	passive_effects: Array[GameplayEffect] = []
 ) -> void:
 	battle = p_battle
 
@@ -63,7 +66,6 @@ func setup_from_scene(
 	# 属性集配在场景的 ASC 节点上，入树时框架已经深拷贝好；这里只写初始数值
 	_init_attributes()
 	_apply_passive_effects(passive_effects)
-	passive_triggers = p_passive_triggers
 
 	brain = get_node("BattleBrain")
 	brain.unit = self
@@ -86,9 +88,6 @@ func setup_from_scene(
 		name_label.text = unit_name
 
 	_connect_asc()
-	if not passive_triggers.is_empty() and battle != null:
-		if not battle.unit_moved.is_connected(_on_battle_unit_moved):
-			battle.unit_moved.connect(_on_battle_unit_moved)
 
 
 ## ASC 入树之后写初始属性：先设上限，血量的钳制依赖它
@@ -137,35 +136,114 @@ func _apply_health_delta_effect(health_delta: float) -> void:
 	asc.apply_gameplay_effect(sync_effect, asc)
 
 
-## 战场上有单位改变格子。只有玩家装备了触发型被动时才需要处理。
+## 战场上有单位改变格子：只处理“敌方移动”触发器。
 func _on_battle_unit_moved(moving_unit: BattleUnit, _from_cell: Vector2i, _to_cell: Vector2i) -> void:
 	if is_dead or battle == null or not battle.is_running:
 		return
-	if team != Team.PLAYER or moving_unit == null or moving_unit.is_dead:
-		return
-	if moving_unit.team != Team.ENEMY:
+	if moving_unit == null or moving_unit.is_dead or moving_unit.team == team:
 		return
 
-	for trigger in passive_triggers:
-		if trigger == null or trigger.event != PassiveTrigger.Event.ENEMY_MOVED:
+	for binding in _trigger_bindings:
+		if binding.trigger == null or binding.trigger.event != PassiveTrigger.Event.ENEMY_MOVED:
 			continue
+		_fire_trigger(binding, moving_unit)
+
+
+## 生命值变化时检查“首次低于比例”触发器。
+func _check_health_triggers(new_value: float) -> void:
+	if _trigger_bindings.is_empty() or max_health_attr == null or new_value <= 0.0:
+		return
+	var max_hp := max_health_attr.current_value
+	if max_hp <= 0.0:
+		return
+	var ratio := new_value / max_hp
+	for binding in _trigger_bindings:
+		var trigger := binding.trigger
+		if trigger == null or trigger.event != PassiveTrigger.Event.SELF_HEALTH_BELOW_PERCENT:
+			continue
+		if binding.fired and trigger.once_per_battle:
+			continue
+		if ratio >= trigger.threshold_ratio:
+			continue
+		_fire_trigger(binding, self)
+
+
+## 触发一个绑定：按范围施加效果，最后给来源魂灵充能。
+func _fire_trigger(binding: SoulTriggerBinding, event_target: BattleUnit) -> void:
+	var trigger := binding.trigger
+	if trigger == null:
+		return
+	if trigger.once_per_battle:
+		if binding.fired:
+			return
+		binding.fired = true
+
+	var targets := _trigger_targets(trigger.target_scope, event_target)
+	var suppress_state_logs := targets.size() > 1
+	if battle != null:
+		if suppress_state_logs:
+			var trigger_label := trigger.trigger_name if not trigger.trigger_name.is_empty() else "效果"
+			battle.log_line(
+				"%s 触发【%s】：%d 个目标" % [binding.source_name, trigger_label, targets.size()],
+				"#8cd9ff"
+			)
+		elif not trigger.trigger_name.is_empty():
+			battle.log_line("%s 触发【%s】" % [binding.source_name, trigger.trigger_name], "#8cd9ff")
+
+	for target in targets:
 		for effect in trigger.effects:
-			_apply_trigger_effect(effect, moving_unit, trigger.magnitude)
+			_apply_trigger_effect(effect, target, trigger.magnitude, suppress_state_logs)
+
+	if trigger.charge_source_seconds > 0.0 and binding.ability != null:
+		binding.ability.add_charge(trigger.charge_source_seconds)
+		if battle != null:
+			battle.log_line(
+				"%s 获得充能（%.1f 秒）" % [binding.source_name, trigger.charge_source_seconds],
+				"#ffd866"
+			)
 
 
-## 触发型被动对事件目标施加一个效果。事件来源是玩家自己。
-## 被动施加的灼烧不写暴击率；主动技能会自己把暴击率写进 spec。
-func _apply_trigger_effect(effect: GameplayEffect, target: BattleUnit, magnitude: float) -> void:
+## 触发器效果施加范围
+func _trigger_targets(scope: PassiveTrigger.TargetScope, event_target: BattleUnit) -> Array[BattleUnit]:
+	var targets : Array[BattleUnit] = []
+	match scope:
+		PassiveTrigger.TargetScope.EVENT_TARGET:
+			if event_target != null and not event_target.is_dead:
+				targets.append(event_target)
+		PassiveTrigger.TargetScope.SELF:
+			if not is_dead:
+				targets.append(self)
+		PassiveTrigger.TargetScope.ALL_ENEMIES:
+			if battle == null:
+				return targets
+			for unit in battle.units:
+				if unit != null and not unit.is_dead and unit.team != team:
+					targets.append(unit)
+	return targets
+
+
+## 触发效果对单个目标施加。事件来源是触发器所属单位。
+## 触发施加的灼烧不写暴击率；主动技能会自己把暴击率写进 spec。
+## 批量施加时 suppress_state_log = true：目标不逐条写“获得/结束状态”日志。
+func _apply_trigger_effect(
+	effect: GameplayEffect,
+	target: BattleUnit,
+	magnitude: float,
+	suppress_state_log: bool = false
+) -> void:
 	if effect == null or asc == null or target == null or target.asc == null:
 		return
 	var context := GameplayEffectContext.new(self, self)
 	context.target_data.append_node(target)
 	var spec := GameplayEffectSpec.new(effect, context, 1.0)
 	spec.set_set_by_caller_magnitude(PassiveTrigger.MAGNITUDE_TAG, magnitude)
+	if suppress_state_log:
+		spec.inject_tag(SUPPRESS_STATE_LOG_TAG)
 	asc.apply_effect_spec_to_target(spec, target.asc)
 
 
 ## 把一批魂灵变成技能；返回与输入等长的能力数组，null 表示这颗魂灵没有技能。
+## 同时登记魂灵触发器；主动魂灵的触发器会绑定到它自己的技能上（用于触发充能）。
 func add_soul_abilities(soul_list: Array[SoulData]) -> Array[AutoCastAbility]:
 	var result : Array[AutoCastAbility] = []
 	for i in soul_list.size():
@@ -177,7 +255,27 @@ func add_soul_abilities(soul_list: Array[SoulData]) -> Array[AutoCastAbility]:
 		ability.apply_definition(soul.skill, soul.item_name)
 		brain.add_ability(ability)
 		result[i] = ability
+	_register_soul_triggers(soul_list, result)
 	return result
+
+
+## 把魂灵上的触发器登记成运行时绑定；被动魂灵没有技能，来源技能为 null。
+func _register_soul_triggers(soul_list: Array[SoulData], abilities: Array[AutoCastAbility]) -> void:
+	for i in mini(soul_list.size(), abilities.size()):
+		var soul := soul_list[i]
+		if soul == null:
+			continue
+		for trigger in soul.triggers:
+			if trigger != null:
+				_trigger_bindings.append(SoulTriggerBinding.new(trigger, abilities[i], soul.item_name))
+
+	if battle == null:
+		return
+	for binding in _trigger_bindings:
+		if binding.trigger.event == PassiveTrigger.Event.ENEMY_MOVED:
+			if not battle.unit_moved.is_connected(_on_battle_unit_moved):
+				battle.unit_moved.connect(_on_battle_unit_moved)
+			break
 
 
 ## 把魂灵栏位置写进技能，供左右相邻/随机等“选魂灵”规则使用。
@@ -268,6 +366,8 @@ func _effect_display_name(spec: GameplayEffectSpec) -> String:
 		return "剧毒"
 	if RegenTickExecution.is_regen_tick_effect(effect):
 		return "生命再生"
+	if effect != null and effect.granted_tags.has(GameplayTags.State_Frozen):
+		return "冻结"
 	if spec != null and not spec.display_name.is_empty():
 		return spec.display_name
 	if effect != null and not effect.resource_name.is_empty():
@@ -278,9 +378,14 @@ func _effect_display_name(spec: GameplayEffectSpec) -> String:
 
 
 ## 血条和死亡只看属性变化；伤害/治疗叙事走 effect_received。
+## 生命值变化同时驱动“首次低于比例”类魂灵触发器。
 func _on_attribute_changed(attribute_name: String, _old_value: float, new_value: float, _spec: GameplayEffectSpec) -> void:
-	if attribute_name == "health" and new_value <= 0.0:
+	if attribute_name != "health":
+		return
+	if new_value <= 0.0:
 		_queue_death()
+	else:
+		_check_health_triggers(new_value)
 
 
 ## 周期效果每跳提交后由 ASC 发出；这里专门处理灼烧的每跳叙事。
@@ -378,8 +483,15 @@ func _log_regen_tick(damage: float, spec: GameplayEffectSpec) -> void:
 
 
 func _source_name(spec: GameplayEffectSpec) -> String:
-	if spec != null and spec.context and spec.context.instigator is BattleUnit:
-		return (spec.context.instigator as BattleUnit).unit_name
+	# 周期效果可能比施加者活得久：怪物死后 context 里仍是已释放实例，
+	# 直接做 `is BattleUnit` 会报 “previously freed instance”，必须先判有效。
+	if spec != null and spec.context != null:
+		var instigator := spec.context.instigator
+		if is_instance_valid(instigator) and instigator is BattleUnit:
+			return (instigator as BattleUnit).unit_name
+		var causer := spec.context.causer
+		if is_instance_valid(causer) and causer is BattleUnit:
+			return (causer as BattleUnit).unit_name
 	return "未知来源"
 
 
@@ -459,6 +571,8 @@ func _on_active_effect_added(active_effect: ActiveGameplayEffect) -> void:
 	var def := active_effect.get_effect_def()
 	if is_dead or def == null or def.policy == GameplayEffect.DurationPolicy.INSTANT or def is PassiveEffect:
 		return
+	if _has_suppressed_state_log(active_effect):
+		return
 	var duration_text := "持续" if def.policy == GameplayEffect.DurationPolicy.INFINITE else "%.1f 秒" % active_effect.time_remaining
 	_log("%s 获得状态【%s】（%s）" % [unit_name, _effect_display_name(active_effect.spec), duration_text], "#57d9e8")
 
@@ -467,7 +581,18 @@ func _on_active_effect_removed(active_effect: ActiveGameplayEffect) -> void:
 	var def := active_effect.get_effect_def()
 	if is_dead or def == null or def.policy == GameplayEffect.DurationPolicy.INSTANT or def is PassiveEffect:
 		return
+	if _has_suppressed_state_log(active_effect):
+		return
 	_log("%s 的状态【%s】结束" % [unit_name, _effect_display_name(active_effect.spec)], "gray")
+
+
+## 批量触发施加的效果不逐目标写状态日志，避免 10 倍速下全体冻结刷屏
+func _has_suppressed_state_log(active_effect: ActiveGameplayEffect) -> bool:
+	return (
+		active_effect != null
+		and active_effect.spec != null
+		and active_effect.spec.has_tag(SUPPRESS_STATE_LOG_TAG)
+	)
 
 
 func _die() -> void:

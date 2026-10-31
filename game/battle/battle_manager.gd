@@ -16,6 +16,8 @@ const SPAWN_INTERVAL : float = 0.2
 const SPAWN_MIN_DISTANCE : int = 10
 ## 掉落进哪个仓库容器
 const DROP_CONTAINER : String = "inventory_0"
+## 高倍速下控制台每秒最多打印多少条战斗日志；战斗窗口内仍保留完整日志
+const CONSOLE_LOG_LIMIT_PER_SECOND : int = 20
 
 ## 单位坐标 → 像素坐标要用的地图
 var map: TileMapLayer
@@ -35,6 +37,9 @@ var log_sink: Callable = Callable()
 
 var _start_msec: int = 0
 var _spawn_accum: float = 0.0
+## 控制台日志限流：当前秒与已打印条数
+var _console_log_second: int = -1
+var _console_log_count: int = 0
 
 
 func setup() -> void:
@@ -136,6 +141,20 @@ func log_line(text: String, color: String = "white") -> void:
 	var line := "[%5.2fs] %s" % [elapsed_seconds(), text]
 	if log_sink.is_valid():
 		log_sink.call(line, color)
+
+	# 高倍速下怪物状态日志会暴涨，Godot 调试器输出缓冲会溢出。
+	# 战斗窗口仍然保留完整日志，只对控制台按秒限流。
+	if Engine.time_scale > 1.0:
+		var now_second := int(Time.get_ticks_msec() / 1000.0)
+		if now_second != _console_log_second:
+			_console_log_second = now_second
+			_console_log_count = 0
+		_console_log_count += 1
+		if _console_log_count > CONSOLE_LOG_LIMIT_PER_SECOND:
+			if _console_log_count == CONSOLE_LOG_LIMIT_PER_SECOND + 1:
+				print_rich("[color=gray]... 控制台日志过多，本秒后续日志已省略（战斗窗口内仍完整显示）[/color]")
+			return
+
 	print_rich("[color=%s]%s[/color]" % [color, line])
 
 

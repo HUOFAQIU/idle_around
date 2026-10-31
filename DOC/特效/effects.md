@@ -2,7 +2,7 @@
 
 > 类型：指南 | 状态：有效 | 整理：2026-10-31
 > 何时读：新增/调试 GameplayCue 特效
-> 关键词：特效 GameplayCue Cue 场景 对象池 补间 注册 挂钩
+> 关键词：特效 GameplayCue Cue 场景 对象池 补间 注册 挂钩 灼烧 剧毒 冻结
 > 代码：`godot_gas/cue_registry.tres`、`addons/GodotGAS/cues/`
 > 相关：`架构/GAS.md`
 
@@ -189,5 +189,8 @@ print(img.get_pixel(x, y))          # 窗口内部坐标
 | 灼烧光环 | `game/battle/cues/burn_cue.tscn`；标签 `Cue.Status.Burn`；挂在 `game/content/effects/burn_tick.tres` 的 `persistent_cue_tags` |
 | 剧毒施加飞溅 | `game/battle/cues/poison_splash_cue.tscn`；标签 `Cue.Combat.PoisonApply`；挂在 `game/content/effects/poison_tick.tres` 的 `application_cue_tags` |
 | 中毒气泡光环 | `game/battle/cues/poison_aura_cue.tscn`；标签 `Cue.Status.Poison`；挂在 `poison_tick.tres` 的 `persistent_cue_tags` |
+| 冻结光环 | `game/battle/cues/freeze_cue.tscn`；标签 `Cue.Status.Freeze`；挂在 `game/content/effects/freeze_unit.tres` 的 `persistent_cue_tags` |
+
+魂灵格子被冻结时走的是 `ItemView` 的材质表现，不走 Cue：`SoulData.freeze_seconds` 驱动 `soul_scanline.gdshader` 的 `freeze` 参数和 `game/content/Kits/bingdong.tscn` 徽章。原因是魂灵的显示对象是 UI `Control`，而不是可以挂 Cue 的战场节点。
 
 （项目里原本有一个示例"受击火花"，后来按需要删掉了 —— 自己写的时候照上面三步来就行。）

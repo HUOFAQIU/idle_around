@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="SkillDefinition" format=3 uid="uid://wvru5kmb1x0j"]
+
+[ext_resource type="Script" path="res://addons/GodotGAS/effects/gameplay_execution_calculation.gd" id="1_skeou"]
+[ext_resource type="Script" path="res://addons/GodotGAS/effects/gameplay_effect_modifier.gd" id="2_1mjma"]
+[ext_resource type="Script" path="res://addons/GodotGAS/effects/gameplay_effect.gd" id="3_8mdq3"]
+[ext_resource type="Script" path="res://game/content/skill_definition.gd" id="4_an4kq"]
+[ext_resource type="Script" path="res://game/content/soul_target_rule.gd" id="5_k7vvd"]
+
+[sub_resource type="Resource" id="Resource_xo34h"]
+script = ExtResource("3_8mdq3")
+policy = 1
+duration = 5.0
+
+[sub_resource type="Resource" id="Resource_kcwuw"]
+script = ExtResource("5_k7vvd")
+mode = 5
+
+[resource]
+script = ExtResource("4_an4kq")
+id = "xianzi"
+description = "冷却 5 秒，冻结同一部位行内左右相邻的魂灵 1 秒。"
+cooldown_effect = SubResource("Resource_xo34h")
+target_rule = SubResource("Resource_kcwuw")
+freeze_duration = 1.0
+metadata/_custom_type_script = "uid://ktr72cmavmyy"

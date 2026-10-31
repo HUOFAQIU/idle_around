@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="SoulData" format=3 uid="uid://wexn2ojsabyn"]
+
+[ext_resource type="Texture2D" path="res://Assets/souls/xianzi.png" id="1_u3fqi"]
+[ext_resource type="Shader" path="res://Assets/Shader/soul_scanline.gdshader" id="2_okn4k"]
+[ext_resource type="Script" path="res://Windows/Inventory/grid_base_inventory_system/core/model/item/soul_data.gd" id="3_d16bo"]
+[ext_resource type="Resource" path="res://game/content/Souls/xian_zi/xian_zi_skill.tres" id="4_u34yl"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_c0u8m"]
+shader = ExtResource("2_okn4k")
+shader_parameter/line_color = Color(0.54902, 0.85098, 1, 1)
+shader_parameter/band_width = 0.16
+shader_parameter/intensity = 1.0
+shader_parameter/enable = 0.0
+shader_parameter/progress = 0.0
+shader_parameter/freeze = 0.0
+shader_parameter/freeze_color = Color(0.58, 0.86, 1, 1)
+
+[resource]
+script = ExtResource("3_d16bo")
+skill = ExtResource("4_u34yl")
+equip_part = "HEADSOUL"
+item_name = "仙子"
+type = "SOUL"
+icon = ExtResource("1_u3fqi")
+columns = 1
+rows = 2
+material = SubResource("ShaderMaterial_c0u8m")
+shader_params = Dictionary[String, Variant]({})
+metadata/_custom_type_script = "uid://bbcxwqb4ef1cg"

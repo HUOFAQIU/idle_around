@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="GameplayEffect" format=3 uid="uid://b5knvl2bwvg68"]
+
+[ext_resource type="Script" uid="uid://b7ovihaaijli7" path="res://addons/GodotGAS/effects/gameplay_execution_calculation.gd" id="1_p37ak"]
+[ext_resource type="Script" uid="uid://bcow77l0bnh0s" path="res://addons/GodotGAS/effects/gameplay_effect_modifier.gd" id="2_pe2kk"]
+[ext_resource type="Script" uid="uid://c81papidngxvg" path="res://addons/GodotGAS/effects/gameplay_effect.gd" id="3_wopr4"]
+
+[resource]
+script = ExtResource("3_wopr4")
+stacking_policy = 1
+policy = 1
+duration = 3.0
+max_stacks = 1
+persistent_cue_tags = Array[StringName]([&"Cue.Status.Freeze"])
+granted_tags = Array[StringName]([&"State.Frozen"])

@@ -9,9 +9,14 @@
 @tool
 class_name GameplayTags
 
+const Cue_Combat_PoisonApply: StringName = &"Cue.Combat.PoisonApply"
+const Cue_Status_Burn: StringName = &"Cue.Status.Burn"
+const Cue_Status_Freeze: StringName = &"Cue.Status.Freeze"
+const Cue_Status_Poison: StringName = &"Cue.Status.Poison"
 const Event_Combat_Critical: StringName = &"Event.Combat.Critical"
 const State_Burning: StringName = &"State.Burning"
 const State_Dead: StringName = &"State.Dead"
+const State_Frozen: StringName = &"State.Frozen"
 const State_Poisoned: StringName = &"State.Poisoned"
 const State_Wounded: StringName = &"State.Wounded"
 const Team_Enemy: StringName = &"Team.Enemy"

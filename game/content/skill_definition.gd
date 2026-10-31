@@ -16,6 +16,8 @@ class_name SkillDefinition extends Resource
 
 ## 施加到每个目标的效果列表（可多个：例如"伤害 + 中毒"）
 @export var effects: Array[GameplayEffect] = []
+## 只对施法者自己结算的效果列表（例如"攻击敌人的同时提高自身再生"）
+@export var self_effects: Array[GameplayEffect] = []
 
 ## 冷却时长（秒）：只读取 duration，不再把效果挂到 ASC。
 ## 充能由 ChargedAbility 按帧累加，充满后释放。
@@ -27,12 +29,13 @@ class_name SkillDefinition extends Resource
 
 ## 目标选择规则：
 ##   TargetRule      选战斗单位，使用 effects / projectile_scene
-##   SoulTargetRule  选魂灵，使用 haste_duration
+##   SoulTargetRule  选魂灵，使用 haste/slow/freeze/charge 时长
 @export var target_rule: TargetRuleBase
 
-## 加速/减速时长（秒）；0 = 不施加。只有 target_rule 是 SoulTargetRule 时才生效。
+## 加速/减速/冻结时长（秒）；0 = 不施加。只有 target_rule 是 SoulTargetRule 时才生效。
 @export_range(0.0, 60.0, 0.1) var haste_duration: float = 0.0
 @export_range(0.0, 60.0, 0.1) var slow_duration: float = 0.0
+@export_range(0.0, 60.0, 0.1) var freeze_duration: float = 0.0
 
 ## 充能数值（秒）：直接给目标减少多少当前冷却；0 = 不充能。
 @export_range(0.0, 60.0, 0.1) var charge_duration: float = 0.0

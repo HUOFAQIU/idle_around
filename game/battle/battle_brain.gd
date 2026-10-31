@@ -8,15 +8,16 @@
 ## 基础刻度 = 120 / physics_ticks_per_second × time_scale：
 ## 60 FPS、1x 时每帧 2 刻度；减速 1 刻度，加速 4 刻度。
 ## 先充能再统一释放：本帧新加的加速，下一帧才影响充能，避免连锁施法。
-## 冰冻期间：自身不充能，也不能释放；外部充能（Charge 效果）仍然可以直接
-## 调用 add_charge() 把充能加满，解冻后下一帧立刻释放。
+## 冻结期间：单位级冻结（State.Frozen）或魂灵级冻结（freeze_units）都不充能、
+## 不释放；外部充能（Charge 效果）仍然可以直接调用 add_charge() 把充能加满，
+## 解冻后下一帧立刻释放。加速/减速计时在冻结期间照常走。
 ##
 ## @meta_addon: GodotGAS
 ## @meta_license: MIT
 
 class_name BattleBrain extends Node
 
-## 冰冻标签；唯一来源在 ChargedAbility，这里保留别名方便阅读
+## 冻结标签；唯一来源在 ChargedAbility，这里保留别名方便阅读
 const FROZEN_TAG : StringName = ChargedAbility.FROZEN_TAG
 
 ## 本单位的技能（AutoCastAbility 节点，已授予给 ASC）
@@ -59,8 +60,8 @@ func _physics_process(_delta: float) -> void:
 			continue
 		for status_name in charged.tick_status(base_units):
 			unit.battle.log_line("%s 的状态【%s】结束" % [ability.ability_name, status_name], "gray")
-		# 冰冻时自身不充能；投射物飞行等施法过程不阻塞冷却
-		if not frozen:
+		# 单位级冻结或魂灵自身冻结时都不充能；投射物飞行等施法过程不阻塞冷却
+		if not frozen and not charged.is_frozen():
 			charged.tick_charge(base_units)
 
 	if frozen:
@@ -71,7 +72,7 @@ func _physics_process(_delta: float) -> void:
 		if unit.is_dead or unit.battle == null or not unit.battle.is_running:
 			return
 		var charged := ability as ChargedAbility
-		if charged != null and not charged.is_ready():
+		if charged != null and (charged.is_frozen() or not charged.is_ready()):
 			continue
 		if unit.asc.can_activate_ability(ability):
 			ability.try_activate()  # 开火即忘，技能内部自己 await

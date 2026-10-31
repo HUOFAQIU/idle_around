@@ -2,10 +2,14 @@ extends Control
 ## 物品视图，控制物品的绘制
 class_name ItemView
 
-## 魂灵状态徽章：加速在上、减速在下
+## 魂灵状态徽章：加速在上、冻结在中、减速在下
 const HASTE_BADGE_SCENE := preload("res://game/content/Kits/jiasu.tscn")
 const SLOW_BADGE_SCENE := preload("res://game/content/Kits/jiansu.tscn")
+const FREEZE_BADGE_SCENE := preload("res://game/content/Kits/bingdong.tscn")
 const STATUS_BADGE_SIZE := Vector2(16.0, 10.0)
+const BADGE_TOP : int = 0
+const BADGE_CENTER : int = 1
+const BADGE_BOTTOM : int = 2
 
 ## 堆叠数字的字体
 var stack_num_font: Font
@@ -30,6 +34,7 @@ var _moving_offset: Vector2i = Vector2i.ZERO
 ## 状态徽章（只对 SoulData 创建）
 var _haste_badge: Control
 var _slow_badge: Control
+var _freeze_badge: Control
 
 ## 构造函数
 @warning_ignore("shadowed_variable")
@@ -56,7 +61,9 @@ func _ready() -> void:
 	if data is SoulData:
 		_haste_badge = _make_status_badge(HASTE_BADGE_SCENE, "HasteBadge")
 		_slow_badge = _make_status_badge(SLOW_BADGE_SCENE, "SlowBadge")
+		_freeze_badge = _make_status_badge(FREEZE_BADGE_SCENE, "FreezeBadge")
 		_refresh_status_badges()
+		_apply_freeze_shader()
 
 ## 重写计算大小
 func recalculate_size() -> void:
@@ -102,12 +109,21 @@ func update_moving_position() -> void:
 func _on_data_refresh() -> void:
 	queue_redraw()
 	_refresh_status_badges()
+	_apply_freeze_shader()
 
 
 ## 扫描线进度只改材质参数，不需要重绘整个 ItemView
 func _on_scanline_progress(value: float) -> void:
 	if material is ShaderMaterial:
 		(material as ShaderMaterial).set_shader_parameter("progress", value)
+
+
+## 冻结状态直接改材质参数：冰霜覆盖不依赖 shader_params 里有没有登记 freeze
+func _apply_freeze_shader() -> void:
+	if not data is SoulData or not material is ShaderMaterial:
+		return
+	var frozen := (data as SoulData).freeze_seconds > 0.0
+	(material as ShaderMaterial).set_shader_parameter("freeze", 1.0 if frozen else 0.0)
 
 
 ## 实例化一个 Kits 徽章，尺寸固定 16×10，鼠标事件全部穿透
@@ -126,21 +142,29 @@ func _make_status_badge(scene: PackedScene, badge_name: String) -> Control:
 	return badge
 
 
-## 把 SoulData 上的剩余秒数同步到两个徽章
+## 把 SoulData 上的剩余秒数同步到三个徽章
 func _refresh_status_badges() -> void:
 	if not data is SoulData:
 		return
 	var soul := data as SoulData
-	_update_status_badge(_haste_badge, soul.haste_seconds, true)
-	_update_status_badge(_slow_badge, soul.slow_seconds, false)
+	_update_status_badge(_haste_badge, soul.haste_seconds, BADGE_TOP)
+	_update_status_badge(_freeze_badge, soul.freeze_seconds, BADGE_CENTER)
+	_update_status_badge(_slow_badge, soul.slow_seconds, BADGE_BOTTOM)
 
 
-func _update_status_badge(badge: Control, seconds: float, top: bool) -> void:
+func _update_status_badge(badge: Control, seconds: float, position_mode: int) -> void:
 	if badge == null:
 		return
 	badge.visible = seconds > 0.0
 	var x := roundf((size.x - STATUS_BADGE_SIZE.x) * 0.5)
-	var y := 0.0 if top else roundf(size.y - STATUS_BADGE_SIZE.y)
+	var y := 0.0
+	match position_mode:
+		BADGE_TOP:
+			y = 0.0
+		BADGE_CENTER:
+			y = roundf((size.y - STATUS_BADGE_SIZE.y) * 0.5)
+		BADGE_BOTTOM:
+			y = roundf(size.y - STATUS_BADGE_SIZE.y)
 	badge.position = Vector2(x, y)
 	if not badge.visible:
 		return

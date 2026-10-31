@@ -19,6 +19,8 @@ const BURN_TICK : GameplayEffect = preload("res://game/content/effects/burn_tick
 ## 测试用剧毒效果：施加 + 周期
 const POISON_APPLY : GameplayEffect = preload("res://game/content/effects/poison_apply.tres")
 const POISON_TICK : GameplayEffect = preload("res://game/content/effects/poison_tick.tres")
+## 测试用单位冻结效果
+const FREEZE_UNIT : GameplayEffect = preload("res://game/content/effects/freeze_unit.tres")
 
 
 #region 背包 / 见闻
@@ -145,6 +147,48 @@ static func apply_poison(target : String = "player") -> bool:
 		return false
 	unit.asc.apply_gameplay_effect(POISON_APPLY)
 	unit.asc.apply_gameplay_effect(POISON_TICK)
+	return true
+
+
+## 对战斗中的单位施加冻结（用于测试冻结 Cue 与状态标签）
+static func apply_freeze(target : String = "player", seconds : float = 3.0) -> bool:
+	var unit := _find_unit(target)
+	if unit == null or unit.asc == null or seconds <= 0.0:
+		return false
+	var context := GameplayEffectContext.new(unit, unit)
+	context.target_data.append_node(unit)
+	var spec := GameplayEffectSpec.new(FREEZE_UNIT, context)
+	spec.duration = seconds
+	unit.asc.apply_effect_spec(spec)
+	return true
+
+
+## 对已装备的某个魂灵施加冻结（用于测试仙子/魂灵冻结显示）
+static func apply_soul_freeze(soul_name : String, seconds : float = 1.0, target : String = "player") -> bool:
+	var unit := _find_unit(target)
+	if unit == null or unit.brain == null or seconds <= 0.0:
+		return false
+	for ability in unit.brain.abilities:
+		var charged := ability as ChargedAbility
+		if charged != null and charged.ability_name == soul_name:
+			return charged.apply_freeze(seconds)
+	return false
+
+
+## 对单位造成伤害（用于把生命值打到阈值以下，测试半血触发）
+static func damage_unit(target : String = "player", amount : float = 1.0) -> bool:
+	var unit := _find_unit(target)
+	if unit == null or unit.asc == null or amount <= 0.0:
+		return false
+	var effect := GameplayEffect.new()
+	effect.policy = GameplayEffect.DurationPolicy.INSTANT
+	var modifier := GameplayEffectModifier.new()
+	modifier.attribute_name = "health"
+	modifier.operation = GameplayEffectModifier.Operation.ADD
+	modifier.magnitude = -amount
+	var modifiers : Array[GameplayEffectModifier] = [modifier]
+	effect.modifiers = modifiers
+	unit.asc.apply_gameplay_effect(effect, unit.asc)
 	return true
 
 

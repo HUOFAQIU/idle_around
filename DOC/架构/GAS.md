@@ -1,6 +1,6 @@
 # GAS 适配层
 
-> 类型：实现 | 状态：有效 | 核对：2026-10-28
+> 类型：实现 | 状态：有效 | 核对：2026-10-31
 > 何时读：改属性集、标签注册、Cue 注册
 > 关键词：GAS GameplayAbility AttributeSet Tag Cue godot_gas
 > 代码：godot_gas/
@@ -15,9 +15,9 @@
 | `attributes/player_stats_attribute_set.gd` | `max_health`、`health`、`damage_bonus`、`burn`、`shield`、`poison`、`regen`；`health` 钳制在 `[0, max_health]`，状态值钳制为不小于 0 |
 | `attributes/monster_stats_attribute_set.gd` | 同上，额外有 `cooldown_move`（当前未被使用，移动冷却读的是 `cooldown_effect.duration`） |
 | `attributes_draft.cfg` | GodotGAS 编辑器插件的属性草稿数据，不参与运行时 |
-| `tag_registry.tres` | 标签注册表：`Event.Combat.Critical`、`State.Burning`、`State.Dead`、`State.Poisoned`、`State.Wounded`、`Team.Enemy`、`Team.Player` |
+| `tag_registry.tres` | 标签注册表：`Cue.Combat.PoisonApply`、`Cue.Status.Burn`、`Cue.Status.Freeze`、`Cue.Status.Poison`、`Event.Combat.Critical`、`State.Burning`、`State.Dead`、`State.Frozen`、`State.Poisoned`、`State.Wounded`、`Team.Enemy`、`Team.Player` |
 | `gameplay_tags.gd` | 由插件根据注册表自动生成，**不要手改**；新增标签后通过插件重新生成 |
-| `cue_registry.tres` | Cue 注册表，当前为空（没有登记任何特效场景） |
+| `cue_registry.tres` | Cue 注册表：灼烧光环、剧毒飞溅/气泡、冻结光环 |
 
 > `addons/GodotGAS/components/ability_system_component.gd` 增加了一个小扩展：`periodic_effect_ticked(active_effect, spec)`，在周期效果每跳 `_commit_spec_math()` 后发出，供 DoT/HoT 的战斗叙事使用。原框架只有施加时的 `effect_received`，没有每跳信号。
 
@@ -30,7 +30,8 @@
 | `Team.Player` / `Team.Enemy` | `BattleUnit._init_attributes()` 按 `team` 字段添加 |
 | `State.Burning` / `State.Poisoned` | 灼烧/剧毒周期效果的 `granted_tags` |
 | `State.Wounded` | 已注册，但当前没有代码使用 |
-| `State.Frozen` | `ChargedAbility.FROZEN_TAG`（`BattleBrain.FROZEN_TAG` 别名），**未注册**，也没有 Freeze 效果负责挂/摘 |
+| `State.Frozen` | `ChargedAbility.FROZEN_TAG`（`BattleBrain.FROZEN_TAG` 别名）；单位级冻结由 `freeze_unit.tres` 挂/摘，同时驱动 `Cue.Status.Freeze` |
+| `Cue.Status.Freeze` | 单位冻结持久光环（`game/battle/cues/freeze_cue.tscn`） |
 
 GAS 属性：
 

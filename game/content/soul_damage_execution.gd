@@ -34,13 +34,23 @@ func execute(spec: GameplayEffectSpec, target_asc: AbilitySystemComponent) -> Di
 	return DamageResolver.split_damage(target_asc, damage, 1.0)
 
 
-## 施法者的 ASC；context.instigator 通常是 BattleUnit
+## 施法者的 ASC；context.instigator 通常是 BattleUnit。
+## 周期效果可能比施加者活得久，context 里可能是已释放实例，先判有效再取。
 func _source_asc(spec: GameplayEffectSpec) -> AbilitySystemComponent:
 	if spec == null or spec.context == null:
 		return null
 	var instigator := spec.context.instigator
-	if instigator is AbilitySystemComponent:
-		return instigator as AbilitySystemComponent
-	if instigator != null:
-		return instigator.get_node_or_null("AbilitySystemComponent") as AbilitySystemComponent
+	if is_instance_valid(instigator):
+		if instigator is AbilitySystemComponent:
+			return instigator as AbilitySystemComponent
+		var instigator_asc := instigator.get_node_or_null("AbilitySystemComponent")
+		if instigator_asc != null:
+			return instigator_asc as AbilitySystemComponent
+	var causer := spec.context.causer
+	if is_instance_valid(causer):
+		if causer is AbilitySystemComponent:
+			return causer as AbilitySystemComponent
+		var causer_asc := causer.get_node_or_null("AbilitySystemComponent")
+		if causer_asc != null:
+			return causer_asc as AbilitySystemComponent
 	return null

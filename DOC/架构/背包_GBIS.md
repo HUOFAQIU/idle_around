@@ -1,6 +1,6 @@
 # 背包 / 仓库系统（GBIS）
 
-> 类型：实现 | 状态：有效 | 核对：2026-10-28
+> 类型：实现 | 状态：有效 | 核对：2026-10-31
 > 何时读：改背包/仓库/装备槽/容器、拖拽、商店容器、存档
 > 关键词：GBIS 背包 仓库 inventory container 装备槽 拖拽 Tooltip 存档
 > 代码：Windows/Inventory/grid_base_inventory_system/
@@ -39,12 +39,12 @@ core/
    ├─ container/InventoryView           背包视图（可配置类型/部位）
    ├─ container/BaseGridView            单个格子的绘制与悬停
    ├─ container/InventoryGridView       背包格子输入：左键拿/放、右键用、Shift+左键快移、中键分割
-   └─ item/ItemView                     物品图标 + 堆叠数字 + shader 参数 + 魂灵加速/减速徽章
+   └─ item/ItemView                     物品图标 + 堆叠数字 + shader 参数 + 魂灵加速/减速/冻结徽章
 ```
 
 未接入的 `StackableData`、`ConsumableData`、`EquipmentData`、`EquipmentSlot*`、`Shop*`、`DropAreaView` 见 7.7。
 
-`PassiveSoulData` 位于 `game/content/passive_soul_data.gd`，继承 `SoulData`，新增 `passive_effects` 和 `triggers`；`PassiveTrigger` 位于 `game/content/passive_trigger.gd`。它们属于游戏内容层，不修改 GBIS 框架本身。
+`SoulData.triggers` 在 `soul_data.gd` 基类上，主动/被动魂灵通用；`PassiveSoulData`（`game/content/passive_soul_data.gd`）只额外新增 `passive_effects`。`PassiveTrigger` 位于 `game/content/passive_trigger.gd`。它们属于游戏内容层，不修改 GBIS 框架本身。
 
 ### 7.3 GBIS 信号
 

@@ -20,6 +20,10 @@ uniform float intensity : hint_range(0.0, 1.0) = 0.85;
 uniform float enable : hint_range(0.0, 1.0) = 0.0;
 // 冷却进度 0..1，由战斗侧每帧写
 uniform float progress : hint_range(0.0, 1.0) = 0.0;
+// 冻结覆盖：0 = 无冰霜，1 = 完整冻结。由 ItemView 在魂灵被冻结时打开
+uniform float freeze : hint_range(0.0, 1.0) = 0.0;
+// 冰霜颜色
+uniform vec4 freeze_color : source_color = vec4(0.58, 0.86, 1.0, 1.0);
 
 void fragment() {
 	// UV.y 是"从上往下"的，所以底部是 1、顶部是 0 —— 进度 0 要落在底部，
@@ -44,4 +48,15 @@ void fragment() {
 	float out_a = a + a1 * (1.0 - a);
 	COLOR.rgb = (line_color.rgb * a + COLOR.rgb * a1 * (1.0 - a)) / max(out_a, 0.0001);
 	COLOR.a = out_a;
+
+	// 冻结：整格淡冰蓝染色，靠近边缘的霜更厚，看起来像被冰封住
+	float edge = 1.0 - smoothstep(
+		0.0, 0.18,
+		min(min(UV.x, 1.0 - UV.x), min(UV.y, 1.0 - UV.y))
+	);
+	float frost_a = clamp(freeze * (0.22 + 0.58 * edge), 0.0, 1.0);
+	float out_a_frost = frost_a + COLOR.a * (1.0 - frost_a);
+	COLOR.rgb = (freeze_color.rgb * frost_a + COLOR.rgb * COLOR.a * (1.0 - frost_a))
+		/ max(out_a_frost, 0.0001);
+	COLOR.a = out_a_frost;
 }

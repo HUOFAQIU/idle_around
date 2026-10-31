@@ -186,7 +186,6 @@ func _clear_battle() -> void:
 # 注意是"一颗魂灵一个技能"：同一颗魂灵装两把也要各算各的冷却，不能去重
 func _spawn_player(slots: Array[SoulSlot]) -> BattleUnit:
 	var passive_effects: Array[GameplayEffect] = []
-	var passive_triggers: Array[PassiveTrigger] = []
 	for slot in slots:
 		var passive := slot.soul as PassiveSoulData
 		if passive == null:
@@ -194,13 +193,10 @@ func _spawn_player(slots: Array[SoulSlot]) -> BattleUnit:
 		for effect in passive.passive_effects:
 			if effect != null:
 				passive_effects.append(effect)
-		for trigger in passive.triggers:
-			if trigger != null:
-				passive_triggers.append(trigger)
 
 	var unit := PLAYER_SCENE.instantiate() as BattleUnit
 	units_root.add_child(unit)
-	unit.setup_from_scene(_battle, passive_effects, passive_triggers)
+	unit.setup_from_scene(_battle, passive_effects)
 	unit.set_cell(Vector2i.ZERO)
 	unit.died.connect(_on_player_died)
 	_battle.add_unit(unit)
@@ -290,12 +286,12 @@ func _push_scanlines() -> void:
 	for i in _battle_souls.size():
 		var soul := _battle_souls[i]
 		if i >= _soul_abilities.size() or _soul_abilities[i] == null:
-			soul.set_battle_status(0.0, 0.0)
+			soul.set_battle_status(0.0, 0.0, 0.0)
 			soul.set_scanline_progress(0.0)
 			continue
 		var ability := _soul_abilities[i]
 		soul.set_scanline_progress(ability.charge_ratio())
-		soul.set_battle_status(ability.haste_seconds(), ability.slow_seconds())
+		soul.set_battle_status(ability.haste_seconds(), ability.slow_seconds(), ability.freeze_seconds())
 
 
 ## 扫描线的总开关：不在战斗时整条收起来（这是文档要的"战斗开始后才出现"）
@@ -452,6 +448,7 @@ func get_test_state() -> Dictionary:
 			"charge_ratio": ability.charge_ratio() if ability != null else 0.0,
 			"haste": ability.haste_seconds() if ability != null else 0.0,
 			"slow": ability.slow_seconds() if ability != null else 0.0,
+			"freeze": ability.freeze_seconds() if ability != null else 0.0,
 			"frozen": ability.is_frozen() if ability != null else false,
 		})
 	state["player_souls"] = souls
@@ -476,6 +473,7 @@ func _unit_test_state(unit : BattleUnit) -> Dictionary:
 		"max_hp": unit.max_health_attr.current_value if unit.max_health_attr != null else 0.0,
 		"shield": unit.shield_attr.current_value if unit.shield_attr != null else 0.0,
 		"dead": unit.is_dead,
+		"frozen": unit.asc.has_tag(GameplayTags.State_Frozen) if unit.asc != null else false,
 		"cell": [unit.cell.x, unit.cell.y],
 		"souls": soul_names,
 	}

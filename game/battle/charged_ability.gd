@@ -5,11 +5,17 @@
 ## 外部充能直接调 add_charge(秒)，内部换算成刻度。
 ## 冻结分两种来源：魂灵自身的 freeze_units 计时，或所属单位带 State.Frozen 标签。
 ## 冻结期间由 BattleBrain 决定不充能、不释放，本类只提供 is_frozen() 查询。
+##
+## 连续激活的最小间隔是 ACTIVATION_LOCK_UNITS（20 刻 = 1/6 秒）：
+## 同一颗魂灵 1 秒最多激活 6 次，用来兜住“触发充能 → 满即放 → 再触发”的连环。
+## 正常冷却都远大于 20 刻，只有充能/触发链会撞到它。溢出仍然按设计丢弃。
 
 class_name ChargedAbility extends GameplayAbility
 
 ## 1 秒 = 120 刻度；60 FPS 下每帧基础 2 刻度，减速 1 刻度，加速 4 刻度
 const UNITS_PER_SECOND: int = 120
+## 连续激活的最小间隔：20 刻 = 1/6 秒，1 秒最多 6 次
+const ACTIVATION_LOCK_UNITS: int = 20
 ## 冻结标签；单位级冻结由 Freeze 效果挂/摘，魂灵级冻结用 freeze_units 计时
 const FROZEN_TAG : StringName = GameplayTags.State_Frozen
 
@@ -17,6 +23,8 @@ const FROZEN_TAG : StringName = GameplayTags.State_Frozen
 @export var cooldown: float = 0.0
 ## 当前充能（刻度）
 var charge_units: int = 0
+## 距离下次可激活还需要的刻度；>0 时拒绝激活
+var activation_lock_units: int = 0
 
 ## 加速/减速剩余时间（刻度）；加速固定 2x、减速固定 0.5x，重复施加只累加时间
 var haste_units: int = 0
@@ -39,6 +47,28 @@ func setup_cooldown_from_effect(effect: GameplayEffect) -> void:
 
 func reset_charge() -> void:
 	charge_units = 0
+
+
+## 开战/重开时清空激活锁
+func reset_activation_lock() -> void:
+	activation_lock_units = 0
+
+
+## 每物理帧推进激活锁；由 BattleBrain 第一段统一调用（冻结期间也走）
+func tick_activation_lock(base_units: int) -> void:
+	if activation_lock_units > 0 and base_units > 0:
+		activation_lock_units = maxi(activation_lock_units - base_units, 0)
+
+
+## 激活锁是否已经走完
+func can_activate_now() -> bool:
+	return activation_lock_units <= 0
+
+
+## 真正开始一次激活时调用：从这一刻起锁 20 刻。
+## 自定义的 ChargedAbility 子类在 _activate_ability() 里也要先 can_activate_now() 再 mark_activated()。
+func mark_activated() -> void:
+	activation_lock_units = ACTIVATION_LOCK_UNITS
 
 
 ## 外部充能：传入秒数，内部换算成刻度
@@ -152,6 +182,11 @@ func slow_seconds() -> float:
 
 func freeze_seconds() -> float:
 	return float(freeze_units) / float(UNITS_PER_SECOND)
+
+
+## 给 UI / 测试用的激活锁剩余秒数
+func activation_lock_seconds() -> float:
+	return float(activation_lock_units) / float(UNITS_PER_SECOND)
 
 
 func _charged_units_for_tick(base_units: int) -> int:

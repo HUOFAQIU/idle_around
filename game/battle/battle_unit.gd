@@ -209,6 +209,9 @@ func _fire_trigger(binding: SoulTriggerBinding, event_target: BattleUnit) -> voi
 
 	if trigger.charge_source_seconds > 0.0 and binding.ability != null:
 		binding.ability.add_charge(trigger.charge_source_seconds)
+		# 触发充能满时同帧释放：交给大脑的待释放队列统一处理，避免嵌套递归
+		if brain != null:
+			brain.request_activation(binding.ability as ChargedAbility)
 		if battle != null:
 			battle.log_line(
 				"%s 获得充能（%.1f 秒）" % [binding.source_name, trigger.charge_source_seconds],
@@ -664,7 +667,7 @@ func _on_active_effect_removed(active_effect: ActiveGameplayEffect) -> void:
 	_log("%s 的状态【%s】结束" % [unit_name, _effect_display_name(active_effect.spec)], "gray")
 
 
-## 批量触发施加的效果不逐目标写状态日志，避免 10 倍速下全体冻结刷屏
+## 批量触发施加的效果不逐目标写状态日志，避免全体冻结时刷屏
 func _has_suppressed_state_log(active_effect: ActiveGameplayEffect) -> bool:
 	return (
 		active_effect != null

@@ -7,6 +7,9 @@
 ##   ④ 结算              有投射物 → 一支箭对一个目标，飞到才结算、空了就是空了；
 ##                       没投射物 → 逐目标直接结算，暴击独立判定
 ##
+## 投射物发射后立即返回，不占用 is_active：箭独立飞行、逐箭结算，
+## 同一颗魂灵的下一次释放只受充能和 20 刻激活锁限制。
+##
 ## 门卫检查（花费 / 施法条件标签 / 是否在施法中）由框架的 can_activate_ability()
 ## 负责；冷却由 ChargedAbility 的充能值控制。
 ##
@@ -54,6 +57,11 @@ func _activate_ability() -> bool:
 	var battle := _get_battle()
 	if skill == null or battle == null:
 		return false
+	# 底层激活锁：同一颗魂灵 20 刻内最多激活一次（1 秒最多 6 次）。
+	# 放在扣费/清空充能之前，被锁拒绝时不产生任何副作用。
+	if not can_activate_now():
+		return false
+	mark_activated()
 
 	# ① 充满就放，不等任何东西 —— 先扣费并清空充能（扫描线从头重扫）
 	commit_cost()
@@ -95,7 +103,8 @@ func _activate_ability() -> bool:
 	battle.log_cast(_caster_unit(), ability_name, groups)
 
 	if skill.projectile_scene:
-		return await _cast_projectiles(battle, groups)
+		_cast_projectiles(groups)
+		return true
 
 	# 没有投射物：逐目标直接结算，暴击对每个目标独立判定。
 	for group in groups:
@@ -146,8 +155,14 @@ func _activate_soul_skill(battle: BattleManager) -> bool:
 		if skill.freeze_duration > 0.0 and target.apply_freeze(skill.freeze_duration):
 			battle.log_line("%s 获得状态【冻结】（%.1f 秒）" % [target.ability_name, skill.freeze_duration], "#57d9e8")
 		# 充能满就同帧释放：避免目标晚一帧归零，之后和充能者相位锁死。
-		# 冻结目标不释放，留到解冻后的下一物理帧由 BattleBrain 统一处理。
-		if charge_applied and target.is_ready() and not target.is_active and not target.is_frozen():
+		# 冻结或激活锁未走完时不释放，留到之后由 BattleBrain 主循环统一处理。
+		if (
+			charge_applied
+			and target.is_ready()
+			and not target.is_active
+			and not target.is_frozen()
+			and target.can_activate_now()
+		):
 			target.try_activate()
 	return true
 
@@ -155,34 +170,51 @@ func _activate_soul_skill(battle: BattleManager) -> bool:
 ## 有投射物的技能：一支箭对一个目标，射向它"此刻"的坐标。
 ## 箭飞到谁身上才算打中谁（可能打空、也可能打到别只），所以效果要等命中才施加 ——
 ## 而且是**每支箭各自落地就各自结算**，不等其他箭飞完。
-func _cast_projectiles(battle: BattleManager, groups: Array) -> bool:
+##
+## 发射完立即返回：投射物飞行不再占用 is_active。
+## 否则同一颗魂灵要等箭落地才能再次释放，被加速/充能提前灌满时会白白撞顶。
+func _cast_projectiles(groups: Array) -> void:
 	var caster := _caster_unit()
+	if caster == null:
+		return
 	var targets : Array[BattleUnit] = []
 	for group in groups:
 		for unit in group:
 			if unit is BattleUnit:
 				targets.append(unit)
 	if targets.is_empty():
-		return true
+		return
 
-	var hit_count := await task_projectile(caster, targets, skill.projectile_scene, skill.projectile_speed)
-	if not is_active:
-		return false
-	if not battle.is_running:
-		return true
-
-	var missed := targets.size() - hit_count
-	if missed > 0:
-		battle.log_line("%s 的【%s】有 %d 支空了" % [caster.unit_name, ability_name, missed], "gray")
-	return true
+	# 任务挂在施法者身上，不绑定技能生命周期：技能结束后箭仍继续结算；
+	# 单位/战场销毁时任务随节点一起释放。
+	var task := AbilityTask_Projectile.new()
+	caster.add_child(task)
+	task.projectile_landed.connect(_on_projectile_landed)
+	task.task_finished.connect(_on_projectiles_finished.bind(targets.size()))
+	task.execute(caster, targets, skill.projectile_scene, skill.projectile_speed)
 
 
 ## 一支箭落地就地结算。远近不同的目标各打各的，互不等待 ——
-## 等全部飞完再一起结算的话，近的那支会白等，看起来就是"打中了却不掉血"
+## 等全部飞完再一起结算的话，近的那支会白等，看起来就是"打中了却不掉血"。
+## 这里不再检查 is_active：技能早已结束，箭仍然要正常结算。
 func _on_projectile_landed(hit_unit: BattleUnit) -> void:
-	if not is_active:
+	if hit_unit == null or not is_instance_valid(hit_unit) or hit_unit.is_dead:
+		return
+	var battle := _get_battle()
+	if battle == null or not battle.is_running:
 		return
 	_apply_effects_to_target(hit_unit)
+
+
+## 所有箭落地/飞空后统计空箭；不再阻塞释放，只补一条日志。
+func _on_projectiles_finished(result: Variant, target_count: int) -> void:
+	var battle := _get_battle()
+	if battle == null or not battle.is_running:
+		return
+	var hit_count: int = result if result is int else 0
+	var missed: int = target_count - hit_count
+	if missed > 0:
+		battle.log_line("%s 的【%s】有 %d 支空了" % [_caster_name(), ability_name, missed], "gray")
 
 
 ## 对施法者自己结算 self_effects；每次释放独立掷一次暴击。
@@ -243,23 +275,6 @@ func _notify_soul_used() -> void:
 	var caster := _caster_unit()
 	if caster != null:
 		caster.notify_soul_used(self)
-
-
-## 发一批投射物，等它们全部落地，返回打中了几支。
-## 飞行物本身的"走到哪算到哪"在 SoulProjectile 里；这里负责发、以及等最后一下收场。
-## 只取一个计数不取名单：先落地的箭可能已经把目标打死了，名单会变成已释放对象
-func task_projectile(
-	caster: BattleUnit,
-	targets: Array[BattleUnit],
-	projectile_scene: PackedScene,
-	projectile_speed: float
-) -> int:
-	var task := AbilityTask_Projectile.new()
-	bind_task(task)
-	task.projectile_landed.connect(_on_projectile_landed)
-	task.execute(caster, targets, projectile_scene, projectile_speed)
-	var result = await task.task_finished
-	return result if result is int else 0
 
 
 func _caster_unit() -> BattleUnit:

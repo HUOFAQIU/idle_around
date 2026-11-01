@@ -11,8 +11,8 @@
 [sub_resource type="Resource" id="Resource_stats"]
 script = ExtResource("6_pxmas")
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_body"]
-radius = 14.0
+[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_3yykp"]
+radius = 8.0
 
 [node name="Snake" type="CharacterBody2D" unique_id=207571995]
 motion_mode = 1
@@ -26,8 +26,8 @@ attribute_sets = Array[ExtResource("5_83dlg")]([SubResource("Resource_stats")])
 [node name="BattleBrain" type="Node" parent="." unique_id=630664741]
 script = ExtResource("11_vj23h")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-shape = SubResource("CircleShape2D_body")
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=580694981]
+shape = SubResource("CapsuleShape2D_3yykp")
 
 [node name="Body" type="Sprite2D" parent="." unique_id=563510829]
 modulate = Color(0.92, 0.3, 0.3, 1)

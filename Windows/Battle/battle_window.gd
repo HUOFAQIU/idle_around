@@ -26,10 +26,6 @@ const FPS_UPDATE_FRAMES : int = 15
 @onready var player_poison_bar: PlayerStatusBar = $CanvasLayer/Control/PlayerPoisonBar
 @onready var info_button: Button = $CanvasLayer/Control/GridContainer/InfoButton
 @onready var start_button: Button = $CanvasLayer/Control/GridContainer/StartButton
-@onready var speed_1_button: Button = $CanvasLayer/Control/GridContainer/Speed1Button
-@onready var speed_2_button: Button = $CanvasLayer/Control/GridContainer/Speed2Button
-@onready var speed_3_button: Button = $CanvasLayer/Control/GridContainer/Speed3Button
-@onready var speed_10_button: Button = $CanvasLayer/Control/GridContainer/Speed10Button
 @onready var fps_label: Label = $CanvasLayer/Control/FpsLabel
 
 ## 现在这一场。开打时建，关窗/重开时整个销毁 —— 单位的属性、标签、冷却
@@ -63,22 +59,6 @@ func _ready() -> void:
 	# ☰ 开关战斗信息窗口；▶ 才是开战
 	info_button.pressed.connect(_on_info_pressed)
 	start_button.pressed.connect(_start_battle)
-	speed_1_button.pressed.connect(
-		func () :
-			_apply_time_scale(1)
-	)
-	speed_2_button.pressed.connect(
-		func () :
-			_apply_time_scale(2)
-	)
-	speed_3_button.pressed.connect(
-		func () :
-			_apply_time_scale(3)
-	)
-	speed_10_button.pressed.connect(
-		func () :
-			_apply_time_scale(10)
-	)
 
 	# 关窗（标题栏 × 或主界面的切换按钮）＝ 这场战斗结束，下次打开回到初始状态
 	visibility_changed.connect(_on_visibility_changed)
@@ -329,12 +309,6 @@ func _on_visibility_changed() -> void:
 		_end_battle()
 
 
-# 加速走的是 Engine.time_scale，所以是「整个游戏一起快」，不只是这个窗口。
-# 窗口关着的时候一定要还原成 1 倍，免得这个开发开关漏到游戏别的部分去。
-func _apply_time_scale(speed : float) -> void:
-	Engine.time_scale = speed
-
-
 func _on_info_pressed() -> void:
 	InfoWindow.instance.toggle()
 
@@ -420,7 +394,6 @@ func get_test_state() -> Dictionary:
 	var state := {
 		"running": false,
 		"elapsed": 0.0,
-		"time_scale": Engine.time_scale,
 		"player": {},
 		"enemies": [],
 		"player_souls": [],
@@ -453,6 +426,8 @@ func get_test_state() -> Dictionary:
 			"slow": ability.slow_seconds() if ability != null else 0.0,
 			"freeze": ability.freeze_seconds() if ability != null else 0.0,
 			"frozen": ability.is_frozen() if ability != null else false,
+			"active": ability.is_active if ability != null else false,
+			"activation_lock": ability.activation_lock_seconds() if ability != null else 0.0,
 		})
 	state["player_souls"] = souls
 	return state

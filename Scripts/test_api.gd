@@ -125,12 +125,11 @@ static func start_battle(monster_id : StringName = &"") -> bool:
 	return true
 
 
-## 结束当前战斗，并把时间倍率还原为 1
+## 结束当前战斗
 static func stop_battle() -> void:
 	var window := _battle_window()
 	if window != null:
 		window.stop_battle_for_test()
-	Engine.time_scale = 1.0
 
 
 ## 在远处空位刷一只指定怪物
@@ -295,11 +294,6 @@ static func get_perf_snapshot() -> Dictionary:
 		"enemies_in_attack_range": get_enemies_in_attack_range(),
 		"nearest_enemy_distance": get_nearest_enemy_distance(),
 	}
-
-
-## 设置全局时间倍率（0.1～20）
-static func set_time_scale(scale : float) -> void:
-	Engine.time_scale = clampf(scale, 0.1, 20.0)
 
 
 ## 当前战斗日志纯文本

@@ -13,8 +13,6 @@ func _ready() -> void:
 	close_requested.connect(
 		func ():
 			self.hide()
-			# 暂时的
-			Engine.time_scale = 1
 	)
 
 

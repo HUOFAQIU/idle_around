@@ -11,10 +11,17 @@ script = ExtResource("1_window")
 
 [node name="InventoryView" type="Control" parent="." unique_id=1654115602]
 layout_mode = 3
-anchors_preset = 0
-offset_top = 0.0
-offset_right = 832.0
-offset_bottom = 817.0
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -416.0
+offset_top = -384.0
+offset_right = 416.0
+offset_bottom = 384.0
+grow_horizontal = 2
+grow_vertical = 2
 script = ExtResource("2_5mbsx")
 avilable_types = Array[String](["SOUL"])
 container_name = "inventory_0"

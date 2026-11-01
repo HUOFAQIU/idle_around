@@ -26,7 +26,7 @@ attribute_sets = Array[ExtResource("7_attrset")]([SubResource("Resource_stats")]
 [node name="BattleBrain" type="Node" parent="." unique_id=796654875]
 script = ExtResource("3_brain")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1737663430]
 shape = SubResource("CircleShape2D_body")
 
 [node name="Body" type="Sprite2D" parent="." unique_id=2011092079]

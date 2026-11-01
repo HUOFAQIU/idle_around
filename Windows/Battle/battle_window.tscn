@@ -46,26 +46,6 @@ custom_minimum_size = Vector2(44, 44)
 layout_mode = 2
 text = "▷"
 
-[node name="Speed1Button" type="Button" parent="CanvasLayer/Control/GridContainer" unique_id=48274711]
-custom_minimum_size = Vector2(44, 44)
-layout_mode = 2
-text = "1x"
-
-[node name="Speed2Button" type="Button" parent="CanvasLayer/Control/GridContainer" unique_id=861024876]
-custom_minimum_size = Vector2(44, 44)
-layout_mode = 2
-text = "2x"
-
-[node name="Speed3Button" type="Button" parent="CanvasLayer/Control/GridContainer" unique_id=801321157]
-custom_minimum_size = Vector2(44, 44)
-layout_mode = 2
-text = "3x"
-
-[node name="Speed10Button" type="Button" parent="CanvasLayer/Control/GridContainer" unique_id=682179347]
-custom_minimum_size = Vector2(44, 44)
-layout_mode = 2
-text = "10x"
-
 [node name="FpsLabel" type="Label" parent="CanvasLayer/Control"]
 layout_mode = 1
 anchors_preset = 1

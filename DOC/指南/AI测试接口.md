@@ -52,8 +52,8 @@ TestAPI.stop_battle()
 | `apply_regen(target := "player") -> bool` | 对战斗单位施加生命再生（测试剧毒/再生相减） |
 | `apply_freeze(target := "player", seconds := 3.0) -> bool` | 对战斗单位施加冻结（测试冻结 Cue 与 `State.Frozen`）；会广播 `FREEZE_APPLIED` |
 | `apply_soul_freeze(soul_name, seconds := 1.0, target := "player") -> bool` | 对已装备的指定魂灵施加魂灵级冻结（测试冰霜 shader 与徽章） |
-| `simulate_soul_used(soul_name, target := "player") -> bool` | 模拟“魂灵被使用”（不动冷却），确定性验证 `OTHER_SOUL_USED` 触发器 |
-| `charge_soul(soul_name, seconds, target := "player") -> bool` | 给已装备魂灵直接充能，用于快速触发主动技能 |
+| `simulate_soul_used(soul_name, target := "player") -> bool` | 模拟“魂灵被使用”（不动冷却），确定性验证 `OTHER_SOUL_USED` 触发器；触发充能满时会走同帧待释放队列，调用后等一帧再读状态 |
+| `charge_soul(soul_name, seconds, target := "player") -> bool` | 给已装备魂灵直接充能，用于快速触发主动技能；不经过触发器队列 |
 | `damage_unit(target := "player", amount := 1.0) -> bool` | 对单位造成伤害，用于把生命值打到阈值以下（测温泉半血触发） |
 | `has_status(tag, target := "player") -> bool` | 单位是否拥有某个状态标签 |
 | `get_battle_state() -> Dictionary` | 战斗快照 |
@@ -61,7 +61,6 @@ TestAPI.stop_battle()
 | `get_nearest_enemy_distance() -> float` | 最近敌人到角色的像素距离；没有敌人返回 -1 |
 | `get_enemies_in_attack_range() -> int` | 当前在角色攻击范围内的敌人数（即时制下只有这些怪才充能） |
 | `get_perf_snapshot() -> Dictionary` | 性能快照：FPS、节点数、敌人数、范围内敌人数、最近距离 |
-| `set_time_scale(scale) -> void` | 全局时间倍率，范围 0.1～20 |
 | `get_battle_log() -> String` | 当前战斗日志纯文本 |
 | `get_fps_text() -> String` | 战斗窗口右上角的 FPS 文本 |
 
@@ -105,16 +104,16 @@ print(TestAPI.get_battle_state()["player_souls"])
 {
   "running": true,
   "elapsed": 12.3,
-  "time_scale": 1.0,
   "player": {"name", "hp", "max_hp", "shield", "regen", "poison", "dead", "frozen",
              "cell", "position", "distance_to_player", "in_attack_range", "souls"},
   "enemies": [{"name", "hp", "max_hp", "shield", "regen", "poison", "dead", "frozen",
                "cell", "position", "distance_to_player", "in_attack_range", "souls"}],
-  "player_souls": [{"name", "cooldown", "charge_ratio", "charge_seconds", "haste", "slow", "freeze", "frozen"}]
+  "player_souls": [{"name", "cooldown", "charge_ratio", "charge_seconds", "haste", "slow",
+                    "freeze", "frozen", "active", "activation_lock"}]
 }
 ```
 
-`player_souls[].freeze` 是魂灵级冻结剩余秒数；`frozen` 是 `is_frozen()`（自身冻结或单位冻结）。单位的 `frozen` 只表示 `State.Frozen` 标签。`charge_seconds` 用于精确验证充能触发（例如相邻地产魂灵被使用后 +1 秒）。
+`player_souls[].freeze` 是魂灵级冻结剩余秒数；`frozen` 是 `is_frozen()`（自身冻结或单位冻结）。单位的 `frozen` 只表示 `State.Frozen` 标签。`charge_seconds` 用于精确验证充能触发（例如相邻地产魂灵被使用后 +1 秒）。`active` 是技能是否还在执行中（投射物发射后不再占用它）；`activation_lock` 是 20 刻激活锁的剩余秒数，用于验证 1 秒最多 6 次的限制。
 
 即时制下 `cell` 只是“当前压在地图哪一格”，真实位置看 `position`（像素）；`distance_to_player` 和 `in_attack_range` 用来验证“进范围才充能”。
 
@@ -125,7 +124,6 @@ print(TestAPI.get_battle_state()["player_souls"])
 - `set_unlock_all` 只改判定，不会自动刷新已打开的见闻窗口；切页签或重开窗口即可。
 - `player.souls` 是场景配置（玩家通常为空）；玩家装备的魂灵看 `player_souls`。
 - `start_battle` 会显示战斗窗口；找不到 `BattleWindow` 时返回 `false`。
-- `stop_battle` 会把 `Engine.time_scale` 还原为 1。
-- 高倍速下控制台战斗日志每秒最多 20 条；`get_battle_log()` 读的是战斗窗口里的完整日志，不受影响。
+- 游戏已移除倍速功能，`TestAPI` 不再提供 `set_time_scale`；需要验证长流程时用真实时间等待或多跑几帧。
 - 新增全局类后，如果 headless 直接跑提示 `TestAPI` 未声明，先用编辑器打开一次项目（或 `--headless --editor --quit`）刷新全局类缓存。
 - 新增魂灵/怪物/技能/窗口时，先看这里要不要补方法。

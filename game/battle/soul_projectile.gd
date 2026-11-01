@@ -45,7 +45,11 @@ func setup(caster: BattleUnit, aim_position: Vector2, speed: float = DEFAULT_SPE
 func _process(delta: float) -> void:
 	if _done:
 		return
-	
+	# 战斗结束/重开时 BattleManager 可能已释放；箭自毁，避免访问失效引用
+	if not is_instance_valid(_battle) or not _battle.is_running:
+		_finish(null)
+		return
+
 	_life += delta
 	if _life >= MAX_LIFE:
 		_finish(null)
@@ -68,7 +72,7 @@ func _process(delta: float) -> void:
 ## 撞到谁了：不同阵营、还活着、离得够近。碰到谁算谁，不挑原来瞄的是哪个。
 ## 只查空间索引里的附近单位，不遍历全场。
 func _find_hit() -> BattleUnit:
-	if _battle == null or _caster == null:
+	if not is_instance_valid(_battle) or not is_instance_valid(_caster):
 		return null
 	for unit in _battle.units_near(position, HIT_RADIUS):
 		if unit == _caster or unit.is_dead:

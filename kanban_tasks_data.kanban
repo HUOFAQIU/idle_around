@@ -17,7 +17,8 @@
 			"title": "Todo",
 			"tasks": [
 				"90ca3725-b67b-41d3-b2dd-2c2245c32624",
-				"26361578-4bc6-417f-8809-eb847809f170"
+				"26361578-4bc6-417f-8809-eb847809f170",
+				"064ed8d0-e776-4472-971d-12b4bbd56c8b"
 			]
 		},
 		{
@@ -116,6 +117,20 @@
 			"title": "窗口移动的补间动画",
 			"description": "",
 			"category": "abd1801b-a241-4c02-8dd1-4e804d1e3bd5",
+			"steps": []
+		},
+		{
+			"uuid": "064ed8d0-e776-4472-971d-12b4bbd56c8b",
+			"title": "需要很清晰的调试工具，看看游戏过程中出现了什么",
+			"description": "",
+			"category": "dc17d4ed-a172-4464-9b98-2aeab52f9cdf",
+			"steps": []
+		},
+		{
+			"uuid": "c4302d6e-cab1-47de-bad1-1057e61a7cdb",
+			"title": "New task",
+			"description": "",
+			"category": "dc17d4ed-a172-4464-9b98-2aeab52f9cdf",
 			"steps": []
 		}
 	],

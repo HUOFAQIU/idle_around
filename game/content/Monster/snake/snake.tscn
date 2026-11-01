@@ -4,8 +4,6 @@
 [ext_resource type="Script" uid="uid://cbrvrpcenj2cn" path="res://addons/GodotGAS/components/ability_system_component.gd" id="4_8k11f"]
 [ext_resource type="Script" uid="uid://bhr4dsrpc4jw8" path="res://addons/GodotGAS/attributes/attribute_set.gd" id="5_83dlg"]
 [ext_resource type="Script" uid="uid://0ok23abdn4k0" path="res://godot_gas/attributes/monster_stats_attribute_set.gd" id="6_pxmas"]
-[ext_resource type="Script" uid="uid://csy8k3vgu6nj3" path="res://game/battle/move_ability.gd" id="9_fy4ka"]
-[ext_resource type="Resource" uid="uid://dsxt5wf8w51ba" path="res://game/content/effects/move_cooldown.tres" id="10_j2tqy"]
 [ext_resource type="Script" uid="uid://dn3y0yymnkah2" path="res://game/battle/battle_brain.gd" id="11_vj23h"]
 [ext_resource type="Texture2D" uid="uid://deaj7ddfwbqwh" path="res://Assets/tokens.png" id="12_8xe1r"]
 [ext_resource type="Script" uid="uid://dn6s8onr16u6k" path="res://game/battle/unit_health_bar.gd" id="13_6fil4"]
@@ -13,7 +11,11 @@
 [sub_resource type="Resource" id="Resource_stats"]
 script = ExtResource("6_pxmas")
 
-[node name="Snake" type="Node2D" unique_id=207571995]
+[sub_resource type="CircleShape2D" id="CircleShape2D_body"]
+radius = 14.0
+
+[node name="Snake" type="CharacterBody2D" unique_id=207571995]
+motion_mode = 1
 script = ExtResource("1_bsytc")
 team = 1
 
@@ -21,14 +23,11 @@ team = 1
 script = ExtResource("4_8k11f")
 attribute_sets = Array[ExtResource("5_83dlg")]([SubResource("Resource_stats")])
 
-[node name="Move" type="Node" parent="AbilitySystemComponent" unique_id=1682405011]
-script = ExtResource("9_fy4ka")
-ability_name = "移动"
-ability_tag = &"Ability.Move"
-cooldown_effect = ExtResource("10_j2tqy")
-
 [node name="BattleBrain" type="Node" parent="." unique_id=630664741]
 script = ExtResource("11_vj23h")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_body")
 
 [node name="Body" type="Sprite2D" parent="." unique_id=563510829]
 modulate = Color(0.92, 0.3, 0.3, 1)

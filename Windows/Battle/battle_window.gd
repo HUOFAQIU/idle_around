@@ -243,6 +243,8 @@ func _spawn_enemy(cell: Vector2i) -> void:
 	units_root.add_child(unit)
 	unit.setup_from_scene(_battle)
 	unit.set_cell(cell)
+	# 同一格刷出来的怪加一点随机偏移，避免完全重叠；碰撞体负责其余的推开
+	unit.position += Vector2.from_angle(_battle.rng.randf() * TAU) * _battle.rng.randf_range(0.0, 12.0)
 	_battle.add_unit(unit)
 	CollectionDB.mark_monster_seen(monster)
 
@@ -470,6 +472,11 @@ func _unit_test_state(unit : BattleUnit) -> Dictionary:
 			soul_names.append(soul.item_name)
 	var regen_attr := unit.asc.get_attribute("regen") if unit.asc != null else null
 	var poison_attr := unit.asc.get_attribute("poison") if unit.asc != null else null
+	var distance_to_player := -1.0
+	var in_attack_range := false
+	if _battle != null and _battle.player != null:
+		distance_to_player = unit.distance_to_unit(_battle.player)
+		in_attack_range = unit.team == BattleUnit.Team.ENEMY and unit.is_in_attack_range(_battle.player)
 	return {
 		"name": unit.unit_name,
 		"hp": unit.health_attr.current_value if unit.health_attr != null else 0.0,
@@ -480,6 +487,9 @@ func _unit_test_state(unit : BattleUnit) -> Dictionary:
 		"dead": unit.is_dead,
 		"frozen": unit.asc.has_tag(GameplayTags.State_Frozen) if unit.asc != null else false,
 		"cell": [unit.cell.x, unit.cell.y],
+		"position": [unit.position.x, unit.position.y],
+		"distance_to_player": distance_to_player,
+		"in_attack_range": in_attack_range,
 		"souls": soul_names,
 	}
 

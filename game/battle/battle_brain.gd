@@ -12,6 +12,9 @@
 ## 不释放；外部充能（Charge 效果）仍然可以直接调用 add_charge() 把充能加满，
 ## 解冻后下一帧立刻释放。加速/减速计时在冻结期间照常走。
 ##
+## 实时制：怪物在角色攻击范围外时，BattleManager 不会开启本大脑 ——
+## 魂灵根本不开始冷却（见 DOC/战斗/战斗逻辑.md）。移动由 BattleManager 统一驱动。
+##
 ## @meta_addon: GodotGAS
 ## @meta_license: MIT
 
@@ -42,6 +45,10 @@ func begin_charge() -> void:
 func _physics_process(_delta: float) -> void:
 	if unit.is_dead or unit.battle == null or not unit.battle.is_running:
 		return
+	# 兜底：怪物在攻击范围外不跑大脑（正常由 BattleManager 直接关掉物理帧）
+	if unit.team == BattleUnit.Team.ENEMY and unit.battle.player != null:
+		if not unit.is_in_attack_range(unit.battle.player):
+			return
 
 	var frozen := unit.asc.has_tag(FROZEN_TAG)
 	# 不用 _delta：物理帧是固定步长，掉帧时引擎会补跑多个 tick；

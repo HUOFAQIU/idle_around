@@ -1,7 +1,7 @@
 ## 战斗单位：战场上的一个 token，逻辑和表现都在它身上。
 ##
 ## 节点结构（有框架强约束）：
-##   BattleUnit (Node2D)          ← 位置跟着 cell 走
+##   BattleUnit (CharacterBody2D) ← 实时位置；带碰撞体，和别的单位互推/阻挡
 ##   ├── AbilitySystemComponent   ← 名字必须精确叫这个！
 ##                                   框架在解析"施法者→ASC"时用的是
 ##                                   get_node_or_null("AbilitySystemComponent")
@@ -11,14 +11,16 @@
 ##   ├── Body (Sprite2D)          ← 本体贴图（可选，纯显示）
 ##   └── Name (Label)             ← 头顶名字（可选，有就自动填 unit_name）
 ##
-## 位置：cell 是逻辑坐标（选目标、寻路都算它），position 是像素投影，
-## 由 BattleManager.cell_to_world() 换算 —— 战斗逻辑不依赖地图节点。
+## 位置：战斗改即时制后，单位用 position（像素）作为真实位置；
+## cell 只记录“当前压在地图哪一格”，用于刷怪、调试和 ENEMY_MOVED 这类按格触发的事件。
+## 移动由 BattleManager 统一驱动，单位自己是 CharacterBody2D，负责和别的单位碰撞。
 
-class_name BattleUnit extends Node2D
+class_name BattleUnit extends CharacterBody2D
 
 ## 单位倒下时发出
 signal died(unit: BattleUnit)
-## 单位逻辑位置发生变化时发出；出生/瞬移用的 set_cell() 不触发。
+## 单位跨入新的地图格时发出（实时移动中由 BattleManager 在换格时触发）。
+## 出生/瞬移用的 set_cell() 不触发。
 signal moved(unit: BattleUnit, from_cell: Vector2i, to_cell: Vector2i)
 
 enum Team { PLAYER, ENEMY }
@@ -35,6 +37,12 @@ const SUPPRESS_STATE_LOG_TAG : StringName = &"Data.SuppressStateLog"
 ## 场景配置的魂灵（怪物用；玩家场景留空，运行时从装备读取）
 @export var souls: Array[SoulData] = []
 
+## 攻击范围（像素，圆心到圆心）。怪物只有在这个距离内才会开始给魂灵充能。
+## 约等于一格（地图格宽 32px），和 TargetRule 的 max_range 口径保持一致。
+@export var attack_range: float = 30.0
+## 移动速度（像素/秒）。默认约等于旧版“3 秒走一格”。
+@export var move_speed: float = 11.0
+
 var battle: BattleManager
 var asc: AbilitySystemComponent
 var brain: BattleBrain
@@ -50,6 +58,11 @@ var cell: Vector2i = Vector2i.ZERO
 var health_attr: AttributeData
 var max_health_attr: AttributeData
 var shield_attr: AttributeData
+
+
+## 与指定阵营敌对的阵营
+static func opposing_team(team_id: Team) -> Team:
+	return Team.ENEMY if team_id == Team.PLAYER else Team.PLAYER
 
 
 ## 从场景建号：ASC、外观、能力都由场景预先配置。
@@ -216,8 +229,8 @@ func _trigger_targets(scope: PassiveTrigger.TargetScope, event_target: BattleUni
 		PassiveTrigger.TargetScope.ALL_ENEMIES:
 			if battle == null:
 				return targets
-			for unit in battle.units:
-				if unit != null and not unit.is_dead and unit.team != team:
+			for unit in battle.units_of_team(opposing_team(team)):
+				if unit != null and not unit.is_dead:
 					targets.append(unit)
 	return targets
 
@@ -280,11 +293,12 @@ func _matches_used_soul(binding: SoulTriggerBinding, used: ChargedAbility) -> bo
 
 ## 有单位被冻结：向所有“以该单位为敌”的己方单位广播 FREEZE_APPLIED。
 ## 不区分冻结来源，只要怪物被冻住就按只数触发；重复冻结同一目标也算一次。
+## 只遍历目标敌对阵营：冻结怪物时就是玩家这一侧（通常 1 个单位），不会扫全战场。
 func notify_freeze_applied(event_target: BattleUnit) -> void:
 	if battle == null or not battle.is_running or event_target == null:
 		return
-	for unit in battle.units:
-		if unit == null or unit.is_dead or unit.team == event_target.team:
+	for unit in battle.units_of_team(opposing_team(event_target.team)):
+		if unit == null or unit.is_dead:
 			continue
 		unit._fire_freeze_applied(event_target)
 
@@ -386,20 +400,27 @@ func _bar_color() -> Color:
 	return Color(0.40, 0.85, 0.45) if team == Team.PLAYER else Color(0.90, 0.30, 0.25)
 
 
-## 放到某个格子上（瞬时）
+## 放到某个格子上（出生/瞬移用，瞬时）。实时移动不经过这里。
 func set_cell(p_cell: Vector2i) -> void:
 	cell = p_cell
 	position = battle.cell_to_world(p_cell)
 
 
-## 挪到相邻格：逻辑立刻到位（选目标马上就按新位置算），视觉用补间追过去
-func move_to_cell(p_cell: Vector2i) -> void:
-	if p_cell == cell:
-		return
-	var from_cell := cell
-	cell = p_cell
-	create_tween().tween_property(self, "position", battle.cell_to_world(p_cell), 0.15)
-	moved.emit(self, from_cell, p_cell)
+## 到另一个单位的中心距离（像素）
+func distance_to_unit(other: BattleUnit) -> float:
+	if other == null:
+		return INF
+	return position.distance_to(other.position)
+
+
+## 目标是否在自己的攻击范围内（按圆心距离）
+func is_in_attack_range(other: BattleUnit) -> bool:
+	return other != null and distance_to_unit(other) <= attack_range
+
+
+## 单位级冻结（State.Frozen）：整个单位不充能、不释放、不移动
+func is_unit_frozen() -> bool:
+	return asc != null and asc.has_tag(GameplayTags.State_Frozen)
 
 
 ## 血量百分比（0~1），TargetRule 的 LOWEST_HP_PERCENT 规则用它排序

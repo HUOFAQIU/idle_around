@@ -57,6 +57,10 @@ TestAPI.stop_battle()
 | `damage_unit(target := "player", amount := 1.0) -> bool` | 对单位造成伤害，用于把生命值打到阈值以下（测温泉半血触发） |
 | `has_status(tag, target := "player") -> bool` | 单位是否拥有某个状态标签 |
 | `get_battle_state() -> Dictionary` | 战斗快照 |
+| `get_enemy_count() -> int` | 当前存活敌人数 |
+| `get_nearest_enemy_distance() -> float` | 最近敌人到角色的像素距离；没有敌人返回 -1 |
+| `get_enemies_in_attack_range() -> int` | 当前在角色攻击范围内的敌人数（即时制下只有这些怪才充能） |
+| `get_perf_snapshot() -> Dictionary` | 性能快照：FPS、节点数、敌人数、范围内敌人数、最近距离 |
 | `set_time_scale(scale) -> void` | 全局时间倍率，范围 0.1～20 |
 | `get_battle_log() -> String` | 当前战斗日志纯文本 |
 | `get_fps_text() -> String` | 战斗窗口右上角的 FPS 文本 |
@@ -102,13 +106,17 @@ print(TestAPI.get_battle_state()["player_souls"])
   "running": true,
   "elapsed": 12.3,
   "time_scale": 1.0,
-  "player": {"name", "hp", "max_hp", "shield", "regen", "poison", "dead", "frozen", "cell", "souls"},
-  "enemies": [{"name", "hp", "max_hp", "shield", "regen", "poison", "dead", "frozen", "cell", "souls"}],
+  "player": {"name", "hp", "max_hp", "shield", "regen", "poison", "dead", "frozen",
+             "cell", "position", "distance_to_player", "in_attack_range", "souls"},
+  "enemies": [{"name", "hp", "max_hp", "shield", "regen", "poison", "dead", "frozen",
+               "cell", "position", "distance_to_player", "in_attack_range", "souls"}],
   "player_souls": [{"name", "cooldown", "charge_ratio", "charge_seconds", "haste", "slow", "freeze", "frozen"}]
 }
 ```
 
 `player_souls[].freeze` 是魂灵级冻结剩余秒数；`frozen` 是 `is_frozen()`（自身冻结或单位冻结）。单位的 `frozen` 只表示 `State.Frozen` 标签。`charge_seconds` 用于精确验证充能触发（例如相邻地产魂灵被使用后 +1 秒）。
+
+即时制下 `cell` 只是“当前压在地图哪一格”，真实位置看 `position`（像素）；`distance_to_player` 和 `in_attack_range` 用来验证“进范围才充能”。
 
 ## 注意
 

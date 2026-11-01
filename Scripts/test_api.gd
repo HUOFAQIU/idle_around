@@ -248,6 +248,55 @@ static func get_battle_state() -> Dictionary:
 	return window.get_test_state()
 
 
+## 当前场上存活敌人数
+static func get_enemy_count() -> int:
+	var window := _battle_window()
+	if window == null or window._battle == null:
+		return 0
+	return window._battle.enemy_count()
+
+
+## 离角色最近的敌人还有多远（像素）；没有敌人时返回 -1
+static func get_nearest_enemy_distance() -> float:
+	var window := _battle_window()
+	if window == null or window._battle == null or window._battle.player == null:
+		return -1.0
+	var nearest := INF
+	for enemy in window._battle.enemies:
+		if enemy == null or enemy.is_dead:
+			continue
+		nearest = minf(nearest, enemy.distance_to_unit(window._battle.player))
+	return nearest if nearest != INF else -1.0
+
+
+## 当前有多少敌人在角色攻击范围内（即时制下只有这些怪才会开始充能）
+static func get_enemies_in_attack_range() -> int:
+	var window := _battle_window()
+	if window == null or window._battle == null:
+		return 0
+	var count := 0
+	for enemy in window._battle.enemies:
+		if enemy != null and not enemy.is_dead and enemy.is_in_attack_range(window._battle.player):
+			count += 1
+	return count
+
+
+## 性能快照：FPS、节点数、敌人数、范围内敌人数、最近距离
+static func get_perf_snapshot() -> Dictionary:
+	var window := _battle_window()
+	if window == null or window._battle == null:
+		return {}
+	var tree := Engine.get_main_loop() as SceneTree
+	return {
+		"fps": Engine.get_frames_per_second(),
+		"elapsed": window._battle.elapsed_seconds(),
+		"node_count": tree.get_node_count() if tree != null else 0,
+		"enemies": window._battle.enemy_count(),
+		"enemies_in_attack_range": get_enemies_in_attack_range(),
+		"nearest_enemy_distance": get_nearest_enemy_distance(),
+	}
+
+
 ## 设置全局时间倍率（0.1～20）
 static func set_time_scale(scale : float) -> void:
 	Engine.time_scale = clampf(scale, 0.1, 20.0)

@@ -10,7 +10,11 @@
 [sub_resource type="Resource" id="Resource_stats"]
 script = ExtResource("5_stats")
 
-[node name="Player" type="Node2D" unique_id=1410800408]
+[sub_resource type="CircleShape2D" id="CircleShape2D_body"]
+radius = 14.0
+
+[node name="Player" type="CharacterBody2D" unique_id=1410800408]
+motion_mode = 1
 script = ExtResource("1_unit")
 unit_name = "角色"
 max_health = 500.0
@@ -21,6 +25,9 @@ attribute_sets = Array[ExtResource("7_attrset")]([SubResource("Resource_stats")]
 
 [node name="BattleBrain" type="Node" parent="." unique_id=796654875]
 script = ExtResource("3_brain")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_body")
 
 [node name="Body" type="Sprite2D" parent="." unique_id=2011092079]
 modulate = Color(0, 0.8765176, 0.32171732, 1)

@@ -65,17 +65,17 @@ func _process(delta: float) -> void:
 			return
 
 
-## 撞到谁了：不同阵营、还活着、离得够近。碰到谁算谁，不挑原来瞄的是哪个
+## 撞到谁了：不同阵营、还活着、离得够近。碰到谁算谁，不挑原来瞄的是哪个。
+## 只查空间索引里的附近单位，不遍历全场。
 func _find_hit() -> BattleUnit:
 	if _battle == null or _caster == null:
 		return null
-	for unit in _battle.units:
+	for unit in _battle.units_near(position, HIT_RADIUS):
 		if unit == _caster or unit.is_dead:
 			continue
 		if unit.team == _caster.team:
 			continue
-		if position.distance_to(unit.position) <= HIT_RADIUS:
-			return unit
+		return unit
 	return null
 
 

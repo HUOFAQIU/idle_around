@@ -32,7 +32,8 @@ enum Camp {
 @export var count: int = 1
 @export var camp: Camp = Camp.ENEMY
 
-## 选取范围：只挑离自己 max_range 格以内的目标。0 = 不限
+## 选取范围：只挑离自己 max_range 格以内的目标。0 = 不限。
+## 实时制下距离按像素算，格数用 BattleManager.cell_size_px 换算。
 ## （效果本身可能打空、投射物可能飞歪，那是后面的事 —— 这里只决定"瞄谁"）
 @export var max_range: int = 0
 
@@ -65,15 +66,19 @@ func resolve(caster_asc: AbilitySystemComponent, battle: BattleManager) -> Array
 	# 1. 圈定候选名单：阵营正确 + 还活着（死亡单位带 State.Dead 标签，用字段查同样效果）
 	var wanted_team: BattleUnit.Team = caster.team
 	if camp == Camp.ENEMY:
-		wanted_team = BattleUnit.Team.ENEMY if caster.team == BattleUnit.Team.PLAYER else BattleUnit.Team.PLAYER
+		wanted_team = BattleUnit.opposing_team(caster.team)
 
 	var candidates: Array = []
-	for unit in battle.units:
+	# 有范围限制时走空间索引，只查附近；不限范围时才遍历该阵营名单
+	var source: Array[BattleUnit]
+	if max_range > 0:
+		source = battle.units_near(caster.position, float(max_range) * battle.cell_size_px)
+	else:
+		source = battle.units_of_team(wanted_team)
+	for unit in source:
 		if unit.is_dead or unit.team != wanted_team:
 			continue
 		if unit == caster and not include_self:
-			continue
-		if max_range > 0 and Hex.distance(caster.cell, unit.cell) > max_range:
 			continue
 		candidates.append(unit)
 
@@ -97,10 +102,25 @@ func resolve(caster_asc: AbilitySystemComponent, battle: BattleManager) -> Array
 				return a.health_percent() < b.health_percent())
 			groups.append(sorted.slice(0, mini(count, sorted.size())))
 		Mode.NEAREST:
-			var sorted := candidates.duplicate()
-			sorted.sort_custom(func(a: BattleUnit, b: BattleUnit) -> bool:
-				return Hex.distance(caster.cell, a.cell) < Hex.distance(caster.cell, b.cell))
-			groups.append(sorted.slice(0, mini(count, sorted.size())))
+			if count <= 1:
+				# 只要最近一个时用单次扫描，避免为一次选目标排序整个敌人名单
+				var nearest: BattleUnit = null
+				var nearest_distance := INF
+				for unit in candidates:
+					var distance := caster.position.distance_squared_to(unit.position)
+					if distance < nearest_distance:
+						nearest_distance = distance
+						nearest = unit
+				if nearest != null:
+					groups.append([nearest])
+			else:
+				var sorted := candidates.duplicate()
+				sorted.sort_custom(func(a: BattleUnit, b: BattleUnit) -> bool:
+					return (
+						caster.position.distance_squared_to(a.position)
+						< caster.position.distance_squared_to(b.position)
+					))
+				groups.append(sorted.slice(0, mini(count, sorted.size())))
 
 	return groups
 

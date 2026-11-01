@@ -50,6 +50,7 @@ TestAPI.stop_battle()
 | `apply_burn(target := "player") -> bool` | 对战斗单位施加灼烧（测试状态与火焰 Cue） |
 | `apply_poison(target := "player") -> bool` | 对战斗单位施加剧毒（测试飞溅与气泡 Cue） |
 | `apply_regen(target := "player") -> bool` | 对战斗单位施加生命再生（测试剧毒/再生相减） |
+| `preview_wen_quan_regen(burn_amount := 24.0) -> float` | 按给定灼烧值预览温泉再生，验证“再生 = 灼烧”的派生；不改运行时资源 |
 | `apply_freeze(target := "player", seconds := 3.0) -> bool` | 对战斗单位施加冻结（测试冻结 Cue 与 `State.Frozen`）；会广播 `FREEZE_APPLIED` |
 | `apply_soul_freeze(soul_name, seconds := 1.0, target := "player") -> bool` | 对已装备的指定魂灵施加魂灵级冻结（测试冰霜 shader 与徽章） |
 | `simulate_soul_used(soul_name, target := "player") -> bool` | 模拟“魂灵被使用”（不动冷却），确定性验证 `OTHER_SOUL_USED` 触发器；触发充能满时会走同帧待释放队列，调用后等一帧再读状态 |
@@ -85,6 +86,10 @@ TestAPI.apply_soul_freeze("尖牙", 1.0)
 # 温泉：把玩家打到半血以下，触发全体冻结；每有一只怪物被冻结，温泉额外充能 3 秒
 TestAPI.damage_unit("player", 300.0)
 print(TestAPI.has_status(&"State.Frozen", "enemy"))
+
+# 温泉再生来自灼烧：24 → 24，改成 30 → 30
+print(TestAPI.preview_wen_quan_regen(24.0))
+print(TestAPI.preview_wen_quan_regen(30.0))
 
 # 冷冻间：同栏再放一颗相邻的地产魂灵（温泉），模拟被使用时应给冷冻间 +1 秒
 TestAPI.equip_soul(&"leng_dong_jian_soul")

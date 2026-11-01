@@ -2,9 +2,11 @@
 
 ## 环境
 
-- Godot 4.7：`U:\Steam\steamapps\common\Godot Engine\godot.windows.opt.tools.64.exe`
+- Godot 4.7：`U:\Godot_ver\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64.exe`
 - 工程：`U:\Godot_Project\idle_around`
 - Godot 文档：`U:\Godot_Doc\Godot Engine 4.7 documentation in English MD`
+- GodotGAS Framework：`U:\Godot_Doc\GodotGAS Framework`
+- UE5 GAS：`U:\Godot_Doc\UE5 GAS`
 
 本文件只放每次会话都适用的约束；项目细节以 `DOC/INDEX.md` 为唯一入口。
 

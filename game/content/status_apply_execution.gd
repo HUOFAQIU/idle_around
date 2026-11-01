@@ -15,6 +15,15 @@ func execute(spec: GameplayEffectSpec, _target_asc: AbilitySystemComponent) -> D
 	if attribute_name.is_empty():
 		return {}
 
+	var amount := resolve_amount(spec)
+	if amount <= 0.0:
+		return {}
+	return {attribute_name: amount}
+
+
+## 本次施加的最终数值：SetByCaller 优先，再乘释放时判定好的暴击倍率，向下取整。
+## 供派生效果读取同一份结算口径（例如温泉的再生读取灼烧值）。
+func resolve_amount(spec: GameplayEffectSpec) -> float:
 	var amount := base_amount
 	var multiplier := 1.0
 	if spec != null:
@@ -26,7 +35,4 @@ func execute(spec: GameplayEffectSpec, _target_asc: AbilitySystemComponent) -> D
 			0.0
 		)
 
-	amount = floor(amount * multiplier)
-	if amount <= 0.0:
-		return {}
-	return {attribute_name: amount}
+	return floor(amount * multiplier)

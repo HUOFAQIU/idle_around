@@ -7,7 +7,7 @@
 
 [resource]
 script = ExtResource("2_trigger")
-event = 3
+event_tag = &"Event.Combat.FreezeApplied"
 magnitude = 2.0
 effects = Array[ExtResource("1_effect")]([ExtResource("3_regen_apply"), ExtResource("4_regen_tick")])
 target_scope = 1

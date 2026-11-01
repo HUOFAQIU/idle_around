@@ -22,7 +22,7 @@ print(state)
 TestAPI.stop_battle()
 ```
 
-魂灵/怪物 ID 用 `TestAPI.get_soul_ids()`、`TestAPI.get_monster_ids()` 查，必须是 registry 里的字符串 ID（个别资源带 `_2` 后缀）。
+魂灵/怪物 ID 用 `TestAPI.get_soul_ids()`、`TestAPI.get_monster_ids()` 查，必须是 registry 里的字符串 ID。旧存档里带 `_2` 后缀的魂灵 ID 由 `CollectionDB` 自动映射到当前 canonical ID。
 
 ## 背包 / 见闻
 
@@ -45,15 +45,15 @@ TestAPI.stop_battle()
 | 方法 | 说明 |
 |---|---|
 | `start_battle(monster_id := &"") -> bool` | 显示战斗窗口并开战；首只必刷指定怪 |
-| `stop_battle() -> void` | 结束战斗并还原时间倍率 |
+| `stop_battle() -> void` | 结束当前战斗 |
 | `spawn_monster(monster_id) -> bool` | 在远处空位刷一只指定怪 |
 | `apply_burn(target := "player") -> bool` | 对战斗单位施加灼烧（测试状态与火焰 Cue） |
 | `apply_poison(target := "player") -> bool` | 对战斗单位施加剧毒（测试飞溅与气泡 Cue） |
 | `apply_regen(target := "player") -> bool` | 对战斗单位施加生命再生（测试剧毒/再生相减） |
 | `preview_wen_quan_regen(burn_amount := 24.0) -> float` | 按给定灼烧值预览温泉再生，验证“再生 = 灼烧”的派生；不改运行时资源 |
-| `apply_freeze(target := "player", seconds := 3.0) -> bool` | 对战斗单位施加冻结（测试冻结 Cue 与 `State.Frozen`）；会广播 `FREEZE_APPLIED` |
+| `apply_freeze(target := "player", seconds := 3.0) -> bool` | 对战斗单位施加冻结（测试冻结 Cue 与 `State.Frozen`）；会广播 `Event.Combat.FreezeApplied` |
 | `apply_soul_freeze(soul_name, seconds := 1.0, target := "player") -> bool` | 对已装备的指定魂灵施加魂灵级冻结（测试冰霜 shader 与徽章） |
-| `simulate_soul_used(soul_name, target := "player") -> bool` | 模拟“魂灵被使用”（不动冷却），确定性验证 `OTHER_SOUL_USED` 触发器；触发充能满时会走同帧待释放队列，调用后等一帧再读状态 |
+| `simulate_soul_used(soul_name, target := "player") -> bool` | 模拟“魂灵被使用”（不动冷却），确定性验证 `Event.Combat.SoulUsed` 触发器；触发充能满时会走同帧待释放队列，调用后等一帧再读状态 |
 | `charge_soul(soul_name, seconds, target := "player") -> bool` | 给已装备魂灵直接充能，用于快速触发主动技能；不经过触发器队列 |
 | `damage_unit(target := "player", amount := 1.0) -> bool` | 对单位造成伤害，用于把生命值打到阈值以下（测温泉半血触发） |
 | `has_status(tag, target := "player") -> bool` | 单位是否拥有某个状态标签 |
@@ -121,6 +121,22 @@ print(TestAPI.get_battle_state()["player_souls"])
 `player_souls[].freeze` 是魂灵级冻结剩余秒数；`frozen` 是 `is_frozen()`（自身冻结或单位冻结）。单位的 `frozen` 只表示 `State.Frozen` 标签。`charge_seconds` 用于精确验证充能触发（例如相邻地产魂灵被使用后 +1 秒）。`active` 是技能是否还在执行中（投射物发射后不再占用它）；`activation_lock` 是 20 刻激活锁的剩余秒数，用于验证 1 秒最多 6 次的限制。
 
 即时制下 `cell` 只是“当前压在地图哪一格”，真实位置看 `position`（像素）；`distance_to_player` 和 `in_attack_range` 用来验证“进范围才充能”。
+
+## 调试 / 遥测
+
+| 方法 | 说明 |
+|---|---|
+| `get_debug_events(category := "", limit := 200) -> Array` | 最近调试事件；`category` 见 `CombatEvent`（`battle`/`cast`/`soul`/`trigger`/`effect`/`attribute`/`tag`/`log`） |
+| `get_debug_stats() -> Dictionary` | 缓冲大小、丢失数、场次、关注单位、文件录制状态 |
+| `get_debug_snapshot() -> Dictionary` | 当前战斗快照（玩家完整详情、敌人摘要） |
+| `get_soul_runtime(soul_name, target := "player") -> Dictionary` | 某颗已装备魂灵的运行期状态（冷却/充能/状态/统计/触发器） |
+| `get_trigger_state(soul_name, target := "player") -> Array` | 某颗魂灵的触发器列表与 `fired` 状态 |
+| `clear_debug_events() -> void` | 清空事件缓冲 |
+| `export_debug_log(path := "user://debug/test.jsonl") -> String` | 导出 JSONL，返回绝对路径 |
+| `set_debug_recording(enabled) -> void` | 开关遥测；关闭后 `record()` 直接返回 |
+| `watch_unit_for_debug(target := "player") -> bool` | 设置关注单位，详细事件只记录它 |
+
+事件里带 `trace_id / parent_trace_id / root_trace_id`，可用 `CombatTelemetry.get_trace_chain(trace_id)` 还原因果链。
 
 ## 注意
 

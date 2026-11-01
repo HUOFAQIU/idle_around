@@ -186,8 +186,9 @@ func _show_soul_detail(id: StringName) -> void:
 			lines.append(soul.skill.description)
 		elif soul.description.is_empty():
 			lines.append("暂无记载。")
-		if soul.skill.cooldown_effect != null:
-			lines.append("冷却：%.1f 秒" % soul.skill.cooldown_effect.duration)
+		var cooldown_seconds := soul.skill.cooldown_seconds
+		if cooldown_seconds > 0.0:
+			lines.append("冷却：%.1f 秒" % cooldown_seconds)
 	else:
 		lines.append("\n[b]未配置技能[/b]")
 		if soul.description.is_empty():

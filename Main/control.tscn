@@ -12,6 +12,7 @@
 [ext_resource type="PackedScene" uid="uid://dcymb2xgnhr2c" path="res://Windows/Collection/collection_window.tscn" id="9_nu5lx"]
 [ext_resource type="PackedScene" uid="uid://bc0rml4pkml2k" path="res://Windows/Info/info_window.tscn" id="10_gdtoh"]
 [ext_resource type="PackedScene" uid="uid://b87wi6f58te5u" path="res://Windows/Item/item_window.tscn" id="11_n2hic"]
+[ext_resource type="PackedScene" path="res://Windows/Debug/debug_window.tscn" id="12_debug"]
 
 [node name="Control" type="Control" unique_id=887310324]
 layout_mode = 3
@@ -136,10 +137,9 @@ open_position = Vector2i(240, 165)
 [node name="ShopWindow" parent="." unique_id=1488491486 instance=ExtResource("8_mkciv")]
 visible = false
 
-[node name="DebugWindow" type="Window" parent="." unique_id=1698870524]
-oversampling_override = 1.0
-position = Vector2i(0, 36)
+[node name="DebugWindow" parent="." unique_id=1698870524 instance=ExtResource("12_debug")]
 visible = false
+open_position = Vector2i(0, 36)
 
 [node name="CollectionWindow" parent="." unique_id=1694343200 instance=ExtResource("9_nu5lx")]
 visible = false

@@ -331,6 +331,75 @@ static func get_fps_text() -> String:
 #endregion
 
 
+#region 调试 / 遥测
+
+## 最近调试事件；category 为空时返回全部
+static func get_debug_events(category : String = "", limit : int = 200) -> Array:
+	var filter : Dictionary = {}
+	if not category.is_empty():
+		filter["category"] = category
+	return CombatTelemetry.query(filter, limit)
+
+
+## 调试统计：缓冲大小、丢失数、当前场次、关注单位等
+static func get_debug_stats() -> Dictionary:
+	return CombatTelemetry.get_stats()
+
+
+## 当前战斗快照（玩家完整详情，敌人摘要）
+static func get_debug_snapshot() -> Dictionary:
+	return CombatSnapshot.build(CombatTelemetry.current_battle)
+
+
+## 某颗已装备魂灵的运行期状态；找不到返回空字典
+static func get_soul_runtime(soul_name : String, target : String = "player") -> Dictionary:
+	var unit := _find_unit(target)
+	if unit == null:
+		return {}
+	for runtime in unit.loadout:
+		if runtime != null and runtime.display_name() == soul_name:
+			return CombatSnapshot.soul_runtime(runtime)
+	return {}
+
+
+## 某颗魂灵的触发器状态列表
+static func get_trigger_state(soul_name : String, target : String = "player") -> Array:
+	var unit := _find_unit(target)
+	if unit == null:
+		return []
+	var result : Array = []
+	for trigger in CombatSnapshot.triggers(unit):
+		if String(trigger.get("source", "")) == soul_name:
+			result.append(trigger)
+	return result
+
+
+## 清空调试事件缓冲；不影响战斗
+static func clear_debug_events() -> void:
+	CombatTelemetry.clear()
+
+
+## 导出当前调试事件为 JSONL；返回绝对路径
+static func export_debug_log(path : String = "user://debug/test.jsonl") -> String:
+	return CombatTelemetry.export_jsonl(path)
+
+
+## 开关遥测录制；关闭后 record() 直接返回
+static func set_debug_recording(enabled : bool) -> void:
+	CombatTelemetry.set_enabled(enabled)
+
+
+## 把某个单位设为“关注单位”：详细事件只记录它
+static func watch_unit_for_debug(target : String = "player") -> bool:
+	var unit := _find_unit(target)
+	if unit == null:
+		return false
+	CombatTelemetry.watch_unit(unit)
+	return true
+
+#endregion
+
+
 #region 内部
 
 ## 按显示名找某个单位已装备的魂灵技能

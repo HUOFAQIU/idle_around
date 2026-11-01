@@ -4,6 +4,6 @@
 
 [resource]
 script = ExtResource("1_trigger")
-event = 2
+event_tag = &"Event.Combat.SoulUsed"
 target_scope = 1
 charge_source_seconds = 1.0

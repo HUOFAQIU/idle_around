@@ -12,6 +12,15 @@
 
 class_name ChargedAbility extends GameplayAbility
 
+## 魂灵刚充满（由未满 → 满时发一次）；调试窗口/时间线用
+signal became_ready
+## 外部充能；参数是秒数，不是每帧自然充能
+signal charge_added(seconds: float, old_seconds: float, new_seconds: float, trace: CombatTrace)
+## 加速/减速/冻结被施加
+signal status_applied(status_name: String, seconds: float, trace: CombatTrace)
+## 加速/减速/冻结到期
+signal status_expired(status_name: String)
+
 ## 1 秒 = 120 刻度；60 FPS 下每帧基础 2 刻度，减速 1 刻度，加速 4 刻度
 const UNITS_PER_SECOND: int = 120
 ## 连续激活的最小间隔：20 刻 = 1/6 秒，1 秒最多 6 次
@@ -38,11 +47,6 @@ var soul_column: int = -1
 var soul_width: int = 1
 ## 同一单位本场所有魂灵能力（用于左右/随机目标）
 var soul_loadout: Array[ChargedAbility] = []
-
-
-## 从冷却效果里读时长；传入 null 时冷却归零
-func setup_cooldown_from_effect(effect: GameplayEffect) -> void:
-	cooldown = effect.duration if effect != null else 0.0
 
 
 func reset_charge() -> void:
@@ -72,8 +76,12 @@ func mark_activated() -> void:
 
 
 ## 外部充能：传入秒数，内部换算成刻度
-func add_charge(seconds: float) -> void:
+func add_charge(seconds: float, trace: CombatTrace = null) -> void:
+	var before := charge_seconds()
 	add_charge_units(_seconds_to_units(seconds))
+	var after := charge_seconds()
+	if not is_equal_approx(before, after):
+		charge_added.emit(seconds, before, after, trace)
 
 
 ## 直接加刻度（内部/测试用）
@@ -83,7 +91,10 @@ func add_charge_units(units: int) -> void:
 		return
 	if units <= 0:
 		return
+	var was_ready := is_ready()
 	charge_units = mini(charge_units + units, _cooldown_units())
+	if not was_ready and is_ready():
+		became_ready.emit()
 
 
 ## 每物理帧自然充能；base_units 是 1x 下的每帧刻度（60 FPS 为 2）
@@ -94,26 +105,29 @@ func tick_charge(base_units: int) -> void:
 
 
 ## 施加加速；无冷却魂灵拒绝。已经在加速时只累加剩余时间，速率保持 2x。
-func apply_haste(seconds: float) -> bool:
+func apply_haste(seconds: float, trace: CombatTrace = null) -> bool:
 	if cooldown <= 0.0 or seconds <= 0.0:
 		return false
 	haste_units += _seconds_to_units(seconds)
+	status_applied.emit("加速", seconds, trace)
 	return true
 
 
 ## 施加减速；无冷却魂灵拒绝。已经在减速时只累加剩余时间，速率保持 0.5x。
-func apply_slow(seconds: float) -> bool:
+func apply_slow(seconds: float, trace: CombatTrace = null) -> bool:
 	if cooldown <= 0.0 or seconds <= 0.0:
 		return false
 	slow_units += _seconds_to_units(seconds)
+	status_applied.emit("减速", seconds, trace)
 	return true
 
 
 ## 施加魂灵冻结；无冷却魂灵拒绝。已经在冻结时只累加剩余时间。
-func apply_freeze(seconds: float) -> bool:
+func apply_freeze(seconds: float, trace: CombatTrace = null) -> bool:
 	if cooldown <= 0.0 or seconds <= 0.0:
 		return false
 	freeze_units += _seconds_to_units(seconds)
+	status_applied.emit("冻结", seconds, trace)
 	return true
 
 
@@ -127,14 +141,17 @@ func tick_status(base_units: int) -> Array[String]:
 		haste_units = maxi(haste_units - base_units, 0)
 		if haste_units == 0:
 			expired.append("加速")
+			status_expired.emit("加速")
 	if slow_units > 0:
 		slow_units = maxi(slow_units - base_units, 0)
 		if slow_units == 0:
 			expired.append("减速")
+			status_expired.emit("减速")
 	if freeze_units > 0:
 		freeze_units = maxi(freeze_units - base_units, 0)
 		if freeze_units == 0:
 			expired.append("冻结")
+			status_expired.emit("冻结")
 	return expired
 
 

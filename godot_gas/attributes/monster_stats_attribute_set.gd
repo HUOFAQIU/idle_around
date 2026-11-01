@@ -9,7 +9,6 @@ class_name MonsterStatsAttributeSet extends AttributeSet
 
 var max_health: AttributeData = AttributeData.new(500.0)
 var health: AttributeData = AttributeData.new(500.0)
-var cooldown_move: AttributeData = AttributeData.new(3.0)
 ## 当前灼烧层数；每 0.5 秒按整数层数结算一次，然后衰减 3%
 var burn: AttributeData = AttributeData.new(0.0)
 ## 当前护盾值；优先承受伤害，无上限、无持续时间

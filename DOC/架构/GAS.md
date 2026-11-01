@@ -4,7 +4,7 @@
 > 何时读：改属性集、标签注册、Cue 注册
 > 关键词：GAS GameplayAbility AttributeSet Tag Cue godot_gas
 > 代码：godot_gas/
-> 相关：`特效/effects.md`
+> 相关：`特效/effects.md`、`架构/调试与遥测.md`
 >
 > 旧版架构长文第 6 节。
 
@@ -13,9 +13,9 @@
 | 文件 | 内容 |
 |---|---|
 | `attributes/player_stats_attribute_set.gd` | `max_health`、`health`、`damage_bonus`、`burn`、`shield`、`poison`、`regen`；`health` 钳制在 `[0, max_health]`，状态值钳制为不小于 0 |
-| `attributes/monster_stats_attribute_set.gd` | 同上，额外有 `cooldown_move`（当前未被使用，移动冷却读的是 `cooldown_effect.duration`） |
+| `attributes/monster_stats_attribute_set.gd` | 同上 |
 | `attributes_draft.cfg` | GodotGAS 编辑器插件的属性草稿数据，不参与运行时 |
-| `tag_registry.tres` | 标签注册表：`Cue.Combat.PoisonApply`、`Cue.Status.Burn`、`Cue.Status.Freeze`、`Cue.Status.Poison`、`Event.Combat.Critical`、`State.Burning`、`State.Dead`、`State.Frozen`、`State.Poisoned`、`State.Wounded`、`Team.Enemy`、`Team.Player` |
+| `tag_registry.tres` | 标签注册表：`Cue.*`、`Data.*`（SetByCaller）、`Event.*`（GameplayEvent）、`State.*`、`Team.*`、`Skill.<id>`、`Skill.Trigger.*`；完整列表以此文件为准 |
 | `gameplay_tags.gd` | 由插件根据注册表自动生成，**不要手改**；新增标签后通过插件重新生成 |
 | `cue_registry.tres` | Cue 注册表：灼烧光环、剧毒飞溅/气泡、冻结光环 |
 
@@ -29,9 +29,13 @@
 | `Event.Combat.Critical` | 直接伤害/护盾等即时效果暴击时 `inject_tag`；`BattleUnit` 用它判断日志和飘字样式。异常状态只在施放时判定暴击，周期 tick 不带此标签 |
 | `Team.Player` / `Team.Enemy` | `BattleUnit._init_attributes()` 按 `team` 字段添加 |
 | `State.Burning` / `State.Poisoned` | 灼烧/剧毒周期效果的 `granted_tags` |
-| `State.Wounded` | 已注册，但当前没有代码使用 |
 | `State.Frozen` | `ChargedAbility.FROZEN_TAG`（`BattleBrain.FROZEN_TAG` 别名）；单位级冻结由 `freeze_unit.tres` 挂/摘，同时驱动 `Cue.Status.Freeze` |
 | `Cue.Status.Freeze` | 单位冻结持久光环（`game/battle/cues/freeze_cue.tscn`） |
+| `Event.Movement.UnitMoved` | 敌方跨格；`BattleUnit._on_battle_unit_moved()` 发送 |
+| `Event.Health.BelowPercent` | 生命下降；`BattleUnit._check_health_triggers()` 发送 |
+| `Event.Combat.SoulUsed` | 魂灵成功激活；`AutoCastAbility._notify_soul_used()` 发送 |
+| `Event.Combat.FreezeApplied` | 单位被冻结；`BattleUnit.notify_freeze_applied()` 发送 |
+| `Data.TriggerMagnitude` / `Data.CritMultiplier` / `Data.SuppressStateLog` | 触发数值 / 暴击倍率 / 批量日志抑制的 SetByCaller 键 |
 
 GAS 属性：
 
@@ -40,3 +44,5 @@ GAS 属性：
 - ASC 在 `_ready()` 时会深拷贝 `attribute_sets`，所以 `BattleUnit` 必须等节点入树后再取 `get_attribute()` 的引用。
 - `pre_attribute_change()` 负责下限/上限钳制，`post_attribute_change()` 负责 `max_health` 变化时同步 `health`。
 - `BattleUnit._apply_passive_effects()` 在被动最大生命变化后，用运行时 `INSTANT GameplayEffect`（health `ADD health_delta`）同步当前生命，不再直接调用 ASC 内部改属性方法；此时还没连接日志/血条，所以不会产生开场飘字。
+
+调试接入：`CombatTelemetry.bind_unit()` 监听 ASC 的属性/标签/效果/能力/GameplayEvent 信号；项目侧创建的 spec 使用 `SoulEffectContext`（`GameplayEffectContext` 子类）携带 `CombatTrace`，调试窗口据此还原因果链。详见 `架构/调试与遥测.md`。

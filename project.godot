@@ -27,6 +27,8 @@ GameGlobal="*uid://d4mr5auojqyxl"
 GBIS="*uid://dit4hlufoh182"
 GameplayCueManager="*uid://bh6ixabs0w700"
 CollectionDB="*uid://b76qj7km7m8ad"
+CombatTelemetry="*res://Scripts/debug/combat_telemetry.gd"
+SoulRuntimeDB="*res://game/battle/soul_runtime_db.gd"
 
 [display]
 

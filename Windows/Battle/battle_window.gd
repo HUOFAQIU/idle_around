@@ -127,6 +127,8 @@ func _start_battle() -> void:
 	for slot in _battle_slots:
 		_battle_souls.append(slot.soul)
 	_battle.player = _spawn_player(_battle_slots)
+	CombatTelemetry.begin_run(_run_id, _battle, _battle.player.loadout)
+	CombatTelemetry.watch_unit(_battle.player)
 	_battle.start_battle()
 	# 立刻先来一只，不然点完还得对着空场等第一拍
 	_battle.spawn_one()
@@ -144,13 +146,13 @@ func _end_battle() -> void:
 
 
 func _clear_battle() -> void:
+	CombatTelemetry.end_run("clear")
 	player_health_bar.visible = false
 	player_regen_bar.visible = false
 	player_shield_bar.visible = false
 	player_burn_bar.visible = false
 	player_poison_bar.visible = false
-	for soul in _battle_souls:
-		soul.clear_battle_status()
+	SoulRuntimeDB.clear()
 	_soul_abilities.clear()
 	_battle_slots.clear()
 	for child in units_root.get_children():
@@ -187,10 +189,9 @@ func _spawn_player(slots: Array[SoulSlot]) -> BattleUnit:
 	player_burn_bar.bind(unit.asc.get_attribute("burn"), unit.asc)
 	player_poison_bar.bind(unit.asc.get_attribute("poison"), unit.asc)
 
-	# 魂灵 → 技能：和怪物走同一条管线
-	_soul_abilities = unit.add_soul_abilities(_battle_souls)
-	# 把装备位置和整场魂灵名单交给每个技能，供“左/右/随机”选目标
-	unit.apply_soul_slots(slots, _soul_abilities)
+	# 魂灵 → 技能 + 运行期状态：和怪物走同一条管线；
+	# slots 传进去后由 BattleUnit 统一写技能位置并建 SoulRuntime
+	_soul_abilities = unit.add_soul_abilities(_battle_souls, slots)
 
 	var granted := 0
 	for ability in _soul_abilities:
@@ -261,19 +262,14 @@ func _equipped_souls() -> Array[SoulSlot]:
 
 #region 魂灵扫描线 = 冷却条
 
-## 每帧把每颗魂灵的冷却进度写进它的扫描线（0 = 刚触发，1 = 冷却走完）
+## 每帧把每颗魂灵的冷却进度/状态写进 SoulRuntime；
+## ItemView 监听 runtime.changed 更新材质和徽章，不再往 SoulData 里写运行期状态。
 func _push_scanlines() -> void:
 	if _battle == null or _battle.player == null:
 		return
-	for i in _battle_souls.size():
-		var soul := _battle_souls[i]
-		if i >= _soul_abilities.size() or _soul_abilities[i] == null:
-			soul.set_battle_status(0.0, 0.0, 0.0)
-			soul.set_scanline_progress(0.0)
-			continue
-		var ability := _soul_abilities[i]
-		soul.set_scanline_progress(ability.charge_ratio())
-		soul.set_battle_status(ability.haste_seconds(), ability.slow_seconds(), ability.freeze_seconds())
+	for runtime in _battle.player.loadout:
+		if runtime != null:
+			runtime.refresh_from_ability()
 
 
 ## 扫描线的总开关：不在战斗时整条收起来（这是文档要的"战斗开始后才出现"）
@@ -283,8 +279,12 @@ func _set_scanlines(on: bool) -> void:
 		var soul := _battle_souls[i]
 		var has_active := i < _soul_abilities.size() and _soul_abilities[i] != null
 		soul.set_scanline_enabled(on and has_active)
-		if not on or not has_active:
-			soul.set_scanline_progress(0.0)
+	if not on and _battle != null and _battle.player != null:
+		for runtime in _battle.player.loadout:
+			if runtime != null:
+				runtime.clear_display()
+	elif on:
+		_push_scanlines()
 #endregion
 
 

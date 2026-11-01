@@ -1,21 +1,20 @@
 [gd_resource type="Resource" script_class="SkillDefinition" format=3 uid="uid://chnvje3gcafxo"]
 
-[ext_resource type="Script" uid="uid://b7ovihaaijli7" path="res://addons/GodotGAS/effects/gameplay_execution_calculation.gd" id="1_aowow"]
-[ext_resource type="Script" uid="uid://dxtfmpqjh3pta" path="res://game/content/soul_damage_execution.gd" id="2_exec"]
-[ext_resource type="Script" uid="uid://bcow77l0bnh0s" path="res://addons/GodotGAS/effects/gameplay_effect_modifier.gd" id="2_vykec"]
-[ext_resource type="Script" uid="uid://c81papidngxvg" path="res://addons/GodotGAS/effects/gameplay_effect.gd" id="3_cwdw2"]
-[ext_resource type="Script" uid="uid://ccvfqmqr8q1pm" path="res://addons/GodotGAS/gameplay_tag/gameplay_tag_query.gd" id="4_od3hn"]
-[ext_resource type="Script" uid="uid://ktr72cmavmyy" path="res://game/content/skill_definition.gd" id="5_nixmg"]
-[ext_resource type="Script" uid="uid://cf2mx3u4jfquk" path="res://game/content/target_rule.gd" id="6_irj8f"]
-
-[sub_resource type="Resource" id="Resource_effect_charge"]
-script = ExtResource("3_cwdw2")
-policy = 1
-duration = 3.0
+[ext_resource type="Script" path="res://addons/GodotGAS/effects/gameplay_execution_calculation.gd" id="1_aowow"]
+[ext_resource type="Script" path="res://game/content/soul_damage_execution.gd" id="2_exec"]
+[ext_resource type="Script" path="res://addons/GodotGAS/effects/gameplay_effect_modifier.gd" id="2_vykec"]
+[ext_resource type="Script" path="res://addons/GodotGAS/effects/gameplay_effect.gd" id="3_cwdw2"]
+[ext_resource type="Script" path="res://addons/GodotGAS/gameplay_tag/gameplay_tag_query.gd" id="4_od3hn"]
+[ext_resource type="Script" path="res://game/content/skill_definition.gd" id="5_nixmg"]
+[ext_resource type="Script" path="res://game/content/target_rule.gd" id="6_irj8f"]
 
 [sub_resource type="Resource" id="Resource_query_not_dead"]
 script = ExtResource("4_od3hn")
+require_any_tags = Array[StringName]([])
+require_all_tags = Array[StringName]([])
+require_exact_tags = Array[StringName]([])
 ignore_tags = Array[StringName]([&"State.Dead"])
+ignore_exact_tags = Array[StringName]([])
 
 [sub_resource type="Resource" id="Resource_execution_damage"]
 script = ExtResource("2_exec")
@@ -24,19 +23,40 @@ base_damage = 10.0
 [sub_resource type="Resource" id="Resource_effect_damage"]
 resource_name = "咬"
 script = ExtResource("3_cwdw2")
+stacking_policy = 0
+policy = 0
+duration = 0.0
+period = 0.0
+instigator_stacking_policy = 0
+max_stacks = 0
+overflow_effects = Array[ExtResource("3_cwdw2")]([])
+clear_stack_on_overflow = false
+duration_turns = 1
+tick_on_turn_start = true
 application_query = SubResource("Resource_query_not_dead")
+application_cue_tags = Array[StringName]([])
+persistent_cue_tags = Array[StringName]([])
+periodic_cue_tags = Array[StringName]([])
+removal_cue_tags = Array[StringName]([])
 executions = Array[ExtResource("1_aowow")]([SubResource("Resource_execution_damage")])
+modifiers = Array[ExtResource("2_vykec")]([])
+remove_effects_with_tags = Array[StringName]([])
+granted_tags = Array[StringName]([])
+event_tags = Array[StringName]([])
 
 [sub_resource type="Resource" id="Resource_target_rule"]
 script = ExtResource("6_irj8f")
 mode = 3
+count = 1
+camp = 0
 max_range = 1
+include_self = false
 
 [resource]
 script = ExtResource("5_nixmg")
 id = "jianya"
 description = "冷却 3 秒，对 1 格内最近的目标造成 10 点伤害。"
 effects = Array[ExtResource("3_cwdw2")]([SubResource("Resource_effect_damage")])
-cooldown_effect = SubResource("Resource_effect_charge")
+cooldown_seconds = 3.0
 target_rule = SubResource("Resource_target_rule")
 metadata/_custom_type_script = "uid://ktr72cmavmyy"

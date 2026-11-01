@@ -35,6 +35,8 @@ var _moving_offset: Vector2i = Vector2i.ZERO
 var _haste_badge: Control
 var _slow_badge: Control
 var _freeze_badge: Control
+## 战斗运行期状态；仓库副本没有，只有正在装备/战斗中的魂灵才有
+var _runtime: SoulRuntime
 
 ## 构造函数
 @warning_ignore("shadowed_variable")
@@ -53,17 +55,27 @@ func _init(data: ItemData, base_size: int, stack_num_font: Font = null, stack_nu
 	elif GBIS.item_material:
 		material = GBIS.item_material.duplicate()
 	data.sig_refresh.connect(_on_data_refresh)
-	if data is SoulData:
-		(data as SoulData).sig_scanline_progress.connect(_on_scanline_progress)
 
-## 入树后创建魂灵状态徽章
+## 入树后创建魂灵状态徽章，并尝试绑定战斗运行期状态
 func _ready() -> void:
 	if data is SoulData:
 		_haste_badge = _make_status_badge(HASTE_BADGE_SCENE, "HasteBadge")
 		_slow_badge = _make_status_badge(SLOW_BADGE_SCENE, "SlowBadge")
 		_freeze_badge = _make_status_badge(FREEZE_BADGE_SCENE, "FreezeBadge")
+		SoulRuntimeDB.runtime_registered.connect(_on_runtime_registered)
+		SoulRuntimeDB.runtime_unregistered.connect(_on_runtime_unregistered)
+		_bind_runtime(SoulRuntimeDB.get_runtime(data as SoulData))
 		_refresh_status_badges()
 		_apply_freeze_shader()
+
+
+func _exit_tree() -> void:
+	if data is SoulData:
+		if SoulRuntimeDB.runtime_registered.is_connected(_on_runtime_registered):
+			SoulRuntimeDB.runtime_registered.disconnect(_on_runtime_registered)
+		if SoulRuntimeDB.runtime_unregistered.is_connected(_on_runtime_unregistered):
+			SoulRuntimeDB.runtime_unregistered.disconnect(_on_runtime_unregistered)
+	_unbind_runtime()
 
 ## 重写计算大小
 func recalculate_size() -> void:
@@ -91,7 +103,7 @@ func _draw() -> void:
 		for param_name in data.shader_params.keys():
 			var value: Variant = data.shader_params[param_name]
 			if data is SoulData and param_name == "progress":
-				value = (data as SoulData).scanline_progress
+				value = _runtime.scanline_progress if _runtime != null else 0.0
 			(material as ShaderMaterial).set_shader_parameter(param_name, value)
 
 ## 跟随鼠标
@@ -112,8 +124,42 @@ func _on_data_refresh() -> void:
 	_apply_freeze_shader()
 
 
-## 扫描线进度只改材质参数，不需要重绘整个 ItemView
-func _on_scanline_progress(value: float) -> void:
+## 战斗开始/结束时 SoulRuntimeDB 会广播注册/注销；只绑定同一份 SoulData
+func _on_runtime_registered(runtime: SoulRuntime) -> void:
+	if data is SoulData and runtime.soul == data:
+		_bind_runtime(runtime)
+
+
+func _on_runtime_unregistered(runtime: SoulRuntime) -> void:
+	if _runtime == runtime:
+		_bind_runtime(null)
+
+
+func _bind_runtime(runtime: SoulRuntime) -> void:
+	if _runtime == runtime:
+		return
+	if _runtime != null and _runtime.changed.is_connected(_on_runtime_changed):
+		_runtime.changed.disconnect(_on_runtime_changed)
+	_runtime = runtime
+	if _runtime != null:
+		_runtime.changed.connect(_on_runtime_changed)
+	_set_progress_param(_runtime.scanline_progress if _runtime != null else 0.0)
+	_refresh_status_badges()
+	_apply_freeze_shader()
+
+
+func _unbind_runtime() -> void:
+	_bind_runtime(null)
+
+
+## 运行期状态变化：只改材质参数和徽章，不重绘整个 ItemView
+func _on_runtime_changed() -> void:
+	_set_progress_param(_runtime.scanline_progress if _runtime != null else 0.0)
+	_refresh_status_badges()
+	_apply_freeze_shader()
+
+
+func _set_progress_param(value: float) -> void:
 	if material is ShaderMaterial:
 		(material as ShaderMaterial).set_shader_parameter("progress", value)
 
@@ -122,7 +168,7 @@ func _on_scanline_progress(value: float) -> void:
 func _apply_freeze_shader() -> void:
 	if not data is SoulData or not material is ShaderMaterial:
 		return
-	var frozen := (data as SoulData).freeze_seconds > 0.0
+	var frozen := _runtime != null and _runtime.freeze_seconds > 0.0
 	(material as ShaderMaterial).set_shader_parameter("freeze", 1.0 if frozen else 0.0)
 
 
@@ -142,14 +188,16 @@ func _make_status_badge(scene: PackedScene, badge_name: String) -> Control:
 	return badge
 
 
-## 把 SoulData 上的剩余秒数同步到三个徽章
+## 把 SoulRuntime 上的剩余秒数同步到三个徽章；仓库副本没有运行期状态就隐藏
 func _refresh_status_badges() -> void:
 	if not data is SoulData:
 		return
-	var soul := data as SoulData
-	_update_status_badge(_haste_badge, soul.haste_seconds, BADGE_TOP)
-	_update_status_badge(_freeze_badge, soul.freeze_seconds, BADGE_CENTER)
-	_update_status_badge(_slow_badge, soul.slow_seconds, BADGE_BOTTOM)
+	var haste := _runtime.haste_seconds if _runtime != null else 0.0
+	var freeze := _runtime.freeze_seconds if _runtime != null else 0.0
+	var slow := _runtime.slow_seconds if _runtime != null else 0.0
+	_update_status_badge(_haste_badge, haste, BADGE_TOP)
+	_update_status_badge(_freeze_badge, freeze, BADGE_CENTER)
+	_update_status_badge(_slow_badge, slow, BADGE_BOTTOM)
 
 
 func _update_status_badge(badge: Control, seconds: float, position_mode: int) -> void:

@@ -6,6 +6,7 @@ extends Control
 @onready var button_4: Button = $GridContainer/Button4
 @onready var button_5: Button = $GridContainer/Button5
 @onready var button_6: Button = $GridContainer/Button6
+@onready var button_7: Button = $GridContainer/Button7
 
 @onready var character_window: CharacterWindow = $CharacterWindow
 @onready var equipment_window: Window = $EquipmentWindow
@@ -13,6 +14,7 @@ extends Control
 @onready var battle_window: BattleWindow = $BattleWindow
 @onready var shop_window: BaseWindow = $ShopWindow
 @onready var collection_window: Window = $CollectionWindow
+@onready var debug_window: Window = $DebugWindow
 
 
 func _ready() -> void:
@@ -39,6 +41,11 @@ func _ready() -> void:
 	button_6.pressed.connect(
 		func ():
 			popup_window(collection_window)
+	)
+	button_7.text = "调试"
+	button_7.pressed.connect(
+		func ():
+			popup_window(debug_window)
 	)
 
 

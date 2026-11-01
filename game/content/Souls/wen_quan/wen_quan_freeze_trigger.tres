@@ -4,6 +4,6 @@
 
 [resource]
 script = ExtResource("1_trigger")
-event = 3
+event_tag = &"Event.Combat.FreezeApplied"
 target_scope = 1
 charge_source_seconds = 3.0

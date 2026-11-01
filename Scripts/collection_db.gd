@@ -18,10 +18,15 @@ enum Kind {
 const SOUL_REGISTRY: Registry = preload("res://game/content/Collection/soul_registry.tres")
 const MONSTER_REGISTRY: Registry = preload("res://game/content/Collection/monster_registry.tres")
 const SAVE_PATH: String = "user://collection.cfg"
-## 测试期开关：见闻条目全部默认解锁；正式上线前改回 false。
-## 只影响显示，不写存档，关掉后按真实解锁进度显示。
-## 测试接口可用 set_unlock_all_for_testing() 临时切换。
-var unlock_all_for_testing: bool = true
+## 旧版 registry ID 兼容：旧存档里可能还留着带 _2 后缀的键。
+## 读取时统一映射到当前 canonical ID，写回时只写 canonical ID。
+const LEGACY_SOUL_ID_ALIASES := {
+	&"du_ya_soul_2": &"du_ya_soul",
+	&"hua_liu_shen_soul_2": &"hua_liu_shen_soul",
+}
+## 测试开关：见闻条目是否全部按已解锁显示；默认关闭。
+## 只影响显示，不写存档；调试窗口/TestAPI 可以临时切换。
+var unlock_all_for_testing: bool = false
 
 ## registry 字符串 ID → 资源
 var _souls: Dictionary[StringName, SoulData] = {}
@@ -56,7 +61,7 @@ func get_monster_ids() -> Array[StringName]:
 
 
 func get_soul(id: StringName) -> SoulData:
-	return _souls.get(id)
+	return _souls.get(_canonical_soul_id(id))
 
 
 func get_monster(id: StringName) -> MonsterData:
@@ -67,7 +72,7 @@ func is_seen(kind: int, id: StringName) -> bool:
 	if unlock_all_for_testing:
 		return true
 	var seen: Dictionary = _seen.get(kind, {})
-	return seen.has(id)
+	return seen.has(_canonical_id(kind, id))
 
 
 ## 测试接口：临时切换“全部已解锁”，不改存档
@@ -176,7 +181,7 @@ func _load_state() -> void:
 	for id in config.get_value("collection", "monsters", PackedStringArray()):
 		_seen[Kind.MONSTER][StringName(id)] = true
 	for id in config.get_value("collection", "souls", PackedStringArray()):
-		_seen[Kind.SOUL][StringName(id)] = true
+		_seen[Kind.SOUL][_canonical_soul_id(StringName(id))] = true
 
 
 func save_state() -> void:
@@ -194,4 +199,12 @@ func _seen_ids(kind: int) -> PackedStringArray:
 	for id: StringName in seen:
 		ids.append(String(id))
 	return ids
+
+
+func _canonical_id(kind: int, id: StringName) -> StringName:
+	return _canonical_soul_id(id) if kind == Kind.SOUL else id
+
+
+func _canonical_soul_id(id: StringName) -> StringName:
+	return LEGACY_SOUL_ID_ALIASES.get(id, id)
 #endregion

@@ -6,7 +6,7 @@
 
 [resource]
 script = ExtResource("3_f8mlu")
-event = 1
+event_tag = &"Event.Health.BelowPercent"
 effects = Array[ExtResource("1_66uk1")]([ExtResource("2_8b4wi")])
 target_scope = 2
 once_per_battle = true

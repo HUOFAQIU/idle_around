@@ -73,6 +73,11 @@ func add_unit(unit: BattleUnit) -> void:
 	else:
 		enemies.append(unit)
 	_register_bucket(unit)
+	CombatTelemetry.record(CombatEvent.BATTLE, "unit_added", {
+		"actor_unit": unit,
+		"cell": [unit.cell.x, unit.cell.y],
+		"souls": unit.loadout.map(func(runtime): return runtime.display_name() if runtime != null else ""),
+	}, CombatEvent.DETAIL)
 
 	unit.died.connect(_on_unit_died)
 	unit.moved.connect(_on_unit_moved)
@@ -130,7 +135,7 @@ func _physics_process(delta: float) -> void:
 
 
 ## 一个怪物的移动拍：进范围就停并唤醒大脑，否则朝角色直线走。
-func _tick_enemy_movement(unit: BattleUnit, delta: float, slices: int) -> void:
+func _tick_enemy_movement(unit: BattleUnit, _delta: float, slices: int) -> void:
 	if unit.brain == null:
 		return
 	var to_player := player.position - unit.position
@@ -139,10 +144,18 @@ func _tick_enemy_movement(unit: BattleUnit, delta: float, slices: int) -> void:
 		unit.velocity = Vector2.ZERO
 		if not unit.brain.is_physics_processing():
 			unit.brain.set_physics_process(true)
+			CombatTelemetry.record(CombatEvent.BATTLE, "enemy_in_range", {
+				"actor_unit": unit,
+				"distance": distance,
+			}, CombatEvent.DETAIL)
 		return
 
 	if unit.brain.is_physics_processing():
 		unit.brain.set_physics_process(false)
+		CombatTelemetry.record(CombatEvent.BATTLE, "enemy_out_of_range", {
+			"actor_unit": unit,
+			"distance": distance,
+		}, CombatEvent.DETAIL)
 	# 单位级冻结：不充能、不释放、不移动（魂灵级冻结只停魂灵，见 ChargedAbility）
 	if unit.is_unit_frozen():
 		unit.velocity = Vector2.ZERO
@@ -161,6 +174,11 @@ func _tick_enemy_movement(unit: BattleUnit, delta: float, slices: int) -> void:
 		var from_cell := unit.cell
 		unit.cell = new_cell
 		unit.moved.emit(unit, from_cell, new_cell)
+		CombatTelemetry.record(CombatEvent.BATTLE, "moved", {
+			"actor_unit": unit,
+			"from": [from_cell.x, from_cell.y],
+			"to": [new_cell.x, new_cell.y],
+		}, CombatEvent.DETAIL)
 
 
 #region 坐标与索引
@@ -274,6 +292,7 @@ func log_line(text: String, color: String = "white") -> void:
 	if log_sink.is_valid():
 		log_sink.call(line, color)
 
+	CombatTelemetry.record_log(line, color)
 	print_rich("[color=%s]%s[/color]" % [color, line])
 
 
@@ -305,8 +324,21 @@ func _roll_drops(unit: BattleUnit) -> void:
 		if entry == null or entry.item == null:
 			continue
 		if rng.randf() > entry.chance:
+			CombatTelemetry.record(CombatEvent.BATTLE, "drop_roll", {
+				"actor_unit": unit,
+				"item": entry.item.item_name,
+				"chance": entry.chance,
+				"success": false,
+			}, CombatEvent.DETAIL)
 			continue
-		if GBIS.add_item(DROP_CONTAINER, entry.item):
+		var added := GBIS.add_item(DROP_CONTAINER, entry.item)
+		CombatTelemetry.record(CombatEvent.BATTLE, "drop", {
+			"actor_unit": unit,
+			"item": entry.item.item_name,
+			"chance": entry.chance,
+			"success": added,
+		}, CombatEvent.IMPORTANT)
+		if added:
 			log_line("%s 掉落了【%s】" % [unit.unit_name, entry.item.item_name], "#ffd866")
 		else:
 			log_line("仓库已满，【%s】掉落丢失" % entry.item.item_name, "yellow")

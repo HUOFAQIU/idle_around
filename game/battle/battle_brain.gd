@@ -35,14 +35,18 @@ var abilities: Array[GameplayAbility] = []
 
 ## 本帧由触发器充能满、等待统一释放的能力；每颗最多入队一次
 var _pending_activations: Array[ChargedAbility] = []
+## 待释放能力对应的因果链（能力实例 id → CombatTrace）
+var _pending_traces: Dictionary = {}
 ## 是否已经排了 deferred flush（触发可能发生在 BattleBrain 的物理帧之外）
 var _flush_scheduled : bool = false
 ## 正在 flush，防止 flush 中再次调度
 var _flushing : bool = false
 
 
-## 直接挂一个能力（不走 SkillDefinition 的，比如移动）
+## 直接挂一个能力（不走 SkillDefinition 的，比如移动）。
+## 先写 owner_asc：GameplayAbility._ready() 看到 owner_asc 已设置就不会重复 grant。
 func add_ability(ability: GameplayAbility) -> void:
+	ability.owner_asc = unit.asc
 	unit.asc.grant_ability(ability)
 	abilities.append(ability)
 
@@ -50,6 +54,7 @@ func add_ability(ability: GameplayAbility) -> void:
 ## 开局：所有能力从 0 开始充能
 func begin_charge() -> void:
 	_pending_activations.clear()
+	_pending_traces.clear()
 	_flush_scheduled = false
 	for ability in abilities:
 		var charged := ability as ChargedAbility
@@ -60,7 +65,7 @@ func begin_charge() -> void:
 
 ## 外部（触发器）充能满足条件后，登记到本帧待释放队列。
 ## 真正的释放统一在 _flush_pending_activations() 里做，保持确定顺序。
-func request_activation(ability: ChargedAbility) -> void:
+func request_activation(ability: ChargedAbility, trace: CombatTrace = null) -> void:
 	if ability == null or not abilities.has(ability):
 		return
 	if unit == null or not is_instance_valid(unit) or unit.is_dead:
@@ -74,6 +79,17 @@ func request_activation(ability: ChargedAbility) -> void:
 	if _pending_activations.has(ability):
 		return
 	_pending_activations.append(ability)
+	for runtime in unit.loadout:
+		if runtime != null and runtime.ability == ability:
+			CombatTelemetry.record(CombatEvent.SOUL, "pending", {
+				"actor_unit": unit,
+				"soul": runtime.display_name(),
+				"ability": ability.ability_name,
+				"trace": trace,
+			}, CombatEvent.DETAIL)
+			break
+	if trace != null:
+		_pending_traces[ability.get_instance_id()] = trace
 	# flush 过程中新入队的由 while 循环直接处理，不再排 deferred
 	if _flushing or _flush_scheduled:
 		return
@@ -89,18 +105,22 @@ func _flush_pending_activations() -> void:
 		return
 	if unit == null or not is_instance_valid(unit) or unit.is_dead:
 		_pending_activations.clear()
+		_pending_traces.clear()
 		return
 	if unit.battle == null or not is_instance_valid(unit.battle) or not unit.battle.is_running:
 		_pending_activations.clear()
+		_pending_traces.clear()
 		return
 	# 和主循环同一套门控：怪物在攻击范围外不放
 	if unit.team == BattleUnit.Team.ENEMY and unit.battle.player != null:
 		if not unit.is_in_attack_range(unit.battle.player):
 			_pending_activations.clear()
+			_pending_traces.clear()
 			return
 	# 单位级冻结：本帧整体不放；充能保持，解冻后由主循环处理
 	if unit.asc == null or unit.asc.has_tag(FROZEN_TAG):
 		_pending_activations.clear()
+		_pending_traces.clear()
 		return
 
 	_flushing = true
@@ -110,8 +130,12 @@ func _flush_pending_activations() -> void:
 		if guard > MAX_PENDING_ACTIVATIONS_PER_FRAME:
 			push_warning("BattleBrain：单帧待释放队列超过上限，丢弃剩余请求")
 			_pending_activations.clear()
+			_pending_traces.clear()
 			break
 		var ability: ChargedAbility = _pending_activations.pop_front()
+		var trace: CombatTrace = _pending_traces.get(ability.get_instance_id()) if ability != null else null
+		if ability != null:
+			_pending_traces.erase(ability.get_instance_id())
 		if ability == null or not is_instance_valid(ability):
 			continue
 		if ability.is_frozen() or ability.is_active or not ability.is_ready():
@@ -119,8 +143,14 @@ func _flush_pending_activations() -> void:
 		if not ability.can_activate_now():
 			continue
 		if not unit.asc.can_activate_ability(ability):
+			CombatTelemetry.record(CombatEvent.SOUL, "flush_skip", {
+				"actor_unit": unit,
+				"ability": ability.ability_name,
+				"detail": "ASC 门卫拒绝",
+				"trace": trace,
+			}, CombatEvent.DETAIL)
 			continue
-		ability.try_activate()  # 开火即忘；激活锁在 AutoCastAbility._activate_ability() 里扣
+		ability.try_activate(trace)  # 开火即忘；激活锁在 AutoCastAbility._activate_ability() 里扣
 	_flushing = false
 
 

@@ -23,7 +23,7 @@ shader_parameter/freeze_color = Color(0.58, 0.86, 1, 1)
 [resource]
 script = ExtResource("3_hwmqp")
 skill = ExtResource("4_nieve")
-tags = Array[StringName]([&"Soul.Small"])
+types = Array[StringName]([&"Soul.Small"])
 item_name = "尖牙"
 type = "SOUL"
 icon = SubResource("AtlasTexture_snake")

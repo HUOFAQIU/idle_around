@@ -16,7 +16,7 @@ shader_parameter/progress = 0.0
 [resource]
 script = ExtResource("2_soul")
 skill = ExtResource("4_skill")
-tags = Array[StringName]([&"Soul.Small"])
+types = Array[StringName]([&"Soul.Small"])
 equip_part = "ANY"
 item_name = "小鹿"
 type = "SOUL"

@@ -18,7 +18,7 @@ shader_parameter/progress = 0.0
 [resource]
 script = ExtResource("3_soul")
 triggers = Array[ExtResource("4_trigger_script")]([ExtResource("5_trigger")])
-tags = Array[StringName]([&"Soul.Large"])
+types = Array[StringName]([&"Soul.Large"])
 equip_part = "ANY"
 item_name = "蹈火术"
 type = "SOUL"

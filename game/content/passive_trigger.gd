@@ -31,8 +31,8 @@ enum TargetScope {
 @export var once_per_battle: bool = false
 ## 触发时给来源魂灵技能充能的秒数；0 = 不充能
 @export_range(0.0, 60.0, 0.1) var charge_source_seconds: float = 0.0
-## 被使用的魂灵必须带齐这些标签；空 = 不限
-@export var required_soul_tags: Array[StringName] = []
+## 被使用的魂灵必须带齐这些类型；空 = 不限
+@export var required_soul_types: Array[StringName] = []
 ## 被使用的魂灵必须与本魂灵同一部位栏、左右紧邻
 @export var require_adjacent: bool = false
 ## 触发日志里显示的名字；留空则不写触发日志

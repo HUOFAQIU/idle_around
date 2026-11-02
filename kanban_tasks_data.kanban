@@ -17,7 +17,8 @@
 			"title": "Todo",
 			"tasks": [
 				"90ca3725-b67b-41d3-b2dd-2c2245c32624",
-				"064ed8d0-e776-4472-971d-12b4bbd56c8b"
+				"064ed8d0-e776-4472-971d-12b4bbd56c8b",
+				"e6f9c7dd-e7e3-40a3-9944-d17909c46080"
 			]
 		},
 		{
@@ -128,6 +129,13 @@
 		{
 			"uuid": "c4302d6e-cab1-47de-bad1-1057e61a7cdb",
 			"title": "New task",
+			"description": "",
+			"category": "dc17d4ed-a172-4464-9b98-2aeab52f9cdf",
+			"steps": []
+		},
+		{
+			"uuid": "e6f9c7dd-e7e3-40a3-9944-d17909c46080",
+			"title": "见闻",
 			"description": "",
 			"category": "dc17d4ed-a172-4464-9b98-2aeab52f9cdf",
 			"steps": []

@@ -99,12 +99,12 @@ static func get_soul_ids() -> Array[StringName]:
 	return CollectionDB.get_soul_ids()
 
 
-## 魂灵标签（registry ID），例如 &"Soul.RealEstate"
-static func get_soul_tags(id : StringName) -> Array[StringName]:
+## 魂灵类型（registry ID），例如 &"Soul.RealEstate"
+static func get_soul_types(id : StringName) -> Array[StringName]:
 	var soul := CollectionDB.get_soul(id)
 	if soul == null:
 		return []
-	return soul.tags.duplicate()
+	return soul.types.duplicate()
 
 
 static func get_monster_ids() -> Array[StringName]:

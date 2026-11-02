@@ -1151,9 +1151,9 @@ func _trigger_condition_text(trigger: Dictionary) -> String:
 		parts.append("每场一次")
 	if bool(trigger.get("require_adjacent", false)):
 		parts.append("需相邻")
-	var required: Array = trigger.get("required_soul_tags", [])
+	var required: Array = trigger.get("required_soul_types", [])
 	if not required.is_empty():
-		parts.append("标签 " + "、".join(required))
+		parts.append("类型 " + "、".join(required))
 	return " ".join(parts)
 
 

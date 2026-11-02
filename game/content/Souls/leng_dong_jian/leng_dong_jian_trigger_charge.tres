@@ -7,5 +7,5 @@ script = ExtResource("1_trigger")
 event_tag = &"Event.Combat.SoulUsed"
 target_scope = 1
 charge_source_seconds = 1.0
-required_soul_tags = Array[StringName]([&"Soul.RealEstate"])
+required_soul_types = Array[StringName]([&"Soul.RealEstate"])
 require_adjacent = true

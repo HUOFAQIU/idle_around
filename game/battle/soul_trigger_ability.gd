@@ -186,12 +186,12 @@ func _conditions_match(payload: Dictionary) -> bool:
 
 
 func _matches_used_soul(used: ChargedAbility, payload: Dictionary) -> bool:
-	if not definition.required_soul_tags.is_empty():
+	if not definition.required_soul_types.is_empty():
 		var used_soul: Variant = payload.get("used_soul", null)
 		if not (used_soul is SoulData):
 			return false
-		for tag in definition.required_soul_tags:
-			if not (used_soul as SoulData).tags.has(tag):
+		for soul_type in definition.required_soul_types:
+			if not (used_soul as SoulData).types.has(soul_type):
 				return false
 	if definition.require_adjacent:
 		return SoulTargetRule.is_adjacent(source_ability, used)

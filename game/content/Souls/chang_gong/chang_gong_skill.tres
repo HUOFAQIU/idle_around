@@ -1,21 +1,17 @@
 [gd_resource type="Resource" script_class="SkillDefinition" format=3 uid="uid://ntxhxb60wlmp"]
 
-[ext_resource type="Script" path="res://addons/GodotGAS/effects/gameplay_execution_calculation.gd" id="1_a4tug"]
-[ext_resource type="Script" path="res://addons/GodotGAS/effects/gameplay_effect_modifier.gd" id="2_4bv0q"]
-[ext_resource type="Script" path="res://game/content/soul_damage_execution.gd" id="2_exec"]
-[ext_resource type="Script" path="res://addons/GodotGAS/effects/gameplay_effect.gd" id="3_nlx2s"]
-[ext_resource type="Script" path="res://addons/GodotGAS/gameplay_tag/gameplay_tag_query.gd" id="4_57rb0"]
-[ext_resource type="PackedScene" path="res://game/battle/soul_projectile.tscn" id="5_8nym0"]
-[ext_resource type="Script" path="res://game/content/skill_definition.gd" id="6_kxtoe"]
-[ext_resource type="Script" path="res://game/content/target_rule.gd" id="7_wqsw1"]
+[ext_resource type="Script" uid="uid://b7ovihaaijli7" path="res://addons/GodotGAS/effects/gameplay_execution_calculation.gd" id="1_a4tug"]
+[ext_resource type="Script" uid="uid://bcow77l0bnh0s" path="res://addons/GodotGAS/effects/gameplay_effect_modifier.gd" id="2_4bv0q"]
+[ext_resource type="Script" uid="uid://dxtfmpqjh3pta" path="res://game/content/soul_damage_execution.gd" id="2_exec"]
+[ext_resource type="Script" uid="uid://c81papidngxvg" path="res://addons/GodotGAS/effects/gameplay_effect.gd" id="3_nlx2s"]
+[ext_resource type="Script" uid="uid://ccvfqmqr8q1pm" path="res://addons/GodotGAS/gameplay_tag/gameplay_tag_query.gd" id="4_57rb0"]
+[ext_resource type="PackedScene" uid="uid://dy5x2eppw8sxv" path="res://game/battle/soul_projectile.tscn" id="5_8nym0"]
+[ext_resource type="Script" uid="uid://ktr72cmavmyy" path="res://game/content/skill_definition.gd" id="6_kxtoe"]
+[ext_resource type="Script" uid="uid://cf2mx3u4jfquk" path="res://game/content/target_rule.gd" id="7_wqsw1"]
 
 [sub_resource type="Resource" id="Resource_query_not_dead"]
 script = ExtResource("4_57rb0")
-require_any_tags = Array[StringName]([])
-require_all_tags = Array[StringName]([])
-require_exact_tags = Array[StringName]([])
 ignore_tags = Array[StringName]([&"State.Dead"])
-ignore_exact_tags = Array[StringName]([])
 
 [sub_resource type="Resource" id="Resource_execution_damage"]
 script = ExtResource("2_exec")
@@ -24,34 +20,14 @@ base_damage = 50.0
 [sub_resource type="Resource" id="Resource_effect_damage"]
 resource_name = "长弓"
 script = ExtResource("3_nlx2s")
-stacking_policy = 0
-policy = 0
-duration = 0.0
-period = 0.0
-instigator_stacking_policy = 0
-max_stacks = 0
-overflow_effects = Array[ExtResource("3_nlx2s")]([])
-clear_stack_on_overflow = false
-duration_turns = 1
-tick_on_turn_start = true
 application_query = SubResource("Resource_query_not_dead")
-application_cue_tags = Array[StringName]([])
-persistent_cue_tags = Array[StringName]([])
-periodic_cue_tags = Array[StringName]([])
-removal_cue_tags = Array[StringName]([])
 executions = Array[ExtResource("1_a4tug")]([SubResource("Resource_execution_damage")])
-modifiers = Array[ExtResource("2_4bv0q")]([])
-remove_effects_with_tags = Array[StringName]([])
-granted_tags = Array[StringName]([])
-event_tags = Array[StringName]([])
 
 [sub_resource type="Resource" id="Resource_target_rule"]
 script = ExtResource("7_wqsw1")
 mode = 3
 count = 3
-camp = 0
 max_range = 20
-include_self = false
 
 [resource]
 script = ExtResource("6_kxtoe")

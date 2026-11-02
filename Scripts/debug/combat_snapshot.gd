@@ -215,7 +215,7 @@ static func triggers(unit: BattleUnit) -> Array:
 				"fired": trigger_ability.fired,
 				"run_count": trigger_ability.run_count,
 				"charge_source_seconds": definition.charge_source_seconds,
-				"required_soul_tags": _string_array(definition.required_soul_tags),
+				"required_soul_types": _string_array(definition.required_soul_types),
 				"require_adjacent": definition.require_adjacent,
 				"trigger_name": definition.trigger_name,
 				"magnitude": definition.magnitude,

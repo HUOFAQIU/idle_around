@@ -15,8 +15,8 @@ class_name SoulData
 ## 图鉴文案（本项目扩展）；主动魂灵留空时，图鉴回退到 skill.description
 @export_multiline var description: String = ""
 
-## 魂灵标签：用于让特定触发效果只识别特定魂灵（例：Soul.RealEstate）
-@export var tags: Array[StringName] = []
+## 魂灵类型：尺寸/类别（例：Soul.Medium、Soul.RealEstate），供触发效果筛选
+@export var types: Array[StringName] = []
 
 ## 可装备的部位；ANY = 不限
 @export_enum("ANY", "HEADSOUL", "TORSOSOUL", "ARMSSOUL", "LEGSSOUL")

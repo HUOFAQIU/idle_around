@@ -19,7 +19,7 @@ shader_parameter/freeze_color = Color(0.58, 0.86, 1, 1)
 [resource]
 script = ExtResource("3_soul")
 skill = ExtResource("4_skill")
-types = Array[StringName]([&"Soul.Medium"])
+tags = Array[StringName]([&"Soul.tags.Medium", &"Soul.tags.Haste"])
 item_name = "滑溜身"
 type = "SOUL"
 icon = ExtResource("1_icon")

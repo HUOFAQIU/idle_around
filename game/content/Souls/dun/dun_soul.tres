@@ -14,8 +14,8 @@ shader_parameter/progress = 0.0
 
 [resource]
 script = ExtResource("2_2f3c6")
-types = Array[StringName]([&"Soul.Medium"])
 equip_part = "ANY"
+tags = Array[StringName]([&"Soul.tags.Medium"])
 item_name = "盾"
 type = "SOUL"
 icon = ExtResource("1_liq26")

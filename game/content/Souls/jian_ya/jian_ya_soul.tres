@@ -1,14 +1,10 @@
 [gd_resource type="Resource" script_class="SoulData" format=3 uid="uid://bgqrj3i0tufqg"]
 
-[ext_resource type="Texture2D" uid="uid://deaj7ddfwbqwh" path="res://Assets/tokens.png" id="1_l6iot"]
+[ext_resource type="Texture2D" uid="uid://ud0woxy1e8dy" path="res://Assets/soul_small.png" id="1_icon"]
 [ext_resource type="Shader" uid="uid://c7gxmyf484kcn" path="res://Assets/Shader/soul_scanline.gdshader" id="2_2ako6"]
 [ext_resource type="Script" uid="uid://bbcxwqb4ef1cg" path="res://Windows/Inventory/grid_base_inventory_system/core/model/item/soul_data.gd" id="3_hwmqp"]
 [ext_resource type="Resource" uid="uid://chnvje3gcafxo" path="res://game/content/Souls/jian_ya/jian_ya_skill.tres" id="4_nieve"]
 [ext_resource type="Script" uid="uid://bgbp4lpfyqub" path="res://game/content/passive_trigger.gd" id="5_2ako6"]
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_snake"]
-atlas = ExtResource("1_l6iot")
-region = Rect2(64, 0, 32, 32)
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_scan"]
 shader = ExtResource("2_2ako6")
@@ -26,7 +22,7 @@ skill = ExtResource("4_nieve")
 tags = Array[StringName]([&"Soul.tags.Small", &"Soul.tags.Damage"])
 item_name = "尖牙"
 category = "SOUL"
-icon = SubResource("AtlasTexture_snake")
+icon = ExtResource("1_icon")
 rows = 2
 material = SubResource("ShaderMaterial_scan")
 metadata/_custom_type_script = "uid://bbcxwqb4ef1cg"

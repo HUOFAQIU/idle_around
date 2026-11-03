@@ -14,6 +14,10 @@ class_name SkillDefinition extends Resource
 ## 面向玩家的技能描述（与下面字段一一对应）
 @export_multiline var description: String = ""
 
+## 魂灵 tooltip 的技能段：每条一行，显示时统一加 "- " 前缀。
+## 留空表示该技能不提供 tooltip 文案；魂灵没有技能段和触发段时正文显示「无」。
+@export var tooltip_lines: Array[String] = []
+
 ## 施加到每个目标的效果列表（可多个：例如"伤害 + 中毒"）
 @export var effects: Array[GameplayEffect] = []
 ## 只对施法者自己结算的效果列表（例如"攻击敌人的同时提高自身再生"）

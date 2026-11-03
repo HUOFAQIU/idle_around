@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="SoulData" format=3 uid="uid://coduc2kbaetoy"]
 
-[ext_resource type="Texture2D" uid="uid://cfhssne2nn222" path="res://Assets/souls/hualiushen.png" id="1_icon"]
+[ext_resource type="Texture2D" uid="uid://cd5f3v7eq6ylb" path="res://Assets/soul_medium.png" id="1_icon"]
 [ext_resource type="Shader" uid="uid://c7gxmyf484kcn" path="res://Assets/Shader/soul_scanline.gdshader" id="2_shader"]
 [ext_resource type="Script" uid="uid://bbcxwqb4ef1cg" path="res://Windows/Inventory/grid_base_inventory_system/core/model/item/soul_data.gd" id="3_soul"]
 [ext_resource type="Resource" uid="uid://y5yro1kosrer" path="res://game/content/Souls/hua_liu_shen/hua_liu_shen_skill.tres" id="4_skill"]

@@ -39,12 +39,14 @@ core/
    ├─ container/InventoryView           背包视图（可配置类型/部位）
    ├─ container/BaseGridView            单个格子的绘制与悬停
    ├─ container/InventoryGridView       背包格子输入：左键拿/放、右键用、Shift+左键快移、中键分割
-   └─ item/ItemView                     物品图标 + 堆叠数字 + shader 参数 + 魂灵加速/减速/冻结徽章
+   └─ item/ItemView                     物品图标 + 魂灵名称 Label + 堆叠数字 + shader 参数 + 魂灵加速/减速/冻结徽章
 ```
 
 未接入的 `StackableData`、`ConsumableData`、`EquipmentData`、`EquipmentSlot*`、`Shop*`、`DropAreaView` 见 7.7。
 
 `SoulData.triggers` 在 `soul_data.gd` 基类上，主动/被动魂灵通用；`PassiveSoulData`（`game/content/passive_soul_data.gd`）只额外新增 `passive_effects`。`PassiveTrigger` 位于 `game/content/passive_trigger.gd`。它们属于游戏内容层，不修改 GBIS 框架本身。
+
+`ItemView` 对 `SoulData` 会额外创建 `SoulNameLabel`：铺满图标区域、居中显示 `item_name`，字号随卡面宽度缩放并自动换行。背包、装备槽、拖拽幽灵共用同一个 `ItemView`，三处显示一致；见闻窗口和调试窗口各自已有名字文本，不重复加。
 
 ### 7.3 GBIS 信号
 
@@ -60,7 +62,7 @@ core/
 当前项目实际监听：
 
 - `InventoryView`：`sig_inv_item_added/removed/updated/refresh`；
-- `InventoryWindow`：`sig_item_focused` / `sig_item_focus_lost`，用来显示/隐藏 TooltipWindow 的 `ITEM` 层。
+- `InventoryWindow`：`sig_item_focused` / `sig_item_focus_lost`，用来显示/隐藏 TooltipWindow 的 `ITEM` 层；`SoulData` 会附带 `SoulTooltip.build()` 生成的正文，其他物品仍只有标题。
 
 ### 7.4 数据流
 

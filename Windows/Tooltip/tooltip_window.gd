@@ -6,6 +6,10 @@ static var instance : TooltipWindow
 ## 提示框跟鼠标隔开多少像素
 const GAP : float = 10.0
 
+## 标题行（魂灵名 / 物品名 / 战斗坐标）和正文的字号
+const TITLE_FONT_SIZE : int = 24
+const BODY_FONT_SIZE : int = 16
+
 ## tooltip 层级：数值越大越优先，低层级不能覆盖仍然有效的高层级
 enum Layer { COORD, ITEM }
 
@@ -20,11 +24,19 @@ var _hide_armed : bool = false
 var _owner : Object
 ## 当前层级，默认是战斗坐标
 var _layer : int = Layer.COORD
+## 标题行：魂灵名 / 物品名 / 战斗坐标
+@onready var _title_label : Label = $Panel/Margin/VBox/TitleLabel
+## 正文：魂灵 tooltip；非魂灵物品和战斗坐标没有正文
+@onready var _body_label : Label = $Panel/Margin/VBox/BodyLabel
 
 
 func _ready() -> void:
 	instance = self
 	visible = false
+	_title_label.add_theme_font_size_override("font_size", TITLE_FONT_SIZE)
+	_body_label.add_theme_font_size_override("font_size", BODY_FONT_SIZE)
+	_body_label.visible = false
+	reset_size()
 
 
 func _process(_delta: float) -> void:
@@ -40,16 +52,13 @@ func _process(_delta: float) -> void:
 
 
 ## 显示提示框；低层级不能覆盖仍然有效的高层级 owner。
-## 本帧内收到的隐藏请求作废。
-func show_tip(owner: Object, layer: int, title_name: String) -> void:
+## 本帧内收到的隐藏请求作废。body_text 为空时只显示标题行。
+func show_tip(owner: Object, layer: int, title_name: String, body_text: String = "") -> void:
 	if is_instance_valid(_owner) and _owner != owner and layer < _layer and not _hide_armed:
 		return
 	_owner = owner
 	_layer = layer
-	# 标题栏是原生窗口的一部分，同一个字符串反复写也会让系统重绘标题栏。
-	# 战斗窗口每个物理帧都会调进来，所以只在文字真的变了才写。
-	if title != title_name:
-		title = title_name
+	_set_text(title_name, body_text)
 	_hide_armed = false
 	_want_visible = true
 
@@ -60,6 +69,21 @@ func hide_tip(owner: Object) -> void:
 	if is_instance_valid(_owner) and _owner != owner:
 		return
 	_hide_armed = true
+
+
+## 标题和正文只在文字真的变了才写；正文为空时隐藏正文标签，
+## 让非魂灵物品 / 战斗坐标保持单行提示。窗口尺寸跟着内容走。
+func _set_text(title_text: String, body_text: String) -> void:
+	var changed := false
+	if _title_label.text != title_text:
+		_title_label.text = title_text
+		changed = true
+	if _body_label.text != body_text:
+		_body_label.text = body_text
+		_body_label.visible = not body_text.is_empty()
+		changed = true
+	if changed:
+		reset_size()
 
 
 ## 自己决定往哪边弹：锚点是鼠标，边界是屏幕

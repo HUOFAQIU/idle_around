@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="SoulData" format=3 uid="uid://dqxy2ldtoeibe"]
 
-[ext_resource type="Texture2D" uid="uid://cin1y146pgn4n" path="res://Assets/souls/bingche.png" id="1_icon"]
+[ext_resource type="Texture2D" uid="uid://dfrg010asso1y" path="res://Assets/soul_large.png" id="1_icon"]
 [ext_resource type="Shader" uid="uid://c7gxmyf484kcn" path="res://Assets/Shader/soul_scanline.gdshader" id="2_shader"]
 [ext_resource type="Script" uid="uid://bbcxwqb4ef1cg" path="res://Windows/Inventory/grid_base_inventory_system/core/model/item/soul_data.gd" id="3_soul"]
 [ext_resource type="Resource" uid="uid://jp15vnoql4k0" path="res://game/content/Souls/bing_che/bing_che_skill.tres" id="4_skill"]

@@ -24,6 +24,7 @@
 | 改被动魂灵/触发效果 | `魂灵/被动魂灵.md` | `game/content/passive_soul_data.gd`、`passive_effect.gd`、`passive_trigger.gd` |
 | 确认四部位定位 | `魂灵/魂灵.md` | `Windows/Equipment/` |
 | 改怪物魂灵/掉落设计 | `怪物/怪物.md` | `game/content/monster_data.gd`、`game/content/monster_soul_entry.gd` |
+| 改魂灵 tooltip 内容/格式 | `魂灵/魂灵.md`、`架构/窗口与场景.md` | `Windows/Tooltip/` |
 | 改见闻/图鉴/解锁 | `窗口/见闻.md` | `Scripts/collection_db.gd`、`Windows/Collection/` |
 | 改仓库窗口/背包理念 | `窗口/仓库.md` | `Windows/Inventory/` |
 | 改人物属性 | `属性/人物属性.md` | `godot_gas/attributes/player_stats_attribute_set.gd` |

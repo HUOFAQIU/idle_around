@@ -1,11 +1,11 @@
 [gd_resource type="Resource" script_class="SkillDefinition" format=3 uid="uid://ci2pv5v7onmiv"]
 
-[ext_resource type="Script" path="res://addons/GodotGAS/effects/gameplay_execution_calculation.gd" id="1_exec_base"]
-[ext_resource type="Script" path="res://addons/GodotGAS/effects/gameplay_effect_modifier.gd" id="2_6ppkn"]
-[ext_resource type="Script" path="res://addons/GodotGAS/effects/gameplay_effect.gd" id="2_effect"]
-[ext_resource type="Script" path="res://game/content/skill_definition.gd" id="3_skill"]
-[ext_resource type="Script" path="res://game/content/target_rule.gd" id="4_rule"]
-[ext_resource type="Script" path="res://game/content/shield_execution.gd" id="5_shield"]
+[ext_resource type="Script" uid="uid://b7ovihaaijli7" path="res://addons/GodotGAS/effects/gameplay_execution_calculation.gd" id="1_exec_base"]
+[ext_resource type="Script" uid="uid://bcow77l0bnh0s" path="res://addons/GodotGAS/effects/gameplay_effect_modifier.gd" id="2_6ppkn"]
+[ext_resource type="Script" uid="uid://c81papidngxvg" path="res://addons/GodotGAS/effects/gameplay_effect.gd" id="2_effect"]
+[ext_resource type="Script" uid="uid://ktr72cmavmyy" path="res://game/content/skill_definition.gd" id="3_skill"]
+[ext_resource type="Script" uid="uid://cf2mx3u4jfquk" path="res://game/content/target_rule.gd" id="4_rule"]
+[ext_resource type="Script" uid="uid://0gyrmbkubn73" path="res://game/content/shield_execution.gd" id="5_shield"]
 
 [sub_resource type="Resource" id="Resource_execution_shield"]
 script = ExtResource("5_shield")
@@ -13,33 +13,11 @@ base_shield = 10.0
 
 [sub_resource type="Resource" id="Resource_effect_shield"]
 script = ExtResource("2_effect")
-stacking_policy = 0
-policy = 0
-duration = 0.0
-period = 0.0
-instigator_stacking_policy = 0
-max_stacks = 0
-overflow_effects = Array[ExtResource("2_effect")]([])
-clear_stack_on_overflow = false
-duration_turns = 1
-tick_on_turn_start = true
-application_cue_tags = Array[StringName]([])
-persistent_cue_tags = Array[StringName]([])
-periodic_cue_tags = Array[StringName]([])
-removal_cue_tags = Array[StringName]([])
 executions = Array[ExtResource("1_exec_base")]([SubResource("Resource_execution_shield")])
-modifiers = Array[ExtResource("2_6ppkn")]([])
-remove_effects_with_tags = Array[StringName]([])
-granted_tags = Array[StringName]([])
-event_tags = Array[StringName]([])
 
 [sub_resource type="Resource" id="Resource_target_rule"]
 script = ExtResource("4_rule")
-mode = 0
-count = 1
 camp = 2
-max_range = 0
-include_self = false
 
 [resource]
 script = ExtResource("3_skill")

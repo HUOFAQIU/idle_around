@@ -11,3 +11,4 @@ effects = Array[ExtResource("1_66uk1")]([ExtResource("2_8b4wi")])
 target_scope = 2
 once_per_battle = true
 trigger_name = "冻结"
+tooltip_text = "生命值首次降至一半以下时，冻结场上所有怪物 3 秒"

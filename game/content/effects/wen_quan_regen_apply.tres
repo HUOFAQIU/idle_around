@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://b7ovihaaijli7" path="res://addons/GodotGAS/effects/gameplay_execution_calculation.gd" id="1_qtp23"]
 [ext_resource type="Script" uid="uid://ro3x60rksied" path="res://game/content/regen_from_burn_execution.gd" id="2_regen_burn"]
+[ext_resource type="Script" uid="uid://bcow77l0bnh0s" path="res://addons/GodotGAS/effects/gameplay_effect_modifier.gd" id="4_6pwgw"]
 [ext_resource type="Script" uid="uid://c81papidngxvg" path="res://addons/GodotGAS/effects/gameplay_effect.gd" id="4_t1m15"]
 [ext_resource type="Resource" uid="uid://bxye4g0ln6cd1" path="res://game/content/effects/wen_quan_burn_apply.tres" id="5_burn_source"]
 

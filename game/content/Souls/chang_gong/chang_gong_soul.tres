@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="SoulData" format=3 uid="uid://cm36iux28esvj"]
 
-[ext_resource type="Texture2D" uid="uid://c0mm8fek0n85r" path="res://Assets/souls/large_0001.png" id="1_rlrga"]
+[ext_resource type="Texture2D" uid="uid://dfrg010asso1y" path="res://Assets/soul_large.png" id="1_icon"]
 [ext_resource type="Shader" uid="uid://c7gxmyf484kcn" path="res://Assets/Shader/soul_scanline.gdshader" id="2_j3cew"]
 [ext_resource type="Script" uid="uid://bbcxwqb4ef1cg" path="res://Windows/Inventory/grid_base_inventory_system/core/model/item/soul_data.gd" id="3_yhsl3"]
 [ext_resource type="Resource" uid="uid://ntxhxb60wlmp" path="res://game/content/Souls/chang_gong/chang_gong_skill.tres" id="4_ssp3u"]
@@ -22,7 +22,7 @@ skill = ExtResource("4_ssp3u")
 tags = Array[StringName]([&"Soul.tags.Large", &"Soul.tags.Damage", &"Soul.tags.DamageReference"])
 item_name = "长弓"
 category = "SOUL"
-icon = ExtResource("1_rlrga")
+icon = ExtResource("1_icon")
 columns = 3
 rows = 2
 material = SubResource("ShaderMaterial_scan")

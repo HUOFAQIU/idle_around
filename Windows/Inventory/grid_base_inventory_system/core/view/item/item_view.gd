@@ -11,6 +11,14 @@ const BADGE_TOP : int = 0
 const BADGE_CENTER : int = 1
 const BADGE_BOTTOM : int = 2
 
+## 魂灵名称标签：字号按卡面宽度缩放，最小 12 保证可读
+const SOUL_NAME_FONT_RATIO : float = 0.2
+const SOUL_NAME_MIN_FONT_SIZE : int = 12
+const SOUL_NAME_MAX_FONT_SIZE : int = 20
+const SOUL_NAME_COLOR : Color = Color.WHITE
+const SOUL_NAME_OUTLINE_COLOR : Color = Color(0.05, 0.05, 0.05, 0.9)
+const SOUL_NAME_OUTLINE_SIZE : int = 2
+
 ## 堆叠数字的字体
 var stack_num_font: Font
 ## 堆叠数字的字体大小
@@ -31,6 +39,8 @@ var base_size: int:
 var _is_moving: bool = false
 ## 移动偏移量（坐标）
 var _moving_offset: Vector2i = Vector2i.ZERO
+## 魂灵名称标签（只对 SoulData 创建）
+var _soul_name_label: Label
 ## 状态徽章（只对 SoulData 创建）
 var _haste_badge: Control
 var _slow_badge: Control
@@ -59,6 +69,8 @@ func _init(data: ItemData, base_size: int, stack_num_font: Font = null, stack_nu
 ## 入树后创建魂灵状态徽章，并尝试绑定战斗运行期状态
 func _ready() -> void:
 	if data is SoulData:
+		_soul_name_label = _make_soul_name_label()
+		_refresh_soul_name_label()
 		_haste_badge = _make_status_badge(HASTE_BADGE_SCENE, "HasteBadge")
 		_slow_badge = _make_status_badge(SLOW_BADGE_SCENE, "SlowBadge")
 		_freeze_badge = _make_status_badge(FREEZE_BADGE_SCENE, "FreezeBadge")
@@ -81,6 +93,7 @@ func _exit_tree() -> void:
 func recalculate_size() -> void:
 	size = Vector2(data.columns * base_size, data.rows * base_size)
 	queue_redraw()
+	_refresh_soul_name_label()
 	_refresh_status_badges()
 
 ## 移动
@@ -120,6 +133,7 @@ func update_moving_position() -> void:
 
 func _on_data_refresh() -> void:
 	queue_redraw()
+	_refresh_soul_name_label()
 	_refresh_status_badges()
 	_apply_freeze_shader()
 
@@ -170,6 +184,36 @@ func _apply_freeze_shader() -> void:
 		return
 	var frozen := _runtime != null and _runtime.freeze_seconds > 0.0
 	(material as ShaderMaterial).set_shader_parameter("freeze", 1.0 if frozen else 0.0)
+
+
+## 创建盖在卡面图标上的魂灵名称标签；父节点就是卡面，铺满即可
+func _make_soul_name_label() -> Label:
+	var label := Label.new()
+	label.name = "SoulNameLabel"
+	label.text = data.item_name
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.clip_text = true
+	label.add_theme_color_override("font_color", SOUL_NAME_COLOR)
+	label.add_theme_color_override("font_outline_color", SOUL_NAME_OUTLINE_COLOR)
+	label.add_theme_constant_override("outline_size", SOUL_NAME_OUTLINE_SIZE)
+	add_child(label)
+	label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	return label
+
+
+## 字号跟着卡面宽度走：1×2 小卡用小字，3×2 大卡用大字
+func _refresh_soul_name_label() -> void:
+	if _soul_name_label == null:
+		return
+	var font_size := clampi(
+		roundi(size.x * SOUL_NAME_FONT_RATIO), SOUL_NAME_MIN_FONT_SIZE, SOUL_NAME_MAX_FONT_SIZE
+	)
+	_soul_name_label.add_theme_font_size_override("font_size", font_size)
+	if _soul_name_label.text != data.item_name:
+		_soul_name_label.text = data.item_name
 
 
 ## 实例化一个 Kits 徽章，尺寸固定 16×10，鼠标事件全部穿透

@@ -1,8 +1,8 @@
 [gd_resource type="Resource" script_class="SkillDefinition" format=3 uid="uid://cukwmurllusy2"]
 
-[ext_resource type="Script" path="res://addons/GodotGAS/effects/gameplay_effect.gd" id="1_effect"]
-[ext_resource type="Script" path="res://game/content/skill_definition.gd" id="2_skill"]
-[ext_resource type="Script" path="res://game/content/soul_target_rule.gd" id="3_soul_rule"]
+[ext_resource type="Script" uid="uid://c81papidngxvg" path="res://addons/GodotGAS/effects/gameplay_effect.gd" id="1_effect"]
+[ext_resource type="Script" uid="uid://ktr72cmavmyy" path="res://game/content/skill_definition.gd" id="2_skill"]
+[ext_resource type="Script" uid="uid://urle87hlfidy" path="res://game/content/soul_target_rule.gd" id="3_soul_rule"]
 
 [sub_resource type="Resource" id="Resource_soul_target"]
 script = ExtResource("3_soul_rule")

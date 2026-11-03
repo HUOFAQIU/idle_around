@@ -115,6 +115,29 @@ static func get_soul_tags(id : StringName) -> Array[StringName]:
 	return soul.tags.duplicate()
 
 
+## 魂灵卡面信息：图标路径、占格、名称标签文本；用于验证卡面统一替换
+static func get_soul_card_info(id : StringName) -> Dictionary:
+	var soul := CollectionDB.get_soul(id)
+	if soul == null:
+		push_warning("TestAPI：魂灵不存在 %s" % id)
+		return {}
+	return {
+		"icon": soul.icon.resource_path if soul.icon != null else "",
+		"columns": soul.columns,
+		"rows": soul.rows,
+		"label": soul.item_name,
+	}
+
+
+## 魂灵 tooltip 的完整显示文本（第一行是标题，后面是正文）；未知魂灵返回空字符串
+static func get_soul_tooltip_text(id : StringName) -> String:
+	var soul := CollectionDB.get_soul(id)
+	if soul == null:
+		push_warning("TestAPI：魂灵不存在 %s" % id)
+		return ""
+	return "%s\n%s" % [soul.item_name, SoulTooltip.build(soul)]
+
+
 static func get_monster_ids() -> Array[StringName]:
 	return CollectionDB.get_monster_ids()
 

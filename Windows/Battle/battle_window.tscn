@@ -116,13 +116,13 @@ grow_vertical = 0
 mouse_filter = 2
 script = ExtResource("4_statusbar")
 attribute_name = "regen"
-fill_color = Color(0.25, 1, 0.4, 1)
+fill_color = Color(0.556863, 0.917647, 0.192157, 1)
 
 [node name="RegenLabel" type="Label" parent="CanvasLayer/Control/PlayerRegenBar" unique_id=768671362]
 layout_mode = 0
 offset_left = -58.0
 offset_bottom = 18.0
-theme_override_colors/font_color = Color(0.25, 1, 0.4, 1)
+theme_override_colors/font_color = Color(0.556863, 0.917647, 0.192157, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 0.85)
 theme_override_constants/outline_size = 3
 theme_override_font_sizes/font_size = 12
@@ -161,7 +161,7 @@ script = ExtResource("4_statusbar")
 layout_mode = 0
 offset_left = -58.0
 offset_bottom = 18.0
-theme_override_colors/font_color = Color(1, 0.85, 0.1, 1)
+theme_override_colors/font_color = Color(0.956863, 0.811765, 0.12549, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 0.85)
 theme_override_constants/outline_size = 3
 theme_override_font_sizes/font_size = 12
@@ -196,13 +196,13 @@ grow_vertical = 0
 mouse_filter = 2
 script = ExtResource("4_statusbar")
 attribute_name = "burn"
-fill_color = Color(1, 0.4, 0, 1)
+fill_color = Color(1, 0.623529, 0.270588, 1)
 
 [node name="BurnLabel" type="Label" parent="CanvasLayer/Control/PlayerBurnBar" unique_id=862910920]
 layout_mode = 0
 offset_left = -58.0
 offset_bottom = 18.0
-theme_override_colors/font_color = Color(1, 0.4, 0, 1)
+theme_override_colors/font_color = Color(1, 0.623529, 0.270588, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 0.85)
 theme_override_constants/outline_size = 3
 theme_override_font_sizes/font_size = 12
@@ -237,13 +237,13 @@ grow_vertical = 0
 mouse_filter = 2
 script = ExtResource("4_statusbar")
 attribute_name = "poison"
-fill_color = Color(0.18, 0.42, 0.25, 1)
+fill_color = Color(0.054902, 0.745098, 0.309804, 1)
 
 [node name="PoisonLabel" type="Label" parent="CanvasLayer/Control/PlayerPoisonBar" unique_id=451181862]
 layout_mode = 0
 offset_left = -58.0
 offset_bottom = 18.0
-theme_override_colors/font_color = Color(0.18, 0.42, 0.25, 1)
+theme_override_colors/font_color = Color(0.054902, 0.745098, 0.309804, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 0.85)
 theme_override_constants/outline_size = 3
 theme_override_font_sizes/font_size = 12

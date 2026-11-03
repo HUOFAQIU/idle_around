@@ -37,8 +37,6 @@ enum TargetScope {
 @export var require_adjacent: bool = false
 ## 触发日志里显示的名字；留空则不写触发日志
 @export var trigger_name: String = ""
-## 魂灵 tooltip 的触发段文案；留空表示这条触发器不显示在 tooltip 里
-@export var tooltip_text: String = ""
 
 
 static func event_label(tag: StringName) -> String:

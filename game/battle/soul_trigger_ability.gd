@@ -110,7 +110,7 @@ func _activate_ability() -> bool:
 		if battle != null:
 			battle.log_line(
 				"%s 获得充能（%.1f 秒）" % [source_name, definition.charge_source_seconds],
-				"#ffd866"
+				CombatColors.CHARGE
 			)
 	return true
 

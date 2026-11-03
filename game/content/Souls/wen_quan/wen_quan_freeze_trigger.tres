@@ -7,4 +7,3 @@ script = ExtResource("1_trigger")
 event_tag = &"Event.Combat.FreezeApplied"
 target_scope = 1
 charge_source_seconds = 3.0
-tooltip_text = "触发冻结时，充能此魂灵 3 秒"

@@ -11,8 +11,8 @@ const BACKGROUND_COLOR := Color(0.12, 0.12, 0.10)
 
 ## 监听的属性名：shield / regen / burn / poison
 @export var attribute_name: String = "shield"
-## 整条填充色
-@export var fill_color: Color = Color(1.0, 0.85, 0.10)
+## 整条填充色；默认是护盾色
+@export var fill_color: Color = CombatColors.to_color(CombatColors.SHIELD)
 
 var _attribute : AttributeData
 var _asc : AbilitySystemComponent

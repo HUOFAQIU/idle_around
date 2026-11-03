@@ -15,6 +15,10 @@ class_name SoulData
 ## 图鉴文案（本项目扩展）；主动魂灵留空时，图鉴回退到 skill.description
 @export_multiline var description: String = ""
 
+## tooltip 正文段落；格式化器用 ----- 连接，{cooldown} 会替换成技能冷却。
+## 留空 = 不提供正文，tooltip 显示「无」。
+@export var tooltip_blocks: Array[String] = []
+
 ## 魂灵类型：语义分类（例：Soul.types.Property），供触发规则筛选
 @export var types: Array[StringName] = []
 

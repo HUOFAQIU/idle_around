@@ -1,4 +1,4 @@
-## 单位头顶跳一下的数字：掉血红、回血绿、灼烧橙、护盾黄、剧毒墨绿、再生亮绿，边升边淡出。
+## 单位头顶跳一下的数字：伤害红、治疗/再生绿、灼烧橙、护盾黄、剧毒绿，边升边淡出。
 ##
 ## 挂在单位节点底下，所以单位走它跟着走、单位没了它跟着没，
 ## 不需要外面拿个容器管它们。
@@ -11,17 +11,14 @@ const RISE : float = 28.0
 const LIFETIME : float = 0.7
 const FONT_SIZE : int = 16
 const CRIT_FONT_SIZE : int = 20
-const COLOR_DAMAGE := Color(1.0, 0.45, 0.4)
-const COLOR_HEAL := Color(0.5, 0.95, 0.5)
-const COLOR_CRIT := Color(1.0, 0.68, 0.25)
-## 灼烧用高饱和橙色，和普通伤害/暴击区分开
-const COLOR_BURN := Color(1.0, 0.40, 0.0)
-## 护盾吸收用高饱和黄色
-const COLOR_SHIELD := Color(1.0, 0.85, 0.10)
-## 剧毒用墨绿色
-const COLOR_POISON := Color(0.18, 0.42, 0.25)
-## 生命再生用亮绿色
-const COLOR_REGEN := Color(0.25, 1.0, 0.40)
+## 颜色统一从 CombatColors 取，和 tooltip / 战斗日志 / 状态条保持一致
+static var COLOR_DAMAGE := CombatColors.to_color(CombatColors.DAMAGE)
+static var COLOR_HEAL := CombatColors.to_color(CombatColors.HEAL)
+static var COLOR_CRIT := CombatColors.to_color(CombatColors.CRIT)
+static var COLOR_BURN := CombatColors.to_color(CombatColors.BURN)
+static var COLOR_SHIELD := CombatColors.to_color(CombatColors.SHIELD)
+static var COLOR_POISON := CombatColors.to_color(CombatColors.POISON)
+static var COLOR_REGEN := CombatColors.to_color(CombatColors.REGEN)
 
 
 ## amount 传正数；heal = true 表示这是回血，burn = true 表示灼烧，shield = true 表示护盾吸收，poison = true 表示剧毒，regen = true 表示生命再生。

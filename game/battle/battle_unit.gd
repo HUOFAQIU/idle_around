@@ -540,7 +540,7 @@ func _log_shield_absorb(amount: float, source_name: String, effect_name: String)
 	if amount <= 0.0:
 		return
 	_log("%s 的护盾吸收 %.0f 点【%s】伤害（来自 %s）"
-		% [unit_name, amount, effect_name, source_name], "#ffd60a")
+		% [unit_name, amount, effect_name, source_name], CombatColors.SHIELD)
 	_pop_number(amount, false, false, false, true)
 
 
@@ -552,7 +552,7 @@ func _log_burn_tick(damage: float, spec: GameplayEffectSpec) -> void:
 	var source_name := _source_name(spec)
 	var effect_name := _effect_display_name(spec)
 	_log("%s 受到【%s】（来自 %s）%.0f 点伤害，HP %.0f → %.0f"
-		% [unit_name, effect_name, source_name, damage, old_value, health_attr.current_value], "#ff6600")
+		% [unit_name, effect_name, source_name, damage, old_value, health_attr.current_value], CombatColors.BURN)
 	_pop_number(damage, false, false, true)
 
 
@@ -564,7 +564,7 @@ func _log_poison_tick(damage: float, spec: GameplayEffectSpec) -> void:
 	var source_name := _source_name(spec)
 	var effect_name := _effect_display_name(spec)
 	_log("%s 受到【%s】（来自 %s）%.0f 点伤害，HP %.0f → %.0f"
-		% [unit_name, effect_name, source_name, damage, old_value, health_attr.current_value], "#2e6b40")
+		% [unit_name, effect_name, source_name, damage, old_value, health_attr.current_value], CombatColors.POISON)
 	_pop_number(damage, false, false, false, false, true)
 
 
@@ -576,7 +576,7 @@ func _log_regen_tick(damage: float, spec: GameplayEffectSpec) -> void:
 	var source_name := _source_name(spec)
 	var effect_name := _effect_display_name(spec)
 	_log("%s 受到【%s】（来自 %s）影响，恢复 %.0f 点生命，HP %.0f → %.0f"
-		% [unit_name, effect_name, source_name, damage, old_value, health_attr.current_value], "#4dff66")
+		% [unit_name, effect_name, source_name, damage, old_value, health_attr.current_value], CombatColors.REGEN)
 	_pop_number(damage, true, false, false, false, false, true)
 
 
@@ -611,11 +611,11 @@ func _on_effect_received(_source_asc: AbilitySystemComponent, spec: GameplayEffe
 		_log_shield_absorb(-shield_delta, source_name, effect_name)
 	if health_delta < 0.0:
 		_log("%s 受到【%s】（来自 %s）%.0f 点伤害%s，HP %.0f → %.0f"
-			% [unit_name, effect_name, source_name, -health_delta, crit_suffix, old_value, current], "#ff6e6e")
+			% [unit_name, effect_name, source_name, -health_delta, crit_suffix, old_value, current], CombatColors.DAMAGE)
 		_pop_number(-health_delta, false, critical)
 	elif health_delta > 0.0:
 		_log("%s 回复 %.0f 点生命%s，HP %.0f → %.0f"
-			% [unit_name, health_delta, crit_suffix, old_value, current], "#7ddf7d")
+			% [unit_name, health_delta, crit_suffix, old_value, current], CombatColors.HEAL)
 		_pop_number(health_delta, true, critical)
 
 
@@ -664,7 +664,8 @@ func _on_active_effect_added(active_effect: ActiveGameplayEffect) -> void:
 	if _has_suppressed_state_log(active_effect):
 		return
 	var duration_text := "持续" if def.policy == GameplayEffect.DurationPolicy.INFINITE else "%.1f 秒" % active_effect.time_remaining
-	_log("%s 获得状态【%s】（%s）" % [unit_name, _effect_display_name(active_effect.spec), duration_text], "#57d9e8")
+	var effect_name := _effect_display_name(active_effect.spec)
+	_log("%s 获得状态【%s】（%s）" % [unit_name, effect_name, duration_text], CombatColors.status_color(effect_name))
 
 
 func _on_active_effect_removed(active_effect: ActiveGameplayEffect) -> void:

@@ -27,14 +27,14 @@ var _layer : int = Layer.COORD
 ## 标题行：魂灵名 / 物品名 / 战斗坐标
 @onready var _title_label : Label = $Panel/Margin/VBox/TitleLabel
 ## 正文：魂灵 tooltip；非魂灵物品和战斗坐标没有正文
-@onready var _body_label : Label = $Panel/Margin/VBox/BodyLabel
+@onready var _body_label : RichTextLabel = $Panel/Margin/VBox/BodyLabel
 
 
 func _ready() -> void:
 	instance = self
 	visible = false
 	_title_label.add_theme_font_size_override("font_size", TITLE_FONT_SIZE)
-	_body_label.add_theme_font_size_override("font_size", BODY_FONT_SIZE)
+	_body_label.add_theme_font_size_override("normal_font_size", BODY_FONT_SIZE)
 	_body_label.visible = false
 	reset_size()
 
@@ -52,7 +52,7 @@ func _process(_delta: float) -> void:
 
 
 ## 显示提示框；低层级不能覆盖仍然有效的高层级 owner。
-## 本帧内收到的隐藏请求作废。body_text 为空时只显示标题行。
+## 本帧内收到的隐藏请求作废。body_text 支持 BBCode，为空时只显示标题行。
 func show_tip(owner: Object, layer: int, title_name: String, body_text: String = "") -> void:
 	if is_instance_valid(_owner) and _owner != owner and layer < _layer and not _hide_armed:
 		return

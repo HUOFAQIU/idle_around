@@ -129,13 +129,22 @@ static func get_soul_card_info(id : StringName) -> Dictionary:
 	}
 
 
-## 魂灵 tooltip 的完整显示文本（第一行是标题，后面是正文）；未知魂灵返回空字符串
+## 魂灵 tooltip 的完整纯文本（第一行是标题，后面是正文）；未知魂灵返回空字符串
 static func get_soul_tooltip_text(id : StringName) -> String:
 	var soul := CollectionDB.get_soul(id)
 	if soul == null:
 		push_warning("TestAPI：魂灵不存在 %s" % id)
 		return ""
 	return "%s\n%s" % [soul.item_name, SoulTooltip.build(soul)]
+
+
+## 魂灵 tooltip 的 BBCode 文本；标题不染色，正文里的状态词按战斗日志颜色上色
+static func get_soul_tooltip_bbcode(id : StringName) -> String:
+	var soul := CollectionDB.get_soul(id)
+	if soul == null:
+		push_warning("TestAPI：魂灵不存在 %s" % id)
+		return ""
+	return "%s\n%s" % [soul.item_name, SoulTooltip.build(soul, true)]
 
 
 static func get_monster_ids() -> Array[StringName]:

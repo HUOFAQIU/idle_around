@@ -55,6 +55,7 @@ func _ready() -> void:
 	player_shield_bar.visible = false
 	player_burn_bar.visible = false
 	player_poison_bar.visible = false
+	_apply_status_bar_colors()
 
 	# ☰ 开关战斗信息窗口；▶ 才是开战
 	info_button.pressed.connect(_on_info_pressed)
@@ -350,6 +351,22 @@ func _update_coord_tooltip() -> void:
 # 鼠标在不在本窗口的屏幕范围里（窗口是独立 OS 窗口，所以拿屏幕坐标比）
 func _is_mouse_inside() -> bool:
 	return Rect2i(position, size).has_point(DisplayServer.mouse_get_position())
+
+
+## 状态条和状态名标签统一从 CombatColors 取色；场景里的色值只用于编辑器预览
+func _apply_status_bar_colors() -> void:
+	_apply_status_color(player_regen_bar, "RegenLabel", CombatColors.REGEN)
+	_apply_status_color(player_shield_bar, "ShieldLabel", CombatColors.SHIELD)
+	_apply_status_color(player_burn_bar, "BurnLabel", CombatColors.BURN)
+	_apply_status_color(player_poison_bar, "PoisonLabel", CombatColors.POISON)
+
+
+func _apply_status_color(bar: PlayerStatusBar, label_name: String, hex: String) -> void:
+	var color := CombatColors.to_color(hex)
+	bar.fill_color = color
+	var label := bar.get_node_or_null(label_name) as Label
+	if label != null:
+		label.add_theme_color_override("font_color", color)
 
 
 # FPS 颜色：绿 / 黄 / 红

@@ -39,7 +39,8 @@ TestAPI.stop_battle()
 | `get_soul_types(id) -> Array[StringName]` | 魂灵类型，如 `Soul.types.Property` |
 | `get_soul_tags(id) -> Array[StringName]` | 魂灵见闻标签，如 `Soul.tags.Small`、`Soul.tags.Burn` |
 | `get_soul_card_info(id) -> Dictionary` | 魂灵卡面：`icon` 路径、`columns`/`rows`、`label` 名称文本 |
-| `get_soul_tooltip_text(id) -> String` | 魂灵 tooltip 完整文本；第一行是标题，后面是正文（格式见 `魂灵/魂灵.md`） |
+| `get_soul_tooltip_text(id) -> String` | 魂灵 tooltip 完整纯文本；第一行是标题，后面是正文（格式见 `魂灵/魂灵.md`） |
+| `get_soul_tooltip_bbcode(id) -> String` | 魂灵 tooltip 的 BBCode 文本；正文状态词带颜色标签，用于验证上色 |
 
 `kind` 用 `CollectionDB.Kind.SOUL` / `CollectionDB.Kind.MONSTER`。
 

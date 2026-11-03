@@ -57,7 +57,12 @@ layout_mode = 2
 mouse_filter = 2
 text = ""
 
-[node name="BodyLabel" type="Label" parent="Panel/Margin/VBox"]
+[node name="BodyLabel" type="RichTextLabel" parent="Panel/Margin/VBox"]
 visible = false
 layout_mode = 2
+focus_mode = 0
 mouse_filter = 2
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
+autowrap_mode = 0

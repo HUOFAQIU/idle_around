@@ -19,9 +19,9 @@ shader_parameter/freeze_color = Color(0.58, 0.86, 1, 1)
 [resource]
 script = ExtResource("3_yhsl3")
 skill = ExtResource("4_ssp3u")
-tags = Array[StringName]([&"Soul.tags.Large", &"Soul.tags.Damage"])
+tags = Array[StringName]([&"Soul.tags.Large", &"Soul.tags.Damage", &"Soul.tags.DamageReference"])
 item_name = "长弓"
-type = "SOUL"
+category = "SOUL"
 icon = ExtResource("1_rlrga")
 columns = 3
 rows = 2

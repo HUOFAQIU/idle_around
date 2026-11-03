@@ -9,8 +9,8 @@ signal sig_refresh
 @export_group("Common Settings")
 ## 物品名称，需要唯一
 @export var item_name: String = "Item Name"
-## 物品类型，值为“ANY”表示所有类型
-@export_enum("ANY", "SOUL") var type: String = "ANY"
+## 物品大类，值为“ANY”表示所有大类
+@export_enum("ANY", "SOUL") var category: String = "ANY"
 @export_group("Display Settings")
 ## 物品图标
 @export var icon: Texture2D

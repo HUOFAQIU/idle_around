@@ -8,7 +8,7 @@ class_name ContainerData
 @export_storage var rows: int = 2
 ## 库存名称
 @export_storage var container_name: String
-## 允许存放的物品类型列表
+## 允许存放的物品大类列表
 @export_storage var avilable_types: Array[String]
 ## 装备部位限制（空 = 普通容器，不限制）
 @export_storage var equip_part: String = ""
@@ -75,7 +75,7 @@ func remove_item(item: ItemData) -> bool:
 
 ## 检查物品是否可以被放入当前库存
 func is_item_avilable(item_data: ItemData) -> bool:
-	if not (avilable_types.has("ANY") or avilable_types.has(item_data.type)):
+	if not (avilable_types.has("ANY") or avilable_types.has(item_data.category)):
 		return false
 	# 装备部位容器：魂灵只能进对应部位；ANY 的魂灵不限制
 	if equip_part != "" and item_data is SoulData:

@@ -4,7 +4,7 @@ class_name EquipmentSlotData
 
 ## 已装备的物品，未装备时null，可用于检测是否有装备
 @export_storage var equipped_item: ItemData
-## 允许装备的物品类型，对应ItemData.type
+## 允许装备的物品大类，对应 ItemData.category
 @export_storage var avilable_types: Array[String]
 ## 装备槽的名字
 @export_storage var slot_name: String
@@ -29,7 +29,7 @@ func unequip() -> ItemData:
 
 ## 检查是否可装备这个物品
 func is_item_avilable(item_data: ItemData) -> bool:
-	if avilable_types.has("ANY") or avilable_types.has(item_data.type):
+	if avilable_types.has("ANY") or avilable_types.has(item_data.category):
 		return item_data.test_need(slot_name)
 	return false
 

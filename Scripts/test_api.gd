@@ -99,7 +99,7 @@ static func get_soul_ids() -> Array[StringName]:
 	return CollectionDB.get_soul_ids()
 
 
-## 魂灵类型（registry ID），例如 &"Soul.types.RealEstate"
+## 魂灵类型（registry ID），例如 &"Soul.types.Property"
 static func get_soul_types(id : StringName) -> Array[StringName]:
 	var soul := CollectionDB.get_soul(id)
 	if soul == null:

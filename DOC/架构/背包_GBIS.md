@@ -1,8 +1,8 @@
 # 背包 / 仓库系统（GBIS）
 
-> 类型：实现 | 状态：有效 | 核对：2026-10-31
+> 类型：实现 | 状态：有效 | 核对：2026-11-03
 > 何时读：改背包/仓库/装备槽/容器、拖拽、商店容器、存档
-> 关键词：GBIS 背包 仓库 inventory container 装备槽 拖拽 Tooltip 存档
+> 关键词：GBIS 背包 仓库 inventory container 物品大类 category 装备槽 拖拽 Tooltip 存档
 > 代码：Windows/Inventory/grid_base_inventory_system/
 > 不覆盖：仓库玩法设计（见 DOC/窗口/仓库.md）
 >
@@ -113,7 +113,7 @@ GBIS.add_item(inv_name, item_data)
 
 ### 7.5 本项目的扩展：魂灵部位限制
 
-框架原本只有 `type`（物品类型）限制；本项目在三个地方加了“装备部位”：
+框架原本只有 `category`（物品大类）限制；本项目在三个地方加了“装备部位”：
 
 | 位置 | 字段 | 作用 |
 |---|---|---|
@@ -123,7 +123,7 @@ GBIS.add_item(inv_name, item_data)
 
 `ContainerData.is_item_avilable()` 的判定顺序：
 
-1. `avilable_types` 必须是 `ANY` 或包含物品的 `type`；
+1. `avilable_types` 必须是 `ANY` 或包含物品的 `category`；
 2. 如果容器有 `equip_part` 且物品是 `SoulData`，则 `soul.equip_part` 必须是 `ANY` 或与容器部位相同；
 3. 否则允许。
 

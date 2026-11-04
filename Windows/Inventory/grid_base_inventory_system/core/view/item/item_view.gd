@@ -15,8 +15,6 @@ const BADGE_BOTTOM : int = 2
 const SOUL_NAME_FONT_RATIO : float = 0.2
 const SOUL_NAME_MIN_FONT_SIZE : int = 12
 const SOUL_NAME_MAX_FONT_SIZE : int = 20
-const SOUL_NAME_COLOR : Color = Color.WHITE
-const SOUL_NAME_OUTLINE_COLOR : Color = Color(0.05, 0.05, 0.05, 0.9)
 const SOUL_NAME_OUTLINE_SIZE : int = 2
 
 ## 堆叠数字的字体
@@ -26,7 +24,7 @@ var stack_num_font_size: int
 ## 堆叠数字的边距
 var stack_num_margin: int = 4
 ## 堆叠数字的颜色
-var stack_num_color: Color = Color.WHITE
+var stack_num_color: Color = GameColors.STACK_NUM_COLOR
 
 ## 物品数据
 var data: ItemData
@@ -50,7 +48,7 @@ var _runtime: SoulRuntime
 
 ## 构造函数
 @warning_ignore("shadowed_variable")
-func _init(data: ItemData, base_size: int, stack_num_font: Font = null, stack_num_font_size: int = 16, stack_num_margin: int = 2, stack_num_color: Color = Color.WHEAT) -> void:
+func _init(data: ItemData, base_size: int, stack_num_font: Font = null, stack_num_font_size: int = 16, stack_num_margin: int = 2, stack_num_color: Color = GameColors.STACK_NUM_COLOR) -> void:
 	self.data = data
 	self.base_size = base_size
 	self.stack_num_font = stack_num_font if stack_num_font else get_theme_font("font")
@@ -64,6 +62,11 @@ func _init(data: ItemData, base_size: int, stack_num_font: Font = null, stack_nu
 		material = data.material.duplicate()
 	elif GBIS.item_material:
 		material = GBIS.item_material.duplicate()
+	# 魂灵扫描线的固定色从 GameColors 写进副本；shader 默认值只作兜底
+	if data is SoulData and material is ShaderMaterial:
+		var shader_material := material as ShaderMaterial
+		shader_material.set_shader_parameter("line_color", GameColors.to_color(GameColors.SOUL_LINE))
+		shader_material.set_shader_parameter("freeze_color", GameColors.to_color(GameColors.SOUL_FREEZE))
 	data.sig_refresh.connect(_on_data_refresh)
 
 ## 入树后创建魂灵状态徽章，并尝试绑定战斗运行期状态
@@ -196,8 +199,8 @@ func _make_soul_name_label() -> Label:
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	label.clip_text = true
-	label.add_theme_color_override("font_color", SOUL_NAME_COLOR)
-	label.add_theme_color_override("font_outline_color", SOUL_NAME_OUTLINE_COLOR)
+	label.add_theme_color_override("font_color", GameColors.to_color(GameColors.SOUL_NAME))
+	label.add_theme_color_override("font_outline_color", GameColors.to_color(GameColors.SOUL_NAME_OUTLINE))
 	label.add_theme_constant_override("outline_size", SOUL_NAME_OUTLINE_SIZE)
 	add_child(label)
 	label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)

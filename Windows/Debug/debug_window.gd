@@ -235,7 +235,7 @@ func _build_ui() -> void:
 
 	_status_label = Label.new()
 	_status_label.name = "StatusLabel"
-	_status_label.add_theme_color_override("font_color", Color(0.7, 0.75, 0.8))
+	_status_label.add_theme_color_override("font_color", GameColors.to_color(GameColors.DEBUG_TEXT))
 	vbox.add_child(_status_label)
 
 
@@ -302,7 +302,7 @@ func _build_units_tab() -> void:
 	_watch_button.disabled = true
 	var hint := Label.new()
 	hint.text = "详细事件只记录关注单位；玩家默认关注。"
-	hint.add_theme_color_override("font_color", Color(0.65, 0.7, 0.75))
+	hint.add_theme_color_override("font_color", GameColors.to_color(GameColors.DEBUG_HINT))
 	bar.add_child(hint)
 	var split := VSplitContainer.new()
 	split.name = "Split"
@@ -613,7 +613,10 @@ func _append_timeline_row(event: Dictionary, scroll: bool = true) -> void:
 	if root == null:
 		root = _timeline_tree.create_item()
 	var item := _timeline_tree.create_item(root)
-	var color := Color.from_string(String(event.get("color", "#ffffff")), Color.WHITE)
+	var color := Color.from_string(
+		String(event.get("color", GameColors.TEXT_PRIMARY)),
+		GameColors.to_color(GameColors.TEXT_PRIMARY)
+	)
 	var actor: Dictionary = event.get("actor", {})
 	var target: Dictionary = event.get("target", {})
 	var detail := _event_detail_text(event)
@@ -1021,7 +1024,7 @@ func _add_unit_row(root: TreeItem, unit_data: Dictionary) -> void:
 	item.set_text(9, "%.0f" % float(unit_data.get("distance_to_player", 0.0)))
 	item.set_metadata(0, int(unit_data.get("id", 0)))
 	if int(unit_data.get("id", 0)) == CombatTelemetry.watch_unit_id:
-		item.set_custom_color(0, Color(0.4, 1.0, 0.5))
+		item.set_custom_color(0, GameColors.to_color(GameColors.DEBUG_HIGHLIGHT))
 
 
 func _on_unit_selected() -> void:

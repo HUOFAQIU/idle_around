@@ -18,7 +18,7 @@ func play_cue() -> void:
 
 	ring.visible = true
 	ring.scale = Vector2(0.45, 0.45)
-	ring.modulate = Color(0.18, 0.55, 0.24, 0.95)
+	ring.modulate = GameColors.to_color(GameColors.POISON_SPLASH)
 
 	splash.visible = true
 	splash.modulate.a = 1.0

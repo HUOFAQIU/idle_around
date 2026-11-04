@@ -8,13 +8,11 @@
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_scan"]
 shader = ExtResource("2_2ako6")
-shader_parameter/line_color = Color(0.54902, 0.85098, 1, 1)
 shader_parameter/band_width = 0.16
 shader_parameter/intensity = 1.0
 shader_parameter/enable = 0.0
 shader_parameter/progress = 0.0
 shader_parameter/freeze = 0.0
-shader_parameter/freeze_color = Color(0.58, 0.86, 1, 1)
 
 [resource]
 script = ExtResource("3_hwmqp")

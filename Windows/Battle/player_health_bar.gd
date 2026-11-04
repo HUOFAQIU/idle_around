@@ -4,10 +4,10 @@
 class_name PlayerHealthBar extends Control
 
 const BORDER : float = 1.0
-const BORDER_COLOR := Color(0, 0, 0, 0.75)
-const BACKGROUND_COLOR := Color(0.22, 0.05, 0.05)
-const FILL_COLOR := Color(0.40, 0.85, 0.45)
 
+var _border_color : Color = GameColors.to_color(GameColors.BAR_BORDER)
+var _background_color : Color = GameColors.to_color(GameColors.BAR_BG)
+var _fill_color : Color = GameColors.to_color(GameColors.HEALTH_FILL)
 var _health : AttributeData
 var _max_health : AttributeData
 var _asc : AbilitySystemComponent
@@ -18,9 +18,9 @@ var _ratio : float = 1.0
 
 func _draw() -> void:
 	var outer := Rect2(Vector2(-BORDER, -BORDER), size + Vector2(BORDER * 2.0, BORDER * 2.0))
-	draw_rect(outer, BORDER_COLOR)
-	draw_rect(Rect2(Vector2.ZERO, size), BACKGROUND_COLOR)
-	draw_rect(Rect2(Vector2.ZERO, Vector2(size.x * _ratio, size.y)), FILL_COLOR)
+	draw_rect(outer, _border_color)
+	draw_rect(Rect2(Vector2.ZERO, size), _background_color)
+	draw_rect(Rect2(Vector2.ZERO, Vector2(size.x * _ratio, size.y)), _fill_color)
 
 
 ## 接上角色属性；每场战斗重建角色后调用

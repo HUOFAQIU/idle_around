@@ -7,7 +7,7 @@ extends RefCounted
 ## 段落之间和部位行之前固定一条分隔线；分隔线用暗色。
 ## ( X 秒 ) 冷却行放大到 20 号（正文 16、标题 24）。
 ## {cooldown} 会替换成技能冷却；没有段落时正文为「无」。
-## colored = true 时按 CombatColors 全局色板给状态词上色，返回 BBCode。
+## colored = true 时按 GameColors 全局色板给状态词上色，返回 BBCode。
 
 const SEPARATOR : String = "==================================="
 const SEPARATOR_COLOR : String = "#4a4f58"
@@ -114,7 +114,7 @@ static func _colorize(text: String) -> String:
 				% [COOLDOWN_FONT_SIZE, _colorize_keywords(escaped)]
 			)
 		elif line.begins_with("暴击率"):
-			result.append("[color=%s]%s[/color]" % [CombatColors.CRIT, escaped])
+			result.append("[color=%s]%s[/color]" % [GameColors.CRIT, escaped])
 		else:
 			result.append(_colorize_keywords(escaped))
 	return "\n".join(result)
@@ -142,7 +142,7 @@ static func _colorize_keywords(escaped: String) -> String:
 		if found.get_start() > cursor:
 			parts.append(escaped.substr(cursor, found.get_start() - cursor))
 		var word := found.get_string()
-		parts.append("[color=%s]%s[/color]" % [CombatColors.STATUS.get(word, "white"), word])
+		parts.append("[color=%s]%s[/color]" % [GameColors.STATUS.get(word, GameColors.TEXT_PRIMARY), word])
 		cursor = found.get_end()
 	if cursor < escaped.length():
 		parts.append(escaped.substr(cursor))
@@ -152,5 +152,5 @@ static func _colorize_keywords(escaped: String) -> String:
 static func _get_keyword_regex() -> RegEx:
 	if _keyword_regex == null:
 		_keyword_regex = RegEx.new()
-		_keyword_regex.compile(CombatColors.STATUS_PATTERN)
+		_keyword_regex.compile(GameColors.STATUS_PATTERN)
 	return _keyword_regex

@@ -29,27 +29,27 @@ class_name BaseContainerView
 		grid_border_size = value
 		queue_redraw()
 ## 格子边框颜色
-@export var grid_border_color: Color = BaseGridView.DEFAULT_BORDER_COLOR:
+@export var grid_border_color: Color = GameColors.to_color(GameColors.GRID_BORDER):
 	set(value):
 		grid_border_color = value
 		queue_redraw()
 ## 格子空置颜色
-@export var gird_background_color_empty: Color = BaseGridView.DEFAULT_EMPTY_COLOR:
+@export var gird_background_color_empty: Color = GameColors.to_color(GameColors.GRID_EMPTY):
 	set(value):
 		gird_background_color_empty = value
 		queue_redraw()
 ## 格子占用颜色
-@export var gird_background_color_taken: Color = BaseGridView.DEFAULT_TAKEN_COLOR:
+@export var gird_background_color_taken: Color = GameColors.to_color(GameColors.GRID_TAKEN):
 	set(value):
 		gird_background_color_taken = value
 		queue_redraw()
 ## 格子冲突颜色
-@export var gird_background_color_conflict: Color = BaseGridView.DEFAULT_CONFLICT_COLOR:
+@export var gird_background_color_conflict: Color = GameColors.to_color(GameColors.GRID_CONFLICT):
 	set(value):
 		gird_background_color_conflict = value
 		queue_redraw()
 ## 格子可用颜色
-@export var grid_background_color_avilable: Color = BaseGridView.DEFAULT_AVILABLE_COLOR:
+@export var grid_background_color_avilable: Color = GameColors.to_color(GameColors.GRID_AVAILABLE):
 	set(value):
 		grid_background_color_avilable = value
 		queue_redraw()
@@ -71,7 +71,7 @@ class_name BaseContainerView
 		stack_num_margin = value
 		queue_redraw()
 ## 堆叠数量的颜色
-@export var stack_num_color: Color = Color.WHITE:
+@export var stack_num_color: Color = GameColors.to_color(GameColors.STACK_NUM):
 	set(value):
 		stack_num_color = value
 		queue_redraw()

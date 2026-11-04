@@ -31,12 +31,12 @@ enum State{
 		background = value
 		queue_redraw()
 ## 可用时的颜色（推荐半透明）
-@export var avilable_color: Color = Color.GREEN * 0.3:
+@export var avilable_color: Color = GameColors.to_color(GameColors.GRID_AVAILABLE_SLOT):
 	set(value):
 		avilable_color = value
 		queue_redraw()
 ## 不可用时的颜色（推荐半透明）
-@export var INVILABLE_color: Color = Color.DARK_RED * 0.3:
+@export var INVILABLE_color: Color = GameColors.to_color(GameColors.GRID_UNAVAILABLE_SLOT):
 	set(value):
 		INVILABLE_color = value
 		queue_redraw()

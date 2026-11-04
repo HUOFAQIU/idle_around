@@ -98,10 +98,19 @@ func setup_from_scene(
 	if health_bar != null:
 		health_bar.bind(health_attr, max_health_attr, asc, _bar_color())
 
+	# 外观：场景只负责贴图，阵营染色统一走 GameColors
+	var body := get_node_or_null("Body") as Sprite2D
+	if body != null:
+		body.modulate = GameColors.to_color(
+			GameColors.PLAYER_MODULATE if team == Team.PLAYER else GameColors.ENEMY_MODULATE
+		)
+
 	# 头顶名字：场景里有 Name 标签就跟着 unit_name 走
 	var name_label := get_node_or_null("Name") as Label
 	if name_label != null:
 		name_label.text = unit_name
+		name_label.add_theme_color_override("font_color", GameColors.to_color(GameColors.TEXT_PRIMARY))
+		name_label.add_theme_color_override("font_outline_color", GameColors.to_color(GameColors.TEXT_OUTLINE))
 
 	_connect_asc()
 
@@ -432,7 +441,7 @@ func _connect_asc() -> void:
 
 ## 血条颜色：敌红我绿
 func _bar_color() -> Color:
-	return Color(0.40, 0.85, 0.45) if team == Team.PLAYER else Color(0.90, 0.30, 0.25)
+	return GameColors.to_color(GameColors.HEALTH_FILL) if team == Team.PLAYER else GameColors.to_color(GameColors.HEALTH_FILL_ENEMY)
 
 
 ## 放到某个格子上（出生/瞬移用，瞬时）。实时移动不经过这里。
@@ -540,7 +549,7 @@ func _log_shield_absorb(amount: float, source_name: String, effect_name: String)
 	if amount <= 0.0:
 		return
 	_log("%s 的护盾吸收 %.0f 点【%s】伤害（来自 %s）"
-		% [unit_name, amount, effect_name, source_name], CombatColors.SHIELD)
+		% [unit_name, amount, effect_name, source_name], GameColors.SHIELD)
 	_pop_number(amount, false, false, false, true)
 
 
@@ -552,7 +561,7 @@ func _log_burn_tick(damage: float, spec: GameplayEffectSpec) -> void:
 	var source_name := _source_name(spec)
 	var effect_name := _effect_display_name(spec)
 	_log("%s 受到【%s】（来自 %s）%.0f 点伤害，HP %.0f → %.0f"
-		% [unit_name, effect_name, source_name, damage, old_value, health_attr.current_value], CombatColors.BURN)
+		% [unit_name, effect_name, source_name, damage, old_value, health_attr.current_value], GameColors.BURN)
 	_pop_number(damage, false, false, true)
 
 
@@ -564,7 +573,7 @@ func _log_poison_tick(damage: float, spec: GameplayEffectSpec) -> void:
 	var source_name := _source_name(spec)
 	var effect_name := _effect_display_name(spec)
 	_log("%s 受到【%s】（来自 %s）%.0f 点伤害，HP %.0f → %.0f"
-		% [unit_name, effect_name, source_name, damage, old_value, health_attr.current_value], CombatColors.POISON)
+		% [unit_name, effect_name, source_name, damage, old_value, health_attr.current_value], GameColors.POISON)
 	_pop_number(damage, false, false, false, false, true)
 
 
@@ -576,7 +585,7 @@ func _log_regen_tick(damage: float, spec: GameplayEffectSpec) -> void:
 	var source_name := _source_name(spec)
 	var effect_name := _effect_display_name(spec)
 	_log("%s 受到【%s】（来自 %s）影响，恢复 %.0f 点生命，HP %.0f → %.0f"
-		% [unit_name, effect_name, source_name, damage, old_value, health_attr.current_value], CombatColors.REGEN)
+		% [unit_name, effect_name, source_name, damage, old_value, health_attr.current_value], GameColors.REGEN)
 	_pop_number(damage, true, false, false, false, false, true)
 
 
@@ -611,11 +620,11 @@ func _on_effect_received(_source_asc: AbilitySystemComponent, spec: GameplayEffe
 		_log_shield_absorb(-shield_delta, source_name, effect_name)
 	if health_delta < 0.0:
 		_log("%s 受到【%s】（来自 %s）%.0f 点伤害%s，HP %.0f → %.0f"
-			% [unit_name, effect_name, source_name, -health_delta, crit_suffix, old_value, current], CombatColors.DAMAGE)
+			% [unit_name, effect_name, source_name, -health_delta, crit_suffix, old_value, current], GameColors.DAMAGE)
 		_pop_number(-health_delta, false, critical)
 	elif health_delta > 0.0:
 		_log("%s 回复 %.0f 点生命%s，HP %.0f → %.0f"
-			% [unit_name, health_delta, crit_suffix, old_value, current], CombatColors.HEAL)
+			% [unit_name, health_delta, crit_suffix, old_value, current], GameColors.HEAL)
 		_pop_number(health_delta, true, critical)
 
 
@@ -665,7 +674,7 @@ func _on_active_effect_added(active_effect: ActiveGameplayEffect) -> void:
 		return
 	var duration_text := "持续" if def.policy == GameplayEffect.DurationPolicy.INFINITE else "%.1f 秒" % active_effect.time_remaining
 	var effect_name := _effect_display_name(active_effect.spec)
-	_log("%s 获得状态【%s】（%s）" % [unit_name, effect_name, duration_text], CombatColors.status_color(effect_name))
+	_log("%s 获得状态【%s】（%s）" % [unit_name, effect_name, duration_text], GameColors.status_color(effect_name))
 
 
 func _on_active_effect_removed(active_effect: ActiveGameplayEffect) -> void:

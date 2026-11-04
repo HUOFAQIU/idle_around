@@ -4,15 +4,21 @@ extends BaseWindow
 ##
 ## 全量条目来自 CollectionDB（底层是两份 YARD registry）；
 ## 未遇见的条目也占位显示，只是不暴露名字和图标。
-## 魂灵页的已遇见条目：悬停显示 tooltip，右键放入仓库。
+## 魂灵页的已遇见条目：悬停显示 tooltip，右键放入仓库并播放抛物线飞入动画。
 
 const LOCKED_NAME: String = "？？？"
 ## 仓库窗口展示的容器；右键魂灵直接往这里塞
 const WAREHOUSE_CONTAINER: String = "inventory_0"
+## 右键入包成功后的抛物线动画：时长、弧高、图标大小、终点距右边缘的留白
+const FLY_DURATION: float = 0.2
+const FLY_ARC_HEIGHT: float = 110.0
+const FLY_GHOST_SIZE: float = 64.0
+const FLY_END_MARGIN: float = 24.0
 
 @onready var monster_button: Button = $Root/VBox/KindRow/MonsterButton
 @onready var soul_button: Button = $Root/VBox/KindRow/SoulButton
 @onready var entry_grid: GridContainer = $Root/VBox/Body/Scroll/EntryGrid
+@onready var hint_label: Label = $Root/VBox/HintLabel
 
 ## 当前分类：CollectionDB.Kind
 var _kind: int = CollectionDB.Kind.MONSTER
@@ -25,6 +31,7 @@ func _ready() -> void:
 	soul_button.pressed.connect(_select_kind.bind(CollectionDB.Kind.SOUL))
 	CollectionDB.entry_unlocked.connect(_on_entry_unlocked)
 	visibility_changed.connect(_on_visibility_changed)
+	hint_label.add_theme_color_override("font_color", GameColors.to_color(GameColors.TEXT_SECONDARY))
 	_select_kind(CollectionDB.Kind.MONSTER)
 
 
@@ -83,11 +90,11 @@ func _make_entry_cell(id: StringName) -> Control:
 	button.icon = _entry_icon(id)
 	button.expand_icon = true
 	if not seen:
-		button.modulate = Color(0.3, 0.3, 0.3, 1.0)
+		button.modulate = GameColors.to_color(GameColors.LOCKED_MODULATE)
 	elif _kind == CollectionDB.Kind.SOUL:
 		button.mouse_entered.connect(_show_soul_tooltip.bind(id))
 		button.mouse_exited.connect(_hide_tooltip)
-		button.gui_input.connect(_on_entry_gui_input.bind(id))
+		button.gui_input.connect(_on_entry_gui_input.bind(id, button))
 	cell.add_child(button)
 
 	var label := Label.new()
@@ -116,7 +123,7 @@ func _hide_tooltip() -> void:
 
 
 ## 右键已遇见魂灵：放入仓库；怪物条目和未遇见条目不响应
-func _on_entry_gui_input(event: InputEvent, id: StringName) -> void:
+func _on_entry_gui_input(event: InputEvent, id: StringName, button: Button) -> void:
 	if not (event is InputEventMouseButton):
 		return
 	var mouse_event := event as InputEventMouseButton
@@ -129,6 +136,48 @@ func _on_entry_gui_input(event: InputEvent, id: StringName) -> void:
 		return
 	if not GBIS.add_item(WAREHOUSE_CONTAINER, soul):
 		push_warning("见闻：魂灵放入仓库失败「%s」" % soul.item_name)
+		return
+	_play_add_fly_animation(button, soul.icon)
+
+
+## 从被点条目的图标生成一个临时残影，向右飞出一条抛物线后淡出
+func _play_add_fly_animation(button: Button, icon: Texture2D) -> void:
+	if icon == null:
+		return
+	var fly_layer := $Root/FlyLayer as Control
+	if fly_layer == null:
+		return
+
+	var ghost := TextureRect.new()
+	ghost.texture = icon
+	ghost.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	ghost.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	ghost.size = Vector2(FLY_GHOST_SIZE, FLY_GHOST_SIZE)
+	ghost.pivot_offset = ghost.size * 0.5
+	ghost.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	fly_layer.add_child(ghost)
+
+	var start := button.get_global_rect().get_center() - fly_layer.get_global_rect().position
+	var end := Vector2(fly_layer.size.x - FLY_END_MARGIN, start.y)
+	# 控制点在起点上方，保证弧线不飞出窗口顶部
+	var peak_y := maxf(start.y - FLY_ARC_HEIGHT, FLY_GHOST_SIZE * 0.5)
+	var control := Vector2((start.x + end.x) * 0.5, peak_y)
+	ghost.position = start - ghost.size * 0.5
+
+	var tween := ghost.create_tween()
+	tween.set_parallel(true)
+	var place := func (t: float) -> void:
+		ghost.position = _quadratic_bezier(start, control, end, t) - ghost.size * 0.5
+	tween.tween_method(place, 0.0, 1.0, FLY_DURATION)
+	tween.tween_property(ghost, "scale", Vector2(0.5, 0.5), FLY_DURATION)
+	tween.tween_property(ghost, "modulate:a", 0.0, FLY_DURATION * 0.3).set_delay(FLY_DURATION * 0.7)
+	tween.finished.connect(ghost.queue_free)
+
+
+## 二次贝塞尔求值：三个点确定一条抛物线
+func _quadratic_bezier(start: Vector2, control: Vector2, end: Vector2, t: float) -> Vector2:
+	var inv := 1.0 - t
+	return inv * inv * start + 2.0 * inv * t * control + t * t * end
 
 
 func _on_entry_unlocked(kind: int, _id: StringName) -> void:

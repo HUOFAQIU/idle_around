@@ -55,6 +55,10 @@ func _ready() -> void:
 	player_shield_bar.visible = false
 	player_burn_bar.visible = false
 	player_poison_bar.visible = false
+	# 场景只负责布局；文字颜色统一由 GameColors 提供
+	$CanvasLayer/Control.theme = GameColors.build_label_theme()
+	fps_label.add_theme_color_override("font_outline_color", GameColors.to_color(GameColors.TEXT_OUTLINE))
+	fps_label.add_theme_color_override("font_color", GameColors.to_color(GameColors.SUCCESS))
 	_apply_status_bar_colors()
 
 	# ☰ 开关战斗信息窗口；▶ 才是开战
@@ -76,9 +80,9 @@ func _ready() -> void:
 
 			var d : int = Hex.distance(Vector2i(0, 0), cell)
 			if d % 2 != 0:
-				label.add_theme_color_override("font_color", Color.WHITE)
+				label.add_theme_color_override("font_color", GameColors.to_color(GameColors.TEXT_PRIMARY))
 			else:
-				label.add_theme_color_override("font_color", Color.BLACK)
+				label.add_theme_color_override("font_color", GameColors.to_color(GameColors.TEXT_OUTLINE))
 			label.text = str(d)
 			ground_tilemaplayer.add_child(label)
 
@@ -353,16 +357,16 @@ func _is_mouse_inside() -> bool:
 	return Rect2i(position, size).has_point(DisplayServer.mouse_get_position())
 
 
-## 状态条和状态名标签统一从 CombatColors 取色；场景里的色值只用于编辑器预览
+## 状态条和状态名标签统一从 GameColors 取色
 func _apply_status_bar_colors() -> void:
-	_apply_status_color(player_regen_bar, "RegenLabel", CombatColors.REGEN)
-	_apply_status_color(player_shield_bar, "ShieldLabel", CombatColors.SHIELD)
-	_apply_status_color(player_burn_bar, "BurnLabel", CombatColors.BURN)
-	_apply_status_color(player_poison_bar, "PoisonLabel", CombatColors.POISON)
+	_apply_status_color(player_regen_bar, "RegenLabel", GameColors.REGEN)
+	_apply_status_color(player_shield_bar, "ShieldLabel", GameColors.SHIELD)
+	_apply_status_color(player_burn_bar, "BurnLabel", GameColors.BURN)
+	_apply_status_color(player_poison_bar, "PoisonLabel", GameColors.POISON)
 
 
 func _apply_status_color(bar: PlayerStatusBar, label_name: String, hex: String) -> void:
-	var color := CombatColors.to_color(hex)
+	var color := GameColors.to_color(hex)
 	bar.fill_color = color
 	var label := bar.get_node_or_null(label_name) as Label
 	if label != null:
@@ -372,10 +376,10 @@ func _apply_status_color(bar: PlayerStatusBar, label_name: String, hex: String) 
 # FPS 颜色：绿 / 黄 / 红
 func _fps_color(fps : int) -> Color:
 	if fps >= 55:
-		return Color(0.55, 1.0, 0.6)
+		return GameColors.to_color(GameColors.SUCCESS)
 	if fps >= 30:
-		return Color(1.0, 0.85, 0.35)
-	return Color(1.0, 0.4, 0.35)
+		return GameColors.to_color(GameColors.WARNING)
+	return GameColors.to_color(GameColors.DANGER)
 
 
 #region 测试接口（TestAPI 调用）

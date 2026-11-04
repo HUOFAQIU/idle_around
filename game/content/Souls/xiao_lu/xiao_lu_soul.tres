@@ -7,7 +7,6 @@
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_scan"]
 shader = ExtResource("3_scan")
-shader_parameter/line_color = Color(0.54902, 0.85098, 1, 1)
 shader_parameter/band_width = 0.16
 shader_parameter/intensity = 1.0
 shader_parameter/enable = 0.0

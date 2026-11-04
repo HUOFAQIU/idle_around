@@ -6,13 +6,14 @@
 class_name PlayerStatusBar extends Control
 
 const BORDER : float = 1.0
-const BORDER_COLOR := Color(0, 0, 0, 0.75)
-const BACKGROUND_COLOR := Color(0.12, 0.12, 0.10)
+
+var _border_color : Color = GameColors.to_color(GameColors.BAR_BORDER)
+var _background_color : Color = GameColors.to_color(GameColors.STATUS_BAR_BG)
 
 ## 监听的属性名：shield / regen / burn / poison
 @export var attribute_name: String = "shield"
 ## 整条填充色；默认是护盾色
-@export var fill_color: Color = CombatColors.to_color(CombatColors.SHIELD)
+@export var fill_color: Color = GameColors.to_color(GameColors.SHIELD)
 
 var _attribute : AttributeData
 var _asc : AbilitySystemComponent
@@ -22,8 +23,8 @@ var _asc : AbilitySystemComponent
 
 func _draw() -> void:
 	var outer := Rect2(Vector2(-BORDER, -BORDER), size + Vector2(BORDER * 2.0, BORDER * 2.0))
-	draw_rect(outer, BORDER_COLOR)
-	draw_rect(Rect2(Vector2.ZERO, size), BACKGROUND_COLOR)
+	draw_rect(outer, _border_color)
+	draw_rect(Rect2(Vector2.ZERO, size), _background_color)
 	draw_rect(Rect2(Vector2.ZERO, size), fill_color)
 
 

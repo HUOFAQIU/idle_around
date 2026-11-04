@@ -2,7 +2,7 @@
 
 > 类型：指南 | 状态：有效 | 核对：2026-11-04
 > 何时读：写自动化测试/探针、构造战斗或背包场景、验证新功能
-> 关键词：测试 TestAPI 探针 自动化 战斗快照 魂灵 仓库 见闻 冷却 冻结 触发器 类型 标签 充能 卡面 tooltip 伤害缩放
+> 关键词：测试 TestAPI 探针 自动化 战斗快照 魂灵 仓库 见闻 冷却 冻结 触发器 类型 标签 充能 卡面 tooltip 伤害缩放 颜色 色板
 > 代码：`Scripts/test_api.gd`、`Windows/Battle/battle_window.gd`、`Scripts/collection_db.gd`
 > 约定：新增功能/内容时，同步补 TestAPI 方法并更新本文。
 
@@ -44,6 +44,12 @@ TestAPI.stop_battle()
 | `get_soul_tooltip_bbcode(id) -> String` | 魂灵 tooltip 的 BBCode 文本；正文状态词带颜色标签，用于验证上色 |
 
 `kind` 用 `CollectionDB.Kind.SOUL` / `CollectionDB.Kind.MONSTER`。见闻窗口的魂灵条目悬停使用与仓库相同的 tooltip（标题是 `item_name`，正文由 `SoulTooltip.build(soul, true)` 生成）；右键已遇见魂灵等价于 `add_soul(id, "inventory_0")`。
+
+## 颜色
+
+| 方法 | 说明 |
+|---|---|
+| `get_game_color(name) -> String` | 按常量名取 `GameColors` 的十六进制色值，如 `"DAMAGE"`、`"TEXT_PRIMARY"`；`Color` 常量会转成 HTML 色值 |
 
 ## 战斗
 

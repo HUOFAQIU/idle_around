@@ -4,7 +4,7 @@
 ## 它不算伤害。命中后只把"打到了谁"报回去，结算仍然走 GAS 的效果管线
 ## （技能那边拿到结果再建 Spec 结算）。
 ##
-## 外观（贴图/区域/颜色）配在 soul_projectile.tscn 上，换皮不用改代码。
+## 外观（贴图/区域）配在 soul_projectile.tscn 上；颜色统一从 GameColors 取。
 
 class_name SoulProjectile extends Sprite2D
 
@@ -40,6 +40,10 @@ func setup(caster: BattleUnit, aim_position: Vector2, speed: float = DEFAULT_SPE
 		_direction = aim_offset.normalized()
 		# 图里的箭头是朝上的，转成朝飞行方向
 		rotation = _direction.angle() + PI / 2.0
+
+
+func _ready() -> void:
+	modulate = GameColors.to_color(GameColors.PROJECTILE)
 
 
 func _process(delta: float) -> void:

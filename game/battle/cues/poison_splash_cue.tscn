@@ -39,7 +39,6 @@ script = ExtResource("1_splash")
 destroy_delay = 0.6
 
 [node name="Ring" type="Sprite2D" parent="." unique_id=1790973772]
-modulate = Color(0.18, 0.55, 0.24, 0.95)
 material = SubResource("CanvasItemMaterial_add")
 position = Vector2(0, -4)
 texture = SubResource("GradientTexture2D_ring")

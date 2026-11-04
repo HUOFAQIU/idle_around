@@ -11,14 +11,14 @@ const RISE : float = 28.0
 const LIFETIME : float = 0.7
 const FONT_SIZE : int = 16
 const CRIT_FONT_SIZE : int = 20
-## 颜色统一从 CombatColors 取，和 tooltip / 战斗日志 / 状态条保持一致
-static var COLOR_DAMAGE := CombatColors.to_color(CombatColors.DAMAGE)
-static var COLOR_HEAL := CombatColors.to_color(CombatColors.HEAL)
-static var COLOR_CRIT := CombatColors.to_color(CombatColors.CRIT)
-static var COLOR_BURN := CombatColors.to_color(CombatColors.BURN)
-static var COLOR_SHIELD := CombatColors.to_color(CombatColors.SHIELD)
-static var COLOR_POISON := CombatColors.to_color(CombatColors.POISON)
-static var COLOR_REGEN := CombatColors.to_color(CombatColors.REGEN)
+## 颜色统一从 GameColors 取，和 tooltip / 战斗日志 / 状态条保持一致
+static var COLOR_DAMAGE := GameColors.to_color(GameColors.DAMAGE)
+static var COLOR_HEAL := GameColors.to_color(GameColors.HEAL)
+static var COLOR_CRIT := GameColors.to_color(GameColors.CRIT)
+static var COLOR_BURN := GameColors.to_color(GameColors.BURN)
+static var COLOR_SHIELD := GameColors.to_color(GameColors.SHIELD)
+static var COLOR_POISON := GameColors.to_color(GameColors.POISON)
+static var COLOR_REGEN := GameColors.to_color(GameColors.REGEN)
 
 
 ## amount 传正数；heal = true 表示这是回血，burn = true 表示灼烧，shield = true 表示护盾吸收，poison = true 表示剧毒，regen = true 表示生命再生。

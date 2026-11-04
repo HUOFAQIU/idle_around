@@ -30,7 +30,6 @@ script = ExtResource("3_brain")
 shape = SubResource("CircleShape2D_body")
 
 [node name="Body" type="Sprite2D" parent="." unique_id=2011092079]
-modulate = Color(0, 0.8765176, 0.32171732, 1)
 texture = ExtResource("6_tokens")
 region_enabled = true
 region_rect = Rect2(32, 0, 32, 32)

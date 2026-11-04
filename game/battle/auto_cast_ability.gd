@@ -176,14 +176,14 @@ func _activate_soul_skill(battle: BattleManager, trace: CombatTrace) -> bool:
 			target.add_charge(skill.charge_duration, trace)
 			if soul_runtime != null:
 				soul_runtime.add_counter("charges_given", skill.charge_duration)
-			battle.log_line("%s 获得充能（%.1f 秒）" % [target.ability_name, skill.charge_duration], CombatColors.CHARGE)
+			battle.log_line("%s 获得充能（%.1f 秒）" % [target.ability_name, skill.charge_duration], GameColors.CHARGE)
 			charge_applied = true
 		if skill.haste_duration > 0.0 and target.apply_haste(skill.haste_duration, trace):
-			battle.log_line("%s 获得状态【加速】（%.1f 秒）" % [target.ability_name, skill.haste_duration], CombatColors.HASTE)
+			battle.log_line("%s 获得状态【加速】（%.1f 秒）" % [target.ability_name, skill.haste_duration], GameColors.HASTE)
 		if skill.slow_duration > 0.0 and target.apply_slow(skill.slow_duration, trace):
-			battle.log_line("%s 获得状态【减速】（%.1f 秒）" % [target.ability_name, skill.slow_duration], CombatColors.SLOW)
+			battle.log_line("%s 获得状态【减速】（%.1f 秒）" % [target.ability_name, skill.slow_duration], GameColors.SLOW)
 		if skill.freeze_duration > 0.0 and target.apply_freeze(skill.freeze_duration, trace):
-			battle.log_line("%s 获得状态【冻结】（%.1f 秒）" % [target.ability_name, skill.freeze_duration], CombatColors.FREEZE)
+			battle.log_line("%s 获得状态【冻结】（%.1f 秒）" % [target.ability_name, skill.freeze_duration], GameColors.FREEZE)
 		# 充能满就同帧释放：避免目标晚一帧归零，之后和充能者相位锁死。
 		# 冻结或激活锁未走完时不释放，留到之后由 BattleBrain 主循环统一处理。
 		if (

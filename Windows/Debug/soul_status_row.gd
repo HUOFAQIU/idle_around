@@ -40,7 +40,7 @@ func _ready() -> void:
 
 	_part_label = Label.new()
 	_part_label.custom_minimum_size = Vector2(66, 0)
-	_part_label.add_theme_color_override("font_color", Color(0.65, 0.7, 0.75))
+	_part_label.add_theme_color_override("font_color", GameColors.to_color(GameColors.DEBUG_HINT))
 	row.add_child(_part_label)
 
 	_charge_bar = ProgressBar.new()
@@ -55,13 +55,13 @@ func _ready() -> void:
 
 	_status_label = Label.new()
 	_status_label.custom_minimum_size = Vector2(150, 0)
-	_status_label.add_theme_color_override("font_color", Color(0.4, 0.85, 0.95))
+	_status_label.add_theme_color_override("font_color", GameColors.to_color(GameColors.DEBUG_STATUS))
 	row.add_child(_status_label)
 
 	_counter_label = Label.new()
 	_counter_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_counter_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	_counter_label.add_theme_color_override("font_color", Color(0.75, 0.78, 0.8))
+	_counter_label.add_theme_color_override("font_color", GameColors.to_color(GameColors.DEBUG_COUNTER))
 	row.add_child(_counter_label)
 
 
@@ -82,7 +82,7 @@ func refresh() -> void:
 		_charge_bar.value = 0.0
 		_charge_label.text = "被动"
 		_status_label.text = ""
-		_name_label.add_theme_color_override("font_color", Color(0.85, 0.85, 0.85))
+		_name_label.add_theme_color_override("font_color", GameColors.to_color(GameColors.DEBUG_NAME))
 	else:
 		var ability := runtime.ability
 		_charge_bar.value = runtime.scanline_progress * 100.0
@@ -103,8 +103,8 @@ func refresh() -> void:
 		_status_label.text = "  ".join(statuses)
 		_name_label.add_theme_color_override(
 			"font_color",
-			Color(0.55, 1.0, 0.6) if ability.is_ready() and not ability.is_frozen()
-			else Color(0.55, 0.8, 1.0)
+			GameColors.to_color(GameColors.SUCCESS) if ability.is_ready() and not ability.is_frozen()
+			else GameColors.to_color(GameColors.INFO)
 		)
 
 	_counter_label.text = "激活 %d | 触发 %d | 收充能 %.1fs" % [

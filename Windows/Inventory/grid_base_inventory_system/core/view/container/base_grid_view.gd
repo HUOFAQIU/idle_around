@@ -7,17 +7,6 @@ enum State{
 	EMPTY, TAKEN, CONFLICT, AVILABLE
 }
 
-## 默认边框颜色
-const DEFAULT_BORDER_COLOR: Color = Color.GRAY
-## 默认空置颜色
-const DEFAULT_EMPTY_COLOR: Color = Color.DARK_SLATE_GRAY
-## 默认占用颜色
-const DEFAULT_TAKEN_COLOR: Color = Color.LIGHT_SLATE_GRAY
-## 默认冲突颜色
-const DEFAULT_CONFLICT_COLOR: Color = Color.INDIAN_RED
-## 默认可用颜色
-const DEFAULT_AVILABLE_COLOR: Color = Color.STEEL_BLUE
-
 ## 当前绘制状态
 var state: State = State.EMPTY:
 	set(value):
@@ -36,15 +25,15 @@ var _size: int = 32
 ## 边框大小
 var _border_size: int = 1
 ## 边框颜色
-var _border_color: Color = DEFAULT_BORDER_COLOR
+var _border_color: Color = GameColors.to_color(GameColors.GRID_BORDER)
 ## 空置颜色
-var _empty_color: Color = DEFAULT_EMPTY_COLOR
+var _empty_color: Color = GameColors.to_color(GameColors.GRID_EMPTY)
 ## 占用颜色
-var _taken_color: Color = DEFAULT_TAKEN_COLOR
+var _taken_color: Color = GameColors.to_color(GameColors.GRID_TAKEN)
 ## 冲突颜色
-var _conflict_color: Color = DEFAULT_CONFLICT_COLOR
+var _conflict_color: Color = GameColors.to_color(GameColors.GRID_CONFLICT)
 ## 可用颜色
-var _avilable_color: Color = DEFAULT_AVILABLE_COLOR
+var _avilable_color: Color = GameColors.to_color(GameColors.GRID_AVAILABLE)
 
 ## 所属的背包View
 var _container_view: BaseContainerView

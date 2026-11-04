@@ -36,6 +36,7 @@ func _ready() -> void:
 	_title_label.add_theme_font_size_override("font_size", TITLE_FONT_SIZE)
 	_body_label.add_theme_font_size_override("normal_font_size", BODY_FONT_SIZE)
 	_body_label.visible = false
+	_apply_panel_colors()
 	reset_size()
 
 
@@ -89,6 +90,15 @@ func _set_text(title_text: String, body_text: String) -> void:
 ## 自己决定往哪边弹：锚点是鼠标，边界是屏幕
 func _place_tip() -> void:
 	_place_near(DisplayServer.mouse_get_position(), DisplayServer.screen_get_size())
+
+
+## 面板颜色统一从 GameColors 取；场景里只留边框宽度和圆角
+func _apply_panel_colors() -> void:
+	var panel := $Panel as PanelContainer
+	var style := panel.get_theme_stylebox("panel").duplicate() as StyleBoxFlat
+	style.bg_color = GameColors.to_color(GameColors.TOOLTIP_BG)
+	style.border_color = GameColors.to_color(GameColors.TOOLTIP_BORDER)
+	panel.add_theme_stylebox_override("panel", style)
 
 
 ## 摆位：默认在鼠标右下方，右边放不下就翻到左边，翻过头再夹回窗口里。

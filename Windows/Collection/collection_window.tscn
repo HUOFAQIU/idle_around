@@ -59,6 +59,10 @@ mouse_filter = 2
 
 [node name="HintLabel" type="Label" parent="Root/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.65, 0.67, 0.7, 1)
 theme_override_font_sizes/font_size = 13
 text = "右键已遇见魂灵：放入仓库"
+
+[node name="FlyLayer" type="Control" parent="Root"]
+layout_mode = 2
+mouse_filter = 2
+z_index = 100

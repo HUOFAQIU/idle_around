@@ -16,11 +16,11 @@ func _ready() -> void:
 	button_2.button_pressed = get_window().always_on_top
 	button_2.toggled.connect(_on_button_2_toggled)
 	var pressed_style := button_2.get_theme_stylebox("pressed").duplicate() as StyleBoxFlat
-	pressed_style.bg_color = Color("#3ddc4a")
+	pressed_style.bg_color = GameColors.to_color(GameColors.ACCENT)
 	button_2.add_theme_stylebox_override("pressed", pressed_style)
 	button_2.add_theme_stylebox_override("hover_pressed", pressed_style)
-	button_2.add_theme_color_override("font_pressed_color", Color("#062b0a"))
-	button_2.add_theme_color_override("font_hover_pressed_color", Color("#062b0a"))
+	button_2.add_theme_color_override("font_pressed_color", GameColors.to_color(GameColors.ACCENT_TEXT))
+	button_2.add_theme_color_override("font_hover_pressed_color", GameColors.to_color(GameColors.ACCENT_TEXT))
 	# button_6
 	button_6.pressed.connect(_on_button_6_pressed)
 

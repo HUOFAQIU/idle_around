@@ -24,6 +24,20 @@ const REGEN_APPLY : GameplayEffect = preload("res://game/content/effects/regen_a
 const REGEN_TICK : GameplayEffect = preload("res://game/content/effects/regen_tick.tres")
 ## 测试用单位冻结效果
 const FREEZE_UNIT : GameplayEffect = preload("res://game/content/effects/freeze_unit.tres")
+## 色板脚本：用于按常量名取色
+const GAME_COLORS_SCRIPT : GDScript = preload("res://Scripts/game_colors.gd")
+
+
+#region 颜色
+
+## 按常量名取 GameColors 的十六进制色值；例如 "DAMAGE"、"TEXT_PRIMARY"
+static func get_game_color(constant_name : String) -> String:
+	var value: Variant = GAME_COLORS_SCRIPT.get_script_constant_map().get(constant_name, "")
+	if value is Color:
+		return (value as Color).to_html()
+	return String(value)
+
+#endregion
 
 
 #region 背包 / 见闻

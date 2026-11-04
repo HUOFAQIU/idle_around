@@ -1,6 +1,6 @@
 ## 魂灵直接伤害的 GAS 执行计算。
 ##
-## 伤害 = (base_damage + 施法者 damage_bonus) × 暴击倍率
+## 伤害 = (base_damage + 施法者 damage_bonus + 匹配魂灵数量 × bonus_per_matching_soul) × 暴击倍率
 ## 暴击倍率由 AutoCastAbility 通过 spec 的 SetByCaller 传入。
 ## 最终伤害交给 DamageResolver 先扣护盾，再扣生命。
 ##
@@ -12,6 +12,12 @@ const CRIT_MULTIPLIER_TAG : StringName = &"Data.CritMultiplier"
 
 ## 这个伤害效果的基础伤害（正数）
 @export var base_damage: float = 0.0
+
+## 每有一颗带匹配类型的魂灵，额外增加的伤害（在暴击前加到基础伤害上）
+@export var bonus_per_matching_soul: float = 0.0
+
+## 匹配的魂灵类型（SoulData.types）；空 = 不按魂灵数量加成
+@export var matching_soul_types: Array[StringName] = []
 
 
 func execute(spec: GameplayEffectSpec, target_asc: AbilitySystemComponent) -> Dictionary:
@@ -26,12 +32,33 @@ func execute(spec: GameplayEffectSpec, target_asc: AbilitySystemComponent) -> Di
 	if spec != null:
 		crit_multiplier = maxf(spec.get_set_by_caller_magnitude(CRIT_MULTIPLIER_TAG, 1.0), 0.0)
 
-	var damage := maxf(base_damage + damage_bonus, 0.0) * crit_multiplier
+	var soul_bonus := _matching_soul_bonus(source_asc)
+	var damage := maxf(base_damage + damage_bonus + soul_bonus, 0.0) * crit_multiplier
 	if damage <= 0.0:
 		return {}
 	if crit_multiplier > 1.0:
 		spec.inject_tag(GameplayTags.Event_Combat_Critical)
 	return DamageResolver.split_damage(target_asc, damage, 1.0)
+
+
+## 数施法者装备栏里带匹配类型的魂灵；恐狼自己也算一颗。
+func _matching_soul_bonus(source_asc: AbilitySystemComponent) -> float:
+	if bonus_per_matching_soul <= 0.0 or matching_soul_types.is_empty():
+		return 0.0
+	if source_asc == null:
+		return 0.0
+	var unit := source_asc.get_parent() as BattleUnit
+	if unit == null:
+		return 0.0
+	var count := 0
+	for runtime in unit.loadout:
+		if runtime == null or runtime.soul == null:
+			continue
+		for soul_type in matching_soul_types:
+			if runtime.soul.types.has(soul_type):
+				count += 1
+				break
+	return float(count) * bonus_per_matching_soul
 
 
 ## 施法者的 ASC；context.instigator 通常是 BattleUnit。

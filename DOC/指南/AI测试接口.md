@@ -1,8 +1,8 @@
 # AI 测试接口 TestAPI
 
-> 类型：指南 | 状态：有效 | 核对：2026-11-03
+> 类型：指南 | 状态：有效 | 核对：2026-11-04
 > 何时读：写自动化测试/探针、构造战斗或背包场景、验证新功能
-> 关键词：测试 TestAPI 探针 自动化 战斗快照 魂灵 仓库 见闻 冷却 冻结 触发器 类型 标签 充能 卡面 tooltip
+> 关键词：测试 TestAPI 探针 自动化 战斗快照 魂灵 仓库 见闻 冷却 冻结 触发器 类型 标签 充能 卡面 tooltip 伤害缩放
 > 代码：`Scripts/test_api.gd`、`Windows/Battle/battle_window.gd`、`Scripts/collection_db.gd`
 > 约定：新增功能/内容时，同步补 TestAPI 方法并更新本文。
 
@@ -36,13 +36,14 @@ TestAPI.stop_battle()
 | `get_seen_ids(kind) -> Array[StringName]` | 真实已解锁 ID |
 | `is_seen(kind, id) -> bool` | 单个条目是否解锁 |
 | `get_soul_ids()` / `get_monster_ids()` | 列出 registry 条目 |
-| `get_soul_types(id) -> Array[StringName]` | 魂灵类型，如 `Soul.types.Property` |
+| `get_soul_types(id) -> Array[StringName]` | 魂灵类型，如 `Soul.types.Wolf`、`Soul.types.Animal` |
 | `get_soul_tags(id) -> Array[StringName]` | 魂灵见闻标签，如 `Soul.tags.Small`、`Soul.tags.Burn` |
 | `get_soul_card_info(id) -> Dictionary` | 魂灵卡面：`icon` 路径、`columns`/`rows`、`label` 名称文本 |
+| `get_soul_damage_scaling(id) -> Dictionary` | 直接伤害的 `base_damage` / `bonus_per_matching_soul` / `matching_soul_types` |
 | `get_soul_tooltip_text(id) -> String` | 魂灵 tooltip 完整纯文本；第一行是标题，后面是正文（格式见 `魂灵/魂灵.md`） |
 | `get_soul_tooltip_bbcode(id) -> String` | 魂灵 tooltip 的 BBCode 文本；正文状态词带颜色标签，用于验证上色 |
 
-`kind` 用 `CollectionDB.Kind.SOUL` / `CollectionDB.Kind.MONSTER`。
+`kind` 用 `CollectionDB.Kind.SOUL` / `CollectionDB.Kind.MONSTER`。见闻窗口的魂灵条目悬停使用与仓库相同的 tooltip（标题是 `item_name`，正文由 `SoulTooltip.build(soul, true)` 生成）；右键已遇见魂灵等价于 `add_soul(id, "inventory_0")`。
 
 ## 战斗
 
@@ -54,12 +55,11 @@ TestAPI.stop_battle()
 | `apply_burn(target := "player") -> bool` | 对战斗单位施加灼烧（测试状态与火焰 Cue） |
 | `apply_poison(target := "player") -> bool` | 对战斗单位施加剧毒（测试飞溅与气泡 Cue） |
 | `apply_regen(target := "player") -> bool` | 对战斗单位施加生命再生（测试剧毒/再生相减） |
-| `preview_wen_quan_regen(burn_amount := 24.0) -> float` | 按给定灼烧值预览温泉再生，验证“再生 = 灼烧”的派生；不改运行时资源 |
 | `apply_freeze(target := "player", seconds := 3.0) -> bool` | 对战斗单位施加冻结（测试冻结 Cue 与 `State.Frozen`）；会广播 `Event.Combat.FreezeApplied` |
 | `apply_soul_freeze(soul_name, seconds := 1.0, target := "player") -> bool` | 对已装备的指定魂灵施加魂灵级冻结（测试冰霜 shader 与徽章） |
 | `simulate_soul_used(soul_name, target := "player") -> bool` | 模拟“魂灵被使用”（不动冷却），确定性验证 `Event.Combat.SoulUsed` 触发器；触发充能满时会走同帧待释放队列，调用后等一帧再读状态 |
 | `charge_soul(soul_name, seconds, target := "player") -> bool` | 给已装备魂灵直接充能，用于快速触发主动技能；不经过触发器队列 |
-| `damage_unit(target := "player", amount := 1.0) -> bool` | 对单位造成伤害，用于把生命值打到阈值以下（测温泉半血触发） |
+| `damage_unit(target := "player", amount := 1.0) -> bool` | 对单位造成伤害，用于把生命值打到阈值以下（测半血触发） |
 | `has_status(tag, target := "player") -> bool` | 单位是否拥有某个状态标签 |
 | `get_battle_state() -> Dictionary` | 战斗快照 |
 | `get_enemy_count() -> int` | 当前存活敌人数 |
@@ -87,23 +87,25 @@ TestAPI.apply_freeze("enemy", 3.0)
 print(TestAPI.has_status(&"State.Frozen", "enemy"))
 TestAPI.apply_soul_freeze("尖牙", 1.0)
 
-# 温泉：把玩家打到半血以下，触发全体冻结；每有一只怪物被冻结，温泉额外充能 3 秒
+# 半血触发：把玩家打到阈值以下，再检查触发器效果
 TestAPI.damage_unit("player", 300.0)
 print(TestAPI.has_status(&"State.Frozen", "enemy"))
 
-# 温泉再生来自灼烧：24 → 24，改成 30 → 30
-print(TestAPI.preview_wen_quan_regen(24.0))
-print(TestAPI.preview_wen_quan_regen(30.0))
+# 恐狼：每有一颗 Soul.types.Wolf +10 伤害；1 颗 = 40，2 颗 = 50
+TestAPI.clear_container("cell_2")
+TestAPI.equip_soul(&"kong_lang_soul", "ARMSSOUL")
+print(TestAPI.get_soul_damage_scaling(&"kong_lang_soul"))
+TestAPI.equip_soul(&"kong_lang_soul", "ARMSSOUL")
+print(TestAPI.get_soul_damage_scaling(&"kong_lang_soul"))
 
-# 冷冻间：同栏再放一颗相邻的地产魂灵（温泉），模拟被使用时应给冷冻间 +1 秒
-TestAPI.equip_soul(&"leng_dong_jian_soul")
-GBIS.add_item("cell_0", CollectionDB.get_soul(&"wen_quan_soul"))
+# 恐狼：直接充能触发主动技能
 TestAPI.start_battle(&"snake_data")
-TestAPI.charge_soul("冷冻间", 5.0)
+TestAPI.charge_soul("恐狼", 5.0)
 await get_tree().physics_frame
-print(TestAPI.get_battle_state()["player"]["regen"])
+print(TestAPI.get_battle_state()["player_souls"])
 
-TestAPI.simulate_soul_used("温泉")
+# 模拟“魂灵被使用”事件；当前没有魂灵配置 SoulUsed 触发器，接口保留
+TestAPI.simulate_soul_used("恐狼")
 print(TestAPI.get_battle_state()["player_souls"])
 ```
 
@@ -122,7 +124,7 @@ print(TestAPI.get_battle_state()["player_souls"])
 }
 ```
 
-`player_souls[].freeze` 是魂灵级冻结剩余秒数；`frozen` 是 `is_frozen()`（自身冻结或单位冻结）。单位的 `frozen` 只表示 `State.Frozen` 标签。`charge_seconds` 用于精确验证充能触发（例如相邻地产魂灵被使用后 +1 秒）。`active` 是技能是否还在执行中（投射物发射后不再占用它）；`activation_lock` 是 20 刻激活锁的剩余秒数，用于验证 1 秒最多 6 次的限制。
+`player_souls[].freeze` 是魂灵级冻结剩余秒数；`frozen` 是 `is_frozen()`（自身冻结或单位冻结）。单位的 `frozen` 只表示 `State.Frozen` 标签。`charge_seconds` 用于精确验证充能触发（例如相邻魂灵被使用后 +1 秒）。`active` 是技能是否还在执行中（投射物发射后不再占用它）；`activation_lock` 是 20 刻激活锁的剩余秒数，用于验证 1 秒最多 6 次的限制。
 
 即时制下 `cell` 只是“当前压在地图哪一格”，真实位置看 `position`（像素）；`distance_to_player` 和 `in_attack_range` 用来验证“进范围才充能”。
 

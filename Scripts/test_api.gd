@@ -24,8 +24,6 @@ const REGEN_APPLY : GameplayEffect = preload("res://game/content/effects/regen_a
 const REGEN_TICK : GameplayEffect = preload("res://game/content/effects/regen_tick.tres")
 ## 测试用单位冻结效果
 const FREEZE_UNIT : GameplayEffect = preload("res://game/content/effects/freeze_unit.tres")
-## 温泉灼烧效果：用于预览再生 = 灼烧
-const WEN_QUAN_BURN_APPLY : GameplayEffect = preload("res://game/content/effects/wen_quan_burn_apply.tres")
 
 
 #region 背包 / 见闻
@@ -99,7 +97,7 @@ static func get_soul_ids() -> Array[StringName]:
 	return CollectionDB.get_soul_ids()
 
 
-## 魂灵类型（registry ID），例如 &"Soul.types.Property"
+## 魂灵类型（registry ID），例如 &"Soul.types.Wolf"
 static func get_soul_types(id : StringName) -> Array[StringName]:
 	var soul := CollectionDB.get_soul(id)
 	if soul == null:
@@ -127,6 +125,25 @@ static func get_soul_card_info(id : StringName) -> Dictionary:
 		"rows": soul.rows,
 		"label": soul.item_name,
 	}
+
+
+## 直接伤害的缩放配置：基础伤害、每颗匹配魂灵的加成、匹配类型
+static func get_soul_damage_scaling(id : StringName) -> Dictionary:
+	var soul := CollectionDB.get_soul(id)
+	if soul == null or soul.skill == null:
+		return {}
+	for effect in soul.skill.effects:
+		if effect == null:
+			continue
+		for execution in effect.executions:
+			if execution is SoulDamageExecution:
+				var damage := execution as SoulDamageExecution
+				return {
+					"base_damage": damage.base_damage,
+					"bonus_per_matching_soul": damage.bonus_per_matching_soul,
+					"matching_soul_types": damage.matching_soul_types.duplicate(),
+				}
+	return {}
 
 
 ## 魂灵 tooltip 的完整纯文本（第一行是标题，后面是正文）；未知魂灵返回空字符串
@@ -212,24 +229,6 @@ static func apply_regen(target : String = "player") -> bool:
 	return true
 
 
-## 按给定灼烧值预览温泉再生；不改运行时资源，用于验证“再生 = 灼烧”的派生关系
-static func preview_wen_quan_regen(burn_amount : float = 24.0) -> float:
-	var burn_effect := WEN_QUAN_BURN_APPLY.duplicate(true) as GameplayEffect
-	var burn_status : StatusApplyExecution = null
-	for execution in burn_effect.executions:
-		if execution is StatusApplyExecution and (execution as StatusApplyExecution).attribute_name == "burn":
-			burn_status = execution as StatusApplyExecution
-			break
-	if burn_status == null:
-		return 0.0
-	burn_status.base_amount = burn_amount
-	var regen_execution := RegenFromBurnExecution.new()
-	regen_execution.burn_effect = burn_effect
-	var spec := GameplayEffectSpec.new(burn_effect, null)
-	var result := regen_execution.execute(spec, null)
-	return float(result.get("regen", 0.0))
-
-
 ## 对战斗中的单位施加冻结（用于测试冻结 Cue 与状态标签）
 static func apply_freeze(target : String = "player", seconds : float = 3.0) -> bool:
 	var unit := _find_unit(target)
@@ -240,7 +239,7 @@ static func apply_freeze(target : String = "player", seconds : float = 3.0) -> b
 	var spec := GameplayEffectSpec.new(FREEZE_UNIT, context)
 	spec.duration = seconds
 	unit.asc.apply_effect_spec(spec)
-	# 真实冻结会广播 FREEZE_APPLIED；测试接口保持一致，便于验证温泉/冷冻间
+	# 真实冻结会广播 FREEZE_APPLIED；测试接口保持一致，便于验证冻结触发器
 	unit.notify_freeze_applied(unit)
 	return true
 

@@ -15,11 +15,7 @@
 		{
 			"uuid": "13cb6bda-ffb7-4ee9-879a-a4735482d3aa",
 			"title": "Todo",
-			"tasks": [
-				"90ca3725-b67b-41d3-b2dd-2c2245c32624",
-				"064ed8d0-e776-4472-971d-12b4bbd56c8b",
-				"e6f9c7dd-e7e3-40a3-9944-d17909c46080"
-			]
+			"tasks": []
 		},
 		{
 			"uuid": "3d8e3d00-a609-41c7-a684-c1dd2b26f8c7",
@@ -29,7 +25,8 @@
 				"051f7adb-9b63-49c1-8e26-09f7615a5cc7",
 				"ca003893-c03d-462d-8530-fb6553c37cd8",
 				"2d44f95f-5926-4afb-9f2c-20a64393c01e",
-				"29fa349a-dcab-4ea5-8a8c-634a10391763"
+				"29fa349a-dcab-4ea5-8a8c-634a10391763",
+				"064ed8d0-e776-4472-971d-12b4bbd56c8b"
 			]
 		},
 		{
@@ -80,20 +77,13 @@
 		{
 			"uuid": "2d44f95f-5926-4afb-9f2c-20a64393c01e",
 			"title": "简单特效",
-			"description": "",
+			"description": "做了一部分",
 			"category": "abd1801b-a241-4c02-8dd1-4e804d1e3bd5",
 			"steps": []
 		},
 		{
 			"uuid": "29fa349a-dcab-4ea5-8a8c-634a10391763",
 			"title": "怪物掉落",
-			"description": "",
-			"category": "abd1801b-a241-4c02-8dd1-4e804d1e3bd5",
-			"steps": []
-		},
-		{
-			"uuid": "90ca3725-b67b-41d3-b2dd-2c2245c32624",
-			"title": "写 soul 的 skill，我在 excel 里写技能，由 skill 完成",
 			"description": "",
 			"category": "abd1801b-a241-4c02-8dd1-4e804d1e3bd5",
 			"steps": []
@@ -134,10 +124,10 @@
 			"steps": []
 		},
 		{
-			"uuid": "e6f9c7dd-e7e3-40a3-9944-d17909c46080",
-			"title": "见闻",
-			"description": "",
-			"category": "dc17d4ed-a172-4464-9b98-2aeab52f9cdf",
+			"uuid": "886753f0-6f90-4b4a-8c6f-c9e2042d9ea2",
+			"title": "Skill Description",
+			"description": "删除",
+			"category": "abd1801b-a241-4c02-8dd1-4e804d1e3bd5",
 			"steps": []
 		}
 	],

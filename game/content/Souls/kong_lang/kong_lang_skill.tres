@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="SkillDefinition" format=3 uid="uid://dgadyrmn6ur71"]
+
+[ext_resource type="Script" uid="uid://b7ovihaaijli7" path="res://addons/GodotGAS/effects/gameplay_execution_calculation.gd" id="1_exec_base"]
+[ext_resource type="Script" uid="uid://dxtfmpqjh3pta" path="res://game/content/soul_damage_execution.gd" id="2_exec"]
+[ext_resource type="Script" uid="uid://c81papidngxvg" path="res://addons/GodotGAS/effects/gameplay_effect.gd" id="3_effect"]
+[ext_resource type="Script" uid="uid://ccvfqmqr8q1pm" path="res://addons/GodotGAS/gameplay_tag/gameplay_tag_query.gd" id="4_query"]
+[ext_resource type="Script" uid="uid://ktr72cmavmyy" path="res://game/content/skill_definition.gd" id="5_skill"]
+[ext_resource type="Script" uid="uid://cf2mx3u4jfquk" path="res://game/content/target_rule.gd" id="6_target"]
+
+[sub_resource type="Resource" id="Resource_query_not_dead"]
+script = ExtResource("4_query")
+ignore_tags = Array[StringName]([&"State.Dead"])
+
+[sub_resource type="Resource" id="Resource_execution_damage"]
+script = ExtResource("2_exec")
+base_damage = 30.0
+bonus_per_matching_soul = 10.0
+matching_soul_types = Array[StringName]([&"Soul.types.Wolf"])
+
+[sub_resource type="Resource" id="Resource_effect_damage"]
+script = ExtResource("3_effect")
+application_query = SubResource("Resource_query_not_dead")
+executions = Array[ExtResource("1_exec_base")]([SubResource("Resource_execution_damage")])
+
+[sub_resource type="Resource" id="Resource_target_rule"]
+script = ExtResource("6_target")
+mode = 3
+max_range = 2
+
+[resource]
+script = ExtResource("5_skill")
+id = "konglang"
+description = "冷却 6 秒，对 2 格内最近的怪物造成 30 伤害；每有一个狼，此魂灵 +10 点伤害。"
+effects = Array[ExtResource("3_effect")]([SubResource("Resource_effect_damage")])
+cooldown_seconds = 6.0
+target_rule = SubResource("Resource_target_rule")
+metadata/_custom_type_script = "uid://ktr72cmavmyy"

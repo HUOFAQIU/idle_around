@@ -3,32 +3,19 @@ extends BaseWindow
 ## 见闻：已遇见的怪物与魂灵。
 ##
 ## 全量条目来自 CollectionDB（底层是两份 YARD registry）；
-## 未遇见的条目也占位显示，只是不暴露名字、图标和详情。
+## 未遇见的条目也占位显示，只是不暴露名字和图标。
+## 魂灵页的已遇见条目：悬停显示 tooltip，右键放入仓库。
 
 const LOCKED_NAME: String = "？？？"
-const PART_NAMES := {
-	"ANY": "不限部位",
-	"HEADSOUL": "头部",
-	"TORSOSOUL": "身体",
-	"ARMSSOUL": "手部",
-	"LEGSSOUL": "腿部",
-}
-## 仓库窗口展示的容器；「放入仓库」直接往这里塞
+## 仓库窗口展示的容器；右键魂灵直接往这里塞
 const WAREHOUSE_CONTAINER: String = "inventory_0"
 
 @onready var monster_button: Button = $Root/VBox/KindRow/MonsterButton
 @onready var soul_button: Button = $Root/VBox/KindRow/SoulButton
 @onready var entry_grid: GridContainer = $Root/VBox/Body/Scroll/EntryGrid
-@onready var detail_icon: TextureRect = $Root/VBox/Body/DetailPanel/DetailMargin/DetailBox/DetailIcon
-@onready var detail_name: Label = $Root/VBox/Body/DetailPanel/DetailMargin/DetailBox/DetailName
-@onready var detail_meta: Label = $Root/VBox/Body/DetailPanel/DetailMargin/DetailBox/DetailMeta
-@onready var detail_text: RichTextLabel = $Root/VBox/Body/DetailPanel/DetailMargin/DetailBox/DetailText
-@onready var add_to_inventory_button: Button = $Root/VBox/Body/DetailPanel/DetailMargin/DetailBox/AddToInventoryButton
 
 ## 当前分类：CollectionDB.Kind
 var _kind: int = CollectionDB.Kind.MONSTER
-## 当前详情条目；刷新时如果它还在，就保持选中
-var _selected_id: StringName = &""
 
 
 func _ready() -> void:
@@ -37,7 +24,7 @@ func _ready() -> void:
 	monster_button.pressed.connect(_select_kind.bind(CollectionDB.Kind.MONSTER))
 	soul_button.pressed.connect(_select_kind.bind(CollectionDB.Kind.SOUL))
 	CollectionDB.entry_unlocked.connect(_on_entry_unlocked)
-	add_to_inventory_button.pressed.connect(_on_add_to_inventory_pressed)
+	visibility_changed.connect(_on_visibility_changed)
 	_select_kind(CollectionDB.Kind.MONSTER)
 
 
@@ -46,30 +33,17 @@ func _select_kind(kind: int) -> void:
 	_kind = kind
 	monster_button.button_pressed = kind == CollectionDB.Kind.MONSTER
 	soul_button.button_pressed = kind == CollectionDB.Kind.SOUL
-	_selected_id = &""
 	_refresh()
 
 
 func _refresh() -> void:
+	_hide_tooltip()
 	for child in entry_grid.get_children():
 		entry_grid.remove_child(child)
 		child.queue_free()
 
-	var ids := _sorted_ids()
-	for id in ids:
+	for id in _sorted_ids():
 		entry_grid.add_child(_make_entry_cell(id))
-
-	if ids.is_empty():
-		_show_empty_detail()
-		return
-	if not ids.has(_selected_id):
-		# 默认选第一颗已遇见的；一颗都没有就选第一个占位
-		_selected_id = ids[0]
-		for id in ids:
-			if CollectionDB.is_seen(_kind, id):
-				_selected_id = id
-				break
-	_show_detail(_selected_id)
 
 
 func _sorted_ids() -> Array[StringName]:
@@ -110,7 +84,10 @@ func _make_entry_cell(id: StringName) -> Control:
 	button.expand_icon = true
 	if not seen:
 		button.modulate = Color(0.3, 0.3, 0.3, 1.0)
-	button.pressed.connect(_show_detail.bind(id))
+	elif _kind == CollectionDB.Kind.SOUL:
+		button.mouse_entered.connect(_show_soul_tooltip.bind(id))
+		button.mouse_exited.connect(_hide_tooltip)
+		button.gui_input.connect(_on_entry_gui_input.bind(id))
 	cell.add_child(button)
 
 	var label := Label.new()
@@ -122,100 +99,36 @@ func _make_entry_cell(id: StringName) -> Control:
 	return cell
 
 
-func _show_detail(id: StringName) -> void:
-	_selected_id = id
-	if not CollectionDB.is_seen(_kind, id):
-		_show_locked_detail()
+## 魂灵页已遇见条目：悬停显示与仓库一致的 tooltip
+func _show_soul_tooltip(id: StringName) -> void:
+	var tip := TooltipWindow.instance
+	if _kind != CollectionDB.Kind.SOUL or not is_instance_valid(tip):
 		return
-	if _kind == CollectionDB.Kind.MONSTER:
-		_show_monster_detail(id)
-	else:
-		_show_soul_detail(id)
-
-
-func _show_monster_detail(id: StringName) -> void:
-	add_to_inventory_button.visible = false
-	var monster := CollectionDB.get_monster(id)
-	if monster == null:
-		return
-	detail_icon.texture = monster.icon
-	detail_icon.visible = true
-	detail_name.text = monster.display_name
-	detail_meta.text = "生命上限：%.0f" % monster.max_health
-
-	var lines := PackedStringArray()
-	lines.append(monster.description if not monster.description.is_empty() else "暂无记载。")
-	if not monster.soul_entries.is_empty():
-		lines.append("\n[b]携带魂灵（可掉落）[/b]")
-		for entry in monster.soul_entries:
-			if entry == null or entry.soul == null:
-				continue
-			var part := entry.part()
-			var part_name: String = PART_NAMES.get(part, part)
-			lines.append("· %s：%s（%d%%）"
-				% [part_name, entry.soul.item_name, roundi(entry.drop_chance * 100.0)])
-	detail_text.text = "\n".join(lines)
-
-
-func _show_soul_detail(id: StringName) -> void:
 	var soul := CollectionDB.get_soul(id)
-	add_to_inventory_button.visible = soul != null
+	if soul == null or not CollectionDB.is_seen(_kind, id):
+		return
+	tip.show_tip(self, TooltipWindow.Layer.ITEM, soul.item_name, SoulTooltip.build(soul, true))
+
+
+func _hide_tooltip() -> void:
+	if is_instance_valid(TooltipWindow.instance):
+		TooltipWindow.instance.hide_tip(self)
+
+
+## 右键已遇见魂灵：放入仓库；怪物条目和未遇见条目不响应
+func _on_entry_gui_input(event: InputEvent, id: StringName) -> void:
+	if not (event is InputEventMouseButton):
+		return
+	var mouse_event := event as InputEventMouseButton
+	if mouse_event.button_index != MOUSE_BUTTON_RIGHT or not mouse_event.pressed:
+		return
+	if _kind != CollectionDB.Kind.SOUL or not CollectionDB.is_seen(_kind, id):
+		return
+	var soul := CollectionDB.get_soul(id)
 	if soul == null:
 		return
-	detail_icon.texture = soul.icon
-	detail_icon.visible = true
-	detail_name.text = soul.item_name
-	detail_meta.text = PART_NAMES.get(soul.equip_part, soul.equip_part)
-
-	var lines := PackedStringArray()
-	if not soul.description.is_empty():
-		lines.append(soul.description)
-
-	var passive := soul as PassiveSoulData
-	if passive != null:
-		lines.append("\n[b]被动魂灵[/b]")
-		if not passive.passive_effects.is_empty():
-			lines.append("· 属性效果 ×%d" % passive.passive_effects.size())
-		if not passive.triggers.is_empty():
-			lines.append("· 触发效果 ×%d" % passive.triggers.size())
-		if soul.description.is_empty() and passive.passive_effects.is_empty() and passive.triggers.is_empty():
-			lines.append("暂无记载。")
-	elif soul.skill != null:
-		lines.append("\n[b]主动技能[/b]")
-		if not soul.skill.description.is_empty():
-			lines.append(soul.skill.description)
-		elif soul.description.is_empty():
-			lines.append("暂无记载。")
-		var cooldown_seconds := soul.skill.cooldown_seconds
-		if cooldown_seconds > 0.0:
-			lines.append("冷却：%.1f 秒" % cooldown_seconds)
-	else:
-		lines.append("\n[b]未配置技能[/b]")
-		if soul.description.is_empty():
-			lines.append("暂无记载。")
-	detail_text.text = "\n".join(lines)
-
-
-func _show_locked_detail() -> void:
-	add_to_inventory_button.visible = false
-	detail_icon.texture = null
-	detail_icon.visible = false
-	detail_name.text = LOCKED_NAME
-	detail_meta.text = "尚未遇见"
-	detail_text.text = (
-		"在战斗中遇见后解锁。"
-		if _kind == CollectionDB.Kind.MONSTER
-		else "获得这颗魂灵后解锁。"
-	)
-
-
-func _show_empty_detail() -> void:
-	add_to_inventory_button.visible = false
-	detail_icon.texture = null
-	detail_icon.visible = false
-	detail_name.text = "暂无条目"
-	detail_meta.text = ""
-	detail_text.text = "图鉴里还没有可显示的条目。"
+	if not GBIS.add_item(WAREHOUSE_CONTAINER, soul):
+		push_warning("见闻：魂灵放入仓库失败「%s」" % soul.item_name)
 
 
 func _on_entry_unlocked(kind: int, _id: StringName) -> void:
@@ -223,9 +136,7 @@ func _on_entry_unlocked(kind: int, _id: StringName) -> void:
 		_refresh()
 
 
-func _on_add_to_inventory_pressed() -> void:
-	var soul := CollectionDB.get_soul(_selected_id)
-	if soul == null:
-		return
-	if not GBIS.add_item(WAREHOUSE_CONTAINER, soul):
-		push_warning("见闻：魂灵放入仓库失败「%s」" % soul.item_name)
+## 关窗时收起 tooltip：tooltip 是独立窗口，不会跟着见闻窗口一起隐藏
+func _on_visibility_changed() -> void:
+	if not visible:
+		_hide_tooltip()

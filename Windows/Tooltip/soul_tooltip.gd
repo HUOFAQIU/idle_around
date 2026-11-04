@@ -3,11 +3,15 @@ extends RefCounted
 ## 魂灵 tooltip 正文格式化器。
 ##
 ## 标题（魂灵名）由 TooltipWindow 用大字号单独显示，这里只生成正文：
-## 攻击距离 / 暴击率 → SoulData.tooltip_blocks 的每个段落，段落之间固定一条分隔线。
+## 类型行（可选）→ 暴击率 / 攻击距离 → SoulData.tooltip_blocks 的每个段落 → 部位行（可选）。
+## 段落之间和部位行之前固定一条分隔线；分隔线用暗色。
+## ( X 秒 ) 冷却行放大到 20 号（正文 16、标题 24）。
 ## {cooldown} 会替换成技能冷却；没有段落时正文为「无」。
 ## colored = true 时按 CombatColors 全局色板给状态词上色，返回 BBCode。
 
-const SEPARATOR : String = "-----"
+const SEPARATOR : String = "==================================="
+const SEPARATOR_COLOR : String = "#4a4f58"
+const COOLDOWN_FONT_SIZE : int = 20
 const EMPTY_TEXT : String = "无"
 const COOLDOWN_PLACEHOLDER : String = "{cooldown}"
 
@@ -25,13 +29,21 @@ static func build(soul: SoulData, colored: bool = false) -> String:
 		blocks.append(EMPTY_TEXT)
 
 	var lines := PackedStringArray()
-	lines.append("攻击距离，%d" % _attack_range(skill))
+	var type_line := _type_line(soul)
+	if not type_line.is_empty():
+		lines.append(type_line)
+		lines.append("")
 	lines.append("暴击率，%s %%" % _format_number(_crit_chance(skill) * 100.0))
+	lines.append("攻击距离，%d" % _attack_range(skill))
 	lines.append(SEPARATOR)
 	for i in blocks.size():
 		if i > 0:
 			lines.append(SEPARATOR)
 		lines.append(blocks[i])
+	var part_line := _part_line(soul)
+	if not part_line.is_empty():
+		lines.append(SEPARATOR)
+		lines.append(part_line)
 	var body := "\n".join(lines)
 	return _colorize(body) if colored else body
 
@@ -45,6 +57,21 @@ static func _collect_blocks(soul: SoulData, skill: SkillDefinition) -> PackedStr
 			continue
 		blocks.append(block.replace(COOLDOWN_PLACEHOLDER, cooldown))
 	return blocks
+
+
+## 类型行：按 SoulData.types 的顺序显示；中文名统一由 SoulText.type_name 提供
+static func _type_line(soul: SoulData) -> String:
+	var labels := PackedStringArray()
+	for soul_type in soul.types:
+		labels.append("[ %s ]" % SoulText.type_name(soul_type))
+	return "".join(labels)
+
+
+## 部位行：ANY 不显示，避免每颗魂灵都多一行「不限部位」
+static func _part_line(soul: SoulData) -> String:
+	if soul.equip_part.is_empty() or soul.equip_part == "ANY":
+		return ""
+	return "{ %s }" % SoulText.part_name(soul.equip_part)
 
 
 ## 攻击距离取目标规则的格数；非 TargetRule（如 SoulTargetRule）按 0 显示
@@ -73,14 +100,42 @@ static func _format_number(value: float) -> String:
 	return text
 
 
-## 给正文里的状态词套上战斗日志的颜色。
-## 先转义方括号，避免 [ 4 ] 被 RichTextLabel 当成 BBCode 标签；
-## 用占位符分两步替换，防止 [lb] 自己的方括号被第二轮再次替换。
+## 给正文上色：分隔线暗色、冷却行放大、暴击率整行暴击色，其余行只给状态词上色。
 static func _colorize(text: String) -> String:
+	var lines := text.split("\n")
+	var result := PackedStringArray()
+	for line in lines:
+		var escaped := _escape_bbcode(line)
+		if line == SEPARATOR:
+			result.append("[color=%s]%s[/color]" % [SEPARATOR_COLOR, escaped])
+		elif _is_cooldown_line(line):
+			result.append(
+				"[font_size=%d]%s[/font_size]"
+				% [COOLDOWN_FONT_SIZE, _colorize_keywords(escaped)]
+			)
+		elif line.begins_with("暴击率"):
+			result.append("[color=%s]%s[/color]" % [CombatColors.CRIT, escaped])
+		else:
+			result.append(_colorize_keywords(escaped))
+	return "\n".join(result)
+
+
+## 冷却行形如 ( 6 秒 )；只对这种行放大字号
+static func _is_cooldown_line(line: String) -> bool:
+	return line.begins_with("(") and line.ends_with("秒 )")
+
+
+## 转义方括号，避免 [ 狼 ] 被 RichTextLabel 当成 BBCode 标签；
+## 用占位符分两步替换，防止 [lb] 自己的方括号被第二轮再次替换。
+static func _escape_bbcode(text: String) -> String:
 	const OPEN_PLACEHOLDER : String = "\u0001"
 	const CLOSE_PLACEHOLDER : String = "\u0002"
 	var escaped := text.replace("[", OPEN_PLACEHOLDER).replace("]", CLOSE_PLACEHOLDER)
-	escaped = escaped.replace(OPEN_PLACEHOLDER, "[lb]").replace(CLOSE_PLACEHOLDER, "[rb]")
+	return escaped.replace(OPEN_PLACEHOLDER, "[lb]").replace(CLOSE_PLACEHOLDER, "[rb]")
+
+
+## 给已转义的一行套上状态词颜色
+static func _colorize_keywords(escaped: String) -> String:
 	var parts := PackedStringArray()
 	var cursor := 0
 	for found in _get_keyword_regex().search_all(escaped):

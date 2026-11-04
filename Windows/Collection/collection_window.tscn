@@ -52,39 +52,13 @@ layout_mode = 2
 size_flags_horizontal = 3
 columns = 3
 
-[node name="DetailPanel" type="PanelContainer" parent="Root/VBox/Body" unique_id=1653633611]
+[node name="FilterPanel" type="VBoxContainer" parent="Root/VBox/Body"]
 custom_minimum_size = Vector2(240, 0)
 layout_mode = 2
+mouse_filter = 2
 
-[node name="DetailMargin" type="MarginContainer" parent="Root/VBox/Body/DetailPanel" unique_id=2123010428]
+[node name="HintLabel" type="Label" parent="Root/VBox"]
 layout_mode = 2
-theme_override_constants/margin_left = 8
-theme_override_constants/margin_top = 8
-theme_override_constants/margin_right = 8
-theme_override_constants/margin_bottom = 8
-
-[node name="DetailBox" type="VBoxContainer" parent="Root/VBox/Body/DetailPanel/DetailMargin" unique_id=1561398270]
-layout_mode = 2
-
-[node name="DetailIcon" type="TextureRect" parent="Root/VBox/Body/DetailPanel/DetailMargin/DetailBox" unique_id=970312396]
-custom_minimum_size = Vector2(160, 160)
-layout_mode = 2
-expand_mode = 1
-stretch_mode = 5
-
-[node name="DetailName" type="Label" parent="Root/VBox/Body/DetailPanel/DetailMargin/DetailBox" unique_id=1817433802]
-layout_mode = 2
-theme_override_font_sizes/font_size = 20
-
-[node name="DetailMeta" type="Label" parent="Root/VBox/Body/DetailPanel/DetailMargin/DetailBox" unique_id=732670177]
-layout_mode = 2
-
-[node name="DetailText" type="RichTextLabel" parent="Root/VBox/Body/DetailPanel/DetailMargin/DetailBox" unique_id=1169642132]
-layout_mode = 2
-size_flags_vertical = 3
-bbcode_enabled = true
-
-[node name="AddToInventoryButton" type="Button" parent="Root/VBox/Body/DetailPanel/DetailMargin/DetailBox" unique_id=405597429]
-visible = false
-layout_mode = 2
-text = "放入仓库"
+theme_override_colors/font_color = Color(0.65, 0.67, 0.7, 1)
+theme_override_font_sizes/font_size = 13
+text = "右键已遇见魂灵：放入仓库"

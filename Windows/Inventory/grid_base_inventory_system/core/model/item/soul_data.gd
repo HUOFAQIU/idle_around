@@ -12,14 +12,11 @@ class_name SoulData
 ## 魂灵触发规则；主动魂灵和被动魂灵都可以配
 @export var triggers: Array[PassiveTrigger] = []
 
-## 图鉴文案（本项目扩展）；主动魂灵留空时，图鉴回退到 skill.description
-@export_multiline var description: String = ""
-
-## tooltip 正文段落；格式化器用 ----- 连接，{cooldown} 会替换成技能冷却。
+## tooltip 正文段落；格式化器用分隔线连接，{cooldown} 会替换成技能冷却。
 ## 留空 = 不提供正文，tooltip 显示「无」。
 @export var tooltip_blocks: Array[String] = []
 
-## 魂灵类型：语义分类（例：Soul.types.Property），供触发规则筛选
+## 魂灵类型：语义分类（例：Soul.types.Wolf），供触发规则筛选；显示名见 SoulText
 @export var types: Array[StringName] = []
 
 ## 魂灵标签：见闻窗口筛选用（例：Soul.tags.Small、Soul.tags.Burn）

@@ -82,7 +82,7 @@ func _activate_ability() -> bool:
 	# 空放也算“使用”：先广播，让 OTHER_SOUL_USED 触发器有机会充能别的魂灵
 	_notify_soul_used(trace)
 
-	# 只对施法者自己结算的效果（例如温泉的再生），不管有没有选中敌人都会生效
+	# 只对施法者自己结算的效果（例如自身的再生），不管有没有选中敌人都会生效
 	_apply_self_effects(battle, trace)
 
 	# 魂灵目标技能（加速/减速/冻结/充能）：目标不是战斗单位
@@ -256,7 +256,7 @@ func _on_projectiles_finished(result: Variant, target_count: int, trace: CombatT
 
 
 ## 对施法者自己结算 self_effects；每次释放独立掷一次暴击。
-## 即使目标规则空放，也照常生效（温泉没有怪物时也会提高再生）。
+## 即使目标规则空放，也照常生效（没有怪物时也会提高再生）。
 func _apply_self_effects(battle: BattleManager, trace: CombatTrace) -> void:
 	if skill == null or skill.self_effects.is_empty():
 		return

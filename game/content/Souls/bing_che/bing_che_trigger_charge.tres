@@ -1,9 +1,0 @@
-[gd_resource type="Resource" script_class="PassiveTrigger" format=3 uid="uid://5x1hq5d1j048"]
-
-[ext_resource type="Script" uid="uid://bgbp4lpfyqub" path="res://game/content/passive_trigger.gd" id="1_trigger"]
-
-[resource]
-script = ExtResource("1_trigger")
-event_tag = &"Event.Combat.SoulUsed"
-target_scope = 1
-charge_source_seconds = 1.0

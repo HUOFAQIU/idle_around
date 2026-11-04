@@ -1,6 +1,6 @@
 # AI 测试接口 TestAPI
 
-> 类型：指南 | 状态：有效 | 核对：2026-11-04
+> 类型：指南 | 状态：有效 | 核对：2026-11-05
 > 何时读：写自动化测试/探针、构造战斗或背包场景、验证新功能
 > 关键词：测试 TestAPI 探针 自动化 战斗快照 魂灵 仓库 见闻 冷却 冻结 触发器 类型 标签 充能 卡面 tooltip 伤害缩放 颜色 色板
 > 代码：`Scripts/test_api.gd`、`Windows/Battle/battle_window.gd`、`Scripts/collection_db.gd`
@@ -22,7 +22,7 @@ print(state)
 TestAPI.stop_battle()
 ```
 
-魂灵/怪物 ID 用 `TestAPI.get_soul_ids()`、`TestAPI.get_monster_ids()` 查，必须是 registry 里的字符串 ID。旧存档里带 `_2` 后缀的魂灵 ID 由 `CollectionDB` 自动映射到当前 canonical ID。
+魂灵/怪物 ID 用 `TestAPI.get_soul_ids()`、`TestAPI.get_monster_ids()` 查，必须是 registry 里的字符串 ID（怪物如 `snake_data`、`fu_data`）。旧存档里带 `_2` 后缀的魂灵 ID 由 `CollectionDB` 自动映射到当前 canonical ID。
 
 ## 背包 / 见闻
 
@@ -67,7 +67,7 @@ TestAPI.stop_battle()
 | `charge_soul(soul_name, seconds, target := "player") -> bool` | 给已装备魂灵直接充能，用于快速触发主动技能；不经过触发器队列 |
 | `damage_unit(target := "player", amount := 1.0) -> bool` | 对单位造成伤害，用于把生命值打到阈值以下（测半血触发） |
 | `has_status(tag, target := "player") -> bool` | 单位是否拥有某个状态标签 |
-| `get_battle_state() -> Dictionary` | 战斗快照 |
+| `get_battle_state() -> Dictionary` | 战斗快照；含刷怪进度 `normal_kills` / `pending_rare_spawns` |
 | `get_enemy_count() -> int` | 当前存活敌人数 |
 | `get_nearest_enemy_distance() -> float` | 最近敌人到角色的像素距离；没有敌人返回 -1 |
 | `get_enemies_in_attack_range() -> int` | 当前在角色攻击范围内的敌人数（即时制下只有这些怪才充能） |
@@ -126,7 +126,9 @@ print(TestAPI.get_battle_state()["player_souls"])
   "enemies": [{"name", "hp", "max_hp", "shield", "regen", "poison", "dead", "frozen",
                "cell", "position", "distance_to_player", "in_attack_range", "souls"}],
   "player_souls": [{"name", "cooldown", "charge_ratio", "charge_seconds", "haste", "slow",
-                    "freeze", "frozen", "active", "activation_lock"}]
+                    "freeze", "frozen", "active", "activation_lock"}],
+  "normal_kills": 3,
+  "pending_rare_spawns": 0
 }
 ```
 

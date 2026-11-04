@@ -4,6 +4,10 @@ extends BaseWindow
 ## 角色倒下后多久重开一整场
 const REVIVE_DELAY : float = 3.0
 
+## 特殊怪：不参与常规随机刷怪，每击杀 RARE_SPAWN_EVERY_KILLS 只常规怪后刷一只
+const RARE_MONSTER_ID : StringName = &"fu_data"
+const RARE_SPAWN_EVERY_KILLS : int = 10
+
 ## 玩家单位：配置好的场景，开战时直接实例化
 const PLAYER_SCENE := preload("res://game/content/Player/player.tscn")
 
@@ -35,6 +39,10 @@ var _battle : BattleManager
 var _run_id : int = 0
 ## 测试接口：下一次刷怪强制使用这个 ID，刷出后清空
 var _test_monster_id : StringName = &""
+## 常规怪击杀计数；每满 RARE_SPAWN_EVERY_KILLS，排队一只蝮
+var _normal_kills : int = 0
+## 已排队、等下一拍刷出的蝮数量
+var _pending_rare_spawns : int = 0
 ## FPS 文本刷新计数
 var _fps_frames : int = 0
 ## 这一场参战的魂灵（开打时从装备格里抓的，用来推扫描线）
@@ -152,6 +160,8 @@ func _end_battle() -> void:
 
 func _clear_battle() -> void:
 	CombatTelemetry.end_run("clear")
+	_normal_kills = 0
+	_pending_rare_spawns = 0
 	player_health_bar.visible = false
 	player_regen_bar.visible = false
 	player_shield_bar.visible = false
@@ -208,14 +218,9 @@ func _spawn_player(slots: Array[SoulSlot]) -> BattleUnit:
 	return unit
 
 
-# 怪物：数据从见闻 registry 里随机挑，场景只负责战斗表现
+# 怪物：场景只负责战斗表现，选哪只怪由刷怪规则决定
 func _spawn_enemy(cell: Vector2i) -> void:
-	var monster : MonsterData = null
-	if _test_monster_id.is_empty():
-		monster = CollectionDB.pick_random_monster()
-	else:
-		monster = CollectionDB.get_monster(_test_monster_id)
-		_test_monster_id = &""
+	var monster := _pick_monster_for_spawn()
 	if monster == null:
 		return
 	var unit := monster.battle_scene.instantiate() as BattleUnit
@@ -232,7 +237,35 @@ func _spawn_enemy(cell: Vector2i) -> void:
 	# 同一格刷出来的怪加一点随机偏移，避免完全重叠；碰撞体负责其余的推开
 	unit.position += Vector2.from_angle(_battle.rng.randf() * TAU) * _battle.rng.randf_range(0.0, 12.0)
 	_battle.add_unit(unit)
+	unit.died.connect(_on_enemy_died.bind(monster))
 	CollectionDB.mark_monster_seen(monster)
+
+
+## 选怪优先级：测试强制 ID > 已排队的蝮 > 常规随机池
+func _pick_monster_for_spawn() -> MonsterData:
+	if not _test_monster_id.is_empty():
+		var forced := CollectionDB.get_monster(_test_monster_id)
+		_test_monster_id = &""
+		return forced
+	if _pending_rare_spawns > 0:
+		var rare := CollectionDB.get_monster(RARE_MONSTER_ID)
+		if rare != null:
+			_pending_rare_spawns -= 1
+			return rare
+	return CollectionDB.pick_random_monster()
+
+
+## 常规怪死亡计数；每满阈值，把下一只刷怪换成蝮
+func _on_enemy_died(_unit: BattleUnit, monster: MonsterData) -> void:
+	if _battle == null or not _battle.is_running:
+		return
+	if monster == null or monster.spawn_weight <= 0.0:
+		return
+	_normal_kills += 1
+	if _normal_kills < RARE_SPAWN_EVERY_KILLS:
+		return
+	_normal_kills -= RARE_SPAWN_EVERY_KILLS
+	_pending_rare_spawns += 1
 
 
 ## 装备着的魂灵：魂灵窗口里那四个格子，每个其实是一个只收 SOUL 的小背包。
@@ -418,6 +451,8 @@ func get_test_state() -> Dictionary:
 		"player": {},
 		"enemies": [],
 		"player_souls": [],
+		"normal_kills": _normal_kills,
+		"pending_rare_spawns": _pending_rare_spawns,
 	}
 	if _battle == null:
 		return state

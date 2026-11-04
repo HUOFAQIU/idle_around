@@ -13,6 +13,8 @@ class_name MonsterData extends Resource
 
 ## 血量上限（战斗时写入 ASC）
 @export var max_health: float = 100.0
+## 常规刷怪权重；0 表示不参与常规随机刷怪，只能由特殊规则或测试刷出
+@export_range(0.0, 100.0, 0.1) var spawn_weight: float = 1.0
 ## 携带的魂灵与各自的掉落几率；部位由魂灵自身的 equip_part 决定
 @export var soul_entries: Array[MonsterSoulEntry] = []
 ## 战斗时实例化的场景

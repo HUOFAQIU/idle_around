@@ -88,15 +88,24 @@ func get_seen_ids(kind: int) -> Array[StringName]:
 	return ids
 
 
-## 随机挑一只配了战斗场景的怪物；刷怪用它
+## 从常规刷怪池里按 spawn_weight 随机挑一只；权重 0 的怪只走特殊规则
 func pick_random_monster() -> MonsterData:
 	var candidates: Array[MonsterData] = []
+	var total_weight: float = 0.0
 	for monster in _monsters.values():
-		if monster != null and monster.battle_scene != null:
-			candidates.append(monster)
+		if monster == null or monster.battle_scene == null or monster.spawn_weight <= 0.0:
+			continue
+		candidates.append(monster)
+		total_weight += monster.spawn_weight
 	if candidates.is_empty():
 		return null
-	return candidates.pick_random()
+
+	var roll := randf() * total_weight
+	for monster in candidates:
+		roll -= monster.spawn_weight
+		if roll <= 0.0:
+			return monster
+	return candidates.back()
 
 
 ## 魂灵“首次获得”即记录。入包信号给的是副本，按 item_name 反查 registry ID

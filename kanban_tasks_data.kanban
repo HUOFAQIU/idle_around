@@ -26,7 +26,8 @@
 				"ca003893-c03d-462d-8530-fb6553c37cd8",
 				"2d44f95f-5926-4afb-9f2c-20a64393c01e",
 				"29fa349a-dcab-4ea5-8a8c-634a10391763",
-				"064ed8d0-e776-4472-971d-12b4bbd56c8b"
+				"064ed8d0-e776-4472-971d-12b4bbd56c8b",
+				"a70561cd-5818-45b3-a434-03a2ca564543"
 			]
 		},
 		{
@@ -113,7 +114,7 @@
 			"uuid": "064ed8d0-e776-4472-971d-12b4bbd56c8b",
 			"title": "需要很清晰的调试工具，看看游戏过程中出现了什么",
 			"description": "",
-			"category": "dc17d4ed-a172-4464-9b98-2aeab52f9cdf",
+			"category": "abd1801b-a241-4c02-8dd1-4e804d1e3bd5",
 			"steps": []
 		},
 		{
@@ -127,6 +128,13 @@
 			"uuid": "886753f0-6f90-4b4a-8c6f-c9e2042d9ea2",
 			"title": "Skill Description",
 			"description": "删除",
+			"category": "abd1801b-a241-4c02-8dd1-4e804d1e3bd5",
+			"steps": []
+		},
+		{
+			"uuid": "a70561cd-5818-45b3-a434-03a2ca564543",
+			"title": "刷怪",
+			"description": "蛇死掉 10 个刷 1 个蝮",
 			"category": "abd1801b-a241-4c02-8dd1-4e804d1e3bd5",
 			"steps": []
 		}

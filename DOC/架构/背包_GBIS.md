@@ -1,6 +1,6 @@
 # 背包 / 仓库系统（GBIS）
 
-> 类型：实现 | 状态：有效 | 核对：2026-11-03
+> 类型：实现 | 状态：有效 | 核对：2026-11-05
 > 何时读：改背包/仓库/装备槽/容器、拖拽、商店容器、存档
 > 关键词：GBIS 背包 仓库 inventory container 物品大类 category 装备槽 拖拽 Tooltip 存档
 > 代码：Windows/Inventory/grid_base_inventory_system/
@@ -168,5 +168,5 @@ GBIS.add_item(inv_name, item_data)
 - `DropAreaView`：把物品拖出窗口丢弃；
 - `ConsumableData` / `EquipmentData` / `StackableData`：消耗品、可穿戴装备、可堆叠物品；
 - `GBIS.add_quick_move_relation()`：背包间快速移动关系；
-- `GBIS.save()` / `GBIS.load()`：背包与装备槽存档，当前没有任何地方调用，`Saves/` 是空的；
+- `GBIS.save()` / `GBIS.load()`：框架自带的 Resource 存档，当前仍不接入；游戏层存档由 `SaveManager` 负责，见 `架构/存档.md`；
 - `GBIS.item_material`：全局物品材质，当前未设置。

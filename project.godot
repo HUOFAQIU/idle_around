@@ -29,6 +29,7 @@ GameplayCueManager="*uid://bh6ixabs0w700"
 CollectionDB="*uid://b76qj7km7m8ad"
 CombatTelemetry="*res://Scripts/debug/combat_telemetry.gd"
 SoulRuntimeDB="*res://game/battle/soul_runtime_db.gd"
+SaveManager="*res://Scripts/save/save_manager.gd"
 
 [display]
 

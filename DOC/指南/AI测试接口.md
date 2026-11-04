@@ -2,8 +2,8 @@
 
 > 类型：指南 | 状态：有效 | 核对：2026-11-05
 > 何时读：写自动化测试/探针、构造战斗或背包场景、验证新功能
-> 关键词：测试 TestAPI 探针 自动化 战斗快照 魂灵 仓库 见闻 冷却 冻结 触发器 类型 标签 充能 卡面 tooltip 伤害缩放 颜色 色板
-> 代码：`Scripts/test_api.gd`、`Windows/Battle/battle_window.gd`、`Scripts/collection_db.gd`
+> 关键词：测试 TestAPI 探针 自动化 战斗快照 魂灵 仓库 见闻 冷却 冻结 触发器 类型 标签 充能 卡面 tooltip 伤害缩放 颜色 色板 存档 save
+> 代码：`Scripts/test_api.gd`、`Windows/Battle/battle_window.gd`、`Scripts/collection_db.gd`、`Scripts/save/`
 > 约定：新增功能/内容时，同步补 TestAPI 方法并更新本文。
 
 ## 用法
@@ -44,6 +44,30 @@ TestAPI.stop_battle()
 | `get_soul_tooltip_bbcode(id) -> String` | 魂灵 tooltip 的 BBCode 文本；正文状态词带颜色标签，用于验证上色 |
 
 `kind` 用 `CollectionDB.Kind.SOUL` / `CollectionDB.Kind.MONSTER`。见闻窗口的魂灵条目悬停使用与仓库相同的 tooltip（标题是 `item_name`，正文由 `SoulTooltip.build(soul, true)` 生成）；右键已遇见魂灵等价于 `add_soul(id, "inventory_0")`。
+
+## 存档
+
+| 方法 | 说明 |
+|---|---|
+| `save_now() -> bool` | 立即写档到 `user://saves/slot_0.json` |
+| `load_save() -> bool` | 从磁盘读档，清空并按精确格子重建所有容器；不要在战斗/拖拽中调用 |
+| `delete_save() -> bool` | 只删除磁盘存档，不改变当前内存状态；要回到新游戏再调用 `load_save()` |
+| `has_save() -> bool` | 是否存在主文件或备份 |
+| `get_save_path() -> String` | 返回 `user://saves/slot_0.json`；绝对路径用 `ProjectSettings.globalize_path()` |
+| `dump_save() -> Dictionary` | 当前内存状态的存档快照，不写盘；用于检查序列化结果 |
+
+```gdscript
+TestAPI.clear_container("inventory_0")
+TestAPI.add_soul(&"xiao_lu_soul")
+TestAPI.save_now()
+print(TestAPI.get_save_path())
+TestAPI.clear_container("inventory_0")
+TestAPI.load_save()
+print(TestAPI.get_container_items("inventory_0"))
+TestAPI.delete_save()
+```
+
+读档会保留物品的左上角格子，所以验证装备栏相邻关系时可以直接比较读档前后的锚点。存档结构、备份/迁移规则见 `架构/存档.md`。
 
 ## 颜色
 
@@ -155,7 +179,7 @@ print(TestAPI.get_battle_state()["player_souls"])
 ## 注意
 
 - 只用于测试/探针；会改运行时状态。
-- `set_unlock_all(false)` 后，`add_soul` 仍会走正常入包流程并写入 `user://collection.cfg`。
+- `set_unlock_all(false)` 后，`add_soul` 仍会走正常入包流程，并打上存档脏标记，由 `SaveManager` 写入 `user://saves/slot_0.json`。
 - `set_unlock_all` 只改判定，不会自动刷新已打开的见闻窗口；切页签或重开窗口即可。
 - `player.souls` 是场景配置（玩家通常为空）；玩家装备的魂灵看 `player_souls`。
 - `start_battle` 会显示战斗窗口；找不到 `BattleWindow` 时返回 `false`。

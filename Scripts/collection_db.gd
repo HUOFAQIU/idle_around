@@ -5,10 +5,12 @@ extends Node
 ## 本节点只负责运行时索引、“已遇见”状态和存档；registry 本身运行时只读。
 ##
 ## 已遇见状态以 registry 的字符串 ID（例如 &"xiao_lu_soul"）为键，
-## 资源改名/移动不会丢记录；解锁后立即写入 user://collection.cfg。
+## 资源改名/移动不会丢记录；解锁后由 SaveManager 统一写入存档。
 
 ## 新条目解锁；图鉴窗口用它刷新
 signal entry_unlocked(kind: int, id: StringName)
+## 读档整体替换“已遇见”状态后发出；图鉴窗口用它整体刷新
+signal state_reloaded
 
 enum Kind {
 	MONSTER,
@@ -17,7 +19,8 @@ enum Kind {
 
 const SOUL_REGISTRY: Registry = preload("res://game/content/Collection/soul_registry.tres")
 const MONSTER_REGISTRY: Registry = preload("res://game/content/Collection/monster_registry.tres")
-const SAVE_PATH: String = "user://collection.cfg"
+## 旧版独立存档：只读迁移用；新存档由 SaveManager 统一管理
+const LEGACY_SAVE_PATH: String = "user://collection.cfg"
 ## 旧版 registry ID 兼容：旧存档里可能还留着带 _2 后缀的键。
 ## 读取时统一映射到当前 canonical ID，写回时只写 canonical ID。
 const LEGACY_SOUL_ID_ALIASES := {
@@ -41,7 +44,6 @@ var _seen: Dictionary = {}
 
 func _ready() -> void:
 	_load_catalog()
-	_load_state()
 	GBIS.sig_inv_item_added.connect(_on_inv_item_added)
 	GBIS.sig_inv_refresh.connect(_scan_owned_souls)
 	_scan_owned_souls_after_ready()
@@ -62,6 +64,11 @@ func get_monster_ids() -> Array[StringName]:
 
 func get_soul(id: StringName) -> SoulData:
 	return _souls.get(_canonical_soul_id(id))
+
+
+## 按物品名反查 registry ID；背包里的副本没有 resource_path，只能用名字
+func get_soul_id_by_name(item_name: String) -> StringName:
+	return _soul_id_by_name.get(item_name, &"")
 
 
 func get_monster(id: StringName) -> MonsterData:
@@ -129,6 +136,50 @@ func mark_monster_seen(monster: MonsterData) -> void:
 #endregion
 
 
+#region 存档
+## 供 SaveManager 序列化；数组里只放 canonical registry ID
+func to_save_data() -> Dictionary:
+	return {
+		"monsters": _seen_ids(Kind.MONSTER),
+		"souls": _seen_ids(Kind.SOUL),
+	}
+
+
+## 用统一存档里的 collection 段覆盖当前状态；不触发解锁信号
+func apply_save_data(data: Dictionary) -> void:
+	_seen = {
+		Kind.MONSTER: {},
+		Kind.SOUL: {},
+	}
+	var monsters: Variant = data.get("monsters", [])
+	if monsters is Array:
+		for id in monsters:
+			_seen[Kind.MONSTER][StringName(String(id))] = true
+	var souls: Variant = data.get("souls", [])
+	if souls is Array:
+		for id in souls:
+			_seen[Kind.SOUL][_canonical_soul_id(StringName(String(id)))] = true
+	state_reloaded.emit()
+
+
+## 读取旧版 user://collection.cfg；成功返回 true（只读，不删除旧文件）
+func load_legacy_state() -> bool:
+	_seen = {
+		Kind.MONSTER: {},
+		Kind.SOUL: {},
+	}
+	var config := ConfigFile.new()
+	if config.load(LEGACY_SAVE_PATH) != OK:
+		return false
+	for id in config.get_value("collection", "monsters", PackedStringArray()):
+		_seen[Kind.MONSTER][StringName(id)] = true
+	for id in config.get_value("collection", "souls", PackedStringArray()):
+		_seen[Kind.SOUL][_canonical_soul_id(StringName(id))] = true
+	state_reloaded.emit()
+	return true
+#endregion
+
+
 #region 内部
 func _load_catalog() -> void:
 	for id: StringName in SOUL_REGISTRY.get_all_string_ids():
@@ -154,7 +205,6 @@ func _mark_seen(kind: int, id: StringName) -> void:
 	if seen.has(id):
 		return
 	seen[id] = true
-	save_state()
 	entry_unlocked.emit(kind, id)
 
 
@@ -179,34 +229,12 @@ func _scan_owned_souls() -> void:
 				mark_soul_seen(item as SoulData)
 
 
-func _load_state() -> void:
-	_seen = {
-		Kind.MONSTER: {},
-		Kind.SOUL: {},
-	}
-	var config := ConfigFile.new()
-	if config.load(SAVE_PATH) != OK:
-		return
-	for id in config.get_value("collection", "monsters", PackedStringArray()):
-		_seen[Kind.MONSTER][StringName(id)] = true
-	for id in config.get_value("collection", "souls", PackedStringArray()):
-		_seen[Kind.SOUL][_canonical_soul_id(StringName(id))] = true
-
-
-func save_state() -> void:
-	var config := ConfigFile.new()
-	config.set_value("collection", "monsters", _seen_ids(Kind.MONSTER))
-	config.set_value("collection", "souls", _seen_ids(Kind.SOUL))
-	var err := config.save(SAVE_PATH)
-	if err != OK:
-		push_warning("见闻：存档写入失败 %s" % error_string(err))
-
-
-func _seen_ids(kind: int) -> PackedStringArray:
-	var ids := PackedStringArray()
+func _seen_ids(kind: int) -> Array[String]:
+	var ids: Array[String] = []
 	var seen: Dictionary = _seen.get(kind, {})
 	for id: StringName in seen:
 		ids.append(String(id))
+	ids.sort()
 	return ids
 
 

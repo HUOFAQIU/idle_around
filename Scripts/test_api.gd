@@ -184,6 +184,40 @@ static func get_monster_ids() -> Array[StringName]:
 #endregion
 
 
+#region 存档
+
+## 立即写档；返回是否成功
+static func save_now() -> bool:
+	return SaveManager.save_now()
+
+
+## 从磁盘读档；会清空并重建容器，不要在战斗中调用
+static func load_save() -> bool:
+	return SaveManager.load_game()
+
+
+## 只删除磁盘存档，不改变当前内存状态
+static func delete_save() -> bool:
+	return SaveManager.delete_save()
+
+
+## 是否存在可读存档
+static func has_save() -> bool:
+	return SaveManager.has_save()
+
+
+## 存档文件路径（user://）
+static func get_save_path() -> String:
+	return SaveManager.get_save_path()
+
+
+## 当前内存状态的存档快照（不写盘），用于检查序列化结果
+static func dump_save() -> Dictionary:
+	return SaveManager.collect_save_data()
+
+#endregion
+
+
 #region 战斗
 
 ## 显示战斗窗口并开战；monster_id 非空时首只必刷该怪

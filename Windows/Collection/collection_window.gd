@@ -30,6 +30,7 @@ func _ready() -> void:
 	monster_button.pressed.connect(_select_kind.bind(CollectionDB.Kind.MONSTER))
 	soul_button.pressed.connect(_select_kind.bind(CollectionDB.Kind.SOUL))
 	CollectionDB.entry_unlocked.connect(_on_entry_unlocked)
+	CollectionDB.state_reloaded.connect(_on_state_reloaded)
 	visibility_changed.connect(_on_visibility_changed)
 	hint_label.add_theme_color_override("font_color", GameColors.to_color(GameColors.TEXT_SECONDARY))
 	_select_kind(CollectionDB.Kind.MONSTER)
@@ -183,6 +184,11 @@ func _quadratic_bezier(start: Vector2, control: Vector2, end: Vector2, t: float)
 func _on_entry_unlocked(kind: int, _id: StringName) -> void:
 	if kind == _kind:
 		_refresh()
+
+
+## 读档整体替换已遇见状态后刷新当前页
+func _on_state_reloaded() -> void:
+	_refresh()
 
 
 ## 关窗时收起 tooltip：tooltip 是独立窗口，不会跟着见闻窗口一起隐藏

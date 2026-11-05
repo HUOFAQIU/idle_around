@@ -46,6 +46,8 @@ enum WaitResult {
 var soul_data: SoulData
 ## 本技能对应的战斗运行期状态（由 BattleUnit 注入）
 var soul_runtime: SoulRuntime
+## 命中特效的方向计数：每颗魂灵能力各自独立，第 1 次命中右→左，第 2 次左→右
+var _hit_cue_count : int = 0
 
 
 func _ready() -> void:
@@ -431,6 +433,35 @@ func _apply_effects_to_target(target: BattleUnit, trace: CombatTrace) -> void:
 	if is_crit:
 		_record_cast("crit", trace, {"target_unit": target})
 	_apply_effect_list_to_target(skill.effects, target, crit_multiplier, trace)
+	_play_hit_cue(target)
+
+
+## 在受击目标身上播放技能配置的命中特效。
+## 方向按本魂灵自己的命中次数交替：第 1 次右→左，第 2 次左→右。
+## 打空/没选中目标不消耗次数，所以每颗恐狼的“第一次造成伤害”永远是右→左。
+##
+## 这一击会打死目标时，单位会被 BattleManager 当场 queue_free，挂在它身下的 Cue
+## 来不及画出来就一起没了。此时改挂到战场单位层，按怪物最后的位置播放。
+func _play_hit_cue(target: BattleUnit) -> void:
+	if skill == null or skill.hit_cue_tag.is_empty():
+		return
+	if target == null or not is_instance_valid(target) or target.asc == null:
+		return
+	var direction := -1.0 if _hit_cue_count % 2 == 0 else 1.0
+	_hit_cue_count += 1
+	var payload := {"direction": direction}
+	if _is_dying(target) and target.get_parent() != null:
+		payload["position"] = target.global_position
+		GameplayCueManager.execute_cue(skill.hit_cue_tag, target.get_parent(), payload)
+		return
+	target.asc.execute_cue(skill.hit_cue_tag, payload)
+
+
+## 目标是否已经在这一击里被打死（死亡是延迟到帧末处理的，所以要看血量而不是 is_dead）
+func _is_dying(target: BattleUnit) -> bool:
+	if target.is_dead:
+		return true
+	return target.health_attr != null and target.health_attr.current_value <= 0.0
 
 
 func _apply_effect_list_to_target(

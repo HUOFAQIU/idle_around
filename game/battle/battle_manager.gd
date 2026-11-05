@@ -15,8 +15,8 @@ signal unit_moved(unit: BattleUnit, from_cell: Vector2i, to_cell: Vector2i)
 
 ## 刷怪间隔（秒）
 const SPAWN_INTERVAL : float = 1
-## 只在距离角色这么多格以外刷怪
-const SPAWN_MIN_DISTANCE : int = 10
+## 只在距离角色至少这么多格的位置刷怪（距离正好等于该值也算）
+const SPAWN_MIN_DISTANCE : int = 5
 ## 移动按实例 ID 分片：至少 6 片（10Hz），怪物越多分得越细，
 ## 保证每帧大约只更新 MOVE_BUDGET_PER_FRAME 个移动体；速度按同样的倍数补偿。
 const MIN_MOVE_SLICES : int = 6
@@ -268,14 +268,14 @@ func spawn_one() -> void:
 	spawn_enemy.call(_spawn_cells.pick_random())
 
 
-## 距离角色 SPAWN_MIN_DISTANCE 格以外的所有地图格；地图静态，开战时算一次
+## 距离角色至少 SPAWN_MIN_DISTANCE 格的所有地图格；地图静态，开战时算一次
 func _rebuild_spawn_cells() -> void:
 	_spawn_cells.clear()
 	if map == null:
 		return
 	var center := player_cell()
 	for cell in map.get_used_cells():
-		if Hex.distance(cell, center) > SPAWN_MIN_DISTANCE:
+		if Hex.distance(cell, center) >= SPAWN_MIN_DISTANCE:
 			_spawn_cells.append(cell)
 #endregion
 

@@ -403,6 +403,15 @@ static func apply_freeze(target : String = "player", seconds : float = 3.0) -> b
 	return true
 
 
+## 在战斗中的单位身上播放爪痕特效；direction：1 = 左→右，-1 = 右→左
+static func play_claw_cue(target : String = "enemy", direction : int = 1) -> bool:
+	var unit := _find_unit(target)
+	if unit == null or unit.asc == null:
+		return false
+	unit.asc.execute_cue(&"Cue.Combat.ClawSlash", {"direction": 1.0 if direction >= 0 else -1.0})
+	return true
+
+
 ## 对已装备的某个魂灵施加冻结（用于测试仙子/魂灵冻结显示）
 static func apply_soul_freeze(soul_name : String, seconds : float = 1.0, target : String = "player") -> bool:
 	if seconds <= 0.0:

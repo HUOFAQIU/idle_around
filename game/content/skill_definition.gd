@@ -19,6 +19,10 @@ class_name SkillDefinition extends Resource
 ## 只对施法者自己结算的效果列表（例如"攻击敌人的同时提高自身再生"）
 @export var self_effects: Array[GameplayEffect] = []
 
+## 命中特效标签：每次结算到目标身上时，在该目标身上播一次（场景要登记到 cue_registry）。
+## 留空 = 不播。恐狼用它在两次伤害上交替播放左右爪痕。
+@export var hit_cue_tag: StringName = &""
+
 ## 冷却时长（秒）。魂灵使用充能模型：ChargedAbility 按 1/120 秒刻度累加，
 ## 充满后释放；这不是 GAS 的 DURATION 冷却效果。
 @export_range(0.0, 60.0, 0.1) var cooldown_seconds: float = 0.0

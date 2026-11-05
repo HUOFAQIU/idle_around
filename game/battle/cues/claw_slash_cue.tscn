@@ -1,0 +1,16 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" uid="uid://daqmesx7yx5dc" path="res://game/battle/cues/claw_slash_cue.gd" id="1_cue"]
+[ext_resource type="Script" uid="uid://b4jdw0qicbe2h" path="res://game/battle/cues/claw_slash_painter.gd" id="2_painter"]
+
+[sub_resource type="CanvasItemMaterial" id="CanvasItemMaterial_add"]
+blend_mode = 1
+
+[node name="ClawSlashCue" type="Node2D"]
+z_index = 2
+script = ExtResource("1_cue")
+destroy_delay = 0.45
+
+[node name="Slashes" type="Node2D" parent="."]
+material = SubResource("CanvasItemMaterial_add")
+script = ExtResource("2_painter")

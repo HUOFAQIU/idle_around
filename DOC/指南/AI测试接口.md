@@ -2,7 +2,7 @@
 
 > 类型：指南 | 状态：有效 | 核对：2026-11-05
 > 何时读：写自动化测试/探针、构造战斗或背包场景、验证新功能
-> 关键词：测试 TestAPI 探针 自动化 战斗快照 魂灵 仓库 见闻 商店 冷却 冻结 触发器 类型 标签 充能 卡面 tooltip 伤害缩放 多重触发 cast_times releases 颜色 色板 存档 save
+> 关键词：测试 TestAPI 探针 自动化 战斗快照 魂灵 仓库 见闻 商店 冷却 冻结 触发器 类型 标签 充能 卡面 tooltip 伤害缩放 多重触发 cast_times releases 颜色 色板 存档 save 爪痕 play_claw_cue
 > 代码：`Scripts/test_api.gd`、`Windows/Battle/battle_window.gd`、`Scripts/collection_db.gd`、`Scripts/save/`
 > 约定：新增功能/内容时，同步补 TestAPI 方法并更新本文。
 
@@ -106,6 +106,7 @@ TestAPI.delete_save()
 | `apply_poison(target := "player") -> bool` | 对战斗单位施加剧毒（测试飞溅与气泡 Cue） |
 | `apply_regen(target := "player") -> bool` | 对战斗单位施加生命再生（测试剧毒/再生相减） |
 | `apply_freeze(target := "player", seconds := 3.0) -> bool` | 对战斗单位施加冻结（测试冻结 Cue 与 `State.Frozen`）；会广播 `Event.Combat.FreezeApplied` |
+| `play_claw_cue(target := "enemy", direction := 1) -> bool` | 在单位身上播放恐狼爪痕 Cue；`direction` 1 = 左→右，-1 = 右→左 |
 | `apply_soul_freeze(soul_name, seconds := 1.0, target := "player") -> bool` | 对已装备的指定魂灵施加魂灵级冻结（测试冰霜 shader 与徽章） |
 | `simulate_soul_used(soul_name, target := "player") -> bool` | 模拟“魂灵被使用”（不动冷却），确定性验证 `Event.Combat.SoulUsed` 触发器；触发充能满时会走同帧待释放队列，调用后等一帧再读状态 |
 | `charge_soul(soul_name, seconds, target := "player") -> bool` | 给已装备魂灵直接充能，用于快速触发主动技能；不经过触发器队列 |
@@ -136,6 +137,11 @@ print(TestAPI.get_battle_state()["enemies"][0]["hp"])
 TestAPI.apply_freeze("enemy", 3.0)
 print(TestAPI.has_status(&"State.Frozen", "enemy"))
 TestAPI.apply_soul_freeze("尖牙", 1.0)
+
+# 爪痕：分别看左右两个方向
+TestAPI.play_claw_cue("enemy", 1)
+await get_tree().create_timer(0.2).timeout
+TestAPI.play_claw_cue("enemy", -1)
 
 # 半血触发：把玩家打到阈值以下，再检查触发器效果
 TestAPI.damage_unit("player", 300.0)

@@ -1,8 +1,8 @@
 # 给游戏加特效（GameplayCue）
 
-> 类型：指南 | 状态：有效 | 整理：2026-11-01
+> 类型：指南 | 状态：有效 | 整理：2026-11-05
 > 何时读：新增/调试 GameplayCue 特效
-> 关键词：特效 GameplayCue Cue 场景 对象池 补间 注册 挂钩 灼烧 剧毒 冻结
+> 关键词：特效 GameplayCue Cue 场景 对象池 补间 注册 挂钩 灼烧 剧毒 冻结 恐狼 爪痕 hit_cue_tag 命中特效
 > 代码：`godot_gas/cue_registry.tres`、`addons/GodotGAS/cues/`
 > 相关：`架构/GAS.md`
 
@@ -116,6 +116,8 @@ func execute_cue(target: Node, payload: Dictionary = {}) -> void:
 	super.execute_cue(target, payload)         # 父类会接着调 play_cue()
 ```
 
+技能数据也可以直接挂命中特效：`SkillDefinition.hit_cue_tag` 填标签后，`AutoCastAbility` 每次结算到目标身上都会调用 `target.asc.execute_cue()`，并带上 `{"direction": ±1.0}`。这一击会打死目标时，单位会被 `BattleManager` 当场 `queue_free()`，挂在它身下的 Cue 来不及画出来，所以改挂到战场单位层并带上 `{"position": 世界坐标}`，让特效留在怪物最后的位置。恐狼用它做两段伤害的左右交替爪痕：方向按每颗魂灵自己的命中次数交替，打空不消耗次数。cue 要读方向和位置时同样重写 `execute_cue()` 接住 payload。
+
 ---
 
 ## 四、基类给了什么
@@ -190,6 +192,7 @@ print(img.get_pixel(x, y))          # 窗口内部坐标
 | 剧毒施加飞溅 | `game/battle/cues/poison_splash_cue.tscn`；标签 `Cue.Combat.PoisonApply`；挂在 `game/content/effects/poison_tick.tres` 的 `application_cue_tags` |
 | 中毒气泡光环 | `game/battle/cues/poison_aura_cue.tscn`；标签 `Cue.Status.Poison`；挂在 `poison_tick.tres` 的 `persistent_cue_tags` |
 | 冻结光环 | `game/battle/cues/freeze_cue.tscn`；标签 `Cue.Status.Freeze`；挂在 `game/content/effects/freeze_unit.tres` 的 `persistent_cue_tags` |
+| 恐狼左右爪痕 | `game/battle/cues/claw_slash_cue.tscn`；标签 `Cue.Combat.ClawSlash`；由 `kong_lang_skill.tres` 的 `hit_cue_tag` 触发；方向由 `AutoCastAbility` 按每颗魂灵的命中次数交替传入 |
 
 魂灵格子被冻结时走的是 `ItemView` 的材质表现，不走 Cue：`SoulRuntime.freeze_seconds` 驱动 `soul_scanline.gdshader` 的 `freeze` 参数和 `game/content/Kits/bingdong.tscn` 徽章。原因是魂灵的显示对象是 UI `Control`，而不是可以挂 Cue 的战场节点。
 

@@ -6,6 +6,12 @@
 [ext_resource type="PackedScene" uid="uid://cfutjnsu6s34v" path="res://game/battle/cues/poison_splash_cue.tscn" id="4_poison_splash"]
 [ext_resource type="PackedScene" uid="uid://b74loqdttlkgh" path="res://game/battle/cues/poison_aura_cue.tscn" id="5_poison_aura"]
 [ext_resource type="PackedScene" uid="uid://ryoi7xg5p8db" path="res://game/battle/cues/freeze_cue.tscn" id="6_freeze"]
+[ext_resource type="PackedScene" path="res://game/battle/cues/claw_slash_cue.tscn" id="7_claw"]
+
+[sub_resource type="Resource" id="Resource_entry_claw"]
+script = ExtResource("1_eumo4")
+tag = &"Cue.Combat.ClawSlash"
+scene = ExtResource("7_claw")
 
 [sub_resource type="Resource" id="Resource_entry_burn"]
 script = ExtResource("1_eumo4")
@@ -29,4 +35,4 @@ scene = ExtResource("6_freeze")
 
 [resource]
 script = ExtResource("2_bcoe5")
-entries = Array[ExtResource("1_eumo4")]([SubResource("Resource_entry_burn"), SubResource("Resource_entry_poison_apply"), SubResource("Resource_entry_poison"), SubResource("Resource_entry_freeze")])
+entries = Array[ExtResource("1_eumo4")]([SubResource("Resource_entry_claw"), SubResource("Resource_entry_burn"), SubResource("Resource_entry_poison_apply"), SubResource("Resource_entry_poison"), SubResource("Resource_entry_freeze")])

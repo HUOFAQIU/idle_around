@@ -97,6 +97,8 @@ const SOUL_FREEZE : String = "#94dbff"
 const PLAYER_MODULATE : String = "#00e052"
 const ENEMY_MODULATE : String = "#eb4d4d"
 const PROJECTILE : String = "#ffd94d"
+## 恐狼爪痕的暖白高光；暗红辉光复用 DAMAGE
+const CLAW_SLASH : String = "#fff1e0"
 const POISON_SPLASH : String = "#2e8c3df2"
 const FREEZE_BADGE_BG : String = "#52b3faeb"
 const FREEZE_BADGE_BORDER : String = "#d1f0ff"

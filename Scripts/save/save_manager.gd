@@ -3,7 +3,7 @@ extends Node
 ##
 ## 单槽 JSON 存档，路径 `user://saves/slot_0.json`。
 ## 只保存玩家进度：容器里的物品 + 见闻；战斗运行期状态和静态资源数据不存。
-## 写入采用临时文件 + 备份轮换；启动等一帧（窗口注册完容器）后自动读档。
+## 写入采用临时文件 + 备份轮换；启动等一帧（容器注册完）后自动读档。
 
 const SAVE_DIR: String = "user://saves"
 const SAVE_FILE: String = "slot_0.json"
@@ -13,7 +13,6 @@ const TEMP_FILE: String = SAVE_FILE + ".tmp"
 const TEMP_PATH: String = SAVE_DIR + "/" + TEMP_FILE
 const BACKUP_PATH: String = SAVE_DIR + "/" + BACKUP_FILE
 const SAVE_VERSION: int = 1
-const WAREHOUSE: String = "inventory_0"
 ## 普通物品变化后延迟写盘，避免战斗掉落逐次写文件
 const DEBOUNCE_SECONDS: float = 2.0
 ## 没有变化时也定期写一次，刷新 saved_at / play_time
@@ -33,7 +32,7 @@ var _read_only: bool = false
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_connect_signals()
-	# 容器由各窗口的 InventoryView._ready() 注册；等一帧再读档
+	# 仓库页由 Warehouse autoload 预注册，其余容器由 InventoryView._ready() 注册；等一帧再读档
 	await get_tree().process_frame
 	load_game()
 
@@ -196,7 +195,6 @@ func _clear_containers() -> void:
 
 
 func _apply_containers(data: Dictionary) -> void:
-	var warehouse := ContainerRepository.instance.get_container(WAREHOUSE)
 	var containers_data: Variant = data.get("containers", {})
 	if containers_data is Dictionary:
 		for key in containers_data:
@@ -209,7 +207,7 @@ func _apply_containers(data: Dictionary) -> void:
 			if not records is Array:
 				push_warning("存档：%s 的数据格式不对" % container_name)
 				continue
-			_apply_container(container, records, warehouse)
+			_apply_container(container, records)
 	var detached: Variant = data.get("detached", [])
 	if detached is Array:
 		for record in detached:
@@ -218,11 +216,11 @@ func _apply_containers(data: Dictionary) -> void:
 			var item := SaveCodec.decode_item(record)
 			if item == null:
 				continue
-			if warehouse == null or warehouse.add_item(item).is_empty():
+			if not Warehouse.add_item(item):
 				push_warning("存档：拖拽中的物品无法放回仓库")
 
 
-func _apply_container(container: ContainerData, records: Array, warehouse: ContainerData) -> void:
+func _apply_container(container: ContainerData, records: Array) -> void:
 	records.sort_custom(SaveCodec.sort_records)
 	for record in records:
 		if not record is Dictionary:
@@ -236,7 +234,7 @@ func _apply_container(container: ContainerData, records: Array, warehouse: Conta
 		if not container.add_item(item).is_empty():
 			push_warning("存档：%s 的「%s」无法放回原格 %s，已放到第一个空位" % [container.container_name, item.item_name, anchor])
 			continue
-		if container != warehouse and warehouse != null and not warehouse.add_item(item).is_empty():
+		if Warehouse.add_item(item):
 			push_warning("存档：%s 的「%s」放不下，已转入仓库" % [container.container_name, item.item_name])
 			continue
 		push_warning("存档：物品无处安放，已丢弃 %s" % item.item_name)

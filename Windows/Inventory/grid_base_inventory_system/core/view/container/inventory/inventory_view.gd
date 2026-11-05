@@ -58,9 +58,19 @@ func _handle_grid_hover(grid_id: Vector2i, is_hover: bool) -> void:
 		else:
 			grid_view.state = BaseGridView.State.TAKEN if grid_view.has_taken else BaseGridView.State.EMPTY
 
+## 切换当前显示的容器（仓库翻页用）；只重建视图，不动容器数据
 func change_data_source(new_container_name: String) -> void:
+	if new_container_name == container_name:
+		return
+
+	var old_container_name := container_name
+	var was_visible := is_visible_in_tree()
+	GBIS.item_focus_service.item_lose_focus()
+	_clear_inv()
 	for child in get_children():
+		remove_child(child)
 		child.queue_free()
+
 	var ret = GBIS.inventory_service.regist(new_container_name, container_columns, container_rows, false, avilable_types)
 	ret.equip_part = "" if equip_part == "NONE" else equip_part
 	container_name = new_container_name
@@ -70,6 +80,12 @@ func change_data_source(new_container_name: String) -> void:
 	_init_grid_container()
 	_init_item_container()
 	_init_grids()
+
+	# 快速移动只认打开的容器：旧页移出，新页在窗口可见时加入
+	GBIS.opened_containers.erase(old_container_name)
+	if was_visible and not GBIS.opened_containers.has(new_container_name):
+		GBIS.opened_containers.append(new_container_name)
+
 	call_deferred("refresh")
 
 ## 初始化
@@ -85,7 +101,7 @@ func _ready() -> void:
 	var ret = GBIS.inventory_service.regist(container_name, container_columns, container_rows, false, avilable_types)
 	ret.equip_part = "" if equip_part == "NONE" else equip_part
 
-	if visible:
+	if visible and not GBIS.opened_containers.has(container_name):
 		GBIS.opened_containers.append(container_name)
 	
 	if not GBIS.inventory_names.has(container_name):

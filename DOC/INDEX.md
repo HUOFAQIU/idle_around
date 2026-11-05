@@ -13,7 +13,7 @@
 | 改移动、攻击范围门控、刷怪、空间索引、投射物 | `架构/战斗运行时_移动与投射物.md` | `game/battle/`、`Windows/Battle/` |
 | 改暴击/伤害/异常、开战关窗、玩家怪物场景 | `架构/战斗运行时_伤害与流程.md` | `game/battle/`、`Windows/Battle/` |
 | 改技能/目标规则/魂灵/怪物数据/掉落 | `架构/战斗数据与魂灵.md` | `game/content/` |
-| 改背包/仓库/装备槽/拖拽 | `架构/背包_GBIS.md` | `Windows/Inventory/grid_base_inventory_system/` |
+| 改背包/仓库/装备槽/拖拽 | `架构/背包_GBIS.md` | `Windows/Inventory/grid_base_inventory_system/`、`Scripts/warehouse.gd` |
 | 改存档/读档/存档格式/迁移 | `架构/存档.md` | `Scripts/save/` |
 | 改 GAS 属性/标签/Cue | `架构/GAS.md`、`特效/effects.md` | `godot_gas/`、`addons/GodotGAS/` |
 | 按完整链路理解系统 | `架构/关键流程.md` | `game/battle/`、`Windows/Inventory/` |
@@ -28,7 +28,7 @@
 | 改魂灵 tooltip 内容/格式 | `魂灵/魂灵.md`、`架构/窗口与场景.md` | `Windows/Tooltip/` |
 | 改颜色/色板（战斗状态/UI/场景/特效） | `架构/颜色与主题.md` | `Scripts/game_colors.gd` |
 | 改见闻/图鉴/解锁 | `窗口/见闻.md` | `Scripts/collection_db.gd`、`Windows/Collection/` |
-| 改仓库窗口/背包理念 | `窗口/仓库.md` | `Windows/Inventory/` |
+| 改仓库窗口/背包理念/仓库分页 | `窗口/仓库.md` | `Windows/Inventory/`、`Scripts/warehouse.gd` |
 | 改人物属性 | `属性/人物属性.md` | `godot_gas/attributes/player_stats_attribute_set.gd` |
 | 确认战斗需求（设计） | `战斗/战斗逻辑.md` | `Windows/Battle/` |
 | 补世界观 | `背景故事/背景故事.md` | — |
@@ -42,7 +42,7 @@
 | `战斗/战斗逻辑.md` | 设计 | 有效 | 2026-10-31 |
 | `属性/人物属性.md` | 设计 | 设计 | 2026-11-01 |
 | `怪物/怪物.md` | 设计 | 部分实现 | 2026-11-05 |
-| `窗口/仓库.md` | 设计 | 设计 | 2026-11-04 |
+| `窗口/仓库.md` | 设计 | 部分实现 | 2026-11-05 |
 | `窗口/见闻.md` | 实现 | 已实现 | 2026-11-05 |
 | `魂灵/魂灵.md` | 设计 | 部分实现 | 2026-11-04 |
 | `魂灵/主动魂灵.md` | 设计 | 部分实现 | 2026-11-04 |

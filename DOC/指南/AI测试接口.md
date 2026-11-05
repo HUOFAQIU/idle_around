@@ -28,7 +28,10 @@ TestAPI.stop_battle()
 
 | 方法 | 说明 |
 |---|---|
-| `add_soul(id, container := "inventory_0") -> bool` | 按 registry ID 放入魂灵 |
+| `add_soul(id, container := "inventory_0") -> bool` | 按 registry ID 放入指定容器（默认仓库第 1 页） |
+| `add_soul_to_warehouse(id) -> bool` | 按 registry ID 放入仓库，从第 1 页开始找空位 |
+| `set_warehouse_page(page) -> bool` | 切换仓库窗口到指定页（0 起）；窗口不存在返回 `false` |
+| `get_warehouse_page() -> int` | 当前仓库页码（0 起）；找不到窗口返回 `-1` |
 | `equip_soul(id, part := "") -> bool` | 放入 `cell_0..3`；`part` 为空时按魂灵部位，ANY 依次尝试四个部位 |
 | `clear_container(container) -> void` | 清空容器并刷新 |
 | `get_container_items(container) -> Array[String]` | 容器内物品名 |
@@ -43,7 +46,9 @@ TestAPI.stop_battle()
 | `get_soul_tooltip_text(id) -> String` | 魂灵 tooltip 完整纯文本；第一行是标题，后面是正文（格式见 `魂灵/魂灵.md`） |
 | `get_soul_tooltip_bbcode(id) -> String` | 魂灵 tooltip 的 BBCode 文本；正文状态词带颜色标签，用于验证上色 |
 
-`kind` 用 `CollectionDB.Kind.SOUL` / `CollectionDB.Kind.MONSTER`。见闻窗口的魂灵条目悬停使用与仓库相同的 tooltip（标题是 `item_name`，正文由 `SoulTooltip.build(soul, true)` 生成）；右键已遇见魂灵等价于 `add_soul(id, "inventory_0")`。
+`kind` 用 `CollectionDB.Kind.SOUL` / `CollectionDB.Kind.MONSTER`。见闻窗口的魂灵条目悬停使用与仓库相同的 tooltip（标题是 `item_name`，正文由 `SoulTooltip.build(soul, true)` 生成）；右键已遇见魂灵等价于 `add_soul_to_warehouse(id)`。
+
+仓库有 10 页（`inventory_0..inventory_9`）。测试时用 `add_soul_to_warehouse()` 自动入页，或 `set_warehouse_page()` 切到指定页观察显示；页码从 0 开始。
 
 ## 存档
 

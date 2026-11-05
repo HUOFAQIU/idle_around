@@ -2,8 +2,8 @@
 
 > 类型：实现 | 状态：有效 | 核对：2026-11-05
 > 何时读：改背包/仓库/装备槽/容器、拖拽、商店容器、存档
-> 关键词：GBIS 背包 仓库 inventory container 物品大类 category 装备槽 拖拽 Tooltip 存档
-> 代码：Windows/Inventory/grid_base_inventory_system/
+> 关键词：GBIS 背包 仓库 inventory container 物品大类 category 装备槽 拖拽 Tooltip 存档 分页 Warehouse
+> 代码：Windows/Inventory/grid_base_inventory_system/、Scripts/warehouse.gd
 > 不覆盖：仓库玩法设计（见 DOC/窗口/仓库.md）
 >
 > 旧版架构长文第 7 节。
@@ -17,6 +17,7 @@
   - `inventory_service`、`shop_service`、`equipment_slot_service`、`moving_item_service`、`item_focus_service`。
 - `ContainerRepository` / `EquipmentSlotRepository` 是 `Resource` 单例（`static var instance`），通过 `GBIS` 的 Service 访问。
 - 视图层通过 `GBIS` 的信号刷新，不直接互相引用。
+- 游戏层另有 `Warehouse` autoload（`Scripts/warehouse.gd`）：启动时预注册 `inventory_0..inventory_9` 十页仓库，并提供 `add_item()` 跨页找空位；它只调用 GBIS 的公开接口，不修改框架本身。
 
 ### 7.2 分层与主要类
 
@@ -78,7 +79,9 @@ InventoryView._ready()
 ```
 
 - `InventoryView._ready()` 在编辑器模式下只重算尺寸，不注册容器。
+- 仓库页由 `Warehouse` 预注册；`InventoryView._ready()` 再注册同名容器时 `regist()` 直接返回已有容器，不会重建数据。
 - 容器可见时会把名字加入 `GBIS.opened_containers`，不可见时移除；快速移动只考虑打开着的背包。
+- 仓库翻页调用 `InventoryView.change_data_source()`：清掉旧视图状态后重建当前页，并同步 `opened_containers`。
 
 **添加物品**
 
@@ -144,7 +147,9 @@ GBIS.add_item(inv_name, item_data)
 
 | 容器名 | 节点 | 尺寸 | 类型 | 用途 |
 |---|---|---|---|---|
-| `inventory_0` | `InventoryWindow/InventoryView` | 26×24 | `SOUL` | 仓库，也是怪物掉落的目的地 |
+| `inventory_0..inventory_9` | `InventoryWindow/InventoryView`（只挂当前页） | 26×24 | `SOUL` | 仓库 10 页；掉落和见闻右键入仓从第 1 页开始找空位 |
+
+仓库页由 `Warehouse` autoload 启动时预注册，未翻到的页也在 `GBIS.inventory_names` 里，因此存档会覆盖全部页。`inventory_0` 仍是第 1 页。
 
 ### 7.6 交互键位
 

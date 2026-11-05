@@ -17,8 +17,6 @@ signal unit_moved(unit: BattleUnit, from_cell: Vector2i, to_cell: Vector2i)
 const SPAWN_INTERVAL : float = 1
 ## 只在距离角色这么多格以外刷怪
 const SPAWN_MIN_DISTANCE : int = 10
-## 掉落进哪个仓库容器
-const DROP_CONTAINER : String = "inventory_0"
 ## 移动按实例 ID 分片：至少 6 片（10Hz），怪物越多分得越细，
 ## 保证每帧大约只更新 MOVE_BUDGET_PER_FRAME 个移动体；速度按同样的倍数补偿。
 const MIN_MOVE_SLICES : int = 6
@@ -318,7 +316,7 @@ func _format_targets(groups: Array) -> String:
 #endregion
 
 
-## 每项掉落各掷一次骰子；测试阶段仓库满了就丢
+## 每项掉落各掷一次骰子；仓库 10 页都满了就丢
 func _roll_drops(unit: BattleUnit) -> void:
 	for entry in unit.drops:
 		if entry == null or entry.item == null:
@@ -331,7 +329,7 @@ func _roll_drops(unit: BattleUnit) -> void:
 				"success": false,
 			}, CombatEvent.DETAIL)
 			continue
-		var added := GBIS.add_item(DROP_CONTAINER, entry.item)
+		var added := Warehouse.add_item(entry.item)
 		CombatTelemetry.record(CombatEvent.BATTLE, "drop", {
 			"actor_unit": unit,
 			"item": entry.item.item_name,

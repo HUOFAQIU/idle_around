@@ -7,8 +7,6 @@ extends BaseWindow
 ## 魂灵页的已遇见条目：悬停显示 tooltip，右键放入仓库并播放抛物线飞入动画。
 
 const LOCKED_NAME: String = "？？？"
-## 仓库窗口展示的容器；右键魂灵直接往这里塞
-const WAREHOUSE_CONTAINER: String = "inventory_0"
 ## 右键入包成功后的抛物线动画：时长、弧高、图标大小、终点距右边缘的留白
 const FLY_DURATION: float = 0.2
 const FLY_ARC_HEIGHT: float = 110.0
@@ -135,7 +133,7 @@ func _on_entry_gui_input(event: InputEvent, id: StringName, button: Button) -> v
 	var soul := CollectionDB.get_soul(id)
 	if soul == null:
 		return
-	if not GBIS.add_item(WAREHOUSE_CONTAINER, soul):
+	if not Warehouse.add_item(soul):
 		push_warning("见闻：魂灵放入仓库失败「%s」" % soul.item_name)
 		return
 	_play_add_fly_animation(button, soul.icon)

@@ -42,13 +42,38 @@ static func get_game_color(constant_name : String) -> String:
 
 #region 背包 / 见闻
 
-## 按 registry ID 把魂灵放进指定容器（默认仓库）
+## 按 registry ID 把魂灵放进指定容器（默认仓库第 1 页）
 static func add_soul(id : StringName, container : String = WAREHOUSE) -> bool:
 	var soul := CollectionDB.get_soul(id)
 	if soul == null:
 		push_warning("TestAPI：魂灵不存在 %s" % id)
 		return false
 	return GBIS.add_item(container, soul)
+
+
+## 按 registry ID 把魂灵放进仓库，从第 1 页开始找空位
+static func add_soul_to_warehouse(id : StringName) -> bool:
+	var soul := CollectionDB.get_soul(id)
+	if soul == null:
+		push_warning("TestAPI：魂灵不存在 %s" % id)
+		return false
+	return Warehouse.add_item(soul)
+
+
+## 切换仓库窗口到指定页（0 起）；窗口不存在时返回 false
+static func set_warehouse_page(page : int) -> bool:
+	var window := _inventory_window()
+	if window == null:
+		push_warning("TestAPI：找不到仓库窗口")
+		return false
+	window.set_page(page)
+	return true
+
+
+## 当前仓库页码（0 起）；找不到窗口返回 -1
+static func get_warehouse_page() -> int:
+	var window := _inventory_window()
+	return window.get_page() if window != null else -1
 
 
 ## 装备一颗魂灵。part 为空时按魂灵自身部位；ANY 魂灵依次尝试四个部位。
@@ -180,6 +205,19 @@ static func get_soul_tooltip_bbcode(id : StringName) -> String:
 
 static func get_monster_ids() -> Array[StringName]:
 	return CollectionDB.get_monster_ids()
+
+
+static func _inventory_window() -> InventoryWindow:
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree == null:
+		return null
+	var root : Node = tree.current_scene
+	if root == null:
+		root = tree.root
+	for node in root.find_children("*", "", true, false):
+		if node is InventoryWindow:
+			return node as InventoryWindow
+	return null
 
 #endregion
 

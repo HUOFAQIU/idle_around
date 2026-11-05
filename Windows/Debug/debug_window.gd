@@ -40,6 +40,8 @@ const TYPE_NAMES := {
 	"activate": "激活",
 	"blocked": "被拒绝",
 	"failed": "失败",
+	"release": "多重触发释放",
+	"release_empty": "该次释放空放",
 	"empty": "空放",
 	"targets": "选目标",
 	"soul_targets": "选魂灵",

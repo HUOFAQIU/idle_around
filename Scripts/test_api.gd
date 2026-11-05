@@ -6,6 +6,8 @@ extends RefCounted
 ## 这些方法会改运行时状态，只在测试/探针里用，不要接入正式玩法。
 
 const WAREHOUSE : String = "inventory_0"
+## 商店容器名（见 shop_window.tscn）
+const SHOP : String = "shop_0"
 ## 部位 → 魂灵窗口容器名（见 equipment_window.tscn）
 const SOUL_CELLS := {
 	"HEADSOUL": "cell_0",
@@ -58,6 +60,56 @@ static func add_soul_to_warehouse(id : StringName) -> bool:
 		push_warning("TestAPI：魂灵不存在 %s" % id)
 		return false
 	return Warehouse.add_item(soul)
+
+
+## 显示商店窗口；找不到窗口返回 false
+static func show_shop() -> bool:
+	var window := _shop_window()
+	if window == null:
+		return false
+	if not window.visible:
+		window.open_window()
+	return true
+
+
+## 按 registry ID 往商店放一颗魂灵；不清空已有货物（清空用 clear_container）
+static func shop_add_soul(id : StringName) -> bool:
+	var soul := CollectionDB.get_soul(id)
+	if soul == null:
+		push_warning("TestAPI：魂灵不存在 %s" % id)
+		return false
+	if not GBIS.shop_names.has(SHOP):
+		push_warning("TestAPI：商店容器尚未注册，先打开商店窗口")
+		return false
+	var goods : Array[ItemData] = [soul]
+	GBIS.shop_service.load_goods(SHOP, goods)
+	GBIS.sig_inv_refresh.emit()
+	return true
+
+
+## 模拟左键拿起：从指定容器的格子拿起物品；base_size 只影响拖拽视图大小
+static func pick_up_item(container : String, grid_id : Vector2i) -> bool:
+	var data := ContainerRepository.instance.get_container(container)
+	if data == null:
+		return false
+	var item := data.find_item_data_by_grid(grid_id)
+	if item == null:
+		return false
+	var origin_grids := data.find_grids_by_item_data(item)
+	if origin_grids.is_empty():
+		return false
+	GBIS.moving_item_service.move_item_by_grid(container, grid_id, grid_id - origin_grids[0], 32)
+	return GBIS.has_moving_item()
+
+
+## 模拟右键取消拿起：优先放回原格；来源未知时返回 false
+static func cancel_moving_item() -> bool:
+	return GBIS.inventory_service.cancel_moving_item()
+
+
+## 快速出售指定格子里的物品；商店和该容器都打开才生效
+static func quick_sell(container : String, grid_id : Vector2i) -> bool:
+	return GBIS.inventory_service.quick_sell(container, grid_id)
 
 
 ## 切换仓库窗口到指定页（0 起）；窗口不存在时返回 false
@@ -185,6 +237,14 @@ static func get_soul_damage_scaling(id : StringName) -> Dictionary:
 	return {}
 
 
+## 魂灵技能的多重触发次数；未知魂灵或没有技能返回 0
+static func get_soul_cast_times(id : StringName) -> int:
+	var soul := CollectionDB.get_soul(id)
+	if soul == null or soul.skill == null:
+		return 0
+	return maxi(soul.skill.cast_times, 1)
+
+
 ## 魂灵 tooltip 的完整纯文本（第一行是标题，后面是正文）；未知魂灵返回空字符串
 static func get_soul_tooltip_text(id : StringName) -> String:
 	var soul := CollectionDB.get_soul(id)
@@ -217,6 +277,19 @@ static func _inventory_window() -> InventoryWindow:
 	for node in root.find_children("*", "", true, false):
 		if node is InventoryWindow:
 			return node as InventoryWindow
+	return null
+
+
+static func _shop_window() -> BaseWindow:
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree == null:
+		return null
+	var root : Node = tree.current_scene
+	if root == null:
+		root = tree.root
+	for node in root.find_children("*", "", true, false):
+		if node is BaseWindow and node.name == "ShopWindow":
+			return node as BaseWindow
 	return null
 
 #endregion

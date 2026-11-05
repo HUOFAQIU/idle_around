@@ -48,6 +48,29 @@ func place_moving_item(inv_name: String, grid_id: Vector2i) -> bool:
 		return true
 	return false
 
+## 取消拿起：优先放回原格，原格被占用时放同容器第一个空位
+func cancel_moving_item() -> bool:
+	var moving := GBIS.moving_item_service.moving_item
+	if moving == null:
+		return false
+	var container_name := GBIS.moving_item_service.origin_container
+	if container_name.is_empty():
+		return false
+	var container := _container_repository.get_container(container_name)
+	if container == null:
+		return false
+
+	var grids := container.try_add_to_grid(moving, GBIS.moving_item_service.origin_grid)
+	if grids.is_empty():
+		grids = container.add_item(moving)
+	if grids.is_empty():
+		push_warning("背包：取消拿起失败，%s 已没有空位" % container_name)
+		return false
+
+	GBIS.sig_inv_item_added.emit(container_name, moving, grids)
+	GBIS.moving_item_service.clear_moving_item()
+	return true
+
 ## 使用物品（默认：鼠标右键点击格子）
 func use_item(inv_name: String, grid_id: Vector2i) -> bool:
 	var item_data = find_item_data_by_grid(inv_name, grid_id)
@@ -98,6 +121,18 @@ func quick_move(inv_name: String, grid_id: Vector2i) -> void:
 			break
 		elif item_to_move is StackableData:
 			GBIS.sig_inv_item_updated.emit(inv_name, grid_id)
+
+## 快速出售：直接卖掉指定格子里的物品；商店和该容器都打开才生效
+func quick_sell(inv_name: String, grid_id: Vector2i) -> bool:
+	if not GBIS.opened_containers.has(inv_name) or not GBIS.has_opened_shop():
+		return false
+	var item := find_item_data_by_grid(inv_name, grid_id)
+	if item == null:
+		return false
+	if not GBIS.shop_service.sell_item(item):
+		return false
+	remove_item_by_data(inv_name, item)
+	return true
 
 ## 增加背包间的快速移动关系
 func add_quick_move_relation(inv_name: String, target_inv_name: String) -> void:

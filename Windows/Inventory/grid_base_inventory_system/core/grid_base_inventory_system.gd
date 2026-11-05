@@ -79,6 +79,8 @@ var current_save_name: String = "default.tres"
 var input_click: String = "inv_click"
 ## 快速移动
 var input_quick_move: String = "inv_quick_move"
+## 快速出售
+var input_quick_sell: String = "inv_quick_sell"
 ## 使用物品
 var input_use: String = "inv_use"
 ## 分割物品
@@ -118,3 +120,10 @@ func remove_quick_move_relation(inv_name: String, target_inv_name: String) -> vo
 ## 是否有正在移动的物品
 func has_moving_item() -> bool:
 	return moving_item_service.moving_item != null
+
+## 是否有商店打开
+func has_opened_shop() -> bool:
+	for shop_name in shop_names:
+		if opened_containers.has(shop_name):
+			return true
+	return false

@@ -23,6 +23,11 @@ class_name SkillDefinition extends Resource
 ## 充满后释放；这不是 GAS 的 DURATION 冷却效果。
 @export_range(0.0, 60.0, 0.1) var cooldown_seconds: float = 0.0
 
+## 多重触发：一次激活连续释放技能的次数。
+## 每次释放重新选目标、独立判定暴击、独立结算自身效果；
+## 第 2 次起各占一个 20 刻激活锁，1 秒最多 6 次，超出部分顺延到后续秒继续，不丢弃。
+@export var cast_times: int = 1
+
 ## 暴击率（0~1）与暴击倍率；伤害和治疗共用
 @export_range(0.0, 1.0, 0.01) var crit_chance: float = 0.0
 @export var crit_multiplier: float = 1.5

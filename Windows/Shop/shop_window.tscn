@@ -1,8 +1,20 @@
-[gd_scene format=3 uid="uid://byuffsddecjhf"]
+[gd_scene load_steps=3 format=3 uid="uid://byuffsddecjhf"]
 
 [ext_resource type="Script" uid="uid://dgtlj3504pj44" path="res://Windows/Shop/shop_window.gd" id="1_dff8h"]
+[ext_resource type="Script" uid="uid://gqt6pq4lt0gw" path="res://Windows/Inventory/grid_base_inventory_system/core/view/container/shop/shop_view.gd" id="2_shopview"]
 
 [node name="ShopWindow" type="Window" unique_id=1488491486]
 oversampling_override = 1.0
 position = Vector2i(0, 36)
+size = Vector2i(640, 356)
 script = ExtResource("1_dff8h")
+
+[node name="ShopView" type="Control" parent="."]
+layout_mode = 3
+offset_right = 640.0
+offset_bottom = 320.0
+script = ExtResource("2_shopview")
+container_name = "shop_0"
+container_columns = 20
+container_rows = 10
+metadata/_custom_type_script = "uid://gqt6pq4lt0gw"

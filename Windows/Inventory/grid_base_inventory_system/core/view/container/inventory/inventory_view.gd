@@ -101,7 +101,7 @@ func _ready() -> void:
 	var ret = GBIS.inventory_service.regist(container_name, container_columns, container_rows, false, avilable_types)
 	ret.equip_part = "" if equip_part == "NONE" else equip_part
 
-	if visible and not GBIS.opened_containers.has(container_name):
+	if is_visible_in_tree() and not GBIS.opened_containers.has(container_name):
 		GBIS.opened_containers.append(container_name)
 	
 	if not GBIS.inventory_names.has(container_name):
@@ -120,6 +120,7 @@ func _ready() -> void:
 	GBIS.sig_inv_item_removed.connect(_on_item_removed)
 	GBIS.sig_inv_item_updated.connect(_on_inv_item_updated)
 	GBIS.sig_inv_refresh.connect(refresh)
+	GBIS.moving_item_service.moving_item_cleared.connect(_on_moving_item_cleared)
 	
 	visibility_changed.connect(_on_visible_changed)
 	
@@ -127,6 +128,22 @@ func _ready() -> void:
 		stack_num_font = get_theme_font("font")
 	
 	call_deferred("refresh")
+
+## 拖拽中右键取消：放回原格；来源未知的拖拽（分割等）不处理
+func _input(event: InputEvent) -> void:
+	if Engine.is_editor_hint():
+		return
+	if not event.is_action_pressed(GBIS.input_use):
+		return
+	if not GBIS.has_moving_item():
+		return
+	if GBIS.inventory_service.cancel_moving_item():
+		get_viewport().set_input_as_handled()
+
+## 拖拽结束：把拖动时留下的可用/冲突高亮恢复成空/占用
+func _on_moving_item_cleared() -> void:
+	for grid in _grid_map.values():
+		grid.state = BaseGridView.State.TAKEN if grid.has_taken else BaseGridView.State.EMPTY
 
 ## 监听添加物品
 func _on_item_added(inv_name:String, item_data: ItemData, grids: Array[Vector2i]) -> void:

@@ -15,7 +15,9 @@
 		{
 			"uuid": "13cb6bda-ffb7-4ee9-879a-a4735482d3aa",
 			"title": "Todo",
-			"tasks": []
+			"tasks": [
+				"d92b1696-7e59-4569-864a-0eca8bbe36f4"
+			]
 		},
 		{
 			"uuid": "3d8e3d00-a609-41c7-a684-c1dd2b26f8c7",
@@ -27,7 +29,8 @@
 				"2d44f95f-5926-4afb-9f2c-20a64393c01e",
 				"29fa349a-dcab-4ea5-8a8c-634a10391763",
 				"064ed8d0-e776-4472-971d-12b4bbd56c8b",
-				"a70561cd-5818-45b3-a434-03a2ca564543"
+				"a70561cd-5818-45b3-a434-03a2ca564543",
+				"499e7710-81c7-4ff8-86ff-e2cadeda8597"
 			]
 		},
 		{
@@ -85,7 +88,7 @@
 		{
 			"uuid": "29fa349a-dcab-4ea5-8a8c-634a10391763",
 			"title": "怪物掉落",
-			"description": "",
+			"description": "1、roll值区间",
 			"category": "abd1801b-a241-4c02-8dd1-4e804d1e3bd5",
 			"steps": []
 		},
@@ -136,6 +139,20 @@
 			"title": "刷怪",
 			"description": "蛇死掉 10 个刷 1 个蝮",
 			"category": "abd1801b-a241-4c02-8dd1-4e804d1e3bd5",
+			"steps": []
+		},
+		{
+			"uuid": "499e7710-81c7-4ff8-86ff-e2cadeda8597",
+			"title": "仓库窗口",
+			"description": "1、左键拿起，右键取消，中键分割\n2、如果整个容器都满了，物品继续拿在手上，并打一条 warning。",
+			"category": "abd1801b-a241-4c02-8dd1-4e804d1e3bd5",
+			"steps": []
+		},
+		{
+			"uuid": "d92b1696-7e59-4569-864a-0eca8bbe36f4",
+			"title": "要做的",
+			"description": "1、魂灵数值 roll\n2、战斗",
+			"category": "dc17d4ed-a172-4464-9b98-2aeab52f9cdf",
 			"steps": []
 		}
 	],

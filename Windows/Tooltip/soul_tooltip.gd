@@ -6,7 +6,7 @@ extends RefCounted
 ## 类型行（可选）→ 暴击率 / 攻击距离 → SoulData.tooltip_blocks 的每个段落 → 部位行（可选）。
 ## 段落之间和部位行之前固定一条分隔线；分隔线用暗色。
 ## ( X 秒 ) 冷却行放大到 20 号（正文 16、标题 24）。
-## {cooldown} 会替换成技能冷却；没有段落时正文为「无」。
+## {cooldown} 会替换成技能冷却，{cast_times} 会替换成多重触发次数；没有段落时正文为「无」。
 ## colored = true 时按 GameColors 全局色板给状态词上色，返回 BBCode。
 
 const SEPARATOR : String = "==================================="
@@ -14,6 +14,7 @@ const SEPARATOR_COLOR : String = "#4a4f58"
 const COOLDOWN_FONT_SIZE : int = 20
 const EMPTY_TEXT : String = "无"
 const COOLDOWN_PLACEHOLDER : String = "{cooldown}"
+const CAST_TIMES_PLACEHOLDER : String = "{cast_times}"
 
 static var _keyword_regex : RegEx
 
@@ -48,14 +49,19 @@ static func build(soul: SoulData, colored: bool = false) -> String:
 	return _colorize(body) if colored else body
 
 
-## 读取魂灵自身的 tooltip 段落，并把 {cooldown} 替换成技能冷却
+## 读取魂灵自身的 tooltip 段落，并替换 {cooldown} / {cast_times}
 static func _collect_blocks(soul: SoulData, skill: SkillDefinition) -> PackedStringArray:
 	var blocks := PackedStringArray()
 	var cooldown := _cooldown_text(skill)
+	var cast_times := _cast_times_text(skill)
 	for block in soul.tooltip_blocks:
 		if block.is_empty():
 			continue
-		blocks.append(block.replace(COOLDOWN_PLACEHOLDER, cooldown))
+		blocks.append(
+			block
+			.replace(COOLDOWN_PLACEHOLDER, cooldown)
+			.replace(CAST_TIMES_PLACEHOLDER, cast_times)
+		)
 	return blocks
 
 
@@ -88,6 +94,11 @@ static func _crit_chance(skill: SkillDefinition) -> float:
 
 static func _cooldown_text(skill: SkillDefinition) -> String:
 	return _format_number(skill.cooldown_seconds) if skill != null else "0"
+
+
+## 多重触发次数；没有技能时按 1 显示
+static func _cast_times_text(skill: SkillDefinition) -> String:
+	return str(maxi(skill.cast_times, 1)) if skill != null else "1"
 
 
 ## 4.0 → "4"，4.5 → "4.5"

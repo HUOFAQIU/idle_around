@@ -7,6 +7,11 @@
 ##   ④ 结算              有投射物 → 一支箭对一个目标，飞到才结算、空了就是空了；
 ##                       没投射物 → 逐目标直接结算，暴击独立判定
 ##
+## SkillDefinition.cast_times > 1 时（多重触发），②～④ 会重复执行：
+## 每次释放重新选目标、独立暴击、独立结算自身效果。第 2 次起各占一个 20 刻
+## 激活锁，所以 1 秒最多释放 6 次，超出的顺延到后续秒继续，不丢弃。
+## 一次激活仍只扣一次充能、只广播一次 SoulUsed。
+##
 ## 投射物发射后立即返回，不占用 is_active：箭独立飞行、逐箭结算，
 ## 同一颗魂灵的下一次释放只受充能和 20 刻激活锁限制。
 ##
@@ -19,6 +24,21 @@
 ## @meta_license: MIT
 
 class_name AutoCastAbility extends ChargedAbility
+
+## 一次释放的结果；多重触发的循环据此决定继续、停止还是记空放。
+enum ReleaseResult {
+	HIT,        ## 选中目标并完成结算
+	EMPTY,      ## 本次释放没有目标
+	CANCELLED,  ## 吟唱被打断，后续释放不再进行
+	STOPPED,    ## 战斗结束或施法者倒下，后续释放正常停止
+}
+
+## 等待下一次释放的结果。
+enum WaitResult {
+	READY,      ## 激活锁已走完，可以释放
+	CANCELLED,  ## 施法被打断
+	STOPPED,    ## 战斗结束或施法者倒下
+}
 
 ## 本技能的数据定义（由 BattleUnit.add_soul_abilities() 注入）
 @export var skill: SkillDefinition
@@ -58,7 +78,8 @@ func apply_definition(def: SkillDefinition, p_display_name: String = "") -> void
 func _activate_ability() -> bool:
 	var battle := _get_battle()
 	var trace := CombatTrace.new("cast:" + ability_name, _trace_from_payload(current_event_payload))
-	_record_cast("attempt", trace, {"cooldown": cooldown})
+	var total := _cast_times()
+	_record_cast("attempt", trace, {"cooldown": cooldown, "cast_times": total})
 	if skill == null or battle == null:
 		_record_cast("failed", trace, {"detail": "skill 或 battle 为空"})
 		return false
@@ -70,6 +91,7 @@ func _activate_ability() -> bool:
 			"reason": "ACTIVATION_LOCK",
 		})
 		return false
+	# 第一次释放占用这次激活的锁；多重触发的后续释放各自再等一个锁周期
 	mark_activated()
 
 	# ① 充满就放，不等任何东西 —— 先扣费并清空充能（扫描线从头重扫）
@@ -78,94 +100,198 @@ func _activate_ability() -> bool:
 	if soul_runtime != null:
 		soul_runtime.add_counter("activations")
 		soul_runtime.set_counter_timestamp("last_activation_t", battle.elapsed_seconds())
-	_record_cast("activate", trace, {"cooldown": cooldown})
+	_record_cast("activate", trace, {"cooldown": cooldown, "cast_times": total})
 	# 空放也算“使用”：先广播，让 OTHER_SOUL_USED 触发器有机会充能别的魂灵
 	_notify_soul_used(trace)
 
-	# 只对施法者自己结算的效果（例如自身的再生），不管有没有选中敌人都会生效
+	# ②～④ 按多重触发次数循环释放
+	return await _run_releases(battle, trace, total)
+
+
+## 按多重触发次数连续释放；每次独立选目标、独立暴击、独立结算自身效果。
+## 第 2 次起要等激活锁走完，所以 1 秒最多释放 6 次，超出的顺延到后续秒继续。
+func _run_releases(battle: BattleManager, trace: CombatTrace, total: int) -> bool:
+	var hit_any := false
+	for index in total:
+		if index > 0:
+			var wait_result: WaitResult = await _wait_for_next_release(battle)
+			if wait_result == WaitResult.CANCELLED:
+				_record_cast("cancelled", trace, {
+					"detail": "等待多重触发时被打断",
+					"release_index": index,
+					"release_count": total,
+				})
+				return false
+			if wait_result == WaitResult.STOPPED:
+				return true
+			mark_activated()
+
+		if not is_active:
+			return false
+		if soul_runtime != null:
+			soul_runtime.add_counter("releases")
+		_record_cast("release", trace, {
+			"release_index": index + 1,
+			"release_count": total,
+		})
+		var result: ReleaseResult = await _release_once(battle, trace, index + 1, total)
+		match result:
+			ReleaseResult.CANCELLED:
+				return false
+			ReleaseResult.STOPPED:
+				return true
+			ReleaseResult.HIT:
+				hit_any = true
+
+	# 所有释放都没选中目标才记一次空放；部分空放不刷屏
+	if not hit_any and skill.target_rule != null:
+		_log_empty_activation(battle, trace, total)
+	return true
+
+
+## 等激活锁走完再放下一次；冻结、战斗结束、施法者倒下时不释放。
+## 激活锁由 BattleBrain 的物理帧推进，所以这里按物理帧轮询。
+func _wait_for_next_release(battle: BattleManager) -> WaitResult:
+	var caster := _caster_unit()
+	while (
+		is_active
+		and battle.is_running
+		and caster != null
+		and is_instance_valid(caster)
+		and not caster.is_dead
+	):
+		if not is_frozen() and can_activate_now():
+			return WaitResult.READY
+		await get_tree().physics_frame
+	return WaitResult.CANCELLED if not is_active else WaitResult.STOPPED
+
+
+## 执行一次释放：先结算自身效果，再按目标规则类型结算目标。
+func _release_once(
+	battle: BattleManager,
+	trace: CombatTrace,
+	release_index: int,
+	release_count: int
+) -> ReleaseResult:
 	_apply_self_effects(battle, trace)
 
-	# 魂灵目标技能（加速/减速/冻结/充能）：目标不是战斗单位
-	if skill.target_rule is SoulTargetRule:
-		return await _activate_soul_skill(battle, trace)
-
 	if skill.target_rule == null:
-		return true
+		return ReleaseResult.HIT
+	if skill.target_rule is SoulTargetRule:
+		return await _release_soul_skill(battle, trace, release_index, release_count)
+	return await _release_unit_skill(battle, trace, release_index, release_count)
 
-	# ② 选目标。选不到就是空放：照放、照扣冷却，只是什么也没打着
-	var groups := (skill.target_rule as TargetRule).resolve(owner_asc, battle)
 
-	# ③ 吟唱（可选）：醒来后重新选人，有人中途倒下就换目标。
+## 一次对战斗单位的释放：选目标 → 吟唱（可选）→ 报幕 → 投射物或直接结算。
+func _release_unit_skill(
+	battle: BattleManager,
+	trace: CombatTrace,
+	release_index: int,
+	release_count: int
+) -> ReleaseResult:
+	var rule := skill.target_rule as TargetRule
+	if rule == null:
+		return ReleaseResult.STOPPED
+	var groups := rule.resolve(owner_asc, battle)
+
+	# 吟唱结束后重新选人，有人中途倒下就换目标
 	if skill.cast_time > 0.0:
-		_record_cast("cast_start", trace, {"cast_time": skill.cast_time})
+		_record_cast("cast_start", trace, {
+			"cast_time": skill.cast_time,
+			"release_index": release_index,
+			"release_count": release_count,
+		})
 		await task_wait_delay(skill.cast_time)
 		if not is_active:
-			_record_cast("cancelled", trace, {"detail": "吟唱被打断"})
-			return false
-		groups = (skill.target_rule as TargetRule).resolve(owner_asc, battle)
-
-	if not battle.is_running:
-		return true
-	if groups.is_empty():
-		_record_cast("empty", trace, {"detail": "范围内没目标"})
-		# 空放只播报我方的：怪的"咬"够不着人是常态，一场几条蛇每 3 秒刷一行，
-		# 会把真正有意思的行冲掉
+			_record_cast("cancelled", trace, {
+				"detail": "吟唱被打断",
+				"release_index": release_index,
+				"release_count": release_count,
+			})
+			return ReleaseResult.CANCELLED
 		var caster := _caster_unit()
-		if caster and caster.team == BattleUnit.Team.PLAYER:
-			battle.log_line("%s 的【%s】空放了（范围内没目标）" % [_caster_name(), ability_name], "gray")
-			if soul_runtime != null:
-				soul_runtime.add_counter("empty_casts")
-		return true
+		if not battle.is_running or caster == null or caster.is_dead:
+			return ReleaseResult.STOPPED
+		groups = rule.resolve(owner_asc, battle)
 
-	# ④ 报幕 + 结算
+	if groups.is_empty():
+		_record_cast("release_empty", trace, {
+			"detail": "范围内没目标",
+			"release_index": release_index,
+			"release_count": release_count,
+		})
+		return ReleaseResult.EMPTY
+
+	# 报幕 + 结算
 	_record_cast("targets", trace, {
 		"targets": _targets_summary(groups),
 		"count": _target_count(groups),
+		"release_index": release_index,
+		"release_count": release_count,
 	})
 	battle.log_cast(_caster_unit(), ability_name, groups)
 
 	if skill.projectile_scene:
 		_cast_projectiles(groups, trace)
-		return true
+		return ReleaseResult.HIT
 
 	# 没有投射物：逐目标直接结算，暴击对每个目标独立判定。
 	for group in groups:
 		if not battle.is_running:
-			break
+			return ReleaseResult.STOPPED
 		for target in group:
 			_apply_effects_to_target(target, trace)
-	return true
+	return ReleaseResult.HIT
 
 
-## 魂灵目标技能：选魂灵、施加加速/减速/冻结/充能；空放也照常消耗冷却。
-func _activate_soul_skill(battle: BattleManager, trace: CombatTrace) -> bool:
+## 一次对魂灵的释放：选魂灵、施加加速/减速/冻结/充能。
+func _release_soul_skill(
+	battle: BattleManager,
+	trace: CombatTrace,
+	release_index: int,
+	release_count: int
+) -> ReleaseResult:
 	var rule := skill.target_rule as SoulTargetRule
 	if rule == null:
-		return true
+		return ReleaseResult.STOPPED
 	var targets := rule.resolve(self, battle.rng)
 
 	# 吟唱结束后重新选，避免对着已经离开的魂灵施放
 	if skill.cast_time > 0.0:
-		_record_cast("cast_start", trace, {"cast_time": skill.cast_time})
+		_record_cast("cast_start", trace, {
+			"cast_time": skill.cast_time,
+			"release_index": release_index,
+			"release_count": release_count,
+		})
 		await task_wait_delay(skill.cast_time)
 		if not is_active:
-			_record_cast("cancelled", trace, {"detail": "吟唱被打断"})
-			return false
-		if not battle.is_running:
-			return true
+			_record_cast("cancelled", trace, {
+				"detail": "吟唱被打断",
+				"release_index": release_index,
+				"release_count": release_count,
+			})
+			return ReleaseResult.CANCELLED
+		var caster := _caster_unit()
+		if not battle.is_running or caster == null or caster.is_dead:
+			return ReleaseResult.STOPPED
 		targets = rule.resolve(self, battle.rng)
 
 	if targets.is_empty():
-		_record_cast("empty", trace, {"detail": "没有可施加状态的魂灵"})
-		battle.log_line("%s 的【%s】空放了（没有可施加状态的魂灵）" % [_caster_name(), ability_name], "gray")
-		if soul_runtime != null:
-			soul_runtime.add_counter("empty_casts")
-		return true
+		_record_cast("release_empty", trace, {
+			"detail": "没有可施加状态的魂灵",
+			"release_index": release_index,
+			"release_count": release_count,
+		})
+		return ReleaseResult.EMPTY
 
 	var names: Array[String] = []
 	for target in targets:
 		names.append(target.ability_name)
-	_record_cast("soul_targets", trace, {"targets": names})
+	_record_cast("soul_targets", trace, {
+		"targets": names,
+		"release_index": release_index,
+		"release_count": release_count,
+	})
 	battle.log_line("%s 施放【%s】→ %s" % [_caster_name(), ability_name, "、".join(names)], "#6fb7ff")
 
 	for target in targets:
@@ -194,7 +320,30 @@ func _activate_soul_skill(battle: BattleManager, trace: CombatTrace) -> bool:
 			and target.can_activate_now()
 		):
 			target.try_activate(trace)
-	return true
+	return ReleaseResult.HIT
+
+
+## 整次激活的所有释放都没选中目标时，只报一次空放。
+## 战斗单位目标只播报我方的：怪的"咬"够不着人是常态，一场几条蛇每 3 秒刷一行，
+## 会把真正有意思的行冲掉；魂灵目标保持原有播报。
+func _log_empty_activation(battle: BattleManager, trace: CombatTrace, release_count: int) -> void:
+	var is_soul_target := skill.target_rule is SoulTargetRule
+	var detail := "没有可施加状态的魂灵" if is_soul_target else "范围内没目标"
+	_record_cast("empty", trace, {
+		"detail": detail,
+		"release_count": release_count,
+	})
+	var caster := _caster_unit()
+	var is_player := caster != null and caster.team == BattleUnit.Team.PLAYER
+	if is_soul_target or is_player:
+		battle.log_line("%s 的【%s】空放了（%s）" % [_caster_name(), ability_name, detail], "gray")
+		if soul_runtime != null:
+			soul_runtime.add_counter("empty_casts")
+
+
+## 多重触发次数：至少释放 1 次
+func _cast_times() -> int:
+	return maxi(skill.cast_times, 1) if skill != null else 1
 
 
 ## 有投射物的技能：一支箭对一个目标，射向它"此刻"的坐标。
@@ -255,7 +404,7 @@ func _on_projectiles_finished(result: Variant, target_count: int, trace: CombatT
 		battle.log_line("%s 的【%s】有 %d 支空了" % [_caster_name(), ability_name, missed], "gray")
 
 
-## 对施法者自己结算 self_effects；每次释放独立掷一次暴击。
+## 对施法者自己结算 self_effects；每次释放各结算一次，独立掷暴击。
 ## 即使目标规则空放，也照常生效（没有怪物时也会提高再生）。
 func _apply_self_effects(battle: BattleManager, trace: CombatTrace) -> void:
 	if skill == null or skill.self_effects.is_empty():

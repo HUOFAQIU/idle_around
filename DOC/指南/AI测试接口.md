@@ -2,7 +2,7 @@
 
 > 类型：指南 | 状态：有效 | 核对：2026-11-05
 > 何时读：写自动化测试/探针、构造战斗或背包场景、验证新功能
-> 关键词：测试 TestAPI 探针 自动化 战斗快照 魂灵 仓库 见闻 冷却 冻结 触发器 类型 标签 充能 卡面 tooltip 伤害缩放 颜色 色板 存档 save
+> 关键词：测试 TestAPI 探针 自动化 战斗快照 魂灵 仓库 见闻 商店 冷却 冻结 触发器 类型 标签 充能 卡面 tooltip 伤害缩放 多重触发 cast_times releases 颜色 色板 存档 save
 > 代码：`Scripts/test_api.gd`、`Windows/Battle/battle_window.gd`、`Scripts/collection_db.gd`、`Scripts/save/`
 > 约定：新增功能/内容时，同步补 TestAPI 方法并更新本文。
 
@@ -30,6 +30,11 @@ TestAPI.stop_battle()
 |---|---|
 | `add_soul(id, container := "inventory_0") -> bool` | 按 registry ID 放入指定容器（默认仓库第 1 页） |
 | `add_soul_to_warehouse(id) -> bool` | 按 registry ID 放入仓库，从第 1 页开始找空位 |
+| `show_shop() -> bool` | 显示商店窗口；找不到窗口返回 `false` |
+| `shop_add_soul(id) -> bool` | 按 registry ID 往 `shop_0` 追加一颗魂灵；清空用 `clear_container("shop_0")` |
+| `pick_up_item(container, grid_id) -> bool` | 模拟左键从格子拿起物品，进入拖拽状态 |
+| `cancel_moving_item() -> bool` | 模拟右键取消拿起；优先放回原格 |
+| `quick_sell(container, grid_id) -> bool` | 直接出售格子里的物品；商店和该容器都打开才生效 |
 | `set_warehouse_page(page) -> bool` | 切换仓库窗口到指定页（0 起）；窗口不存在返回 `false` |
 | `get_warehouse_page() -> int` | 当前仓库页码（0 起）；找不到窗口返回 `-1` |
 | `equip_soul(id, part := "") -> bool` | 放入 `cell_0..3`；`part` 为空时按魂灵部位，ANY 依次尝试四个部位 |
@@ -43,12 +48,22 @@ TestAPI.stop_battle()
 | `get_soul_tags(id) -> Array[StringName]` | 魂灵见闻标签，如 `Soul.tags.Small`、`Soul.tags.Burn` |
 | `get_soul_card_info(id) -> Dictionary` | 魂灵卡面：`icon` 路径、`columns`/`rows`、`label` 名称文本 |
 | `get_soul_damage_scaling(id) -> Dictionary` | 直接伤害的 `base_damage` / `bonus_per_matching_soul` / `matching_soul_types` |
+| `get_soul_cast_times(id) -> int` | 魂灵技能的多重触发次数；未知魂灵或无技能返回 `0` |
 | `get_soul_tooltip_text(id) -> String` | 魂灵 tooltip 完整纯文本；第一行是标题，后面是正文（格式见 `魂灵/魂灵.md`） |
 | `get_soul_tooltip_bbcode(id) -> String` | 魂灵 tooltip 的 BBCode 文本；正文状态词带颜色标签，用于验证上色 |
 
 `kind` 用 `CollectionDB.Kind.SOUL` / `CollectionDB.Kind.MONSTER`。见闻窗口的魂灵条目悬停使用与仓库相同的 tooltip（标题是 `item_name`，正文由 `SoulTooltip.build(soul, true)` 生成）；右键已遇见魂灵等价于 `add_soul_to_warehouse(id)`。
 
 仓库有 10 页（`inventory_0..inventory_9`）。测试时用 `add_soul_to_warehouse()` 自动入页，或 `set_warehouse_page()` 切到指定页观察显示；页码从 0 开始。
+
+拖拽取消可以这样验证：
+
+```gdscript
+TestAPI.clear_container("inventory_0")
+TestAPI.add_soul(&"xiao_lu_soul")          # 落在 (0, 0)
+TestAPI.pick_up_item("inventory_0", Vector2i.ZERO)
+TestAPI.cancel_moving_item()               # 物品回到 (0, 0)
+```
 
 ## 存档
 

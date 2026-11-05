@@ -2,7 +2,7 @@
 
 > 类型：实现 | 状态：有效 | 核对：2026-11-05
 > 何时读：改背包/仓库/装备槽/容器、拖拽、商店容器、存档
-> 关键词：GBIS 背包 仓库 inventory container 物品大类 category 装备槽 拖拽 Tooltip 存档 分页 Warehouse
+> 关键词：GBIS 背包 仓库 inventory container 物品大类 category 装备槽 拖拽 Tooltip 存档 分页 Warehouse 商店 Shop
 > 代码：Windows/Inventory/grid_base_inventory_system/、Scripts/warehouse.gd
 > 不覆盖：仓库玩法设计（见 DOC/窗口/仓库.md）
 >
@@ -39,11 +39,11 @@ core/
    ├─ container/BaseContainerView       容器视图基类：网格 + 物品绘制
    ├─ container/InventoryView           背包视图（可配置类型/部位）
    ├─ container/BaseGridView            单个格子的绘制与悬停
-   ├─ container/InventoryGridView       背包格子输入：左键拿/放、右键用、Shift+左键快移、中键分割
+   ├─ container/InventoryGridView       背包格子输入：左键拿/放、右键用、Shift+左键快移、Shift+右键快卖、中键分割
    └─ item/ItemView                     物品图标 + 魂灵名称 Label + 堆叠数字 + shader 参数 + 魂灵加速/减速/冻结徽章
 ```
 
-未接入的 `StackableData`、`ConsumableData`、`EquipmentData`、`EquipmentSlot*`、`Shop*`、`DropAreaView` 见 7.7。
+未接入的 `StackableData`、`ConsumableData`、`EquipmentData`、`EquipmentSlot*`、`DropAreaView` 见 7.8；商店见 7.7。
 
 `SoulData.triggers` 在 `soul_data.gd` 基类上，主动/被动魂灵通用；`PassiveSoulData`（`game/content/passive_soul_data.gd`）只额外新增 `passive_effects`。`PassiveTrigger` 位于 `game/content/passive_trigger.gd`。它们属于游戏内容层，不修改 GBIS 框架本身。
 
@@ -80,7 +80,7 @@ InventoryView._ready()
 
 - `InventoryView._ready()` 在编辑器模式下只重算尺寸，不注册容器。
 - 仓库页由 `Warehouse` 预注册；`InventoryView._ready()` 再注册同名容器时 `regist()` 直接返回已有容器，不会重建数据。
-- 容器可见时会把名字加入 `GBIS.opened_containers`，不可见时移除；快速移动只考虑打开着的背包。
+- 容器可见时会把名字加入 `GBIS.opened_containers`，不可见时移除；快速移动和快速出售只考虑打开着的容器。`_ready()` 用 `is_visible_in_tree()` 判断，隐藏窗口里的视图不会提前登记。
 - 仓库翻页调用 `InventoryView.change_data_source()`：清掉旧视图状态后重建当前页，并同步 `opened_containers`。
 
 **添加物品**
@@ -112,9 +112,10 @@ GBIS.add_item(inv_name, item_data)
       → sig_inv_item_added
 ```
 
-- `MovingItemService` 里保存 `moving_item`、`moving_item_view`、`moving_item_offset`；
+- `MovingItemService` 里保存 `moving_item`、`moving_item_view`、`moving_item_offset`，以及左键拿起的来源 `origin_container` / `origin_grid`（分割、商店等没有原格，来源为空）；
+- 右键取消时 `cancel_moving_item()` 优先按原格放回，原格被占用则放同容器第一个空位，容器满则物品留在手上并 warning；
 - `ItemWindow` 是独立无边框窗口，物品拖出原窗口也不会被画布裁掉；
-- 取消/放下时 `MovingItemService.clear_moving_item()` 会清掉 `ItemWindow`。
+- 取消/放下时 `MovingItemService.clear_moving_item()` 会清掉 `ItemWindow`，并发出 `moving_item_cleared`；各 `InventoryView` 收到后把拖动残留的可用/冲突高亮恢复成空/占用。
 
 ### 7.5 本项目的扩展：魂灵部位限制
 
@@ -156,20 +157,30 @@ GBIS.add_item(inv_name, item_data)
 | 操作 | 输入 | 代码入口 |
 |---|---|---|
 | 拿起物品 | 左键点有物品的格子 | `InventoryGridView._gui_input()` |
+| 取消拿起 | 手上有物品时按右键 | `InventoryView._input()` → `InventoryService.cancel_moving_item()` |
 | 放下物品 | 左键点空/可放置格子 | `InventoryService.place_moving_item()` |
 | 堆叠 | 左键点同类型可堆叠物品 | `InventoryService.stack_moving_item()` |
 | 快速移动 | Shift + 左键 | `InventoryService.quick_move()` |
+| 快速出售 | Shift + 右键 | `InventoryService.quick_sell()`（商店和该仓库页都打开时） |
 | 使用 | 右键 | `InventoryService.use_item()` |
 | 分割 | 中键（且当前没有拖拽物） | `InventoryService.split_item()` |
 
 框架还支持装备槽的“点物品穿装备”和“右键脱装备”，但当前魂灵窗口用的是 `InventoryView`，不是 `EquipmentSlotView`，所以这套交互暂时没有接入魂灵。
 
-### 7.7 框架自带、当前未接入的部分
+### 7.7 商店
+
+`ShopWindow`（`Windows/Shop/shop_window.tscn`）内嵌 `ShopView`，容器名 `shop_0`，20 列 × 10 行（32 px 格子，640×320；窗口 640×356）。`ShopView._ready()` 会注册商店容器，并清空后重新加载场景 `goods` 数组里的货物。
+
+- 点击货物：`ShopService.buy()` → `ItemData.buy()`；默认 `can_buy()` 恒为 `true`，物品复制进第一个有空位的背包，`cost()` 只打警告。
+- 拖着物品点商店格子：`ShopService.sell()` → `ItemData.can_sell()` / `sold()`；默认 `can_sell()` 为 `true`，`sold()` 只打警告，物品从手上消失。
+- Shift + 右键点仓库物品：`InventoryService.quick_sell()` 直接结算并移除原格物品；要求商店和该仓库页都在 `GBIS.opened_containers` 里，否则不生效。
+- 价格、货币、货物配置都还没定义。正式做买卖需要具体的 `ItemData` 子类重写 `can_buy()` / `cost()` / `can_sell()` / `sold()`，货物可填 `ShopView.goods` 或调 `ShopService.load_goods()`。
+
+### 7.8 框架自带、当前未接入的部分
 
 这些代码还在，但当前游戏没有使用：
 
 - `EquipmentSlotView` / `EquipmentSlotData` / `EquipmentSlotRepository` / `EquipmentSlotService`：传统单槽装备系统；
-- `ShopView` / `ShopGridView` / `ShopService`：商店，`ShopWindow` 目前是空壳；
 - `DropAreaView`：把物品拖出窗口丢弃；
 - `ConsumableData` / `EquipmentData` / `StackableData`：消耗品、可穿戴装备、可堆叠物品；
 - `GBIS.add_quick_move_relation()`：背包间快速移动关系；

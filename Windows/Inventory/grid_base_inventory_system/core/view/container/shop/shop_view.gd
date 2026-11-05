@@ -36,7 +36,7 @@ func _ready() -> void:
 	
 	var ret = GBIS.shop_service.regist(container_name, container_columns, container_rows, true)
 	
-	if visible:
+	if is_visible_in_tree():
 		GBIS.opened_containers.append(container_name)
 	
 	# 使用已注册的信息覆盖View设置

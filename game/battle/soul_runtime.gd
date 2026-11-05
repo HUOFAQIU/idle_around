@@ -27,6 +27,7 @@ var freeze_seconds: float = 0.0
 ## 本场统计；报告/调试用，键名见 _COUNTER_DEFAULTS
 var counters: Dictionary = {
 	"activations": 0,
+	"releases": 0,
 	"empty_casts": 0,
 	"triggers_fired": 0,
 	"charges_received": 0.0,

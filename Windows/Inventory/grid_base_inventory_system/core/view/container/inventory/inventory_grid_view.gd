@@ -26,6 +26,8 @@ func _gui_input(event: InputEvent) -> void:
 	
 	if event.is_action_pressed(GBIS.input_quick_move):
 		GBIS.inventory_service.quick_move(_container_view.container_name, grid_id)
+	elif event.is_action_pressed(GBIS.input_quick_sell):
+		GBIS.inventory_service.quick_sell(_container_view.container_name, grid_id)
 	elif event.is_action_pressed(GBIS.input_use):
 		GBIS.inventory_service.use_item(_container_view.container_name, grid_id)
 	elif event.is_action_pressed(GBIS.input_split) and not GBIS.moving_item_service.moving_item:

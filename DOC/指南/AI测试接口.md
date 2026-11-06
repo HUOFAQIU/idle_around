@@ -118,6 +118,8 @@ print(TestAPI.get_mod_load_order())
 
 mod 目录是 `user://mods/<mod_id>/`，最小结构 `mod.json` + `content.pck`；开发期可以只放 loose 目录。制作和字段说明见 `指南/Mod制作.md`，加载规则见 `架构/Mod系统.md`。mod 内容 ID 可以直接传给 `add_soul()` / `get_soul_ids()`。
 
+装好示例 mod 后，可以用 `TestAPI.add_soul_to_warehouse(&"example_souls:fire_wolf_soul")` 验证。示例源码在 `mods/example_souls/`，打包脚本是 `modkit/pack_example.gd`。
+
 ## 颜色
 
 | 方法 | 说明 |

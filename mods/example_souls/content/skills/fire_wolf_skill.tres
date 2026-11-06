@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="SkillDefinition" format=3]
+
+[ext_resource type="Script" uid="uid://b7ovihaaijli7" path="res://addons/GodotGAS/effects/gameplay_execution_calculation.gd" id="1_exec_base"]
+[ext_resource type="Script" uid="uid://dxtfmpqjh3pta" path="res://game/content/soul_damage_execution.gd" id="2_exec"]
+[ext_resource type="Script" uid="uid://c81papidngxvg" path="res://addons/GodotGAS/effects/gameplay_effect.gd" id="3_effect"]
+[ext_resource type="Script" uid="uid://ktr72cmavmyy" path="res://game/content/skill_definition.gd" id="4_skill"]
+[ext_resource type="Script" uid="uid://cf2mx3u4jfquk" path="res://game/content/target_rule.gd" id="5_target"]
+
+[sub_resource type="Resource" id="Resource_execution_damage"]
+script = ExtResource("2_exec")
+base_damage = 12.0
+
+[sub_resource type="Resource" id="Resource_effect_damage"]
+script = ExtResource("3_effect")
+executions = Array[ExtResource("1_exec_base")]([SubResource("Resource_execution_damage")])
+
+[sub_resource type="Resource" id="Resource_target_rule"]
+script = ExtResource("5_target")
+mode = 3
+max_range = 3
+
+[resource]
+script = ExtResource("4_skill")
+id = "example_souls_fire_wolf_skill"
+description = "冷却 4 秒，对 3 格内最近的敌人造成 12 点伤害，并播放自定义火焰特效。"
+effects = Array[ExtResource("3_effect")]([SubResource("Resource_effect_damage")])
+hit_cue_tag = &"Cue.Mod.ExampleSouls.Fire"
+cooldown_seconds = 4.0
+target_rule = SubResource("Resource_target_rule")

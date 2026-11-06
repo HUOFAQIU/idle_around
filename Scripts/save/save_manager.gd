@@ -36,6 +36,12 @@ func _ready() -> void:
 	_connect_signals()
 	# 仓库页由 Warehouse autoload 预注册，其余容器由 InventoryView._ready() 注册；等一帧再读档
 	await get_tree().process_frame
+	# --script/工具模式没有主场景，装备槽等容器不会注册；
+	# 这时读档会跳过找不到的容器，若随后自动写档会丢物品，所以直接不读也不写。
+	if get_tree().current_scene == null:
+		_read_only = true
+		set_process(false)
+		return
 	load_game()
 
 

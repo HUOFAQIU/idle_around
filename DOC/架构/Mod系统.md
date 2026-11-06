@@ -104,7 +104,7 @@ res://mods/example_souls/content/monsters/fire_wolf_data.tres
 ## 8. 当前实现范围（Phase 1 的 1～5 + 管理窗口/加载顺序）
 
 - 已做：`mod.json` schema、`ModLoader`、`user://mods` 发现、PCK/loose 挂载、依赖排序、冲突检测、`CollectionDB` 合并、`content_id`、`orphaned` 存档保护、mod Cue 注册、`ModWindow` 管理窗口、加载顺序调整。
-- 未做：示例 mod/modkit、Steam 订阅与发布。
+- 未做：Steam 订阅与发布。
 - 新增功能后按项目约定同步 `Scripts/test_api.gd` 和 `DOC/指南/AI测试接口.md`。
 
 ### 8.1 Mod 管理窗口
@@ -119,6 +119,12 @@ res://mods/example_souls/content/monsters/fire_wolf_data.tres
 - “加载顺序”标签页用上移/下移调整基础顺序，写入 `user://mods.cfg` 的 `[order] list`；运行期不重排，重启后生效。
 - 顺序只是基础顺序；`dependencies` 和 `load_after` 仍会在排序时把依赖方提前。Mod 列表显示的是本次实际加载顺序。
 - `get_mod_order()` 返回用户顺序，`get_mod_load_order()` 返回实际加载顺序；两者都可能因依赖而不同。
+
+### 8.3 示例 mod/modkit
+
+- 示例源码在 `mods/example_souls/`，按 `res://mods/example_souls/` 的运行时路径编写，包含魂灵、技能和自定义 Cue。
+- `modkit/pack_example.gd` 用 `PCKPacker` 打包到 `user://mods/example_souls/`，并复制 `mod.json`；具体命令见 `指南/Mod制作.md` 的 4.1。
+- `mods/` 和 `modkit/` 已从正式游戏导出中排除。
 
 ## 9. 安全边界
 

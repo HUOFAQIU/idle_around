@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "id": "example_souls",
+  "name": "Example Souls",
+  "version": "1.0.0",
+  "author": "idle_around",
+  "description": "示例 mod：一颗新魂灵、一个自定义 Cue 和一条示例技能。",
+  "game_version": {
+	"min": "0.1.0"
+  },
+  "content": {
+	"souls": [
+	  {
+		"id": "example_souls:fire_wolf_soul",
+		"path": "content/souls/fire_wolf_soul.tres"
+	  }
+	],
+	"cues": [
+	  {
+		"tag": "Cue.Mod.ExampleSouls.Fire",
+		"scene": "content/cues/example_fire_cue.tscn"
+	  }
+	]
+  }
+}

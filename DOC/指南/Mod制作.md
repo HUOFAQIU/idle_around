@@ -2,10 +2,10 @@
 
 > 类型：指南 | 状态：部分实现（Phase 1 的 1～5）
 > 何时读：制作、打包、调试 idle_around 的 mod
-> 关键词：mod.json content.pck modkit patch 导出 覆盖 加载顺序
+> 关键词：mod.json content.pck modkit 示例 mod pack_example patch 导出 覆盖 加载顺序
 > 代码：`Scripts/mod/`、`Scripts/collection_db.gd`
 > 相关：`架构/Mod系统.md`
-> 核对：2026-11-06
+> 核对：2026-11-07
 
 ## 1. 最小 mod
 
@@ -16,6 +16,8 @@ user://mods/example_souls/
 ```
 
 开发期可以不放 `content.pck`，直接把内容放在目录里（loose 模式）；发布前再打包。loose 模式不经过 Godot 导入流程，贴图/场景资源可能不可用，只建议用来调数据。
+
+本工程自带示例源码 `mods/example_souls/` 和一键打包脚本 `modkit/pack_example.gd`，见 4.1。
 
 ## 2. mod.json
 
@@ -80,6 +82,24 @@ user://mods/example_souls/
 - 内容路径必须落在本 mod 的命名空间目录下。
 
 ## 4. 用 Godot 4.7 打包
+
+### 4.1 示例 mod 一键打包
+
+示例源码在 `mods/example_souls/`，包含一颗魂灵、一条技能和一个自定义 Cue。它按 `res://mods/example_souls/` 的运行时路径编写，所以可以直接打进 PCK。
+
+在项目根目录运行：
+
+```text
+"U:\Godot_ver\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64.exe" ^
+  --headless --path "U:\Godot_Project\idle_around" ^
+  --script res://modkit/pack_example.gd
+```
+
+脚本会生成 `user://mods/example_souls/content.pck` 并把 `mod.json` 复制到旁边。打包脚本走 `--script` 模式；`SaveManager` 检测到没有主场景会跳过读档，不会碰存档。重启游戏后，Mod 窗口里能看到 `Example Souls`；用 `TestAPI.add_soul_to_warehouse(&"example_souls:fire_wolf_soul")` 可以把魂灵放进仓库。
+
+改一个新 mod 时，复制 `mods/example_souls/` 为 `mods/<mod_id>/`，同步修改 `mod.json` 的 `id`、内容 ID、技能 ID 和 Cue 前缀，再复制或改造 `pack_example.gd` 里的 `MOD_ID`。`mods/` 和 `modkit/` 不会打进正式游戏包。
+
+### 4.2 用 patch 导出
 
 1. 从当前工程复制一份 modkit，保持 Godot 4.7.x；不要用不同小版本。
 2. 在 modkit 里新建 `res://mods/<mod_id>/`，放入内容资源。

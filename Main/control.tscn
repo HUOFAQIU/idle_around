@@ -8,11 +8,12 @@
 [ext_resource type="PackedScene" uid="uid://f6jom4nfishp" path="res://Windows/Inventory/inventory_window.tscn" id="6_2mfgw"]
 [ext_resource type="PackedScene" uid="uid://bqug1f88ap7hb" path="res://Windows/Battle/battle_window.tscn" id="7_e8vwd"]
 [ext_resource type="PackedScene" uid="uid://byuffsddecjhf" path="res://Windows/Shop/shop_window.tscn" id="8_mkciv"]
+[ext_resource type="Script" uid="uid://cwvp8ltmwje07" path="res://Windows/ModWindow/mod_window.gd" id="9_70kn5"]
 [ext_resource type="PackedScene" uid="uid://duibpbpnx3f6x" path="res://Windows/Tooltip/tooltip_window.tscn" id="9_c4peb"]
 [ext_resource type="PackedScene" uid="uid://dcymb2xgnhr2c" path="res://Windows/Collection/collection_window.tscn" id="9_nu5lx"]
 [ext_resource type="PackedScene" uid="uid://bc0rml4pkml2k" path="res://Windows/Info/info_window.tscn" id="10_gdtoh"]
 [ext_resource type="PackedScene" uid="uid://b87wi6f58te5u" path="res://Windows/Item/item_window.tscn" id="11_n2hic"]
-[ext_resource type="PackedScene" path="res://Windows/Debug/debug_window.tscn" id="12_debug"]
+[ext_resource type="PackedScene" uid="uid://cj4ex21pfm4qa" path="res://Windows/Debug/debug_window.tscn" id="12_debug"]
 
 [node name="Control" type="Control" unique_id=887310324]
 layout_mode = 3
@@ -110,6 +111,7 @@ text = "见闻"
 [node name="Button7" type="Button" parent="GridContainer" unique_id=1732763487]
 custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
+text = "调试"
 
 [node name="Button8" type="Button" parent="GridContainer" unique_id=24536484]
 custom_minimum_size = Vector2(80, 80)
@@ -118,6 +120,7 @@ layout_mode = 2
 [node name="Button9" type="Button" parent="GridContainer" unique_id=1526956540]
 custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
+text = "Mod"
 
 [node name="CharacterWindow" parent="." unique_id=1235136498 instance=ExtResource("4_pa2rv")]
 visible = false
@@ -137,14 +140,21 @@ open_position = Vector2i(240, 165)
 [node name="ShopWindow" parent="." unique_id=1488491486 instance=ExtResource("8_mkciv")]
 visible = false
 
-[node name="DebugWindow" parent="." unique_id=1698870524 instance=ExtResource("12_debug")]
+[node name="ModWindow" type="Window" parent="." unique_id=829175154]
+oversampling_override = 1.0
+position = Vector2i(0, 36)
+size = Vector2i(640, 356)
 visible = false
+script = ExtResource("9_70kn5")
+
+[node name="DebugWindow" parent="." unique_id=1698870524 instance=ExtResource("12_debug")]
 open_position = Vector2i(0, 36)
 
 [node name="CollectionWindow" parent="." unique_id=1694343200 instance=ExtResource("9_nu5lx")]
 visible = false
 
 [node name="TooltipWindow" parent="." unique_id=143098148 instance=ExtResource("9_c4peb")]
+visible = false
 
 [node name="InfoWindow" parent="." unique_id=158491879 instance=ExtResource("10_gdtoh")]
 

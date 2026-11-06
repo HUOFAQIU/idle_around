@@ -16,7 +16,8 @@
 			"uuid": "13cb6bda-ffb7-4ee9-879a-a4735482d3aa",
 			"title": "Todo",
 			"tasks": [
-				"d92b1696-7e59-4569-864a-0eca8bbe36f4"
+				"d92b1696-7e59-4569-864a-0eca8bbe36f4",
+				"a8962ae3-4c69-4ae7-89a8-5e74188ffc30"
 			]
 		},
 		{
@@ -30,7 +31,9 @@
 				"29fa349a-dcab-4ea5-8a8c-634a10391763",
 				"064ed8d0-e776-4472-971d-12b4bbd56c8b",
 				"a70561cd-5818-45b3-a434-03a2ca564543",
-				"499e7710-81c7-4ff8-86ff-e2cadeda8597"
+				"499e7710-81c7-4ff8-86ff-e2cadeda8597",
+				"aa93e1a4-7df8-4914-b735-f321212402ff",
+				"cc2f6c3d-fe41-4afc-9dbc-691ad7f43f92"
 			]
 		},
 		{
@@ -153,6 +156,27 @@
 			"title": "要做的",
 			"description": "1、魂灵数值 roll\n2、战斗",
 			"category": "dc17d4ed-a172-4464-9b98-2aeab52f9cdf",
+			"steps": []
+		},
+		{
+			"uuid": "aa93e1a4-7df8-4914-b735-f321212402ff",
+			"title": "Mod",
+			"description": "",
+			"category": "abd1801b-a241-4c02-8dd1-4e804d1e3bd5",
+			"steps": []
+		},
+		{
+			"uuid": "cc2f6c3d-fe41-4afc-9dbc-691ad7f43f92",
+			"title": "MCP",
+			"description": "",
+			"category": "abd1801b-a241-4c02-8dd1-4e804d1e3bd5",
+			"steps": []
+		},
+		{
+			"uuid": "a8962ae3-4c69-4ae7-89a8-5e74188ffc30",
+			"title": "养魂灵，需要些养成玩法",
+			"description": "",
+			"category": "abd1801b-a241-4c02-8dd1-4e804d1e3bd5",
 			"steps": []
 		}
 	],

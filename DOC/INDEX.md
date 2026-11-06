@@ -15,7 +15,7 @@
 | 改技能/目标规则/魂灵/怪物数据/掉落 | `架构/战斗数据与魂灵.md` | `game/content/` |
 | 改背包/仓库/装备槽/拖拽 | `架构/背包_GBIS.md` | `Windows/Inventory/grid_base_inventory_system/`、`Scripts/warehouse.gd` |
 | 改存档/读档/存档格式/迁移 | `架构/存档.md` | `Scripts/save/` |
-| 改 GAS 属性/标签/Cue | `架构/GAS.md`、`特效/effects.md` | `godot_gas/`、`addons/GodotGAS/` |
+| 改 GAS 属性/标签/Cue | `架构/GAS.md`、`特效/effects.md` | `godot_gas/`、`addons/GodotGAS/`、`Scripts/mod/cue_manager_mod.gd` |
 | 按完整链路理解系统 | `架构/关键流程.md` | `game/battle/`、`Windows/Inventory/` |
 | 新增魂灵/怪物/技能/窗口/特效 | `架构/扩展点.md` | `game/content/`、`Main/control.gd` |
 | 改 mod 加载/内容注册/存档兼容 | `架构/Mod系统.md` | `Scripts/mod/`、`Scripts/collection_db.gd`、`Scripts/save/` |
@@ -51,7 +51,7 @@
 | `魂灵/被动魂灵.md` | 设计 | 已实现 | 2026-11-04 |
 | `魂灵/开发指导文件.md` | 设计 | 设计 | 2026-11-01 |
 | `archive/souls.xlsx` | 数据 | 归档（二进制，Claude 不可读） | — |
-| `特效/effects.md` | 指南 | 有效 | 2026-11-05 |
+| `特效/effects.md` | 指南 | 有效 | 2026-11-06 |
 | `指南/AI测试接口.md` | 指南 | 有效 | 2026-11-06 |
 | `指南/调试窗口.md` | 指南 | 有效 | 2026-11-01 |
 | `架构/调试与遥测.md` | 实现 | 有效 | 2026-11-01 |

@@ -314,8 +314,9 @@ func _load_content_entry(
 		return
 
 	if kind == ModContentEntry.Kind.CUE:
-		if not raw_id.begins_with("Cue.Mod."):
-			_mod_error(mod, "cue 标签必须以 Cue.Mod. 开头：%s" % raw_id)
+		var cue_prefix := _cue_tag_prefix(mod)
+		if not raw_id.begins_with(cue_prefix) or raw_id.length() == cue_prefix.length():
+			_mod_error(mod, "cue 标签必须使用 %s 前缀：%s" % [cue_prefix, raw_id])
 			return
 	elif not raw_id.begins_with(String(mod.id) + ":"):
 		_mod_error(mod, "内容 ID 必须以 %s: 开头：%s" % [mod.id, raw_id])
@@ -424,6 +425,14 @@ func _is_protected_override(path: String) -> bool:
 	if path.begins_with("res://game/content/Collection/") and path.ends_with("_registry.tres"):
 		return true
 	return false
+
+
+## Cue 标签命名空间：mod id（snake_case）转 PascalCase，例如 example_souls → Cue.Mod.ExampleSouls.
+func _cue_tag_prefix(mod: ModInfo) -> String:
+	var pascal := ""
+	for part in String(mod.id).split("_", false):
+		pascal += part.substr(0, 1).to_upper() + part.substr(1)
+	return "Cue.Mod.%s." % pascal
 
 
 func _content_root(mod: ModInfo) -> String:

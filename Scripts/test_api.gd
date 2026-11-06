@@ -341,6 +341,16 @@ static func get_mod_errors() -> Array[String]:
 	return ModLoader.get_errors()
 
 
+## 已发现的 mod Cue：tag / mod / path / 是否已注册到 GameplayCueManager
+static func get_mod_cues() -> Array[Dictionary]:
+	return GameplayCueManager.get_mod_cues()
+
+
+## 某个 mod Cue 是否已注册到 GameplayCueManager
+static func is_mod_cue_registered(tag : StringName) -> bool:
+	return GameplayCueManager.is_mod_cue_registered(tag)
+
+
 ## 写启用状态；当前运行期不会卸载/重载，重启后生效
 static func set_mod_enabled(mod_id : StringName, enabled : bool) -> bool:
 	return ModLoader.set_mod_enabled(mod_id, enabled)

@@ -1,0 +1,73 @@
+extends "res://addons/GodotGAS/managers/gameplay_cue_manager.gd"
+## 项目侧 Cue 管理器（Autoload 名仍是 GameplayCueManager）。
+##
+## 继承 GodotGAS 的 GameplayCueManager，不修改 addons/：
+## _ready() 先让基类加载内置 cue_registry，再注册 ModLoader 的 Cue 条目。
+## 注册失败写入 ModLoader.get_errors()。
+
+var _mod_registered_tags: Array[StringName] = []
+
+
+func _ready() -> void:
+	super._ready()
+	_register_mod_cues()
+
+
+## 运行时注册一个 Cue；标签已存在时返回 false
+func register_cue(tag: StringName, scene: PackedScene) -> bool:
+	if tag.is_empty() or scene == null or _cue_scenes.has(tag):
+		return false
+	_cue_scenes[tag] = scene
+	_pool[tag] = []
+	return true
+
+
+## 已发现的 mod Cue 概况：tag / mod / path / 是否注册成功
+func get_mod_cues() -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	for entry in ModLoader.get_cue_entries():
+		result.append({
+			"tag": String(entry.content_id),
+			"mod": String(entry.mod_id),
+			"path": entry.path,
+			"registered": _mod_registered_tags.has(entry.content_id),
+		})
+	return result
+
+
+## 某个 mod Cue 是否已注册
+func is_mod_cue_registered(tag: StringName) -> bool:
+	return _mod_registered_tags.has(tag)
+
+
+func _register_mod_cues() -> void:
+	for entry in ModLoader.get_cue_entries():
+		if _register_entry(entry):
+			_mod_registered_tags.append(entry.content_id)
+
+
+func _register_entry(entry: ModContentEntry) -> bool:
+	var scene := entry.resource as PackedScene
+	if scene == null:
+		ModLoader.report_warning("%s: Cue 资源不是 PackedScene：%s" % [entry.mod_id, entry.path])
+		return false
+	if not _scene_is_cue(scene):
+		ModLoader.report_warning("%s: Cue 场景根节点必须继承 GameplayCueNotify：%s" % [
+			entry.mod_id,
+			entry.path,
+		])
+		return false
+	if not register_cue(entry.content_id, scene):
+		ModLoader.report_warning("%s: Cue 标签已被占用：%s" % [entry.mod_id, entry.content_id])
+		return false
+	return true
+
+
+## 实例化一次检查根节点类型；不在场景树里，只会触发 _init。
+func _scene_is_cue(scene: PackedScene) -> bool:
+	var instance := scene.instantiate()
+	if instance == null:
+		return false
+	var valid := instance is GameplayCueNotify
+	instance.free()
+	return valid

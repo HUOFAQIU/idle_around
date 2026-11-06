@@ -1,6 +1,6 @@
 # Mod 系统与创意工坊
 
-> 类型：设计 | 状态：部分实现（Phase 1 的 1～4）
+> 类型：设计 | 状态：部分实现（Phase 1 的 1～5）
 > 何时读：改 mod 加载、内容注册、存档兼容，或准备接 Steam 创意工坊
 > 关键词：mod ModLoader manifest PCK 创意工坊 Workshop content_id orphaned 加载顺序
 > 代码：`Scripts/mod/`、`Scripts/collection_db.gd`、`Scripts/save/`、`project.godot`
@@ -31,6 +31,9 @@ ModLoader（autoload，最先）
   → 有 content.pck 就 load_resource_pack()
   → 产出 souls / monsters / cues 条目
         │
+        ├─ cues ──▶ GameplayCueManager（项目包装，继承 addon 的管理器）
+        │              → 加载内置 registry 后追加 mod Cue
+        │
         ▼
 CollectionDB（autoload）
   原版 YARD registry + mod 条目
@@ -43,21 +46,24 @@ SaveManager
 
 - `ModLoader` 不做玩法逻辑，只提供只读的 mod 概况和内容条目。
 - `CollectionDB` 仍是唯一内容入口；mod 内容与普通内容一样被图鉴、刷怪、仓库使用。
-- Cue 注册、mod 管理界面、Steam 接入都不在当前范围。
+- `GameplayCueManager` 的项目包装（`Scripts/mod/cue_manager_mod.gd`）只在基类加载完内置 registry 后追加 mod Cue，不参与内容目录和存档；这样不用改 `addons/`。
+- mod 管理界面、Steam 接入不在当前范围。
 
 ## 4. 启动时序
 
 1. `ModLoader._init()`：加载 `user://mods.cfg`，扫描 `user://mods/*/mod.json`，排序并挂载 PCK，加载 manifest 列出的内容资源。
-2. `GameGlobal`、`GBIS`、`GameplayCueManager` 等原有 autoload 按原顺序启动。
-3. `CollectionDB._ready()`：读原版 registry，合并 mod 条目，写 `content_id`。
-4. `SaveManager` 等一帧后读档；找不到的内容进 `orphaned`。
-5. 主场景启动。
+2. `GameGlobal`、`GBIS` 等原有 autoload 按原顺序启动。
+3. `GameplayCueManager._ready()`（项目包装）：先让基类加载内置 `cue_registry`，再追加 `ModLoader` 校验通过的 mod Cue。
+4. `CollectionDB._ready()`：读原版 registry，合并 mod 条目，写 `content_id`。
+5. `SaveManager` 等一帧后读档；找不到的内容进 `orphaned`。
+6. 主场景启动。
 
 约束：
 
 - 必须在 autoload 的 `_init()` 里挂载 PCK；挂载晚了，之前 `preload()` 的资源不会替换。
 - 没有卸载 API，启用/禁用/改顺序后必须重启。
 - 挂载后 `DirAccess` 不会列出 PCK 内部目录，所以内容路径由 `mod.json` 显式列出，不扫描 PCK。
+- `GameplayCueManager` 的 autoload 路径已改为项目包装。如果禁用再启用 GodotGAS 插件，插件会把 autoload 改回 `addons/GodotGAS/managers/gameplay_cue_manager.gd`，需要手动改回 `Scripts/mod/cue_manager_mod.gd`。
 
 ## 5. Mod 来源与包结构
 
@@ -82,7 +88,7 @@ res://mods/example_souls/content/monsters/fire_wolf_data.tres
 
 - mod 内容 ID：`<mod_id>:<local_id>`；原版 ID 不带冒号，互不冲突。
 - 技能 `SkillDefinition.id`：`<mod_id>_<local_id>`，因为 `ability_tag = "Skill." + id`；重复 ID 会互相顶掉。
-- Cue 标签：`Cue.Mod.<PascalModId>.<Name>`；当前只解析和校验，不注册到 `GameplayCueManager`。
+- Cue 标签：`Cue.Mod.<PascalModId>.<Name>`，例如 `example_souls` → `Cue.Mod.ExampleSouls.Fire`；标签不属于本 mod 命名空间时拒绝加载。`GameplayCueManager` 的项目包装在基类加载完内置 registry 后注册 mod Cue，场景根节点必须继承 `GameplayCueNotify`；已存在的标签不会被覆盖。
 - 加载顺序：`dependencies` 是硬依赖，缺失/禁用时依赖方不加载；`load_after` 是软顺序。后挂载的 mod 覆盖先挂载的。
 - 冲突检测：重复内容 ID、重复 cue tag、同一路径被多个 mod 声明覆盖在加载阶段记录；重复 skill id 在 `CollectionDB` 合并阶段补充。都会出现在 `ModLoader.get_errors()`。
 - mod 内容路径必须落在该 mod 的命名空间目录下；只有 `overrides` 可以指向原版 `res://` 路径。
@@ -95,10 +101,10 @@ res://mods/example_souls/content/monsters/fire_wolf_data.tres
 - **缺失内容不能静默丢**：读档时找不到的内容记录写入 `orphaned` 段；写档时原样带回。重新启用 mod 后，下一次读档会尝试放回原容器/仓库。
 - 原版 ID 不变，旧存档不需要迁移；`version` 仍是 1。
 
-## 8. 当前实现范围（Phase 1 的 1～4）
+## 8. 当前实现范围（Phase 1 的 1～5）
 
-- 已做：`mod.json` schema、`ModLoader`、`user://mods` 发现、PCK/loose 挂载、依赖排序、冲突检测、`CollectionDB` 合并、`content_id`、`orphaned` 存档保护。
-- 未做：cue 注册、mod 管理界面、加载顺序 UI、示例 mod/modkit、Steam 订阅与发布。
+- 已做：`mod.json` schema、`ModLoader`、`user://mods` 发现、PCK/loose 挂载、依赖排序、冲突检测、`CollectionDB` 合并、`content_id`、`orphaned` 存档保护、mod Cue 注册。
+- 未做：mod 管理界面、加载顺序 UI、示例 mod/modkit、Steam 订阅与发布。
 - 新增功能后按项目约定同步 `Scripts/test_api.gd` 和 `DOC/指南/AI测试接口.md`。
 
 ## 9. 安全边界

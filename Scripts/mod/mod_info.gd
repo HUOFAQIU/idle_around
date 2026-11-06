@@ -1,0 +1,41 @@
+class_name ModInfo
+extends RefCounted
+## 一个已发现 mod 的运行时概况。
+##
+## 只描述 mod 的身份、来源、启用状态和加载结果；具体内容资源由 ModLoader 统一收集。
+
+## mod 来源；Workshop 预留
+enum Source {
+	LOCAL,
+	WORKSHOP,
+}
+
+var id: StringName = &""
+var name: String = ""
+var version: String = "0.0.0"
+var author: String = ""
+var description: String = ""
+var source: Source = Source.LOCAL
+## loose 目录或 PCK 所在目录
+var root_path: String = ""
+var manifest_path: String = ""
+## PCK 路径；空 = loose 目录
+var pack_path: String = ""
+var manifest: ModManifest
+## 玩家是否启用
+var enabled: bool = true
+## 依赖缺失/未启用导致本次不加载
+var blocked: bool = false
+## 本次是否完成加载（PCK 挂载成功或 loose 目录读取完成）
+var loaded: bool = false
+## 是否真的挂载了 PCK
+var mounted: bool = false
+var soul_count: int = 0
+var monster_count: int = 0
+var cue_count: int = 0
+var errors: Array[String] = []
+
+
+## 是否使用 loose 目录（没有 content.pck）
+func is_loose() -> bool:
+	return pack_path.is_empty()

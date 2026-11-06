@@ -5,6 +5,10 @@ extends ItemData
 ## `game/battle/soul_runtime.gd` 的 SoulRuntime 里，通过 SoulRuntimeDB 查询。
 class_name SoulData
 
+## 运行期稳定 ID：原版为 YARD registry ID，mod 内容为 manifest ID。
+## 由 CollectionDB / ModLoader 写入；不要在资源里手填，也不要拿来显示。
+@export_storage var content_id: StringName = &""
+
 ## 这颗魂灵在战斗中提供的技能：冷却、范围、效果全写在这份数据里。
 ## 空着 = 装上去也不提供任何技能
 @export var skill: SkillDefinition

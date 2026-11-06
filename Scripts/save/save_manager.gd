@@ -27,6 +27,8 @@ var _play_time_sec: float = 0.0
 var _keep_backup_next_save: bool = false
 ## 读到未来版本的存档时只读，避免旧客户端覆盖新数据
 var _read_only: bool = false
+## 因 mod 缺失/容器满而暂时放不进世界的物品记录；写档时原样保留
+var _orphaned_records: Array[Dictionary] = []
 
 
 func _ready() -> void:
@@ -108,6 +110,8 @@ func load_game() -> bool:
 	_loading = true
 	_dirty = false
 	_urgent = false
+	_orphaned_records = _read_orphaned_records(data)
+	var restore_count := _orphaned_records.size()
 	_clear_containers()
 	_apply_containers(data)
 	var collection_data: Variant = data.get("collection")
@@ -118,6 +122,7 @@ func load_game() -> bool:
 		write_back = true
 	else:
 		CollectionDB.apply_save_data({})
+	_restore_orphaned_records(restore_count)
 	_play_time_sec = float(data.get("play_time_sec", 0.0))
 	_loading = false
 	_since_save = 0.0
@@ -143,7 +148,7 @@ func collect_save_data() -> Dictionary:
 		var record := SaveCodec.encode_item(GBIS.moving_item_service.moving_item)
 		if not record.is_empty():
 			detached.append(record)
-	return {
+	var data := {
 		"version": SAVE_VERSION,
 		"saved_at_unix": int(Time.get_unix_time_from_system()),
 		"play_time_sec": _play_time_sec,
@@ -151,10 +156,24 @@ func collect_save_data() -> Dictionary:
 		"detached": detached,
 		"collection": CollectionDB.to_save_data(),
 	}
+	if not _orphaned_records.is_empty():
+		var orphaned: Array = []
+		for entry in _orphaned_records:
+			orphaned.append(entry.duplicate(true))
+		data["orphaned"] = orphaned
+	return data
 
 
 func has_save() -> bool:
 	return FileAccess.file_exists(SAVE_PATH) or FileAccess.file_exists(BACKUP_PATH)
+
+
+## 当前存档里因 mod 缺失/放不下而保留的原始记录
+func get_orphaned_records() -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	for entry in _orphaned_records:
+		result.append(entry.duplicate(true))
+	return result
 
 
 func get_save_path() -> String:
@@ -213,11 +232,14 @@ func _apply_containers(data: Dictionary) -> void:
 		for record in detached:
 			if not record is Dictionary:
 				continue
-			var item := SaveCodec.decode_item(record)
+			var record_data := record as Dictionary
+			var item := SaveCodec.decode_item(record_data)
 			if item == null:
+				_orphaned_records.append(_make_orphaned_entry("", record_data))
 				continue
 			if not Warehouse.add_item(item):
-				push_warning("存档：拖拽中的物品无法放回仓库")
+				_orphaned_records.append(_make_orphaned_entry("", record_data))
+				push_warning("存档：拖拽中的物品无法放回仓库，已保留到 orphaned")
 
 
 func _apply_container(container: ContainerData, records: Array) -> void:
@@ -225,10 +247,12 @@ func _apply_container(container: ContainerData, records: Array) -> void:
 	for record in records:
 		if not record is Dictionary:
 			continue
-		var item := SaveCodec.decode_item(record)
+		var record_data := record as Dictionary
+		var item := SaveCodec.decode_item(record_data)
 		if item == null:
+			_orphaned_records.append(_make_orphaned_entry(container.container_name, record_data))
 			continue
-		var anchor := SaveCodec.anchor_from_record(record)
+		var anchor := SaveCodec.anchor_from_record(record_data)
 		if not container.try_add_to_grid(item, anchor).is_empty():
 			continue
 		if not container.add_item(item).is_empty():
@@ -237,7 +261,69 @@ func _apply_container(container: ContainerData, records: Array) -> void:
 		if Warehouse.add_item(item):
 			push_warning("存档：%s 的「%s」放不下，已转入仓库" % [container.container_name, item.item_name])
 			continue
-		push_warning("存档：物品无处安放，已丢弃 %s" % item.item_name)
+		_orphaned_records.append(_make_orphaned_entry(container.container_name, record_data))
+		push_warning("存档：物品无处安放，已保留到 orphaned：%s" % item.item_name)
+
+
+## 构造一条保留记录；container 为空表示原本在鼠标上
+func _make_orphaned_entry(container_name: String, record: Dictionary) -> Dictionary:
+	return {
+		"container": container_name,
+		"record": record.duplicate(true),
+	}
+
+
+func _read_orphaned_records(data: Dictionary) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	var raw: Variant = data.get("orphaned", [])
+	if not raw is Array:
+		return result
+	for entry in raw:
+		if entry is Dictionary:
+			result.append((entry as Dictionary).duplicate(true))
+	return result
+
+
+## 读档末尾再试一次存档里带回来的保留物品；本次新产生的保留记录不重复尝试
+func _restore_orphaned_records(restore_count: int) -> void:
+	var remaining: Array[Dictionary] = []
+	var index := 0
+	for entry in _orphaned_records:
+		if index >= restore_count:
+			remaining.append(entry)
+			index += 1
+			continue
+		index += 1
+		var record: Variant = entry.get("record", {})
+		if not record is Dictionary:
+			remaining.append(entry)
+			continue
+		var record_data := record as Dictionary
+		var item := SaveCodec.decode_item(record_data)
+		if item == null:
+			remaining.append(entry)
+			continue
+		var container_name := String(entry.get("container", ""))
+		if _try_restore_item(item, record_data, container_name):
+			continue
+		remaining.append(entry)
+	_orphaned_records = remaining
+
+
+func _try_restore_item(item: ItemData, record: Dictionary, container_name: String) -> bool:
+	if not container_name.is_empty():
+		var container := ContainerRepository.instance.get_container(container_name)
+		if container != null:
+			var anchor := SaveCodec.anchor_from_record(record)
+			if not container.try_add_to_grid(item, anchor).is_empty():
+				return true
+			if not container.add_item(item).is_empty():
+				push_warning("存档：缺失内容「%s」已恢复到 %s 的空位" % [item.item_name, container_name])
+				return true
+	if Warehouse.add_item(item):
+		push_warning("存档：缺失内容「%s」已放回仓库" % item.item_name)
+		return true
+	return false
 #endregion
 
 

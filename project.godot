@@ -23,6 +23,7 @@ run/max_fps=60
 
 [autoload]
 
+ModLoader="*res://Scripts/mod/mod_loader.gd"
 GameGlobal="*uid://d4mr5auojqyxl"
 GBIS="*uid://dit4hlufoh182"
 GameplayCueManager="*uid://bh6ixabs0w700"

@@ -1,9 +1,9 @@
 # AI 测试接口 TestAPI
 
-> 类型：指南 | 状态：有效 | 核对：2026-11-05
+> 类型：指南 | 状态：有效 | 核对：2026-11-06
 > 何时读：写自动化测试/探针、构造战斗或背包场景、验证新功能
-> 关键词：测试 TestAPI 探针 自动化 战斗快照 魂灵 仓库 见闻 商店 冷却 冻结 触发器 类型 标签 充能 卡面 tooltip 伤害缩放 多重触发 cast_times releases 颜色 色板 存档 save 爪痕 play_claw_cue
-> 代码：`Scripts/test_api.gd`、`Windows/Battle/battle_window.gd`、`Scripts/collection_db.gd`、`Scripts/save/`
+> 关键词：测试 TestAPI 探针 自动化 战斗快照 魂灵 仓库 见闻 商店 冷却 冻结 触发器 类型 标签 充能 卡面 tooltip 伤害缩放 多重触发 cast_times releases 颜色 色板 存档 save 爪痕 play_claw_cue mod ModLoader manifest 创意工坊
+> 代码：`Scripts/test_api.gd`、`Windows/Battle/battle_window.gd`、`Scripts/collection_db.gd`、`Scripts/save/`、`Scripts/mod/`
 > 约定：新增功能/内容时，同步补 TestAPI 方法并更新本文。
 
 ## 用法
@@ -88,6 +88,22 @@ TestAPI.delete_save()
 ```
 
 读档会保留物品的左上角格子，所以验证装备栏相邻关系时可以直接比较读档前后的锚点。存档结构、备份/迁移规则见 `架构/存档.md`。
+
+## Mod
+
+| 方法 | 说明 |
+|---|---|
+| `get_mod_list() -> Array[Dictionary]` | 已发现 mod 的概况：`id`、`name`、`version`、`enabled`、`blocked`、`loaded`、`mounted`、内容数量和错误 |
+| `get_mod_errors() -> Array[String]` | `ModLoader` 的错误汇总；加载失败/ID 冲突/依赖缺失都看这里 |
+| `set_mod_enabled(id, enabled) -> bool` | 写 `user://mods.cfg`；当前运行期不会卸载/重载，重启后生效 |
+| `get_orphaned_records() -> Array[Dictionary]` | 当前存档里因 mod 缺失/容器满而保留的原始记录 |
+
+```gdscript
+print(TestAPI.get_mod_list())
+print(TestAPI.get_mod_errors())
+```
+
+mod 目录是 `user://mods/<mod_id>/`，最小结构 `mod.json` + `content.pck`；开发期可以只放 loose 目录。制作和字段说明见 `指南/Mod制作.md`，加载规则见 `架构/Mod系统.md`。mod 内容 ID 可以直接传给 `add_soul()` / `get_soul_ids()`。
 
 ## 颜色
 

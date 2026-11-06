@@ -329,6 +329,30 @@ static func dump_save() -> Dictionary:
 #endregion
 
 
+#region Mod
+
+## 已发现 mod 的概况：id / 名称 / 版本 / 启用 / 是否加载 / 内容数量 / 错误
+static func get_mod_list() -> Array[Dictionary]:
+	return ModLoader.get_mod_list()
+
+
+## ModLoader 的错误汇总
+static func get_mod_errors() -> Array[String]:
+	return ModLoader.get_errors()
+
+
+## 写启用状态；当前运行期不会卸载/重载，重启后生效
+static func set_mod_enabled(mod_id : StringName, enabled : bool) -> bool:
+	return ModLoader.set_mod_enabled(mod_id, enabled)
+
+
+## 当前存档里因 mod 缺失/容器满而保留的原始记录
+static func get_orphaned_records() -> Array[Dictionary]:
+	return SaveManager.get_orphaned_records()
+
+#endregion
+
+
 #region 战斗
 
 ## 显示战斗窗口并开战；monster_id 非空时首只必刷该怪

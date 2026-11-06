@@ -2,8 +2,8 @@ class_name SaveCodec
 extends RefCounted
 ## 存档编解码：物品 <-> JSON 记录。
 ##
-## 只存 registry 字符串 ID 和格子锚点；静态数据从资源重建。
-## 新增物品类型时在这里加 kind 分支，并保证能按 ID 找回原资源。
+## 只存 content_id（原版 registry ID / mod manifest ID）和格子锚点；
+## 静态数据从资源重建。新增物品类型时在这里加 kind 分支，并保证能按 ID 找回原资源。
 
 const KIND_SOUL: String = "soul"
 
@@ -13,14 +13,18 @@ static func encode_item(item: ItemData) -> Dictionary:
 	if item == null:
 		return {}
 	if item is SoulData:
-		var id := CollectionDB.get_soul_id_by_name(item.item_name)
+		var soul := item as SoulData
+		# content_id 在加载时写入并随 duplicate() 保留；旧档/老资源没有时按名字兜底
+		var id: StringName = soul.content_id
 		if id.is_empty():
-			push_warning("存档：魂灵没有 registry ID「%s」" % item.item_name)
+			id = CollectionDB.get_soul_id_by_name(soul.item_name)
+		if id.is_empty():
+			push_warning("存档：魂灵没有 content_id「%s」" % soul.item_name)
 			return {}
 		return {
 			"kind": KIND_SOUL,
 			"id": String(id),
-			"name": item.item_name,
+			"name": soul.item_name,
 		}
 	push_warning("存档：未知物品类型「%s」" % item.item_name)
 	return {}

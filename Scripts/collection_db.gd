@@ -115,21 +115,25 @@ func pick_random_monster() -> MonsterData:
 	return candidates.back()
 
 
-## 魂灵“首次获得”即记录。入包信号给的是副本，按 item_name 反查 registry ID
+## 魂灵“首次获得”即记录。入包信号给的是副本，优先用副本携带的 content_id
 func mark_soul_seen(soul: SoulData) -> void:
 	if soul == null:
 		return
-	var id: StringName = _soul_id_by_name.get(soul.item_name, &"")
+	var id: StringName = soul.content_id
+	if id.is_empty():
+		id = _soul_id_by_name.get(soul.item_name, &"")
 	if id.is_empty():
 		return
 	_mark_seen(Kind.SOUL, id)
 
 
-## 怪物“首次刷出”即记录
+## 怪物“首次刷出”即记录；mod 怪物没有 YARD registry，靠 content_id
 func mark_monster_seen(monster: MonsterData) -> void:
 	if monster == null:
 		return
-	var id := MONSTER_REGISTRY.get_string_id_of(monster)
+	var id: StringName = monster.content_id
+	if id.is_empty():
+		id = MONSTER_REGISTRY.get_string_id_of(monster)
 	if id.is_empty():
 		return
 	_mark_seen(Kind.MONSTER, id)
@@ -187,17 +191,73 @@ func _load_catalog() -> void:
 		if soul == null:
 			push_warning("见闻：魂灵加载失败 %s" % id)
 			continue
-		_souls[id] = soul
-		if _soul_id_by_name.has(soul.item_name):
-			push_warning("见闻：魂灵物品名重复「%s」" % soul.item_name)
-		_soul_id_by_name[soul.item_name] = id
+		soul.content_id = id
+		_register_soul(id, soul)
 
 	for id: StringName in MONSTER_REGISTRY.get_all_string_ids():
 		var monster := MONSTER_REGISTRY.load_entry(id) as MonsterData
 		if monster == null:
 			push_warning("见闻：怪物加载失败 %s" % id)
 			continue
+		monster.content_id = id
 		_monsters[id] = monster
+
+	_merge_mod_catalog()
+	_warn_duplicate_skill_ids()
+
+
+func _register_soul(id: StringName, soul: SoulData) -> void:
+	_souls[id] = soul
+	if _soul_id_by_name.has(soul.item_name):
+		push_warning("见闻：魂灵物品名重复「%s」（%s / %s）" % [
+			soul.item_name,
+			_soul_id_by_name[soul.item_name],
+			id,
+		])
+	_soul_id_by_name[soul.item_name] = id
+
+
+## 把 ModLoader 收集的运行时条目合并进图鉴/刷怪目录
+func _merge_mod_catalog() -> void:
+	for entry in ModLoader.get_soul_entries():
+		if _souls.has(entry.content_id):
+			ModLoader.report_warning("mod 魂灵 ID 与原版冲突，已跳过 %s" % entry.content_id)
+			continue
+		var soul := entry.resource as SoulData
+		if soul == null:
+			continue
+		soul.content_id = entry.content_id
+		_register_soul(entry.content_id, soul)
+
+	for entry in ModLoader.get_monster_entries():
+		if _monsters.has(entry.content_id):
+			ModLoader.report_warning("mod 怪物 ID 与原版冲突，已跳过 %s" % entry.content_id)
+			continue
+		var monster := entry.resource as MonsterData
+		if monster == null:
+			continue
+		monster.content_id = entry.content_id
+		_monsters[entry.content_id] = monster
+
+
+## 两个资源共用同一个 skill.id 会让 Skill.<id> 的 ability tag 互相顶掉
+func _warn_duplicate_skill_ids() -> void:
+	var skill_sources: Dictionary[StringName, String] = {}
+	for soul: SoulData in _souls.values():
+		if soul == null or soul.skill == null or soul.skill.id.is_empty():
+			continue
+		var skill_id := StringName(soul.skill.id)
+		var source: String = soul.skill.resource_path
+		if source.is_empty():
+			source = str(soul.skill.get_instance_id())
+		if skill_sources.has(skill_id) and skill_sources[skill_id] != source:
+			ModLoader.report_warning("技能 ID 重复「%s」（%s / %s）" % [
+				skill_id,
+				skill_sources[skill_id],
+				source,
+			])
+			continue
+		skill_sources[skill_id] = source
 
 
 func _mark_seen(kind: int, id: StringName) -> void:

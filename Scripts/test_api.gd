@@ -351,6 +351,38 @@ static func is_mod_cue_registered(tag : StringName) -> bool:
 	return GameplayCueManager.is_mod_cue_registered(tag)
 
 
+## 打开 Mod 管理窗口并刷新；找不到窗口返回 false
+static func show_mod_window() -> bool:
+	var window := _mod_window()
+	if window == null:
+		return false
+	if not window.visible:
+		window.popup_centered()
+	window.refresh()
+	return true
+
+
+## Mod 管理窗口当前显示的状态：是否可见、mod 数、已加载数、待重启数、错误数、摘要
+static func get_mod_window_state() -> Dictionary:
+	var window := _mod_window()
+	return {} if window == null else window.get_test_state()
+
+
+## 本次实际加载顺序（只含已启用且未被阻止的 mod）
+static func get_mod_load_order() -> Array[StringName]:
+	return ModLoader.get_load_order()
+
+
+## 用户指定的基础加载顺序；包含所有已发现 mod
+static func get_mod_order() -> Array[StringName]:
+	return ModLoader.get_order_ids()
+
+
+## 写入基础加载顺序；当前运行期不会重排，重启后生效
+static func set_mod_order(ids : Array[StringName]) -> bool:
+	return ModLoader.set_mod_order(ids)
+
+
 ## 写启用状态；当前运行期不会卸载/重载，重启后生效
 static func set_mod_enabled(mod_id : StringName, enabled : bool) -> bool:
 	return ModLoader.set_mod_enabled(mod_id, enabled)
@@ -688,6 +720,19 @@ static func _battle_window() -> BattleWindow:
 	for node in root.find_children("*", "", true, false):
 		if node is BattleWindow:
 			return node as BattleWindow
+	return null
+
+
+static func _mod_window() -> ModWindow:
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree == null:
+		return null
+	var root : Node = tree.current_scene
+	if root == null:
+		root = tree.root
+	for node in root.find_children("*", "", true, false):
+		if node is ModWindow:
+			return node as ModWindow
 	return null
 
 #endregion

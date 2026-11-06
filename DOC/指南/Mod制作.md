@@ -103,7 +103,9 @@ user://mods/example_souls/
 
 ## 6. 加载顺序
 
-- 先满足 `dependencies`，再满足 `load_after`，其余按 mod id 字母序。
+- 基础顺序在 Mod 窗口的“加载顺序”页用上移/下移调整，存在 `user://mods.cfg` 的 `[order]`；没有列出的 mod 按 id 追加到末尾。
+- 排序时先满足 `dependencies`，再满足 `load_after`，其余按基础顺序；两者会覆盖用户顺序，冲突时以依赖为准。
+- 顺序改动重启后生效；Mod 列表里的“顺序 N”是本次实际加载顺序。
 - 循环依赖会记录错误，但不会导致启动失败。
 - 启用状态和已知 mod 记录在 `user://mods.cfg`。
 
@@ -115,11 +117,13 @@ user://mods/example_souls/
 - `TestAPI.is_mod_cue_registered(tag)`：单个 mod Cue 是否已注册。
 - `TestAPI.set_mod_enabled(id, enabled)`：写启用状态；重启后生效。
 - `TestAPI.get_orphaned_records()`：当前存档里因缺失 mod 内容而保留的记录。
+- 主界面第 9 个按钮“Mod”打开管理窗口，可查看状态/错误、启用/禁用（重启生效）、调整加载顺序、打开 mod 目录。
+- `TestAPI.get_mod_order()` / `TestAPI.get_mod_load_order()` / `TestAPI.set_mod_order()`：分别查看用户顺序、实际加载顺序、写入顺序。
 - 日志前缀：`ModLoader:`。
 
 ## 8. 当前限制
 
 - Cue 只在启动时注册；运行期不能新增/替换，也不能注销。标签必须属于本 mod 的 `Cue.Mod.<PascalModId>.` 命名空间，场景根节点必须是 `GameplayCueNotify`。
-- 没有 mod 管理 UI；用 `user://mods.cfg` 或 TestAPI 改启用状态。
+- 加载顺序可以在 Mod 窗口调整，但 `dependencies` / `load_after` 仍会覆盖它；改动重启生效。启用状态可以在 Mod 窗口、`user://mods.cfg` 或 TestAPI 改。
 - 没有 Workshop 上传/订阅；先手动放目录。
 - 允许 PCK 内的 GDScript，Godot 没有沙箱；只加载可信 mod。

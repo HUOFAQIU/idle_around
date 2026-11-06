@@ -1,6 +1,6 @@
 # Mod 系统与创意工坊
 
-> 类型：设计 | 状态：部分实现（Phase 1 的 1～5）
+> 类型：设计 | 状态：部分实现（Phase 1 的 1～5 + 管理窗口/加载顺序）
 > 何时读：改 mod 加载、内容注册、存档兼容，或准备接 Steam 创意工坊
 > 关键词：mod ModLoader manifest PCK 创意工坊 Workshop content_id orphaned 加载顺序
 > 代码：`Scripts/mod/`、`Scripts/collection_db.gd`、`Scripts/save/`、`project.godot`
@@ -44,14 +44,14 @@ SaveManager
   content_id 优先；缺失内容写 orphaned
 ```
 
-- `ModLoader` 不做玩法逻辑，只提供只读的 mod 概况和内容条目。
+- `ModLoader` 不做玩法逻辑，只提供 mod 概况、内容条目和启用/顺序配置。
 - `CollectionDB` 仍是唯一内容入口；mod 内容与普通内容一样被图鉴、刷怪、仓库使用。
 - `GameplayCueManager` 的项目包装（`Scripts/mod/cue_manager_mod.gd`）只在基类加载完内置 registry 后追加 mod Cue，不参与内容目录和存档；这样不用改 `addons/`。
-- mod 管理界面、Steam 接入不在当前范围。
+- Steam 接入不在当前范围。
 
 ## 4. 启动时序
 
-1. `ModLoader._init()`：加载 `user://mods.cfg`，扫描 `user://mods/*/mod.json`，排序并挂载 PCK，加载 manifest 列出的内容资源。
+1. `ModLoader._init()`：加载 `user://mods.cfg`（启用状态和 `[order]`），扫描 `user://mods/*/mod.json`，按用户基础顺序排序并挂载 PCK，加载 manifest 列出的内容资源。
 2. `GameGlobal`、`GBIS` 等原有 autoload 按原顺序启动。
 3. `GameplayCueManager._ready()`（项目包装）：先让基类加载内置 `cue_registry`，再追加 `ModLoader` 校验通过的 mod Cue。
 4. `CollectionDB._ready()`：读原版 registry，合并 mod 条目，写 `content_id`。
@@ -89,7 +89,7 @@ res://mods/example_souls/content/monsters/fire_wolf_data.tres
 - mod 内容 ID：`<mod_id>:<local_id>`；原版 ID 不带冒号，互不冲突。
 - 技能 `SkillDefinition.id`：`<mod_id>_<local_id>`，因为 `ability_tag = "Skill." + id`；重复 ID 会互相顶掉。
 - Cue 标签：`Cue.Mod.<PascalModId>.<Name>`，例如 `example_souls` → `Cue.Mod.ExampleSouls.Fire`；标签不属于本 mod 命名空间时拒绝加载。`GameplayCueManager` 的项目包装在基类加载完内置 registry 后注册 mod Cue，场景根节点必须继承 `GameplayCueNotify`；已存在的标签不会被覆盖。
-- 加载顺序：`dependencies` 是硬依赖，缺失/禁用时依赖方不加载；`load_after` 是软顺序。后挂载的 mod 覆盖先挂载的。
+- 加载顺序：用户在 Mod 窗口里排的基础顺序存在 `user://mods.cfg` 的 `[order]`；`dependencies` 是硬依赖，缺失/禁用时依赖方不加载；`load_after` 是软顺序。两者都会覆盖用户顺序，冲突时以依赖为准。后挂载的 mod 覆盖先挂载的。
 - 冲突检测：重复内容 ID、重复 cue tag、同一路径被多个 mod 声明覆盖在加载阶段记录；重复 skill id 在 `CollectionDB` 合并阶段补充。都会出现在 `ModLoader.get_errors()`。
 - mod 内容路径必须落在该 mod 的命名空间目录下；只有 `overrides` 可以指向原版 `res://` 路径。
 
@@ -101,11 +101,24 @@ res://mods/example_souls/content/monsters/fire_wolf_data.tres
 - **缺失内容不能静默丢**：读档时找不到的内容记录写入 `orphaned` 段；写档时原样带回。重新启用 mod 后，下一次读档会尝试放回原容器/仓库。
 - 原版 ID 不变，旧存档不需要迁移；`version` 仍是 1。
 
-## 8. 当前实现范围（Phase 1 的 1～5）
+## 8. 当前实现范围（Phase 1 的 1～5 + 管理窗口/加载顺序）
 
-- 已做：`mod.json` schema、`ModLoader`、`user://mods` 发现、PCK/loose 挂载、依赖排序、冲突检测、`CollectionDB` 合并、`content_id`、`orphaned` 存档保护、mod Cue 注册。
-- 未做：mod 管理界面、加载顺序 UI、示例 mod/modkit、Steam 订阅与发布。
+- 已做：`mod.json` schema、`ModLoader`、`user://mods` 发现、PCK/loose 挂载、依赖排序、冲突检测、`CollectionDB` 合并、`content_id`、`orphaned` 存档保护、mod Cue 注册、`ModWindow` 管理窗口、加载顺序调整。
+- 未做：示例 mod/modkit、Steam 订阅与发布。
 - 新增功能后按项目约定同步 `Scripts/test_api.gd` 和 `DOC/指南/AI测试接口.md`。
+
+### 8.1 Mod 管理窗口
+
+- 主界面第 9 个按钮打开；`Windows/ModWindow/mod_window.gd` 用代码搭建界面，不依赖场景布局。
+- “Mod 列表”标签页显示名称、id、版本、作者、描述、加载状态、内容数量、运行时顺序和逐条错误。
+- 勾选启用状态调用 `ModLoader.set_mod_enabled()` 写 `user://mods.cfg`；运行期不重载，重启后生效。窗口会标出未生效的改动。
+- “打开 mod 目录”用 `OS.shell_open()` 打开 `user://mods`，方便放 loose mod。
+
+### 8.2 加载顺序
+
+- “加载顺序”标签页用上移/下移调整基础顺序，写入 `user://mods.cfg` 的 `[order] list`；运行期不重排，重启后生效。
+- 顺序只是基础顺序；`dependencies` 和 `load_after` 仍会在排序时把依赖方提前。Mod 列表显示的是本次实际加载顺序。
+- `get_mod_order()` 返回用户顺序，`get_mod_load_order()` 返回实际加载顺序；两者都可能因依赖而不同。
 
 ## 9. 安全边界
 

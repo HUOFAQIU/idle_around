@@ -1,7 +1,7 @@
 extends Node
 ## Mod 加载器（Autoload：ModLoader）。
 ##
-## 在 _init() 里完成发现、校验、排序和 PCK 挂载；之后只提供只读查询。
+## 在 _init() 里完成发现、校验、排序和 PCK 挂载；之后提供查询，以及写启用状态/加载顺序的配置接口。
 ## 必须排在 CollectionDB 之前启动，否则 mod 内容赶不上内容目录构建。
 ##
 ## 正式 mod 目录：
@@ -20,6 +20,11 @@ const GAME_VERSION_SETTING: String = "application/config/version"
 var _mods: Array[ModInfo] = []
 ## 按依赖/加载顺序排好、本次真正要加载的 mod
 var _sorted_enabled: Array[ModInfo] = []
+## 用户指定的基础加载顺序；运行期不改
+var _order: Array[StringName] = []
+var _order_index: Dictionary[StringName, int] = {}
+## 本次实际加载顺序的索引，-1 表示没加载
+var _load_index: Dictionary[StringName, int] = {}
 var _mods_by_id: Dictionary[StringName, ModInfo] = {}
 var _soul_entries: Array[ModContentEntry] = []
 var _monster_entries: Array[ModContentEntry] = []
@@ -37,6 +42,7 @@ var _game_version: String = ""
 func _init() -> void:
 	_game_version = String(ProjectSettings.get_setting(GAME_VERSION_SETTING, "0.0.0"))
 	_load_config()
+	_load_order()
 	_discover_mods()
 	_resolve_dependencies()
 	_sort_mods()
@@ -78,13 +84,56 @@ func get_errors() -> Array[String]:
 	return _errors.duplicate()
 
 
+## 本次实际加载顺序（只含已启用且未被阻止的 mod）
+func get_load_order() -> Array[StringName]:
+	var result: Array[StringName] = []
+	for mod in _sorted_enabled:
+		result.append(mod.id)
+	return result
+
+
+## 用户指定的基础加载顺序；包含所有已发现 mod，未列出的追加在末尾
+func get_order_ids() -> Array[StringName]:
+	var result: Array[StringName] = []
+	for mod_id in _order:
+		if _mods_by_id.has(mod_id) and not result.has(mod_id):
+			result.append(mod_id)
+	for mod in _mods:
+		if not result.has(mod.id):
+			result.append(mod.id)
+	return result
+
+
+## 写入基础加载顺序；运行期不重排，重启后生效
+func set_mod_order(ids: Array[StringName]) -> bool:
+	var normalized: Array[StringName] = []
+	for mod_id in ids:
+		if _mods_by_id.has(mod_id) and not normalized.has(mod_id):
+			normalized.append(mod_id)
+	for mod in _mods:
+		if not normalized.has(mod.id):
+			normalized.append(mod.id)
+	_order = normalized
+	_rebuild_order_index()
+	var packed := PackedStringArray()
+	for mod_id in _order:
+		packed.append(String(mod_id))
+	_config.set_value("order", "list", packed)
+	var err := _config.save(CONFIG_PATH)
+	if err != OK:
+		push_warning("ModLoader: 写入 %s 失败（%d）" % [CONFIG_PATH, err])
+		return false
+	push_warning("ModLoader: 加载顺序已保存，重启后生效")
+	return true
+
+
 ## 供内容合并阶段补充诊断（例如技能 ID 冲突）；会立即写 warning
 func report_warning(message: String) -> void:
 	_errors.append(message)
 	push_warning("ModLoader: " + message)
 
 
-## JSON 友好的概况，供 TestAPI 和未来的 mod 窗口使用
+## JSON 友好的概况，供 TestAPI 和 ModWindow 使用
 func get_mod_list() -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
 	for mod in _mods:
@@ -93,10 +142,12 @@ func get_mod_list() -> Array[Dictionary]:
 			"name": mod.name,
 			"version": mod.version,
 			"author": mod.author,
+			"description": mod.description,
 			"enabled": mod.enabled,
 			"blocked": mod.blocked,
 			"loaded": mod.loaded,
 			"mounted": mod.mounted,
+			"load_index": _load_index.get(mod.id, -1),
 			"source": "local",
 			"souls": mod.soul_count,
 			"monsters": mod.monster_count,
@@ -135,6 +186,23 @@ func _load_config() -> void:
 		_record_error("读取 %s 失败（%d）" % [CONFIG_PATH, err])
 
 
+func _load_order() -> void:
+	var raw: Variant = _config.get_value("order", "list", PackedStringArray())
+	if not raw is PackedStringArray and not raw is Array:
+		return
+	for value in raw:
+		var mod_id := StringName(String(value))
+		if not mod_id.is_empty() and not _order.has(mod_id):
+			_order.append(mod_id)
+	_rebuild_order_index()
+
+
+func _rebuild_order_index() -> void:
+	_order_index.clear()
+	for index in _order.size():
+		_order_index[_order[index]] = index
+
+
 func _is_enabled(mod_id: StringName) -> bool:
 	return bool(_config.get_value("mods", String(mod_id), true))
 
@@ -164,11 +232,16 @@ func _discover_mods() -> void:
 			_discover_mod_folder(MODS_DIR.path_join(folder_name))
 		folder_name = dir.get_next()
 	dir.list_dir_end()
-	_mods.sort_custom(_sort_by_id)
+	_mods.sort_custom(_sort_by_user_order)
 
 
-func _sort_by_id(a: ModInfo, b: ModInfo) -> bool:
-	return String(a.id) < String(b.id)
+## 用户顺序优先；没在配置里的 mod 按 id 排在后面
+func _sort_by_user_order(a: ModInfo, b: ModInfo) -> bool:
+	var a_index: int = _order_index.get(a.id, 0x7fffffff)
+	var b_index: int = _order_index.get(b.id, 0x7fffffff)
+	if a_index == b_index:
+		return String(a.id) < String(b.id)
+	return a_index < b_index
 
 
 func _discover_mod_folder(folder: String) -> void:
@@ -240,6 +313,9 @@ func _sort_mods() -> void:
 		if mod.enabled and not mod.blocked:
 			_visit_mod(mod, states, sorted)
 	_sorted_enabled = sorted
+	_load_index.clear()
+	for index in sorted.size():
+		_load_index[sorted[index].id] = index
 
 
 func _visit_mod(mod: ModInfo, states: Dictionary[StringName, int], sorted: Array[ModInfo]) -> void:

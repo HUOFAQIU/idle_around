@@ -2,7 +2,7 @@ class_name SaveCodec
 extends RefCounted
 ## 存档编解码：物品 <-> JSON 记录。
 ##
-## 只存 content_id（原版 registry ID / mod manifest ID）和格子锚点；
+## 只存 content_id（core / mod manifest ID）和格子锚点；
 ## 静态数据从资源重建。新增物品类型时在这里加 kind 分支，并保证能按 ID 找回原资源。
 
 const KIND_SOUL: String = "soul"

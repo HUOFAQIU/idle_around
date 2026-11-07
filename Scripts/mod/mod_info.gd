@@ -8,6 +8,8 @@ extends RefCounted
 enum Source {
 	LOCAL,
 	WORKSHOP,
+	## 随游戏发布的内置 mod，例如官方 core 内容包
+	BUILTIN,
 }
 
 var id: StringName = &""
@@ -39,3 +41,8 @@ var errors: Array[String] = []
 ## 是否使用 loose 目录（没有 content.pck）
 func is_loose() -> bool:
 	return pack_path.is_empty()
+
+
+## 是否为随游戏发布的内置 mod
+func is_builtin() -> bool:
+	return source == Source.BUILTIN

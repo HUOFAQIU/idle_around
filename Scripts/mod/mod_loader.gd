@@ -1,16 +1,22 @@
 extends Node
 ## Mod 加载器（Autoload：ModLoader）。
 ##
-## 在 _init() 里完成发现、校验、排序和 PCK 挂载；之后提供查询，以及写启用状态/加载顺序的配置接口。
+## 在 _init() 里完成发现、校验、排序、PCK 挂载和内容加载；之后提供查询，以及写启用状态/加载顺序的配置接口。
 ## 必须排在 CollectionDB 之前启动，否则 mod 内容赶不上内容目录构建。
 ##
-## 正式 mod 目录：
+## 内置 mod 目录：
+##   res://base_mods/<mod_id>/mod.json
+##   res://base_mods/<mod_id>/...       # 官方内容包只支持 loose 目录
+##
+## 第三方 mod 目录：
 ##   user://mods/<mod_id>/mod.json
 ##   user://mods/<mod_id>/content.pck   # 可选；没有则按 loose 目录加载
 ##
 ## mod.json 里的内容路径可以是相对路径，也可以是 res://mods/<mod_id>/...；
 ## loose 模式会自动把 res://mods/<mod_id>/... 映射到 user://mods/<mod_id>/...。
 
+## 随游戏发布的内置 mod 目录；只会出现官方内容包
+const BUILTIN_MODS_DIR: String = "res://base_mods"
 const MODS_DIR: String = "user://mods"
 const CONFIG_PATH: String = "user://mods.cfg"
 const MANIFEST_FILE: String = "mod.json"
@@ -92,9 +98,12 @@ func get_load_order() -> Array[StringName]:
 	return result
 
 
-## 用户指定的基础加载顺序；包含所有已发现 mod，未列出的追加在末尾
+## 用户指定的基础加载顺序；内置 mod 固定在最前，未列出的追加在末尾
 func get_order_ids() -> Array[StringName]:
 	var result: Array[StringName] = []
+	for mod in _mods:
+		if mod.is_builtin():
+			result.append(mod.id)
 	for mod_id in _order:
 		if _mods_by_id.has(mod_id) and not result.has(mod_id):
 			result.append(mod_id)
@@ -104,9 +113,12 @@ func get_order_ids() -> Array[StringName]:
 	return result
 
 
-## 写入基础加载顺序；运行期不重排，重启后生效
+## 写入基础加载顺序；内置 mod 始终排在最前，运行期不重排，重启后生效
 func set_mod_order(ids: Array[StringName]) -> bool:
 	var normalized: Array[StringName] = []
+	for mod in _mods:
+		if mod.is_builtin():
+			normalized.append(mod.id)
 	for mod_id in ids:
 		if _mods_by_id.has(mod_id) and not normalized.has(mod_id):
 			normalized.append(mod_id)
@@ -148,7 +160,9 @@ func get_mod_list() -> Array[Dictionary]:
 			"loaded": mod.loaded,
 			"mounted": mod.mounted,
 			"load_index": _load_index.get(mod.id, -1),
-			"source": "local",
+			"source": _source_name(mod.source),
+			"builtin": mod.is_builtin(),
+			"locked": mod.is_builtin(),
 			"souls": mod.soul_count,
 			"monsters": mod.monster_count,
 			"cues": mod.cue_count,
@@ -168,6 +182,9 @@ func set_mod_enabled(mod_id: StringName, enabled: bool) -> bool:
 	if mod == null:
 		push_warning("ModLoader: 未知 mod %s" % mod_id)
 		return false
+	if mod.is_builtin():
+		push_warning("ModLoader: 内置 mod %s 不能禁用" % mod_id)
+		return false
 	mod.enabled = enabled
 	_config.set_value("mods", String(mod_id), enabled)
 	var err := _config.save(CONFIG_PATH)
@@ -176,6 +193,16 @@ func set_mod_enabled(mod_id: StringName, enabled: bool) -> bool:
 		return false
 	push_warning("ModLoader: mod %s 的启用状态已保存，重启后生效" % mod_id)
 	return true
+
+
+func _source_name(source: ModInfo.Source) -> String:
+	match source:
+		ModInfo.Source.BUILTIN:
+			return "builtin"
+		ModInfo.Source.WORKSHOP:
+			return "workshop"
+		_:
+			return "local"
 #endregion
 
 
@@ -219,24 +246,32 @@ func _ensure_mods_dir() -> bool:
 
 
 func _discover_mods() -> void:
-	if not _ensure_mods_dir():
-		return
-	var dir := DirAccess.open(MODS_DIR)
+	_discover_mod_root(BUILTIN_MODS_DIR, ModInfo.Source.BUILTIN)
+	if _ensure_mods_dir():
+		_discover_mod_root(MODS_DIR, ModInfo.Source.LOCAL)
+	_mods.sort_custom(_sort_by_user_order)
+
+
+func _discover_mod_root(root: String, source: ModInfo.Source) -> void:
+	var dir := DirAccess.open(root)
 	if dir == null:
-		_record_error("无法打开 %s" % MODS_DIR)
+		_record_error("无法打开 %s" % root)
 		return
 	dir.list_dir_begin()
 	var folder_name := dir.get_next()
 	while not folder_name.is_empty():
 		if not folder_name.begins_with(".") and dir.current_is_dir():
-			_discover_mod_folder(MODS_DIR.path_join(folder_name))
+			_discover_mod_folder(root.path_join(folder_name), source)
 		folder_name = dir.get_next()
 	dir.list_dir_end()
-	_mods.sort_custom(_sort_by_user_order)
 
 
-## 用户顺序优先；没在配置里的 mod 按 id 排在后面
+## 内置优先；其余按用户顺序，没在配置里的 mod 按 id 排在后面
 func _sort_by_user_order(a: ModInfo, b: ModInfo) -> bool:
+	var a_builtin := a.is_builtin()
+	var b_builtin := b.is_builtin()
+	if a_builtin != b_builtin:
+		return a_builtin
 	var a_index: int = _order_index.get(a.id, 0x7fffffff)
 	var b_index: int = _order_index.get(b.id, 0x7fffffff)
 	if a_index == b_index:
@@ -244,7 +279,7 @@ func _sort_by_user_order(a: ModInfo, b: ModInfo) -> bool:
 	return a_index < b_index
 
 
-func _discover_mod_folder(folder: String) -> void:
+func _discover_mod_folder(folder: String, source: ModInfo.Source) -> void:
 	var manifest_path := folder.path_join(MANIFEST_FILE)
 	if not FileAccess.file_exists(manifest_path):
 		return
@@ -264,6 +299,13 @@ func _discover_mod_folder(folder: String) -> void:
 			manifest.game_version_max,
 		])
 		return
+	if source != ModInfo.Source.BUILTIN:
+		if manifest.content_namespace == "global":
+			_record_error("%s: 只有内置 mod 可以使用 content_namespace=global" % manifest.id)
+			return
+		if not manifest.content_root.is_empty():
+			_record_error("%s: 只有内置 mod 可以使用 content_root" % manifest.id)
+			return
 
 	var mod := ModInfo.new()
 	mod.id = manifest.id
@@ -271,14 +313,17 @@ func _discover_mod_folder(folder: String) -> void:
 	mod.version = manifest.version
 	mod.author = manifest.author
 	mod.description = manifest.description
-	mod.source = ModInfo.Source.LOCAL
+	mod.source = source
 	mod.root_path = folder
 	mod.manifest_path = manifest_path
 	mod.manifest = manifest
-	mod.enabled = _is_enabled(manifest.id)
+	mod.enabled = true if source == ModInfo.Source.BUILTIN else _is_enabled(manifest.id)
 
 	var pack_path := folder.path_join(PACK_FILE)
 	if FileAccess.file_exists(pack_path):
+		if source == ModInfo.Source.BUILTIN:
+			_record_error("%s: 内置 mod 不支持 content.pck，请使用 loose 目录" % manifest.id)
+			return
 		mod.pack_path = pack_path
 
 	_mods.append(mod)
@@ -340,11 +385,17 @@ func _visit_mod(mod: ModInfo, states: Dictionary[StringName, int], sorted: Array
 
 
 #region 挂载与内容
+## 两段式：先挂载全部 PCK，再统一加载内容。
+## 这样后挂载的 mod 覆盖 res:// 路径时，先加载的内置内容不会被资源缓存绕过。
 func _mount_and_load() -> void:
+	_mount_all()
+	_load_all_content()
+
+
+func _mount_all() -> void:
 	for mod in _sorted_enabled:
 		if mod.pack_path.is_empty():
 			mod.loaded = true
-			_load_mod_content(mod)
 			continue
 		if not FileAccess.file_exists(mod.pack_path):
 			_mod_error(mod, "找不到 %s" % mod.pack_path)
@@ -355,7 +406,12 @@ func _mount_and_load() -> void:
 			continue
 		mod.mounted = true
 		mod.loaded = true
-		_load_mod_content(mod)
+
+
+func _load_all_content() -> void:
+	for mod in _sorted_enabled:
+		if mod.loaded:
+			_load_mod_content(mod)
 
 
 func _load_mod_content(mod: ModInfo) -> void:
@@ -389,12 +445,13 @@ func _load_content_entry(
 		_mod_error(mod, "content.%s 条目缺少 id/tag 或 path" % key)
 		return
 
+	var global_namespace := mod.manifest.content_namespace == "global"
 	if kind == ModContentEntry.Kind.CUE:
 		var cue_prefix := _cue_tag_prefix(mod)
-		if not raw_id.begins_with(cue_prefix) or raw_id.length() == cue_prefix.length():
+		if not global_namespace and (not raw_id.begins_with(cue_prefix) or raw_id.length() == cue_prefix.length()):
 			_mod_error(mod, "cue 标签必须使用 %s 前缀：%s" % [cue_prefix, raw_id])
 			return
-	elif not raw_id.begins_with(String(mod.id) + ":"):
+	elif not global_namespace and not raw_id.begins_with(String(mod.id) + ":"):
 		_mod_error(mod, "内容 ID 必须以 %s: 开头：%s" % [mod.id, raw_id])
 		return
 
@@ -466,11 +523,15 @@ func _make_entry(
 
 
 func _warn_skill_id(mod: ModInfo, soul: SoulData) -> void:
+	# 全局命名空间（内置官方内容）沿用原有技能 ID，不强制前缀
+	if mod.manifest.content_namespace == "global":
+		return
 	if soul.skill == null or soul.skill.id.is_empty():
 		return
 	var skill_path := soul.skill.resource_path
-	var is_mod_skill := skill_path.begins_with("res://mods/") or skill_path.begins_with("user://mods/")
-	if is_mod_skill and not soul.skill.id.begins_with(String(mod.id) + "_"):
+	if skill_path.is_empty() or not skill_path.begins_with(_content_root(mod)):
+		return
+	if not soul.skill.id.begins_with(String(mod.id) + "_"):
 		_mod_error(mod, "技能 id 未加 mod 前缀：%s" % soul.skill.id)
 
 
@@ -498,7 +559,7 @@ func _is_protected_override(path: String) -> bool:
 		return true
 	if path.begins_with("res://Scripts/mod/"):
 		return true
-	if path.begins_with("res://game/content/Collection/") and path.ends_with("_registry.tres"):
+	if path.begins_with("res://base_mods/") and path.ends_with("/mod.json"):
 		return true
 	return false
 
@@ -512,13 +573,23 @@ func _cue_tag_prefix(mod: ModInfo) -> String:
 
 
 func _content_root(mod: ModInfo) -> String:
+	if mod.is_builtin():
+		if not mod.manifest.content_root.is_empty():
+			return mod.manifest.content_root
+		return "res://base_mods/%s/" % mod.id
 	if mod.pack_path.is_empty():
 		return "user://mods/%s/" % mod.id
 	return "res://mods/%s/" % mod.id
 
 
+func _canonical_content_prefix(mod: ModInfo) -> String:
+	if mod.is_builtin():
+		return "res://base_mods/%s/" % mod.id
+	return "res://mods/%s/" % mod.id
+
+
 func _resolve_content_path(mod: ModInfo, raw_path: String) -> String:
-	var canonical := "res://mods/%s/" % mod.id
+	var canonical := _canonical_content_prefix(mod)
 	var root := _content_root(mod)
 	if raw_path.begins_with(canonical):
 		return root + raw_path.trim_prefix(canonical)

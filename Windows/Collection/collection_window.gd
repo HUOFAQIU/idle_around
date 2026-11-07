@@ -2,7 +2,7 @@ class_name CollectionWindow
 extends BaseWindow
 ## 见闻：已遇见的怪物与魂灵。
 ##
-## 全量条目来自 CollectionDB（底层是两份 YARD registry）；
+## 全量条目来自 CollectionDB（底层是 ModLoader 的 core + 第三方 mod 条目）；
 ## 未遇见的条目也占位显示，只是不暴露名字和图标。
 ## 魂灵页的已遇见条目：悬停显示 tooltip，右键放入仓库并播放抛物线飞入动画。
 

@@ -5,7 +5,7 @@ extends ItemData
 ## `game/battle/soul_runtime.gd` 的 SoulRuntime 里，通过 SoulRuntimeDB 查询。
 class_name SoulData
 
-## 运行期稳定 ID：原版为 YARD registry ID，mod 内容为 manifest ID。
+## 运行期稳定 ID：由 ModLoader 从 manifest 写入（core 沿用原 ID）。
 ## 由 CollectionDB / ModLoader 写入；不要在资源里手填，也不要拿来显示。
 @export_storage var content_id: StringName = &""
 

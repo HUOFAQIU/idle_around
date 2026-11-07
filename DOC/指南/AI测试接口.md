@@ -2,8 +2,8 @@
 
 > 类型：指南 | 状态：有效 | 核对：2026-11-07
 > 何时读：写自动化测试/探针、构造战斗或背包场景、验证新功能
-> 关键词：测试 TestAPI 探针 自动化 战斗快照 魂灵 仓库 见闻 商店 冷却 冻结 触发器 类型 标签 充能 卡面 tooltip 伤害缩放 多重触发 cast_times releases 颜色 色板 存档 save 爪痕 play_claw_cue mod ModLoader ModWindow 加载顺序 order cue_manager_mod cue Cue 特效 manifest 创意工坊
-> 代码：`Scripts/test_api.gd`、`Windows/Battle/battle_window.gd`、`Scripts/collection_db.gd`、`Scripts/save/`、`Scripts/mod/`
+> 关键词：测试 TestAPI 探针 自动化 战斗快照 魂灵 仓库 见闻 商店 冷却 冻结 触发器 类型 标签 充能 卡面 tooltip 伤害缩放 多重触发 cast_times releases 颜色 色板 存档 save 爪痕 play_claw_cue mod ModLoader ModWindow 加载顺序 order cue_manager_mod cue Cue 特效 manifest 创意工坊 内置 core content_id
+> 代码：`Scripts/test_api.gd`、`Windows/Battle/battle_window.gd`、`Scripts/collection_db.gd`、`Scripts/save/`、`Scripts/mod/`、`base_mods/core/mod.json`
 > 约定：新增功能/内容时，同步补 TestAPI 方法并更新本文。
 
 ## 用法
@@ -22,16 +22,16 @@ print(state)
 TestAPI.stop_battle()
 ```
 
-魂灵/怪物 ID 用 `TestAPI.get_soul_ids()`、`TestAPI.get_monster_ids()` 查，必须是 registry 里的字符串 ID（怪物如 `snake_data`、`fu_data`）。旧存档里带 `_2` 后缀的魂灵 ID 由 `CollectionDB` 自动映射到当前 canonical ID。
+魂灵/怪物 ID 用 `TestAPI.get_soul_ids()`、`TestAPI.get_monster_ids()` 查，必须是 `content_id`（core 如 `snake_data`、`fu_data`；第三方带 `<mod_id>:` 前缀）。旧存档里带 `_2` 后缀的魂灵 ID 由 `CollectionDB` 自动映射到当前 canonical ID。
 
 ## 背包 / 见闻
 
 | 方法 | 说明 |
 |---|---|
-| `add_soul(id, container := "inventory_0") -> bool` | 按 registry ID 放入指定容器（默认仓库第 1 页） |
-| `add_soul_to_warehouse(id) -> bool` | 按 registry ID 放入仓库，从第 1 页开始找空位 |
+| `add_soul(id, container := "inventory_0") -> bool` | 按 content_id 放入指定容器（默认仓库第 1 页） |
+| `add_soul_to_warehouse(id) -> bool` | 按 content_id 放入仓库，从第 1 页开始找空位 |
 | `show_shop() -> bool` | 显示商店窗口；找不到窗口返回 `false` |
-| `shop_add_soul(id) -> bool` | 按 registry ID 往 `shop_0` 追加一颗魂灵；清空用 `clear_container("shop_0")` |
+| `shop_add_soul(id) -> bool` | 按 content_id 往 `shop_0` 追加一颗魂灵；清空用 `clear_container("shop_0")` |
 | `pick_up_item(container, grid_id) -> bool` | 模拟左键从格子拿起物品，进入拖拽状态 |
 | `cancel_moving_item() -> bool` | 模拟右键取消拿起；优先放回原格 |
 | `quick_sell(container, grid_id) -> bool` | 直接出售格子里的物品；商店和该容器都打开才生效 |
@@ -43,7 +43,7 @@ TestAPI.stop_battle()
 | `set_unlock_all(enabled) -> void` | 切换见闻全解锁（不写存档） |
 | `get_seen_ids(kind) -> Array[StringName]` | 真实已解锁 ID |
 | `is_seen(kind, id) -> bool` | 单个条目是否解锁 |
-| `get_soul_ids()` / `get_monster_ids()` | 列出 registry 条目 |
+| `get_soul_ids()` / `get_monster_ids()` | 列出内容条目（core + 第三方 mod） |
 | `get_soul_types(id) -> Array[StringName]` | 魂灵类型，如 `Soul.types.Wolf`、`Soul.types.Animal` |
 | `get_soul_tags(id) -> Array[StringName]` | 魂灵见闻标签，如 `Soul.tags.Small`、`Soul.tags.Burn` |
 | `get_soul_card_info(id) -> Dictionary` | 魂灵卡面：`icon` 路径、`columns`/`rows`、`label` 名称文本 |
@@ -93,22 +93,27 @@ TestAPI.delete_save()
 
 | 方法 | 说明 |
 |---|---|
-| `get_mod_list() -> Array[Dictionary]` | 已发现 mod 的概况：`id`、`name`、`version`、`author`、`description`、`enabled`、`blocked`、`loaded`、`mounted`、`load_index`、内容数量和错误 |
+| `get_mod_list() -> Array[Dictionary]` | 已发现 mod 的概况：`id`、`name`、`version`、`author`、`description`、`source`（`builtin`/`local`）、`builtin`、`locked`、`enabled`、`blocked`、`loaded`、`mounted`、`load_index`、内容数量和错误 |
 | `get_mod_errors() -> Array[String]` | `ModLoader` 的错误汇总；加载失败/ID 冲突/依赖缺失/Cue 注册失败都看这里 |
-| `get_mod_cues() -> Array[Dictionary]` | mod Cue 的 `tag`、`mod`、`path`、`registered` |
+| `is_builtin_mod(id) -> bool` | 某个 mod 是否为内置 mod（core） |
+| `get_mod_content_ids(id) -> Dictionary` | 某个 mod 注册的 `souls` / `monsters` / `cues` ID 列表 |
+| `get_mod_cues() -> Array[Dictionary]` | Cue 的 `tag`、`mod`、`path`、`registered`；包含 core 和第三方 |
 | `is_mod_cue_registered(tag) -> bool` | 某个 mod Cue 标签是否已注册到 `GameplayCueManager` |
 | `show_mod_window() -> bool` | 打开 Mod 管理窗口并刷新 |
 | `get_mod_window_state() -> Dictionary` | 窗口状态：`visible`、`mods`、`loaded`、`pending`、`order_pending`、`order`、`load_order`、`errors`、`summary` |
 | `get_mod_load_order() -> Array[StringName]` | 本次实际加载顺序（只含已启用且未被阻止的 mod） |
-| `get_mod_order() -> Array[StringName]` | 用户指定的基础加载顺序（包含所有已发现 mod） |
-| `set_mod_order(ids) -> bool` | 写 `user://mods.cfg` 的 `[order]`；当前运行期不重排，重启后生效 |
-| `set_mod_enabled(id, enabled) -> bool` | 写 `user://mods.cfg`；当前运行期不会卸载/重载，重启后生效 |
+| `get_mod_order() -> Array[StringName]` | 用户指定的基础加载顺序；内置 mod 固定在最前 |
+| `set_mod_order(ids) -> bool` | 写 `user://mods.cfg` 的 `[order]`；内置 mod 会被强制归位到最前，运行期不重排，重启后生效 |
+| `set_mod_enabled(id, enabled) -> bool` | 写 `user://mods.cfg`；内置 mod 返回 false，当前运行期不会卸载/重载，重启后生效 |
 | `get_orphaned_records() -> Array[Dictionary]` | 当前存档里因 mod 缺失/容器满而保留的原始记录 |
 
 ```gdscript
 print(TestAPI.get_mod_list())
 print(TestAPI.get_mod_errors())
+print(TestAPI.is_builtin_mod(&"core"))
+print(TestAPI.get_mod_content_ids(&"core"))  # souls 20 / monsters 2 / cues 5
 print(TestAPI.get_mod_cues())
+print(TestAPI.is_mod_cue_registered(&"Cue.Status.Burn"))
 print(TestAPI.is_mod_cue_registered(&"Cue.Mod.ExampleSouls.Fire"))
 print(TestAPI.show_mod_window())
 print(TestAPI.get_mod_window_state())
@@ -116,9 +121,9 @@ print(TestAPI.get_mod_order())
 print(TestAPI.get_mod_load_order())
 ```
 
-mod 目录是 `user://mods/<mod_id>/`，最小结构 `mod.json` + `content.pck`；开发期可以只放 loose 目录。制作和字段说明见 `指南/Mod制作.md`，加载规则见 `架构/Mod系统.md`。mod 内容 ID 可以直接传给 `add_soul()` / `get_soul_ids()`。
-
-装好示例 mod 后，可以用 `TestAPI.add_soul_to_warehouse(&"example_souls:fire_wolf_soul")` 验证。示例源码在 `mods/example_souls/`，打包脚本是 `modkit/pack_example.gd`。
+- 内置 core 清单在 `base_mods/core/mod.json`，固定启用、排序最前；第三方 mod 目录是 `user://mods/<mod_id>/`，最小结构 `mod.json` + `content.pck`，开发期可以只放 loose 目录。
+- 制作和字段说明见 `指南/Mod制作.md`，加载规则见 `架构/Mod系统.md`。core 内容 ID 沿用原值（`xiao_lu_soul`、`fu_data`），第三方内容 ID 带 `<mod_id>:` 前缀，都可以直接传给 `add_soul()` / `get_soul_ids()`。
+- 装好示例 mod 后，可以用 `TestAPI.add_soul_to_warehouse(&"example_souls:fire_wolf_soul")` 验证。示例源码在 `mods/example_souls/`，打包脚本是 `modkit/pack_example.gd`。
 
 ## 颜色
 

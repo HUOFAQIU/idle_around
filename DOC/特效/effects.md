@@ -2,8 +2,8 @@
 
 > 类型：指南 | 状态：有效 | 整理：2026-11-07
 > 何时读：新增/调试 GameplayCue 特效
-> 关键词：特效 GameplayCue Cue 场景 对象池 补间 注册 挂钩 灼烧 剧毒 冻结 恐狼 爪痕 hit_cue_tag 命中特效 mod
-> 代码：`godot_gas/cue_registry.tres`、`addons/GodotGAS/cues/`、`Scripts/mod/cue_manager_mod.gd`
+> 关键词：特效 GameplayCue Cue 场景 对象池 补间 注册 挂钩 灼烧 剧毒 冻结 恐狼 爪痕 hit_cue_tag 命中特效 mod 内置 core manifest
+> 代码：`base_mods/core/mod.json`、`godot_gas/cue_registry.tres`、`addons/GodotGAS/cues/`、`Scripts/mod/cue_manager_mod.gd`
 > 相关：`架构/GAS.md`
 
 框架自带一套 Cue 系统：**一个标签对应一个场景**。命中该冒什么火花、中毒每跳该闪什么、buff 该罩什么光，
@@ -19,7 +19,7 @@
 - 单位一销毁，挂在上面的 cue 跟着没 —— 这正好满足"关窗＝全部还原"
 
 代码位置：`addons/GodotGAS/cues/gameplay_cue_notify.gd`（基类）、
-`Scripts/mod/cue_manager_mod.gd`（autoload，继承 addon 的 `gameplay_cue_manager.gd`；启动时加载 `godot_gas/cue_registry.tres`，再追加 mod Cue）
+`Scripts/mod/cue_manager_mod.gd`（autoload，继承 addon 的 `gameplay_cue_manager.gd`；启动时加载 `godot_gas/cue_registry.tres`（当前为空），再注册 ModLoader 的 core 和第三方 mod Cue）
 
 ---
 
@@ -27,7 +27,7 @@
 
 ### 第 1 步：写场景
 
-新建一个场景（放哪都行，比如 `game/battle/cues/`），根节点挂一个继承 `GameplayCueNotify` 的脚本：
+新建一个场景；官方内容放 `base_mods/core/cues/`（逻辑脚本可留在 `game/battle/cues/`），第三方 mod 放自己的 `content/cues/`。根节点挂一个继承 `GameplayCueNotify` 的脚本：
 
 ```gdscript
 ## 命中火花
@@ -61,12 +61,13 @@ func play_cue() -> void:
 
 ### 第 2 步：登记
 
-在 `godot_gas/cue_registry.tres` 里加一条「标签 → 场景」：
+在 manifest 的 `content.cues` 里加一条「标签 → 场景」：
 
-- 用编辑器打开这个资源，`entries` 数组里加一项
-- `tag` 填标签（例如 `Cue.Combat.Hit`），`scene` 拖你的场景
+- 官方内容：`base_mods/core/mod.json`，例如 `{ "tag": "Cue.Combat.Hit", "scene": "cues/hit_cue.tscn" }`；core 使用全局标签，不加前缀
+- 第三方 mod：自己的 `mod.json`，标签必须是 `Cue.Mod.<PascalModId>.<Name>`
+- `scene` 填相对内容根目录的路径
 
-（GodotGAS 的编辑器面板里也能加，效果一样。）
+`godot_gas/cue_registry.tres` 现在为空，保留只是满足 GodotGAS 的默认路径检查；不要再往里加官方 Cue。
 
 ### 第 3 步：挂钩
 
@@ -79,7 +80,7 @@ func play_cue() -> void:
 | `periodic_cue_tags` | 每次周期 tick 时 | 中毒每跳一次 |
 | `removal_cue_tags` | 效果结束时 | 光环消散、状态解除 |
 
-比如长弓的伤害效果，在 `game/content/Souls/chang_gong/chang_gong_skill.tres` 里给"伤害"那个子资源填：
+比如长弓的伤害效果，在 `base_mods/core/souls/chang_gong/chang_gong_skill.tres` 里给"伤害"那个子资源填：
 
 ```
 application_cue_tags = Array[StringName]([&"Cue.Combat.Hit"])
@@ -184,15 +185,15 @@ print(img.get_pixel(x, y))          # 窗口内部坐标
 
 | 东西 | 在哪 |
 |---|---|
-| 注册表 | `godot_gas/cue_registry.tres` |
+| 注册表 | 官方：`base_mods/core/mod.json` 的 `content.cues`；第三方：各自的 `mod.json` |
 | 管理器（autoload） | `Scripts/mod/cue_manager_mod.gd`（继承 `addons/GodotGAS/managers/gameplay_cue_manager.gd`） |
 | 基类 | `addons/GodotGAS/cues/gameplay_cue_notify.gd` |
 | 挂点字段 | `addons/GodotGAS/effects/gameplay_effect.gd` 的 Cue Management 一节 |
-| 灼烧光环 | `game/battle/cues/burn_cue.tscn`；标签 `Cue.Status.Burn`；挂在 `game/content/effects/burn_tick.tres` 的 `persistent_cue_tags` |
-| 剧毒施加飞溅 | `game/battle/cues/poison_splash_cue.tscn`；标签 `Cue.Combat.PoisonApply`；挂在 `game/content/effects/poison_tick.tres` 的 `application_cue_tags` |
-| 中毒气泡光环 | `game/battle/cues/poison_aura_cue.tscn`；标签 `Cue.Status.Poison`；挂在 `poison_tick.tres` 的 `persistent_cue_tags` |
-| 冻结光环 | `game/battle/cues/freeze_cue.tscn`；标签 `Cue.Status.Freeze`；挂在 `game/content/effects/freeze_unit.tres` 的 `persistent_cue_tags` |
-| 恐狼左右爪痕 | `game/battle/cues/claw_slash_cue.tscn`；标签 `Cue.Combat.ClawSlash`；由 `kong_lang_skill.tres` 的 `hit_cue_tag` 触发；方向由 `AutoCastAbility` 按每颗魂灵的命中次数交替传入 |
+| 灼烧光环 | `base_mods/core/cues/burn_cue.tscn`；标签 `Cue.Status.Burn`；挂在 `base_mods/core/effects/burn_tick.tres` 的 `persistent_cue_tags` |
+| 剧毒施加飞溅 | `base_mods/core/cues/poison_splash_cue.tscn`；标签 `Cue.Combat.PoisonApply`；挂在 `base_mods/core/effects/poison_tick.tres` 的 `application_cue_tags` |
+| 中毒气泡光环 | `base_mods/core/cues/poison_aura_cue.tscn`；标签 `Cue.Status.Poison`；挂在 `poison_tick.tres` 的 `persistent_cue_tags` |
+| 冻结光环 | `base_mods/core/cues/freeze_cue.tscn`；标签 `Cue.Status.Freeze`；挂在 `base_mods/core/effects/freeze_unit.tres` 的 `persistent_cue_tags` |
+| 恐狼左右爪痕 | `base_mods/core/cues/claw_slash_cue.tscn`；标签 `Cue.Combat.ClawSlash`；由 `kong_lang_skill.tres` 的 `hit_cue_tag` 触发；方向由 `AutoCastAbility` 按每颗魂灵的命中次数交替传入 |
 
 魂灵格子被冻结时走的是 `ItemView` 的材质表现，不走 Cue：`SoulRuntime.freeze_seconds` 驱动 `soul_scanline.gdshader` 的 `freeze` 参数和 `game/content/Kits/bingdong.tscn` 徽章。原因是魂灵的显示对象是 UI `Control`，而不是可以挂 Cue 的战场节点。
 

@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="PassiveSoulData" format=3 uid="uid://bjdwjqe7vrulf"]
+
+[ext_resource type="Texture2D" uid="uid://dfrg010asso1y" path="res://Assets/soul_large.png" id="1_icon"]
+[ext_resource type="Shader" uid="uid://c7gxmyf484kcn" path="res://Assets/Shader/soul_scanline.gdshader" id="2_shader"]
+[ext_resource type="Script" uid="uid://cxry7rbw3nnqy" path="res://game/content/passive_soul_data.gd" id="3_soul"]
+[ext_resource type="Resource" uid="uid://mu3qnrt7fqs3" path="res://base_mods/core/souls/jian_shen_fang/jian_shen_fang_effect.tres" id="4_effect"]
+[ext_resource type="Script" uid="uid://c81papidngxvg" path="res://addons/GodotGAS/effects/gameplay_effect.gd" id="5_effect_script"]
+[ext_resource type="Script" uid="uid://bgbp4lpfyqub" path="res://game/content/passive_trigger.gd" id="6_s20hi"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_scan"]
+shader = ExtResource("2_shader")
+shader_parameter/band_width = 0.16
+shader_parameter/intensity = 1.0
+shader_parameter/enable = 0.0
+shader_parameter/progress = 0.0
+shader_parameter/freeze = 0.0
+
+[resource]
+script = ExtResource("3_soul")
+passive_effects = Array[ExtResource("5_effect_script")]([ExtResource("4_effect")])
+tags = Array[StringName]([&"Soul.tags.Large", &"Soul.tags.DamageReference"])
+item_name = "健身房"
+category = "SOUL"
+icon = ExtResource("1_icon")
+columns = 3
+rows = 2
+material = SubResource("ShaderMaterial_scan")
+metadata/_custom_type_script = "uid://cxry7rbw3nnqy"

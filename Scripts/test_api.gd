@@ -16,16 +16,16 @@ const SOUL_CELLS := {
 	"LEGSSOUL": "cell_3",
 }
 ## 测试用灼烧效果：施加 + 周期
-const BURN_APPLY : GameplayEffect = preload("res://game/content/effects/burn_apply.tres")
-const BURN_TICK : GameplayEffect = preload("res://game/content/effects/burn_tick.tres")
+const BURN_APPLY : GameplayEffect = preload("res://base_mods/core/effects/burn_apply.tres")
+const BURN_TICK : GameplayEffect = preload("res://base_mods/core/effects/burn_tick.tres")
 ## 测试用剧毒效果：施加 + 周期
-const POISON_APPLY : GameplayEffect = preload("res://game/content/effects/poison_apply.tres")
-const POISON_TICK : GameplayEffect = preload("res://game/content/effects/poison_tick.tres")
+const POISON_APPLY : GameplayEffect = preload("res://base_mods/core/effects/poison_apply.tres")
+const POISON_TICK : GameplayEffect = preload("res://base_mods/core/effects/poison_tick.tres")
 ## 测试用生命再生效果：施加 + 周期
-const REGEN_APPLY : GameplayEffect = preload("res://game/content/effects/regen_apply.tres")
-const REGEN_TICK : GameplayEffect = preload("res://game/content/effects/regen_tick.tres")
+const REGEN_APPLY : GameplayEffect = preload("res://base_mods/core/effects/regen_apply.tres")
+const REGEN_TICK : GameplayEffect = preload("res://base_mods/core/effects/regen_tick.tres")
 ## 测试用单位冻结效果
-const FREEZE_UNIT : GameplayEffect = preload("res://game/content/effects/freeze_unit.tres")
+const FREEZE_UNIT : GameplayEffect = preload("res://base_mods/core/effects/freeze_unit.tres")
 ## 色板脚本：用于按常量名取色
 const GAME_COLORS_SCRIPT : GDScript = preload("res://Scripts/game_colors.gd")
 
@@ -44,7 +44,7 @@ static func get_game_color(constant_name : String) -> String:
 
 #region 背包 / 见闻
 
-## 按 registry ID 把魂灵放进指定容器（默认仓库第 1 页）
+## 按 content_id 把魂灵放进指定容器（默认仓库第 1 页）
 static func add_soul(id : StringName, container : String = WAREHOUSE) -> bool:
 	var soul := CollectionDB.get_soul(id)
 	if soul == null:
@@ -53,7 +53,7 @@ static func add_soul(id : StringName, container : String = WAREHOUSE) -> bool:
 	return GBIS.add_item(container, soul)
 
 
-## 按 registry ID 把魂灵放进仓库，从第 1 页开始找空位
+## 按 content_id 把魂灵放进仓库，从第 1 页开始找空位
 static func add_soul_to_warehouse(id : StringName) -> bool:
 	var soul := CollectionDB.get_soul(id)
 	if soul == null:
@@ -72,7 +72,7 @@ static func show_shop() -> bool:
 	return true
 
 
-## 按 registry ID 往商店放一颗魂灵；不清空已有货物（清空用 clear_container）
+## 按 content_id 往商店放一颗魂灵；不清空已有货物（清空用 clear_container）
 static func shop_add_soul(id : StringName) -> bool:
 	var soul := CollectionDB.get_soul(id)
 	if soul == null:
@@ -175,7 +175,7 @@ static func set_unlock_all(enabled : bool) -> void:
 	CollectionDB.set_unlock_all_for_testing(enabled)
 
 
-## 真实已解锁的 registry ID（不受全解锁开关影响）
+## 真实已解锁的 content_id（不受全解锁开关影响）
 static func get_seen_ids(kind : int) -> Array[StringName]:
 	return CollectionDB.get_seen_ids(kind)
 
@@ -188,7 +188,7 @@ static func get_soul_ids() -> Array[StringName]:
 	return CollectionDB.get_soul_ids()
 
 
-## 魂灵类型（registry ID），例如 &"Soul.types.Wolf"
+## 魂灵类型（content ID），例如 &"Soul.types.Wolf"
 static func get_soul_types(id : StringName) -> Array[StringName]:
 	var soul := CollectionDB.get_soul(id)
 	if soul == null:
@@ -196,7 +196,7 @@ static func get_soul_types(id : StringName) -> Array[StringName]:
 	return soul.types.duplicate()
 
 
-## 魂灵标签（见闻筛选 registry ID），例如 &"Soul.tags.Small"
+## 魂灵标签（见闻筛选 content ID），例如 &"Soul.tags.Small"
 static func get_soul_tags(id : StringName) -> Array[StringName]:
 	var soul := CollectionDB.get_soul(id)
 	if soul == null:
@@ -339,6 +339,33 @@ static func get_mod_list() -> Array[Dictionary]:
 ## ModLoader 的错误汇总
 static func get_mod_errors() -> Array[String]:
 	return ModLoader.get_errors()
+
+
+## 某个 mod 是否为内置 mod（core）
+static func is_builtin_mod(mod_id : StringName) -> bool:
+	var mod := ModLoader.get_mod(mod_id)
+	return mod != null and mod.is_builtin()
+
+
+## 某个 mod 注册的内容 ID：souls / monsters / cues
+static func get_mod_content_ids(mod_id : StringName) -> Dictionary:
+	var souls: Array[String] = []
+	for entry in ModLoader.get_soul_entries():
+		if entry.mod_id == mod_id:
+			souls.append(String(entry.content_id))
+	var monsters: Array[String] = []
+	for entry in ModLoader.get_monster_entries():
+		if entry.mod_id == mod_id:
+			monsters.append(String(entry.content_id))
+	var cues: Array[String] = []
+	for entry in ModLoader.get_cue_entries():
+		if entry.mod_id == mod_id:
+			cues.append(String(entry.content_id))
+	return {
+		"souls": souls,
+		"monsters": monsters,
+		"cues": cues,
+	}
 
 
 ## 已发现的 mod Cue：tag / mod / path / 是否已注册到 GameplayCueManager

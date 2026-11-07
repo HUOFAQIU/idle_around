@@ -1,0 +1,128 @@
+{
+  "schema": 1,
+  "id": "core",
+  "name": "Core Content",
+  "version": "0.1.0",
+  "author": "official",
+  "description": "官方基础内容：魂灵、怪物和战斗 Cue。",
+  "content_namespace": "global",
+  "game_version": {
+	"min": "0.1.0"
+  },
+  "content": {
+	"souls": [
+	  {
+		"id": "chang_gong_soul",
+		"path": "souls/chang_gong/chang_gong_soul.tres"
+	  },
+	  {
+		"id": "chui_jian_soul",
+		"path": "souls/chui_jian/chui_jian_soul.tres"
+	  },
+	  {
+		"id": "dao_huo_shu_soul",
+		"path": "souls/dao_huo_shu/dao_huo_shu_soul.tres"
+	  },
+	  {
+		"id": "dian_chi_soul",
+		"path": "souls/dian_chi/dian_chi_soul.tres"
+	  },
+	  {
+		"id": "du_ya_soul",
+		"path": "souls/du_ya/du_ya_soul.tres"
+	  },
+	  {
+		"id": "dun_soul",
+		"path": "souls/dun/dun_soul.tres"
+	  },
+	  {
+		"id": "hua_liu_shen_soul",
+		"path": "souls/hua_liu_shen/hua_liu_shen_soul.tres"
+	  },
+	  {
+		"id": "jian_shen_fang_soul",
+		"path": "souls/jian_shen_fang/jian_shen_fang_soul.tres"
+	  },
+	  {
+		"id": "jian_ya_soul",
+		"path": "souls/jian_ya/jian_ya_soul.tres"
+	  },
+	  {
+		"id": "ka_fei_soul",
+		"path": "souls/ka_fei/ka_fei_soul.tres"
+	  },
+	  {
+		"id": "kong_lang_soul",
+		"path": "souls/kong_lang/kong_lang_soul.tres"
+	  },
+	  {
+		"id": "mian_bao_soul",
+		"path": "souls/mian_bao/mian_bao_soul.tres"
+	  },
+	  {
+		"id": "qiang_laishi_soul",
+		"path": "souls/qiang_laishi/qiang_laishi_soul.tres"
+	  },
+	  {
+		"id": "song_shu_soul",
+		"path": "souls/song_shu/song_shu_soul.tres"
+	  },
+	  {
+		"id": "wa_soul",
+		"path": "souls/wa/wa_soul.tres"
+	  },
+	  {
+		"id": "xian_zi_soul",
+		"path": "souls/xian_zi/xian_zi_soul.tres"
+	  },
+	  {
+		"id": "xiao_lu_soul",
+		"path": "souls/xiao_lu/xiao_lu_soul.tres"
+	  },
+	  {
+		"id": "yao_dai_soul",
+		"path": "souls/yao_dai/yao_dai_soul.tres"
+	  },
+	  {
+		"id": "yi_chang_hu_wan_soul",
+		"path": "souls/yi_chang_hu_wan/yi_chang_hu_wan_soul.tres"
+	  },
+	  {
+		"id": "yu_soul",
+		"path": "souls/yu/yu_soul.tres"
+	  }
+	],
+	"monsters": [
+	  {
+		"id": "fu_data",
+		"path": "monsters/fu/fu_data.tres"
+	  },
+	  {
+		"id": "snake_data",
+		"path": "monsters/snake/snake_data.tres"
+	  }
+	],
+	"cues": [
+	  {
+		"tag": "Cue.Combat.ClawSlash",
+		"scene": "cues/claw_slash_cue.tscn"
+	  },
+	  {
+		"tag": "Cue.Status.Burn",
+		"scene": "cues/burn_cue.tscn"
+	  },
+	  {
+		"tag": "Cue.Combat.PoisonApply",
+		"scene": "cues/poison_splash_cue.tscn"
+	  },
+	  {
+		"tag": "Cue.Status.Poison",
+		"scene": "cues/poison_aura_cue.tscn"
+	  },
+	  {
+		"tag": "Cue.Status.Freeze",
+		"scene": "cues/freeze_cue.tscn"
+	  }
+	]
+  }
+}

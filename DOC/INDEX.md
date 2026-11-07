@@ -12,21 +12,22 @@
 | 改战斗单位、施法、冷却/扫描线 | `架构/战斗运行时_施法与冷却.md` | `game/battle/`、`Windows/Battle/` |
 | 改移动、攻击范围门控、刷怪、空间索引、投射物 | `架构/战斗运行时_移动与投射物.md` | `game/battle/`、`Windows/Battle/` |
 | 改暴击/伤害/异常、开战关窗、玩家怪物场景 | `架构/战斗运行时_伤害与流程.md` | `game/battle/`、`Windows/Battle/` |
-| 改技能/目标规则/魂灵/怪物数据/掉落 | `架构/战斗数据与魂灵.md` | `game/content/` |
+| 改技能/目标规则/魂灵/怪物数据/掉落 | `架构/战斗数据与魂灵.md` | `base_mods/core/`、`game/content/` |
 | 改背包/仓库/装备槽/拖拽 | `架构/背包_GBIS.md` | `Windows/Inventory/grid_base_inventory_system/`、`Scripts/warehouse.gd` |
 | 改存档/读档/存档格式/迁移 | `架构/存档.md` | `Scripts/save/` |
 | 改 GAS 属性/标签/Cue | `架构/GAS.md`、`特效/effects.md` | `godot_gas/`、`addons/GodotGAS/`、`Scripts/mod/cue_manager_mod.gd` |
 | 按完整链路理解系统 | `架构/关键流程.md` | `game/battle/`、`Windows/Inventory/` |
-| 新增魂灵/怪物/技能/窗口/特效 | `架构/扩展点.md` | `game/content/`、`Main/control.gd` |
+| 新增魂灵/怪物/技能/窗口/特效 | `架构/扩展点.md` | `base_mods/core/`、`game/content/`、`Main/control.gd` |
 | 改 mod 加载/内容注册/存档兼容/管理窗口/加载顺序 | `架构/Mod系统.md` | `Scripts/mod/`、`Scripts/collection_db.gd`、`Scripts/save/`、`Windows/ModWindow/` |
+| 新增/修改官方魂灵、怪物、Cue | `架构/Mod系统.md`、`指南/Mod制作.md` | `base_mods/core/mod.json` |
 | 制作/打包/发布 mod、看示例 | `指南/Mod制作.md` | `Scripts/mod/`、`mods/example_souls/`、`modkit/` |
 | 确认功能是否已实现/已知坑 | `架构/现状与注意.md` | — |
 | AI/自动化测试、构造战斗或背包场景 | `指南/AI测试接口.md` | `Scripts/test_api.gd` |
 | 排查战斗/魂灵/触发器/状态，或新增调试事件 | `指南/调试窗口.md`、`架构/调试与遥测.md` | `Windows/Debug/`、`Scripts/debug/` |
-| 改魂灵冷却/充能/冻结/主动效果 | `魂灵/主动魂灵.md` | `game/content/`、`game/battle/charged_ability.gd` |
-| 改被动魂灵/触发效果 | `魂灵/被动魂灵.md` | `game/content/passive_soul_data.gd`、`passive_effect.gd`、`passive_trigger.gd` |
+| 改魂灵冷却/充能/冻结/主动效果 | `魂灵/主动魂灵.md` | `base_mods/core/souls/`、`game/content/`、`game/battle/charged_ability.gd` |
+| 改被动魂灵/触发效果 | `魂灵/被动魂灵.md` | `base_mods/core/souls/`、`game/content/passive_soul_data.gd`、`passive_effect.gd`、`passive_trigger.gd` |
 | 确认四部位定位 | `魂灵/魂灵.md` | `Windows/Equipment/` |
-| 改怪物魂灵/掉落设计 | `怪物/怪物.md` | `game/content/monster_data.gd`、`game/content/monster_soul_entry.gd` |
+| 改怪物魂灵/掉落设计 | `怪物/怪物.md` | `base_mods/core/monsters/`、`game/content/monster_data.gd`、`game/content/monster_soul_entry.gd` |
 | 改魂灵 tooltip 内容/格式 | `魂灵/魂灵.md`、`架构/窗口与场景.md` | `Windows/Tooltip/` |
 | 改颜色/色板（战斗状态/UI/场景/特效） | `架构/颜色与主题.md` | `Scripts/game_colors.gd` |
 | 改见闻/图鉴/解锁 | `窗口/见闻.md` | `Scripts/collection_db.gd`、`Windows/Collection/` |
@@ -69,8 +70,8 @@
 | `架构/扩展点.md` | 指南 | 有效 | 2026-11-06 |
 | `架构/颜色与主题.md` | 实现 | 有效 | 2026-11-05 |
 | `架构/现状与注意.md` | 实现 | 有效 | 2026-11-07 |
-| `架构/Mod系统.md` | 设计 | 部分实现 | 2026-11-06 |
-| `指南/Mod制作.md` | 指南 | 部分实现 | 2026-11-07 |
+| `架构/Mod系统.md` | 设计 | 部分实现（内置 core mod 已接入） | 2026-11-07 |
+| `指南/Mod制作.md` | 指南 | 部分实现（内置 core 已接入） | 2026-11-07 |
 
 > `archive/souls.xlsx` 是旧计划表，文本工具读不了；要引用其中内容时先转成 Markdown 表格。
 >
@@ -109,7 +110,7 @@
 
 1. 一篇文档一个主题；超过 200 行或包含 3 个以上主题就拆。
 2. 只写代码里看不出来的：为什么、边界、数据流、扩展步骤、坑；不抄函数清单和资源枚举。
-3. 资源清单以 registry 为准：`game/content/Collection/soul_registry.tres`、`monster_registry.tres`。
+3. 内容清单以 `base_mods/core/mod.json` 为准；第三方 mod 以各自的 `mod.json` 为准。
 4. 引用代码用符号（`file.gd::function`），不用行号。
 5. 设计文档写「应该怎样」，架构文档写「现在怎样」；冲突时以代码为准并标注差异。
 6. 过期内容移到 `DOC/archive/` 或删除，不留在正文。

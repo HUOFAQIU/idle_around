@@ -4,7 +4,7 @@
 ## 由刷怪方在实例化场景后注入 BattleUnit，避免场景和数据各存一份。
 class_name MonsterData extends Resource
 
-## 运行期稳定 ID：原版为 YARD registry ID，mod 内容为 manifest ID。
+## 运行期稳定 ID：由 ModLoader 从 manifest 写入（core 沿用原 ID）。
 ## 由 CollectionDB / ModLoader 写入；不要在资源里手填。
 @export_storage var content_id: StringName = &""
 

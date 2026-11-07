@@ -1,10 +1,10 @@
 extends Node
 ## 见闻图鉴服务（Autoload 名称：CollectionDB）。
 ##
-## 全量清单来自两份 YARD registry：魂灵和怪物各一份，编辑器扫目录自动维护。
-## 本节点只负责运行时索引、“已遇见”状态和存档；registry 本身运行时只读。
+## 全量清单来自 ModLoader：内置 core mod + 第三方 mod，统一按 manifest 注册。
+## 本节点只负责运行时索引、“已遇见”状态和存档。
 ##
-## 已遇见状态以 registry 的字符串 ID（例如 &"xiao_lu_soul"）为键，
+## 已遇见状态以 manifest 的 content_id（例如 &"xiao_lu_soul"）为键，
 ## 资源改名/移动不会丢记录；解锁后由 SaveManager 统一写入存档。
 
 ## 新条目解锁；图鉴窗口用它刷新
@@ -17,11 +17,9 @@ enum Kind {
 	SOUL,
 }
 
-const SOUL_REGISTRY: Registry = preload("res://game/content/Collection/soul_registry.tres")
-const MONSTER_REGISTRY: Registry = preload("res://game/content/Collection/monster_registry.tres")
 ## 旧版独立存档：只读迁移用；新存档由 SaveManager 统一管理
 const LEGACY_SAVE_PATH: String = "user://collection.cfg"
-## 旧版 registry ID 兼容：旧存档里可能还留着带 _2 后缀的键。
+## 旧版内容 ID 兼容：旧存档里可能还留着带 _2 后缀的键。
 ## 读取时统一映射到当前 canonical ID，写回时只写 canonical ID。
 const LEGACY_SOUL_ID_ALIASES := {
 	&"du_ya_soul_2": &"du_ya_soul",
@@ -31,14 +29,14 @@ const LEGACY_SOUL_ID_ALIASES := {
 ## 只影响显示，不写存档；调试窗口/TestAPI 可以临时切换。
 var unlock_all_for_testing: bool = false
 
-## registry 字符串 ID → 资源
+## content_id → 资源
 var _souls: Dictionary[StringName, SoulData] = {}
 var _monsters: Dictionary[StringName, MonsterData] = {}
-## item_name → registry ID。
+## item_name → content_id。
 ## GBIS.add_item() 会 duplicate() 物品，副本没有 resource_path，
 ## 所以收到入包信号时不能靠 UID 反查，只能靠物品名。
 var _soul_id_by_name: Dictionary[String, StringName] = {}
-## 已遇见：Kind → { registry ID: true }
+## 已遇见：Kind → { content_id: true }
 var _seen: Dictionary = {}
 
 
@@ -66,7 +64,7 @@ func get_soul(id: StringName) -> SoulData:
 	return _souls.get(_canonical_soul_id(id))
 
 
-## 按物品名反查 registry ID；背包里的副本没有 resource_path，只能用名字
+## 按物品名反查 content_id；背包里的副本没有 resource_path，只能用名字
 func get_soul_id_by_name(item_name: String) -> StringName:
 	return _soul_id_by_name.get(item_name, &"")
 
@@ -87,7 +85,7 @@ func set_unlock_all_for_testing(enabled: bool) -> void:
 	unlock_all_for_testing = enabled
 
 
-## 真实已解锁的 registry ID（不受测试开关影响）
+## 真实已解锁的 content_id（不受测试开关影响）
 func get_seen_ids(kind: int) -> Array[StringName]:
 	var ids: Array[StringName] = []
 	var seen: Dictionary = _seen.get(kind, {})
@@ -127,21 +125,20 @@ func mark_soul_seen(soul: SoulData) -> void:
 	_mark_seen(Kind.SOUL, id)
 
 
-## 怪物“首次刷出”即记录；mod 怪物没有 YARD registry，靠 content_id
+## 怪物“首次刷出”即记录；所有内容都由 ModLoader 写入 content_id
 func mark_monster_seen(monster: MonsterData) -> void:
 	if monster == null:
 		return
 	var id: StringName = monster.content_id
 	if id.is_empty():
-		id = MONSTER_REGISTRY.get_string_id_of(monster)
-	if id.is_empty():
+		push_warning("见闻：怪物没有 content_id「%s」" % monster.display_name)
 		return
 	_mark_seen(Kind.MONSTER, id)
 #endregion
 
 
 #region 存档
-## 供 SaveManager 序列化；数组里只放 canonical registry ID
+## 供 SaveManager 序列化；数组里只放 canonical content_id
 func to_save_data() -> Dictionary:
 	return {
 		"monsters": _seen_ids(Kind.MONSTER),
@@ -186,27 +183,31 @@ func load_legacy_state() -> bool:
 
 #region 内部
 func _load_catalog() -> void:
-	for id: StringName in SOUL_REGISTRY.get_all_string_ids():
-		var soul := SOUL_REGISTRY.load_entry(id) as SoulData
+	for entry in ModLoader.get_soul_entries():
+		var soul := entry.resource as SoulData
 		if soul == null:
-			push_warning("见闻：魂灵加载失败 %s" % id)
+			push_warning("见闻：魂灵加载失败 %s" % entry.content_id)
 			continue
-		soul.content_id = id
-		_register_soul(id, soul)
+		soul.content_id = entry.content_id
+		_register_soul(entry.content_id, soul)
 
-	for id: StringName in MONSTER_REGISTRY.get_all_string_ids():
-		var monster := MONSTER_REGISTRY.load_entry(id) as MonsterData
+	for entry in ModLoader.get_monster_entries():
+		var monster := entry.resource as MonsterData
 		if monster == null:
-			push_warning("见闻：怪物加载失败 %s" % id)
+			push_warning("见闻：怪物加载失败 %s" % entry.content_id)
 			continue
-		monster.content_id = id
-		_monsters[id] = monster
+		monster.content_id = entry.content_id
+		_monsters[entry.content_id] = monster
 
-	_merge_mod_catalog()
+	if _souls.is_empty() or _monsters.is_empty():
+		push_warning("见闻：内容目录为空，检查内置 core mod 是否加载成功")
 	_warn_duplicate_skill_ids()
 
 
 func _register_soul(id: StringName, soul: SoulData) -> void:
+	if _souls.has(id):
+		push_warning("见闻：魂灵 ID 重复，已跳过 %s" % id)
+		return
 	_souls[id] = soul
 	if _soul_id_by_name.has(soul.item_name):
 		push_warning("见闻：魂灵物品名重复「%s」（%s / %s）" % [
@@ -215,29 +216,6 @@ func _register_soul(id: StringName, soul: SoulData) -> void:
 			id,
 		])
 	_soul_id_by_name[soul.item_name] = id
-
-
-## 把 ModLoader 收集的运行时条目合并进图鉴/刷怪目录
-func _merge_mod_catalog() -> void:
-	for entry in ModLoader.get_soul_entries():
-		if _souls.has(entry.content_id):
-			ModLoader.report_warning("mod 魂灵 ID 与原版冲突，已跳过 %s" % entry.content_id)
-			continue
-		var soul := entry.resource as SoulData
-		if soul == null:
-			continue
-		soul.content_id = entry.content_id
-		_register_soul(entry.content_id, soul)
-
-	for entry in ModLoader.get_monster_entries():
-		if _monsters.has(entry.content_id):
-			ModLoader.report_warning("mod 怪物 ID 与原版冲突，已跳过 %s" % entry.content_id)
-			continue
-		var monster := entry.resource as MonsterData
-		if monster == null:
-			continue
-		monster.content_id = entry.content_id
-		_monsters[entry.content_id] = monster
 
 
 ## 两个资源共用同一个 skill.id 会让 Skill.<id> 的 ability tag 互相顶掉

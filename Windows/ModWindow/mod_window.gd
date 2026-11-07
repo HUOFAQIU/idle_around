@@ -54,7 +54,7 @@ func refresh() -> void:
 
 	if mods.is_empty():
 		var empty := Label.new()
-		empty.text = "user://mods 下没有发现 mod。\n把 mod.json（可选 content.pck）放进 user://mods/<mod_id>/ 后重启游戏。"
+		empty.text = "没有发现内置 core 或 user://mods 下的 mod。\n第三方 mod：把 mod.json（可选 content.pck）放进 user://mods/<mod_id>/ 后重启游戏。"
 		empty.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		empty.add_theme_color_override("font_color", GameColors.to_color(GameColors.TEXT_SECONDARY))
 		_list_box.add_child(empty)
@@ -143,7 +143,7 @@ func _build_ui() -> void:
 
 	var open_button := Button.new()
 	open_button.text = "打开 mod 目录"
-	open_button.tooltip_text = ProjectSettings.globalize_path(MODS_DIR)
+	open_button.tooltip_text = "第三方 mod 目录：%s（内置 core 在游戏包内）" % ProjectSettings.globalize_path(MODS_DIR)
 	open_button.pressed.connect(_open_mods_dir)
 	header.add_child(open_button)
 
@@ -211,6 +211,7 @@ func _build_order_tab() -> void:
 
 func _add_mod_row(mod: Dictionary) -> void:
 	var mod_id := StringName(mod.get("id", ""))
+	var builtin := bool(mod.get("builtin", false))
 	var row := VBoxContainer.new()
 	row.add_theme_constant_override("separation", 2)
 	_list_box.add_child(row)
@@ -221,7 +222,8 @@ func _add_mod_row(mod: Dictionary) -> void:
 
 	var check := CheckBox.new()
 	check.button_pressed = bool(mod.get("enabled", true))
-	check.tooltip_text = "启用/禁用；保存到 user://mods.cfg，重启游戏后生效"
+	check.disabled = builtin
+	check.tooltip_text = "内置 mod 不能禁用" if builtin else "启用/禁用；保存到 user://mods.cfg，重启游戏后生效"
 	check.toggled.connect(_on_mod_toggled.bind(mod_id))
 	top.add_child(check)
 
@@ -237,6 +239,8 @@ func _add_mod_row(mod: Dictionary) -> void:
 	info.add_child(name_label)
 
 	var meta_parts: Array[String] = [String(mod_id)]
+	if builtin:
+		meta_parts.append("内置")
 	var version := String(mod.get("version", ""))
 	if not version.is_empty():
 		meta_parts.append("v" + version)
@@ -350,17 +354,20 @@ func _add_order_row(index: int, mod: ModInfo, count: int) -> void:
 	state.add_theme_color_override("font_color", _order_state_color(mod))
 	row.add_child(state)
 
+	var builtin := mod.is_builtin()
+	var order := ModLoader.get_order_ids()
+	var previous_builtin := index > 0 and ModLoader.get_mod(order[index - 1]).is_builtin()
 	var up := Button.new()
 	up.text = "↑"
-	up.tooltip_text = "上移"
-	up.disabled = index == 0
+	up.tooltip_text = "内置 mod 固定在最前" if builtin else "上移"
+	up.disabled = builtin or index == 0 or previous_builtin
 	up.pressed.connect(_move_order.bind(index, -1))
 	row.add_child(up)
 
 	var down := Button.new()
 	down.text = "↓"
-	down.tooltip_text = "下移"
-	down.disabled = index >= count - 1
+	down.tooltip_text = "内置 mod 固定在最前" if builtin else "下移"
+	down.disabled = builtin or index >= count - 1
 	down.pressed.connect(_move_order.bind(index, 1))
 	row.add_child(down)
 
@@ -375,6 +382,12 @@ func _move_order(index: int, delta: int) -> void:
 	if target < 0 or target >= order.size():
 		return
 	var mod_id := order[index]
+	var moving := ModLoader.get_mod(mod_id)
+	if moving == null or moving.is_builtin():
+		return
+	var target_mod := ModLoader.get_mod(order[target])
+	if target_mod != null and target_mod.is_builtin():
+		return
 	order.remove_at(index)
 	order.insert(target, mod_id)
 	var saved := ModLoader.set_mod_order(order)
@@ -387,6 +400,8 @@ func _move_order(index: int, delta: int) -> void:
 func _order_state_text(mod: ModInfo) -> String:
 	if mod.blocked:
 		return "被阻止"
+	if mod.is_builtin():
+		return "内置" if not mod.loaded else "内置 · 已加载"
 	if not mod.enabled:
 		return "已禁用"
 	return "已加载" if mod.loaded else "未加载"
@@ -410,7 +425,10 @@ func _status_text(mod: Dictionary) -> String:
 		parts.append("已禁用")
 	elif bool(mod.get("loaded", false)):
 		parts.append("已加载")
-		parts.append("PCK" if bool(mod.get("mounted", false)) else "目录")
+		if bool(mod.get("builtin", false)):
+			parts.append("内置")
+		else:
+			parts.append("PCK" if bool(mod.get("mounted", false)) else "目录")
 	else:
 		parts.append("未加载")
 	if _has_pending(mod):

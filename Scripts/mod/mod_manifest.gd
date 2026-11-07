@@ -16,6 +16,12 @@ var game_version_min: String = ""
 var game_version_max: String = ""
 var load_after: Array[StringName] = []
 var dependencies: Array[StringName] = []
+## 内容 ID 命名空间：mod = <mod_id>:<local_id>，global = 直接使用 ID。
+## global 只允许内置 mod 使用。
+var content_namespace: String = "mod"
+## 内置 mod 的内容根目录；空 = res://base_mods/<mod_id>/。
+## 只允许内置 mod 使用，第三方 mod 必须把内容放在自己的命名空间目录下。
+var content_root: String = ""
 ## 原样保存 content 段；souls / monsters / cues 的路径由 ModLoader 解析
 var content: Dictionary = {}
 var overrides: Array[String] = []
@@ -83,6 +89,19 @@ func _apply(data: Dictionary) -> bool:
 	load_after = _to_string_name_array(data.get("load_after", []))
 	dependencies = _to_string_name_array(data.get("dependencies", []))
 	overrides = _to_string_array(data.get("overrides", []))
+
+	content_namespace = String(data.get("content_namespace", "mod"))
+	if content_namespace != "mod" and content_namespace != "global":
+		errors.append("content_namespace 只能是 mod 或 global：%s" % content_namespace)
+		return false
+
+	content_root = String(data.get("content_root", "")).simplify_path()
+	if not content_root.is_empty():
+		if not content_root.begins_with("res://"):
+			errors.append("content_root 必须是 res:// 路径：%s" % content_root)
+			return false
+		if not content_root.ends_with("/"):
+			content_root += "/"
 
 	var game_version: Variant = data.get("game_version", {})
 	if game_version is Dictionary:

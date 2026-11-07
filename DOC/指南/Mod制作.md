@@ -1,9 +1,9 @@
 # Mod 制作与打包
 
-> 类型：指南 | 状态：部分实现（Phase 1 的 1～5 + 管理窗口/加载顺序）
-> 何时读：制作、打包、调试 idle_around 的 mod
-> 关键词：mod.json content.pck modkit 示例 mod pack_example patch 导出 覆盖 加载顺序
-> 代码：`Scripts/mod/`、`Scripts/collection_db.gd`
+> 类型：指南 | 状态：部分实现（内置 core 已接入）
+> 何时读：制作、打包、调试 idle_around 的 mod，或新增官方内容
+> 关键词：mod.json content.pck modkit 示例 mod pack_example patch 导出 覆盖 加载顺序 内置 core content_root content_namespace
+> 代码：`Scripts/mod/`、`Scripts/collection_db.gd`、`base_mods/core/mod.json`
 > 相关：`架构/Mod系统.md`
 > 核对：2026-11-07
 
@@ -17,7 +17,7 @@ user://mods/example_souls/
 
 开发期可以不放 `content.pck`，直接把内容放在目录里（loose 模式）；发布前再打包。loose 模式不经过 Godot 导入流程，贴图/场景资源可能不可用，只建议用来调数据。
 
-本工程自带示例源码 `mods/example_souls/` 和一键打包脚本 `modkit/pack_example.gd`，见 4.1。
+本工程自带示例源码 `mods/example_souls/` 和一键打包脚本 `modkit/pack_example.gd`，见 4.1。官方内容不走 `user://mods`，而是内置 `base_mods/core/mod.json`，见第 9 节；第三方 mod 不要填写 `content_namespace: "global"` 或 `content_root`，这两个字段只对内置 mod 开放。
 
 ## 2. mod.json
 
@@ -53,7 +53,7 @@ user://mods/example_souls/
 	]
   },
   "overrides": [
-    "res://game/content/effects/burn_tick.tres"
+    "res://base_mods/core/effects/burn_tick.tres"
   ]
 }
 ```
@@ -66,6 +66,8 @@ user://mods/example_souls/
 | `game_version` | 否 | `min` / `max` 为包含边界；不兼容时不加载 |
 | `load_after` | 否 | 软顺序；目标不存在时忽略 |
 | `dependencies` | 否 | 硬依赖；缺失或禁用时本 mod 不加载 |
+| `content_namespace` | 否 | 默认 `"mod"`；`"global"` 只允许内置 mod，第三方填写会被拒绝 |
+| `content_root` | 否 | 只允许内置 mod；指向 `res://` 下的内容根目录，空则用 `res://base_mods/<id>/` |
 | `content.souls` | 否 | 魂灵条目：`id` + `path` |
 | `content.monsters` | 否 | 怪物条目：`id` + `path` |
 | `content.cues` | 否 | Cue 条目：`tag` + `scene`；启动时注册到 `GameplayCueManager` |
@@ -74,6 +76,7 @@ user://mods/example_souls/
 ## 3. 内容路径与 ID
 
 - 魂灵/怪物 ID：`<mod_id>:<local_id>`，例如 `example_souls:fire_wolf_soul`。
+- 内置 core 是例外：manifest 声明 `content_namespace: "global"`，ID 沿用原值（`xiao_lu_soul`、`fu_data`），技能 ID 和 Cue 标签也不加前缀（`Cue.Status.Burn`）。
 - 技能 `SkillDefinition.id`：`<mod_id>_<local_id>`，例如 `example_souls_fire_wolf_skill`；新技能不加前缀会和别的 mod 的 `Skill.<id>` 撞车。
 - Cue 标签：`Cue.Mod.<PascalModId>.<Name>`，例如 `Cue.Mod.ExampleSouls.Fire`。`<PascalModId>` 是 mod id 的 PascalCase 形式（`example_souls` → `ExampleSouls`），不属于本 mod 命名空间的标签会被拒绝。
 - Cue 场景根节点必须继承 `GameplayCueNotify`；注册发生在启动时，运行期不能新增或替换 Cue。
@@ -116,10 +119,11 @@ user://mods/example_souls/
 
 ## 5. 覆盖原版
 
-- 在 modkit 里直接修改原路径的资源，例如 `res://game/content/effects/burn_tick.tres`。
+- 在 modkit 里直接修改原路径的资源，例如 `res://base_mods/core/effects/burn_tick.tres`。
 - 在 `mod.json` 的 `overrides` 里声明这些路径。
-- 后加载的 mod 覆盖先加载的；同一路径被多个 mod 声明覆盖会出现在 `ModLoader.get_errors()`。
-- 不允许覆盖 `project.godot`、`.godot/`、YARD registry 和 `Scripts/mod/`；这些路径会被拒绝。
+- 所有 PCK 先挂载、再加载内容，所以后加载的 mod 能覆盖先加载的资源；同一路径被多个 mod 声明覆盖会出现在 `ModLoader.get_errors()`。
+- 官方 Cue 场景在 `res://base_mods/core/cues/`；仍按旧路径（`game/battle/cues/` 或 `game/content/cues/`）打包的 mod 需要更新。
+- 不允许覆盖 `project.godot`、`.godot/`、`base_mods/*/mod.json` 和 `Scripts/mod/`；这些路径会被拒绝。
 
 ## 6. 加载顺序
 
@@ -131,8 +135,10 @@ user://mods/example_souls/
 
 ## 7. 调试
 
-- `TestAPI.get_mod_list()`：mod 概况、是否加载、内容数量、错误。
+- `TestAPI.get_mod_list()`：mod 概况（含 `source` / `builtin` / `locked`）、是否加载、内容数量、错误。
 - `TestAPI.get_mod_errors()`：加载器、内容合并和 Cue 注册诊断汇总。
+- `TestAPI.is_builtin_mod(id)`：是否为内置 mod。
+- `TestAPI.get_mod_content_ids(id)`：该 mod 注册的 souls / monsters / cues ID 列表。
 - `TestAPI.get_mod_cues()`：mod Cue 的标签、来源、路径、是否注册成功。
 - `TestAPI.is_mod_cue_registered(tag)`：单个 mod Cue 是否已注册。
 - `TestAPI.set_mod_enabled(id, enabled)`：写启用状态；重启后生效。
@@ -143,7 +149,18 @@ user://mods/example_souls/
 
 ## 8. 当前限制
 
-- Cue 只在启动时注册；运行期不能新增/替换，也不能注销。标签必须属于本 mod 的 `Cue.Mod.<PascalModId>.` 命名空间，场景根节点必须是 `GameplayCueNotify`。
-- 加载顺序可以在 Mod 窗口调整，但 `dependencies` / `load_after` 仍会覆盖它；改动重启生效。启用状态可以在 Mod 窗口、`user://mods.cfg` 或 TestAPI 改。
+- Cue 只在启动时注册；运行期不能新增/替换，也不能注销。第三方 Cue 标签必须属于本 mod 的 `Cue.Mod.<PascalModId>.` 命名空间；内置 core 使用全局标签。场景根节点必须是 `GameplayCueNotify`。
+- 加载顺序可以在 Mod 窗口调整，但内置 mod 固定最前，`dependencies` / `load_after` 仍会覆盖第三方顺序；改动重启生效。启用状态可以在 Mod 窗口、`user://mods.cfg` 或 TestAPI 改。
 - 没有 Workshop 上传/订阅；先手动放目录。
 - 允许 PCK 内的 GDScript，Godot 没有沙箱；只加载可信 mod。
+
+## 9. 官方内置内容（core）
+
+- 清单：`base_mods/core/mod.json`；内容资源已经物理迁移到 `base_mods/core/` 的 `souls/`、`monsters/`、`effects/`、`cues/`，manifest 不再填写 `content_root`。
+- 当前条目：`souls` 20 条、`monsters` 2 条、`cues` 5 条。技能、触发器、effects 不单独登记，由魂灵/技能资源内部引用。
+- 新增官方魂灵：把 `.tres` 放到 `base_mods/core/souls/<name>/`，在 `content.souls` 加 `{ "id": "<id>", "path": "souls/<name>/<file>.tres" }`。
+- 新增官方怪物：数据放 `base_mods/core/monsters/<name>/`，在 `content.monsters` 加 `{ "id": "<id>", "path": "monsters/<name>/<file>.tres" }`；`battle_scene` 仍由 `MonsterData` 内部引用。
+- 新增官方 Cue：场景放 `base_mods/core/cues/`，逻辑脚本可放 `game/battle/cues/`，在 `content.cues` 加 `{ "tag": "...", "scene": "cues/<file>.tscn" }`。
+- 官方 ID 保持原值，不要加 `core:` 前缀；旧存档依赖这些 ID。
+- 内置 mod 只能 loose，不能把 `content.pck` 放进 `base_mods/`。
+- 导出：`include_filter` 必须包含 `base_mods/*/mod.json`；`exclude_filter` 用 `mods/*,modkit/*`，不要用 `*mods/*`。

@@ -1,9 +1,9 @@
 # GAS 适配层
 
 > 类型：实现 | 状态：有效 | 核对：2026-11-07
-> 何时读：改属性集、标签注册、Cue 注册
+> 何时读：改属性集、标签注册、Cue 清单
 > 关键词：GAS GameplayAbility AttributeSet Tag Cue godot_gas
-> 代码：godot_gas/
+> 代码：godot_gas/、base_mods/core/mod.json
 > 相关：`特效/effects.md`、`架构/调试与遥测.md`
 >
 > 旧版架构长文第 6 节。
@@ -17,7 +17,7 @@
 | `attributes_draft.cfg` | GodotGAS 编辑器插件的属性草稿数据，不参与运行时 |
 | `tag_registry.tres` | 标签注册表：`Cue.*`、`Data.*`（SetByCaller）、`Event.*`（GameplayEvent）、`State.*`、`Team.*`、`Skill.<id>`、`Skill.Trigger.*`；完整列表以此文件为准 |
 | `gameplay_tags.gd` | 由插件根据注册表自动生成，**不要手改**；新增标签后通过插件重新生成 |
-| `cue_registry.tres` | Cue 注册表：灼烧光环、剧毒飞溅/气泡、冻结光环、恐狼爪痕 |
+| `cue_registry.tres` | 项目内置 Cue 注册表，当前为空；官方 Cue 在 `base_mods/core/mod.json`，第三方在自己的 `mod.json` |
 
 > `addons/GodotGAS/components/ability_system_component.gd` 增加了一个小扩展：`periodic_effect_ticked(active_effect, spec)`，在周期效果每跳 `_commit_spec_math()` 后发出，供 DoT/HoT 的战斗叙事使用。原框架只有施加时的 `effect_received`，没有每跳信号。
 
@@ -30,8 +30,8 @@
 | `Team.Player` / `Team.Enemy` | `BattleUnit._init_attributes()` 按 `team` 字段添加 |
 | `State.Burning` / `State.Poisoned` | 灼烧/剧毒周期效果的 `granted_tags` |
 | `State.Frozen` | `ChargedAbility.FROZEN_TAG`（`BattleBrain.FROZEN_TAG` 别名）；单位级冻结由 `freeze_unit.tres` 挂/摘，同时驱动 `Cue.Status.Freeze` |
-| `Cue.Status.Freeze` | 单位冻结持久光环（`game/battle/cues/freeze_cue.tscn`） |
-| `Cue.Combat.ClawSlash` | 恐狼命中爪痕（`game/battle/cues/claw_slash_cue.tscn`）；`kong_lang_skill.tres` 的 `hit_cue_tag` 触发，带方向/位置 |
+| `Cue.Status.Freeze` | 单位冻结持久光环（`base_mods/core/cues/freeze_cue.tscn`） |
+| `Cue.Combat.ClawSlash` | 恐狼命中爪痕（`base_mods/core/cues/claw_slash_cue.tscn`）；`kong_lang_skill.tres` 的 `hit_cue_tag` 触发，带方向/位置 |
 | `Event.Movement.UnitMoved` | 敌方跨格；`BattleUnit._on_battle_unit_moved()` 发送 |
 | `Event.Health.BelowPercent` | 生命下降；`BattleUnit._check_health_triggers()` 发送 |
 | `Event.Combat.SoulUsed` | 魂灵成功激活；`AutoCastAbility._notify_soul_used()` 发送 |

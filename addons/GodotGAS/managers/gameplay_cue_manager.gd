@@ -30,8 +30,13 @@ func _ready() -> void:
 func _load_registry() -> void:
 	var cue_registry_path: = GodotGasProjectSettings.get_registry_cue_path()
 	if not ResourceLoader.exists(cue_registry_path):
-		if not Engine.is_editor_hint() or EditorInterface.is_plugin_enabled("GodotGAS"):
+		if not Engine.is_editor_hint():
 			push_warning("GodotGAS: No cue registry found at " + cue_registry_path)
+		else:
+			# EditorInterface 只在编辑器里存在；导出模板里直接写标识符会编译失败。
+			var editor = Engine.get_singleton("EditorInterface")
+			if editor != null and editor.is_plugin_enabled("GodotGAS"):
+				push_warning("GodotGAS: No cue registry found at " + cue_registry_path)
 		return
 		
 	var registry = load(cue_registry_path) as GameplayCueRegistry
@@ -86,7 +91,8 @@ func add_persistent_cue(tag: StringName, target: Node, payload: Dictionary = {})
 
 
 ## Manually concludes a persistent cue and triggers its fade-out phase.
-func remove_persistent_cue(cue_node: GameplayCueNotify) -> void:
+## 参数不写 GameplayCueNotify：ASC 清理时可能传入已经释放的实例，typed 参数会先报错。
+func remove_persistent_cue(cue_node) -> void:
 	if is_instance_valid(cue_node):
 		cue_node.end_cue()
 #endregion
@@ -134,7 +140,9 @@ func _on_cue_finished(cue_node: GameplayCueNotify, tag: StringName) -> void:
 
 ## Centralized lifecycle state manager.
 ## Handles enabling/disabling logic and visual toggling for any node structure.
-func set_cue_state(cue: GameplayCueNotify, active: bool) -> void:
+func set_cue_state(cue, active: bool) -> void:
+	if not is_instance_valid(cue):
+		return
 	# 1. Toggle Logic
 	cue.process_mode = Node.PROCESS_MODE_INHERIT if active else Node.PROCESS_MODE_DISABLED
 	

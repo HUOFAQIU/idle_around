@@ -2,7 +2,7 @@
 
 > 类型：指南 | 状态：有效 | 核对：2026-11-07
 > 何时读：写自动化测试/探针、构造战斗或背包场景、验证新功能
-> 关键词：测试 TestAPI 探针 自动化 战斗快照 魂灵 仓库 见闻 商店 冷却 冻结 触发器 类型 标签 充能 卡面 tooltip 伤害缩放 多重触发 cast_times releases 颜色 色板 存档 save 爪痕 play_claw_cue mod ModLoader ModWindow 加载顺序 order cue_manager_mod cue Cue 特效 manifest 创意工坊 内置 core content_id validate_core_manifest manifest 校验
+> 关键词：测试 TestAPI 探针 自动化 战斗快照 魂灵 仓库 见闻 商店 冷却 冻结 触发器 类型 标签 充能 卡面 tooltip 伤害缩放 多重触发 cast_times releases 颜色 色板 存档 save 爪痕 play_claw_cue mod ModLoader ModWindow 加载顺序 order mod_cue_registrar cue Cue 特效 manifest 创意工坊 内置 core content_id validate_core_manifest manifest 校验 窗口置顶 T Settings.cfg
 > 代码：`Scripts/test_api.gd`、`Windows/Battle/battle_window.gd`、`Scripts/collection_db.gd`、`Scripts/save/`、`Scripts/mod/`、`base_mods/core/mod.json`
 > 约定：新增功能/内容时，同步补 TestAPI 方法并更新本文。
 
@@ -126,6 +126,22 @@ print(TestAPI.get_mod_load_order())
 - 内置 core 清单在 `base_mods/core/mod.json`，固定启用、排序最前；第三方 mod 目录是 `user://mods/<mod_id>/`，最小结构 `mod.json` + `content.pck`，开发期可以只放 loose 目录。
 - 制作和字段说明见 `指南/Mod制作.md`，加载规则见 `架构/Mod系统.md`。core 内容 ID 沿用原值（`xiao_lu_soul`、`fu_data`），第三方内容 ID 带 `<mod_id>:` 前缀，都可以直接传给 `add_soul()` / `get_soul_ids()`。
 - 装好示例 mod 后，可以用 `TestAPI.add_soul_to_warehouse(&"example_souls:fire_wolf_soul")` 验证。示例源码在 `mods/example_souls/`，打包脚本是 `modkit/pack_example.gd`。
+
+## 窗口
+
+| 方法 | 说明 |
+|---|---|
+| `set_window_pinned(window_name, pinned) -> bool` | 设置窗口置顶；`window_name` 为节点名（`CharacterWindow`、`InventoryWindow` 等），主窗口用 `MainWindow`；写入 `user://Settings.cfg` |
+| `is_window_pinned(window_name) -> bool` | 查询窗口置顶状态 |
+| `get_window_pin_states() -> Dictionary` | 所有普通窗口的置顶状态：`{节点名: bool}`，含 `MainWindow` |
+
+```gdscript
+print(TestAPI.set_window_pinned("CharacterWindow", true))
+print(TestAPI.is_window_pinned("CharacterWindow"))
+print(TestAPI.get_window_pin_states())
+```
+
+窗口置顶状态存在 `user://Settings.cfg` 的 `[window_pins]` 段。`TooltipWindow` / `ItemWindow` 没有置顶接口，固定 transient 跟随主窗口。
 
 ## 颜色
 

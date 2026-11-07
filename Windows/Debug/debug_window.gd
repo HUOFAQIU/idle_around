@@ -221,6 +221,11 @@ func _build_ui() -> void:
 	_search_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	toolbar.add_child(_search_edit)
 
+	# 给 BaseWindow 右上角的 T 置顶按钮留位
+	var pin_space := Control.new()
+	pin_space.custom_minimum_size = Vector2i(32, 0)
+	toolbar.add_child(pin_space)
+
 	_tabs = TabContainer.new()
 	_tabs.name = "Tabs"
 	_tabs.size_flags_vertical = Control.SIZE_EXPAND_FILL

@@ -34,7 +34,7 @@ ModLoader（autoload，最先）
   → 先挂载全部 PCK，再统一加载内容资源
   → 产出 souls / monsters / cues 条目
         │
-        ├─ cues ──▶ GameplayCueManager（项目包装，继承 addon 的管理器）
+        ├─ cues ──▶ GameplayCueManager（GodotGAS）+ ModCueRegistrar（mod Cue 注册）
         │              → 注册 core + 第三方 mod Cue
         │
         ▼
@@ -49,7 +49,7 @@ SaveManager
 
 - `ModLoader` 不做玩法逻辑，只提供 mod 概况、内容条目和启用/顺序配置。
 - `CollectionDB` 仍是唯一内容入口；core 和 mod 内容一样被图鉴、刷怪、仓库使用。
-- `GameplayCueManager` 的项目包装（`Scripts/mod/cue_manager_mod.gd`）只在基类加载完内置 registry 后注册 ModLoader 的 Cue；项目内置 `godot_gas/cue_registry.tres` 现在为空。
+- `GameplayCueManager` 直接使用 GodotGAS 的 `addons/GodotGAS/managers/gameplay_cue_manager.gd`；`ModCueRegistrar`（`Scripts/mod/mod_cue_registrar.gd`）在它之后把 ModLoader 的 Cue 注册进 `_cue_scenes` / `_pool`。项目内置 `godot_gas/cue_registry.tres` 现在为空。
 - 内置 `core` 固定启用、固定加载顺序第一，玩家不能禁用或把它排到第三方 mod 后面。
 - Steam 接入不在当前范围。
 
@@ -57,7 +57,7 @@ SaveManager
 
 1. `ModLoader._init()`：加载 `user://mods.cfg`（启用状态和 `[order]`），先扫描 `res://base_mods/*/mod.json`，再扫描 `user://mods/*/mod.json`；校验、依赖排序后先挂载全部 PCK，再统一加载 manifest 列出的内容资源。
 2. `GameGlobal`、`GBIS` 等原有 autoload 按原顺序启动。
-3. `GameplayCueManager._ready()`（项目包装）：先让基类加载内置 `cue_registry`（当前为空），再注册 `ModLoader` 校验通过的 core 和第三方 mod Cue。
+3. `GameplayCueManager._ready()`（GodotGAS）：加载内置 `cue_registry`（当前为空）；随后 `ModCueRegistrar._ready()` 注册 `ModLoader` 校验通过的 core 和第三方 mod Cue。
 4. `CollectionDB._ready()`：从 `ModLoader` 的 souls/monsters 条目构建目录，写 `content_id`。
 5. `SaveManager` 等一帧后读档；找不到的内容进 `orphaned`。
 6. 主场景启动。
@@ -69,7 +69,8 @@ SaveManager
 - 没有卸载 API，启用/禁用/改顺序后必须重启。
 - 挂载后 `DirAccess` 不会列出 PCK 内部目录，所以内容路径由 `mod.json` 显式列出，不扫描 PCK。
 - 内置 mod 只支持 loose 目录，不支持 `content.pck`，保证任何导出配置下都能通过 `res://` 读取。
-- `GameplayCueManager` 的 autoload 路径已改为项目包装。如果禁用再启用 GodotGAS 插件，插件会把 autoload 改回 `addons/GodotGAS/managers/gameplay_cue_manager.gd`，需要手动改回 `Scripts/mod/cue_manager_mod.gd`。
+- `GameplayCueManager` 的 autoload 必须指向 `addons/GodotGAS/managers/gameplay_cue_manager.gd`；`ModCueRegistrar` 必须排在它之后。不要再写一个继承 addon 管理器的项目包装脚本：导出包里路径式 extends 会解析失败。
+- GodotGAS 的 `gameplay_cue_manager.gd` 和 `utilities/project_settings.gd` 里直接引用 `EditorInterface` 的地方已改成 `Engine.get_singleton("EditorInterface")`，否则导出模板编译失败；`remove_persistent_cue` / `set_cue_state` 也改成允许已释放实例。升级 addon 时保留这些修改。
 
 ## 5. Mod 来源与包结构
 
@@ -114,7 +115,7 @@ res://mods/example_souls/content/monsters/fire_wolf_data.tres
 
 - 内置 core 在 manifest 里声明 `content_namespace: "global"`，内容 ID 沿用原值（如 `xiao_lu_soul`、`fu_data`），技能 ID 和 Cue 标签也不加前缀（如 `Cue.Status.Burn`）。
 - 第三方 mod 内容 ID：`<mod_id>:<local_id>`；技能 `SkillDefinition.id`：`<mod_id>_<local_id>`，因为 `ability_tag = "Skill." + id`，重复会互相顶掉。
-- 第三方 Cue 标签：`Cue.Mod.<PascalModId>.<Name>`，例如 `example_souls` → `Cue.Mod.ExampleSouls.Fire`；不属于本 mod 命名空间的标签会被拒绝。`GameplayCueManager` 的项目包装在基类加载完内置 registry 后注册所有 ModLoader Cue，场景根节点必须继承 `GameplayCueNotify`；已存在的标签不会被覆盖。
+- 第三方 Cue 标签：`Cue.Mod.<PascalModId>.<Name>`，例如 `example_souls` → `Cue.Mod.ExampleSouls.Fire`；不属于本 mod 命名空间的标签会被拒绝。`ModCueRegistrar` 把所有 ModLoader Cue 注册进 `GameplayCueManager`，场景根节点必须继承 `GameplayCueNotify`；已存在的标签不会被覆盖。
 - `content_namespace: "global"` 和 `content_root` 只允许内置来源；第三方写了会被拒绝并记入 `ModLoader.get_errors()`。
 - 加载顺序：内置 mod 固定在最前；第三方按用户在 Mod 窗口排的基础顺序，存在 `user://mods.cfg` 的 `[order]`。`dependencies` 是硬依赖，缺失/禁用时依赖方不加载；`load_after` 是软顺序。两者都会覆盖用户顺序，冲突时以依赖为准。
 - 路径覆盖：所有 PCK 先挂载，再加载内容；后挂载的 PCK 可以覆盖先挂载的资源。core 内容在 `res://base_mods/core/...`，第三方覆盖这些路径即可，但要在 `overrides` 里声明。
@@ -133,7 +134,7 @@ res://mods/example_souls/content/monsters/fire_wolf_data.tres
 
 ## 8. 当前实现范围（Phase 1 + 内置 core）
 
-- 已做：`mod.json` schema、`content_namespace` / `content_root`、`ModLoader`、内置 `res://base_mods` 与 `user://mods` 双来源发现、PCK/loose 挂载、两段式挂载与内容加载、依赖排序、冲突检测、`CollectionDB` 统一目录、`content_id`、`orphaned` 存档保护、core/mod Cue 注册、`ModWindow` 管理窗口、加载顺序调整、旧 override 路径提示、core manifest 校验。
+- 已做：`mod.json` schema、`content_namespace` / `content_root`、`ModLoader`、内置 `res://base_mods` 与 `user://mods` 双来源发现、PCK/loose 挂载、两段式挂载与内容加载、依赖排序、冲突检测、`CollectionDB` 统一目录、`content_id`、`orphaned` 存档保护、core/mod Cue 注册（`ModCueRegistrar`）、`ModWindow` 管理窗口、加载顺序调整、旧 override 路径提示、core manifest 校验。
 - 已删除：`addons/yard/`、`game/content/Collection/soul_registry.tres`、`monster_registry.tres`。
 - 未做：Steam 订阅与发布。
 - 新增功能后按项目约定同步 `Scripts/test_api.gd` 和 `DOC/指南/AI测试接口.md`。

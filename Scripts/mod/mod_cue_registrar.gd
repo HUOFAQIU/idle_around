@@ -1,24 +1,26 @@
-extends "res://addons/GodotGAS/managers/gameplay_cue_manager.gd"
-## 项目侧 Cue 管理器（Autoload 名仍是 GameplayCueManager）。
+extends Node
+## 项目侧 Cue 注册器（Autoload：ModCueRegistrar）。
 ##
-## 继承 GodotGAS 的 GameplayCueManager，不修改 addons/：
-## _ready() 先让基类加载内置 cue_registry，再注册 ModLoader 的 Cue 条目。
-## 注册失败写入 ModLoader.get_errors()。
+## `GameplayCueManager` 直接使用 GodotGAS 的
+## `addons/GodotGAS/managers/gameplay_cue_manager.gd`，本节点只负责把
+## ModLoader 的 core/第三方 mod Cue 注册进它的 `_cue_scenes` / `_pool`。
+##
+## 不继承 addon 脚本：导出包里路径式 extends 会解析失败，导致整个
+## GameplayCueManager autoload 挂掉。
 
 var _mod_registered_tags: Array[StringName] = []
 
 
 func _ready() -> void:
-	super._ready()
 	_register_mod_cues()
 
 
 ## 运行时注册一个 Cue；标签已存在时返回 false
 func register_cue(tag: StringName, scene: PackedScene) -> bool:
-	if tag.is_empty() or scene == null or _cue_scenes.has(tag):
+	if tag.is_empty() or scene == null or GameplayCueManager._cue_scenes.has(tag):
 		return false
-	_cue_scenes[tag] = scene
-	_pool[tag] = []
+	GameplayCueManager._cue_scenes[tag] = scene
+	GameplayCueManager._pool[tag] = []
 	return true
 
 
@@ -52,7 +54,7 @@ func _register_entry(entry: ModContentEntry) -> bool:
 		ModLoader.report_warning("%s: Cue 资源不是 PackedScene：%s" % [entry.mod_id, entry.path])
 		return false
 	if not _scene_is_cue(scene):
-		ModLoader.report_warning("%s: Cue 场景根节点必须继承 GameplayCueNotify：%s" % [
+		ModLoader.report_warning("%s: Cue 场景根节点必须能执行 Cue（execute_cue + cue_finished）：%s" % [
 			entry.mod_id,
 			entry.path,
 		])
@@ -63,11 +65,11 @@ func _register_entry(entry: ModContentEntry) -> bool:
 	return true
 
 
-## 实例化一次检查根节点类型；不在场景树里，只会触发 _init。
+## 实例化一次检查根节点能力；不在场景树里，只会触发 _init。
 func _scene_is_cue(scene: PackedScene) -> bool:
 	var instance := scene.instantiate()
 	if instance == null:
 		return false
-	var valid := instance is GameplayCueNotify
+	var valid := instance.has_method("execute_cue") and instance.has_signal("cue_finished")
 	instance.free()
 	return valid

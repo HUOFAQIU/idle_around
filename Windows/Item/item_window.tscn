@@ -5,7 +5,7 @@
 [node name="ItemWindow" type="Window" unique_id=61833472]
 oversampling_override = 1.0
 visible = false
-always_on_top = true
+transient = true
 unfocusable = true
 mouse_passthrough = true
 minimize_disabled = true

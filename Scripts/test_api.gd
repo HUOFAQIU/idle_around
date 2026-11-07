@@ -375,12 +375,12 @@ static func validate_core_manifest() -> Array[String]:
 
 ## 已发现的 mod Cue：tag / mod / path / 是否已注册到 GameplayCueManager
 static func get_mod_cues() -> Array[Dictionary]:
-	return GameplayCueManager.get_mod_cues()
+	return ModCueRegistrar.get_mod_cues()
 
 
 ## 某个 mod Cue 是否已注册到 GameplayCueManager
 static func is_mod_cue_registered(tag : StringName) -> bool:
-	return GameplayCueManager.is_mod_cue_registered(tag)
+	return ModCueRegistrar.is_mod_cue_registered(tag)
 
 
 ## 打开 Mod 管理窗口并刷新；找不到窗口返回 false
@@ -423,6 +423,86 @@ static func set_mod_enabled(mod_id : StringName, enabled : bool) -> bool:
 ## 当前存档里因 mod 缺失/容器满而保留的原始记录
 static func get_orphaned_records() -> Array[Dictionary]:
 	return SaveManager.get_orphaned_records()
+
+#endregion
+
+
+#region 窗口
+
+## 设置窗口置顶；window_name 为节点名（CharacterWindow 等），MainWindow 表示主窗口
+static func set_window_pinned(window_name : String, pinned : bool) -> bool:
+	if window_name == "MainWindow":
+		var main := _main_window()
+		if main == null:
+			return false
+		main.always_on_top = pinned
+		WindowPinSettings.save_pin(window_name, pinned)
+		_sync_main_pin_button(pinned)
+		return true
+	var window := _window_by_name(window_name)
+	if window is BaseWindow:
+		(window as BaseWindow).set_pinned(pinned)
+		return true
+	return false
+
+
+## 查询窗口置顶状态
+static func is_window_pinned(window_name : String) -> bool:
+	if window_name == "MainWindow":
+		var main := _main_window()
+		return main != null and main.always_on_top
+	var window := _window_by_name(window_name)
+	return window is BaseWindow and (window as BaseWindow).is_pinned()
+
+
+## 所有普通窗口的置顶状态：{节点名: bool}，含 MainWindow
+static func get_window_pin_states() -> Dictionary:
+	var result := {}
+	var main := _main_window()
+	if main != null:
+		result["MainWindow"] = main.always_on_top
+	for window in _window_nodes():
+		if window is BaseWindow:
+			result[String(window.name)] = (window as BaseWindow).is_pinned()
+	return result
+
+
+static func _main_window() -> Window:
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree == null:
+		return null
+	return tree.root as Window
+
+
+static func _window_nodes() -> Array[Window]:
+	var result: Array[Window] = []
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree == null:
+		return result
+	var root: Node = tree.current_scene if tree.current_scene != null else tree.root
+	for node in root.find_children("*", "", true, false):
+		if node is Window:
+			result.append(node as Window)
+	return result
+
+
+static func _window_by_name(window_name : String) -> Window:
+	for window in _window_nodes():
+		if String(window.name) == window_name:
+			return window
+	return null
+
+
+static func _sync_main_pin_button(pinned : bool) -> void:
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree == null:
+		return
+	var status := tree.root.find_child("StatusBarContainer", true, false)
+	if status == null:
+		return
+	var button := status.get_node_or_null("Button2")
+	if button is Button:
+		(button as Button).set_pressed_no_signal(pinned)
 
 #endregion
 

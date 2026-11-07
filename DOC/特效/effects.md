@@ -3,7 +3,7 @@
 > 类型：指南 | 状态：有效 | 整理：2026-11-07
 > 何时读：新增/调试 GameplayCue 特效
 > 关键词：特效 GameplayCue Cue 场景 对象池 补间 注册 挂钩 灼烧 剧毒 冻结 恐狼 爪痕 hit_cue_tag 命中特效 mod 内置 core manifest
-> 代码：`base_mods/core/mod.json`、`godot_gas/cue_registry.tres`、`addons/GodotGAS/cues/`、`Scripts/mod/cue_manager_mod.gd`
+> 代码：`base_mods/core/mod.json`、`godot_gas/cue_registry.tres`、`addons/GodotGAS/cues/`、`Scripts/mod/mod_cue_registrar.gd`
 > 相关：`架构/GAS.md`
 
 框架自带一套 Cue 系统：**一个标签对应一个场景**。命中该冒什么火花、中毒每跳该闪什么、buff 该罩什么光，
@@ -19,7 +19,7 @@
 - 单位一销毁，挂在上面的 cue 跟着没 —— 这正好满足"关窗＝全部还原"
 
 代码位置：`addons/GodotGAS/cues/gameplay_cue_notify.gd`（基类）、
-`Scripts/mod/cue_manager_mod.gd`（autoload，继承 addon 的 `gameplay_cue_manager.gd`；启动时加载 `godot_gas/cue_registry.tres`（当前为空），再注册 ModLoader 的 core 和第三方 mod Cue）
+`GameplayCueManager`（GodotGAS autoload）启动时加载 `godot_gas/cue_registry.tres`（当前为空）；`ModCueRegistrar`（autoload）随后把 ModLoader 的 core 和第三方 mod Cue 注册进去
 
 ---
 
@@ -186,7 +186,8 @@ print(img.get_pixel(x, y))          # 窗口内部坐标
 | 东西 | 在哪 |
 |---|---|
 | 注册表 | 官方：`base_mods/core/mod.json` 的 `content.cues`；第三方：各自的 `mod.json` |
-| 管理器（autoload） | `Scripts/mod/cue_manager_mod.gd`（继承 `addons/GodotGAS/managers/gameplay_cue_manager.gd`） |
+| 管理器（autoload） | `GameplayCueManager`：`addons/GodotGAS/managers/gameplay_cue_manager.gd` |
+| mod 注册（autoload） | `ModCueRegistrar`：`Scripts/mod/mod_cue_registrar.gd` |
 | 基类 | `addons/GodotGAS/cues/gameplay_cue_notify.gd` |
 | 挂点字段 | `addons/GodotGAS/effects/gameplay_effect.gd` 的 Cue Management 一节 |
 | 灼烧光环 | `base_mods/core/cues/burn_cue.tscn`；标签 `Cue.Status.Burn`；挂在 `base_mods/core/effects/burn_tick.tres` 的 `persistent_cue_tags` |

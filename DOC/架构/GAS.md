@@ -20,6 +20,8 @@
 | `cue_registry.tres` | 项目内置 Cue 注册表，当前为空；官方 Cue 在 `base_mods/core/mod.json`，第三方在自己的 `mod.json` |
 
 > `addons/GodotGAS/components/ability_system_component.gd` 增加了一个小扩展：`periodic_effect_ticked(active_effect, spec)`，在周期效果每跳 `_commit_spec_math()` 后发出，供 DoT/HoT 的战斗叙事使用。原框架只有施加时的 `effect_received`，没有每跳信号。
+>
+> `addons/GodotGAS/managers/gameplay_cue_manager.gd` 和 `utilities/project_settings.gd` 里直接引用 `EditorInterface` 的地方已改成 `Engine.get_singleton("EditorInterface")`，否则导出模板编译失败、所有 Cue 消失；`gameplay_cue_manager.gd` 的 `remove_persistent_cue` / `set_cue_state` 也改成允许已释放实例。升级 addon 时保留这些修改。
 
 标签使用现状：
 

@@ -9,13 +9,14 @@
 |---|---|---|
 | 了解项目结构、autoload、输入动作 | `架构/00_总览.md` | `project.godot` |
 | 改启动链、窗口外壳、窗口清单/单例 | `架构/窗口与场景.md` | `Main/control.gd`、`Windows/base_window.gd` |
+| 改窗口置顶、T 按钮、置顶持久化 | `架构/窗口与场景.md` | `Windows/base_window.gd`、`Main/status_bar_container.gd`、`Scripts/window_pin_settings.gd` |
 | 改战斗单位、施法、冷却/扫描线 | `架构/战斗运行时_施法与冷却.md` | `game/battle/`、`Windows/Battle/` |
 | 改移动、攻击范围门控、刷怪、空间索引、投射物 | `架构/战斗运行时_移动与投射物.md` | `game/battle/`、`Windows/Battle/` |
 | 改暴击/伤害/异常、开战关窗、玩家怪物场景 | `架构/战斗运行时_伤害与流程.md` | `game/battle/`、`Windows/Battle/` |
 | 改技能/目标规则/魂灵/怪物数据/掉落 | `架构/战斗数据与魂灵.md` | `base_mods/core/`、`game/content/` |
 | 改背包/仓库/装备槽/拖拽 | `架构/背包_GBIS.md` | `Windows/Inventory/grid_base_inventory_system/`、`Scripts/warehouse.gd` |
 | 改存档/读档/存档格式/迁移 | `架构/存档.md` | `Scripts/save/` |
-| 改 GAS 属性/标签/Cue | `架构/GAS.md`、`特效/effects.md` | `godot_gas/`、`addons/GodotGAS/`、`Scripts/mod/cue_manager_mod.gd` |
+| 改 GAS 属性/标签/Cue | `架构/GAS.md`、`特效/effects.md` | `godot_gas/`、`addons/GodotGAS/`、`Scripts/mod/mod_cue_registrar.gd` |
 | 按完整链路理解系统 | `架构/关键流程.md` | `game/battle/`、`Windows/Inventory/` |
 | 新增魂灵/怪物/技能/窗口/特效 | `架构/扩展点.md` | `base_mods/core/`、`game/content/`、`Main/control.gd` |
 | 改 mod 加载/内容注册/存档兼容/管理窗口/加载顺序 | `架构/Mod系统.md` | `Scripts/mod/`、`Scripts/collection_db.gd`、`Scripts/save/`、`Windows/ModWindow/` |

@@ -142,24 +142,28 @@ static func _init_project_settings_registry_tag() -> void:
 static func get_svg_icon(path: String) -> Texture2D:
 	if not Engine.is_editor_hint():
 		return load(path)
-		
-	var file = FileAccess.open(path, FileAccess.READ)
-	if not file: 
+	# EditorInterface 只在编辑器里存在；直接用标识符会让导出模板编译失败。
+	var editor = Engine.get_singleton("EditorInterface")
+	if editor == null:
 		return load(path)
-	
+
+	var file = FileAccess.open(path, FileAccess.READ)
+	if not file:
+		return load(path)
+
 	var svg_text = file.get_as_text()
 	file.close()
-	
-	var theme = EditorInterface.get_editor_theme()
+
+	var theme = editor.get_editor_theme()
 	var font_color = "#" + theme.get_color("font_color", "Editor").to_html(false)
-	
+
 	svg_text = svg_text.replace("#e0e0e0", font_color)
 	svg_text = svg_text.replace("#E0E0E0", font_color)
 	svg_text = svg_text.replace("#ffffff", font_color)
 	svg_text = svg_text.replace("#FFFFFF", font_color)
-	
+
 	var img = Image.new()
-	var editor_scale = EditorInterface.get_editor_scale()
+	var editor_scale = editor.get_editor_scale()
 	var err = img.load_svg_from_string(svg_text, editor_scale)
 	
 	if err == OK:

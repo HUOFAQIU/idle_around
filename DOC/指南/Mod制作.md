@@ -70,7 +70,7 @@ user://mods/example_souls/
 | `content_root` | 否 | 只允许内置 mod；指向 `res://` 下的内容根目录，空则用 `res://base_mods/<id>/` |
 | `content.souls` | 否 | 魂灵条目：`id` + `path` |
 | `content.monsters` | 否 | 怪物条目：`id` + `path` |
-| `content.cues` | 否 | Cue 条目：`tag` + `scene`；启动时注册到 `GameplayCueManager` |
+| `content.cues` | 否 | Cue 条目：`tag` + `scene`；启动时由 `ModCueRegistrar` 注册到 `GameplayCueManager` |
 | `overrides` | 否 | 覆盖的原版 `res://` 路径，必须存在 |
 
 ## 3. 内容路径与 ID

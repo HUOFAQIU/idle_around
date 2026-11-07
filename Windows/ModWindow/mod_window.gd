@@ -147,6 +147,11 @@ func _build_ui() -> void:
 	open_button.pressed.connect(_open_mods_dir)
 	header.add_child(open_button)
 
+	# 给 BaseWindow 右上角的 T 置顶按钮留位
+	var pin_space := Control.new()
+	pin_space.custom_minimum_size = Vector2i(32, 0)
+	header.add_child(pin_space)
+
 	vbox.add_child(HSeparator.new())
 
 	_tabs = TabContainer.new()

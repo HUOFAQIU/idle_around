@@ -36,6 +36,20 @@ Windows 下 `user://` 是 `%APPDATA%\Godot\app_userdata\idle_around\`。
 TestAPI.add_soul_to_warehouse(&"example_souls:fire_wolf_soul")
 ```
 
+## 校验内置 core manifest
+
+官方内容清单 `base_mods/core/mod.json` 是手工维护的。改完魂灵/怪物/Cue 后运行：
+
+```text
+"U:\Godot_ver\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64.exe" ^
+  --headless --path "U:\Godot_Project\idle_around" ^
+  --script res://modkit/validate_core_manifest.gd
+```
+
+检查项：manifest 格式、`id=core` / `content_namespace=global`、魂灵/怪物/Cue 条目与目录文件是否一一对应、重复 ID/路径。退出码 `0` 表示通过，`1` 表示有错误。
+
+运行时也可以用 `TestAPI.validate_core_manifest()` 查询同一份校验结果。
+
 ## 发布 mod
 
 发布目录只需要两个文件：

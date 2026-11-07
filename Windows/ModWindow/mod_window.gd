@@ -1,4 +1,4 @@
-class_name ModWindow extends Window
+class_name ModWindow extends BaseWindow
 ## Mod 管理窗口。
 ##
 ## 只读 ModLoader 的概况；启用状态写入 user://mods.cfg，运行期不卸载/重载，
@@ -18,10 +18,10 @@ var _startup_order: Array[StringName] = []
 
 
 func _ready() -> void:
+	super._ready()
 	title = "Mod 管理"
 	min_size = Vector2i(640, 360)
 	size = Vector2i(760, 520)
-	close_requested.connect(hide)
 	visibility_changed.connect(_on_visibility_changed)
 	_build_ui()
 	for mod in ModLoader.get_mod_list():

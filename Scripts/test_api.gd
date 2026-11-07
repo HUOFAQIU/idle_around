@@ -368,6 +368,11 @@ static func get_mod_content_ids(mod_id : StringName) -> Dictionary:
 	}
 
 
+## 校验 base_mods/core/mod.json 与内容文件是否一致；返回错误列表
+static func validate_core_manifest() -> Array[String]:
+	return CoreContentValidator.validate()
+
+
 ## 已发现的 mod Cue：tag / mod / path / 是否已注册到 GameplayCueManager
 static func get_mod_cues() -> Array[Dictionary]:
 	return GameplayCueManager.get_mod_cues()

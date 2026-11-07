@@ -2,7 +2,7 @@
 
 > 类型：设计 | 状态：部分实现（内置 core mod 已接入；Steam 后置）
 > 何时读：改 mod 加载、内容注册、存档兼容，或准备接 Steam 创意工坊
-> 关键词：mod ModLoader manifest PCK 创意工坊 Workshop content_id orphaned 加载顺序 内置 core content_namespace content_root
+> 关键词：mod ModLoader manifest PCK 创意工坊 Workshop content_id orphaned 加载顺序 内置 core content_namespace content_root validate_core_manifest manifest 校验
 > 代码：`Scripts/mod/`、`Scripts/collection_db.gd`、`Scripts/save/`、`project.godot`、`base_mods/core/mod.json`
 > 相关：`架构/存档.md`、`架构/扩展点.md`、`指南/Mod制作.md`
 > 不覆盖：Steamworks 后台配置、GodotSteam 完整 API
@@ -119,6 +119,7 @@ res://mods/example_souls/content/monsters/fire_wolf_data.tres
 - 加载顺序：内置 mod 固定在最前；第三方按用户在 Mod 窗口排的基础顺序，存在 `user://mods.cfg` 的 `[order]`。`dependencies` 是硬依赖，缺失/禁用时依赖方不加载；`load_after` 是软顺序。两者都会覆盖用户顺序，冲突时以依赖为准。
 - 路径覆盖：所有 PCK 先挂载，再加载内容；后挂载的 PCK 可以覆盖先挂载的资源。core 内容在 `res://base_mods/core/...`，第三方覆盖这些路径即可，但要在 `overrides` 里声明。
 - 冲突检测：重复内容 ID、重复 cue tag、同一路径被多个 mod 声明覆盖在加载阶段记录；重复 skill id 在 `CollectionDB` 构建目录时补充。都会出现在 `ModLoader.get_errors()`。
+- 旧 override 路径（`res://game/content/Souls|Monster|effects|cues/...`、`res://game/battle/cues/*.tscn`）会报“已迁移到 `res://base_mods/core/...`，请重新打包”，不会静默失效。
 - 内容路径必须落在该 mod 的根目录下：第三方是 `res://mods/<id>/` 或 `user://mods/<id>/`；内置是 `res://base_mods/<id>/` 或 manifest 的 `content_root`。`overrides` 是唯一允许指向其他 `res://` 路径的入口。
 
 ## 7. 存档兼容与缺失内容
@@ -132,7 +133,7 @@ res://mods/example_souls/content/monsters/fire_wolf_data.tres
 
 ## 8. 当前实现范围（Phase 1 + 内置 core）
 
-- 已做：`mod.json` schema、`content_namespace` / `content_root`、`ModLoader`、内置 `res://base_mods` 与 `user://mods` 双来源发现、PCK/loose 挂载、两段式挂载与内容加载、依赖排序、冲突检测、`CollectionDB` 统一目录、`content_id`、`orphaned` 存档保护、core/mod Cue 注册、`ModWindow` 管理窗口、加载顺序调整。
+- 已做：`mod.json` schema、`content_namespace` / `content_root`、`ModLoader`、内置 `res://base_mods` 与 `user://mods` 双来源发现、PCK/loose 挂载、两段式挂载与内容加载、依赖排序、冲突检测、`CollectionDB` 统一目录、`content_id`、`orphaned` 存档保护、core/mod Cue 注册、`ModWindow` 管理窗口、加载顺序调整、旧 override 路径提示、core manifest 校验。
 - 已删除：`addons/yard/`、`game/content/Collection/soul_registry.tres`、`monster_registry.tres`。
 - 未做：Steam 订阅与发布。
 - 新增功能后按项目约定同步 `Scripts/test_api.gd` 和 `DOC/指南/AI测试接口.md`。
@@ -163,6 +164,7 @@ res://mods/example_souls/content/monsters/fire_wolf_data.tres
 - `content_namespace: "global"` 保留旧 ID；内容资源已经物理迁移到 `base_mods/core/` 的 `souls/`、`monsters/`、`effects/`、`cues/`。
 - 官方 Cue 场景在 `base_mods/core/cues/`，逻辑脚本仍在 `game/battle/cues/`；`godot_gas/cue_registry.tres` 为空。
 - 导出时 `export_presets.cfg` 的 `include_filter` 必须包含 `base_mods/*/mod.json`；`exclude_filter` 用 `mods/*,modkit/*`，不能写成 `*mods/*`，否则会误伤 `base_mods/`。
+- 改完官方内容后运行 `modkit/validate_core_manifest.gd`（或 `TestAPI.validate_core_manifest()`），检查 manifest 是否漏登记、路径不存在或 ID 重复。
 
 ## 9. 安全边界
 

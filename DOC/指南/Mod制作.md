@@ -2,7 +2,7 @@
 
 > 类型：指南 | 状态：部分实现（内置 core 已接入）
 > 何时读：制作、打包、调试 idle_around 的 mod，或新增官方内容
-> 关键词：mod.json content.pck modkit 示例 mod pack_example patch 导出 覆盖 加载顺序 内置 core content_root content_namespace
+> 关键词：mod.json content.pck modkit 示例 mod pack_example patch 导出 覆盖 加载顺序 内置 core content_root content_namespace validate_core_manifest manifest 校验
 > 代码：`Scripts/mod/`、`Scripts/collection_db.gd`、`base_mods/core/mod.json`
 > 相关：`架构/Mod系统.md`
 > 核对：2026-11-07
@@ -122,7 +122,8 @@ user://mods/example_souls/
 - 在 modkit 里直接修改原路径的资源，例如 `res://base_mods/core/effects/burn_tick.tres`。
 - 在 `mod.json` 的 `overrides` 里声明这些路径。
 - 所有 PCK 先挂载、再加载内容，所以后加载的 mod 能覆盖先加载的资源；同一路径被多个 mod 声明覆盖会出现在 `ModLoader.get_errors()`。
-- 官方 Cue 场景在 `res://base_mods/core/cues/`；仍按旧路径（`game/battle/cues/` 或 `game/content/cues/`）打包的 mod 需要更新。
+- 官方 Cue 场景在 `res://base_mods/core/cues/`；仍按旧路径（`game/content/Souls|Monster|effects|cues/` 或 `game/battle/cues/*.tscn`）打包的 mod 需要更新。
+- `ModLoader` 会对旧 override 路径给出“已迁移到 …，请重新打包”的错误，不会静默失效。
 - 不允许覆盖 `project.godot`、`.godot/`、`base_mods/*/mod.json` 和 `Scripts/mod/`；这些路径会被拒绝。
 
 ## 6. 加载顺序
@@ -139,6 +140,7 @@ user://mods/example_souls/
 - `TestAPI.get_mod_errors()`：加载器、内容合并和 Cue 注册诊断汇总。
 - `TestAPI.is_builtin_mod(id)`：是否为内置 mod。
 - `TestAPI.get_mod_content_ids(id)`：该 mod 注册的 souls / monsters / cues ID 列表。
+- `TestAPI.validate_core_manifest()`：校验 `base_mods/core/mod.json` 与内容文件是否一致；返回错误列表。
 - `TestAPI.get_mod_cues()`：mod Cue 的标签、来源、路径、是否注册成功。
 - `TestAPI.is_mod_cue_registered(tag)`：单个 mod Cue 是否已注册。
 - `TestAPI.set_mod_enabled(id, enabled)`：写启用状态；重启后生效。
@@ -164,3 +166,4 @@ user://mods/example_souls/
 - 官方 ID 保持原值，不要加 `core:` 前缀；旧存档依赖这些 ID。
 - 内置 mod 只能 loose，不能把 `content.pck` 放进 `base_mods/`。
 - 导出：`include_filter` 必须包含 `base_mods/*/mod.json`；`exclude_filter` 用 `mods/*,modkit/*`，不要用 `*mods/*`。
+- 改完官方内容后跑 `modkit/validate_core_manifest.gd`，或调用 `TestAPI.validate_core_manifest()`，检查 manifest 是否漏登记/路径不存在。

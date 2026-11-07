@@ -1,6 +1,6 @@
 # AI 测试接口 TestAPI
 
-> 类型：指南 | 状态：有效 | 核对：2026-11-06
+> 类型：指南 | 状态：有效 | 核对：2026-11-07
 > 何时读：写自动化测试/探针、构造战斗或背包场景、验证新功能
 > 关键词：测试 TestAPI 探针 自动化 战斗快照 魂灵 仓库 见闻 商店 冷却 冻结 触发器 类型 标签 充能 卡面 tooltip 伤害缩放 多重触发 cast_times releases 颜色 色板 存档 save 爪痕 play_claw_cue mod ModLoader ModWindow 加载顺序 order cue_manager_mod cue Cue 特效 manifest 创意工坊
 > 代码：`Scripts/test_api.gd`、`Windows/Battle/battle_window.gd`、`Scripts/collection_db.gd`、`Scripts/save/`、`Scripts/mod/`
@@ -221,7 +221,7 @@ print(TestAPI.get_battle_state()["player_souls"])
 
 | 方法 | 说明 |
 |---|---|
-| `get_debug_events(category := "", limit := 200) -> Array` | 最近调试事件；`category` 见 `CombatEvent`（`battle`/`cast`/`soul`/`trigger`/`effect`/`attribute`/`tag`/`log`） |
+| `get_debug_events(category := "", limit := 200) -> Array` | 最近调试事件；`category` 见 `CombatEvent`（`battle`/`cast`/`soul`/`trigger`/`effect`/`attribute`/`tag`/`cue`/`log`/`system`） |
 | `get_debug_stats() -> Dictionary` | 缓冲大小、丢失数、场次、关注单位、文件录制状态 |
 | `get_debug_snapshot() -> Dictionary` | 当前战斗快照（玩家完整详情、敌人摘要） |
 | `get_soul_runtime(soul_name, target := "player") -> Dictionary` | 某颗已装备魂灵的运行期状态（冷却/充能/状态/统计/触发器） |

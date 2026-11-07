@@ -1,6 +1,6 @@
 # Mod 制作与打包
 
-> 类型：指南 | 状态：部分实现（Phase 1 的 1～5）
+> 类型：指南 | 状态：部分实现（Phase 1 的 1～5 + 管理窗口/加载顺序）
 > 何时读：制作、打包、调试 idle_around 的 mod
 > 关键词：mod.json content.pck modkit 示例 mod pack_example patch 导出 覆盖 加载顺序
 > 代码：`Scripts/mod/`、`Scripts/collection_db.gd`

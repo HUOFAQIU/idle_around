@@ -1,6 +1,6 @@
 # 给游戏加特效（GameplayCue）
 
-> 类型：指南 | 状态：有效 | 整理：2026-11-06
+> 类型：指南 | 状态：有效 | 整理：2026-11-07
 > 何时读：新增/调试 GameplayCue 特效
 > 关键词：特效 GameplayCue Cue 场景 对象池 补间 注册 挂钩 灼烧 剧毒 冻结 恐狼 爪痕 hit_cue_tag 命中特效 mod
 > 代码：`godot_gas/cue_registry.tres`、`addons/GodotGAS/cues/`、`Scripts/mod/cue_manager_mod.gd`
@@ -79,7 +79,7 @@ func play_cue() -> void:
 | `periodic_cue_tags` | 每次周期 tick 时 | 中毒每跳一次 |
 | `removal_cue_tags` | 效果结束时 | 光环消散、状态解除 |
 
-比如长弓的伤害效果，在 `game/content/skills/chang_gong.tres` 里给"伤害"那个子资源填：
+比如长弓的伤害效果，在 `game/content/Souls/chang_gong/chang_gong_skill.tres` 里给"伤害"那个子资源填：
 
 ```
 application_cue_tags = Array[StringName]([&"Cue.Combat.Hit"])

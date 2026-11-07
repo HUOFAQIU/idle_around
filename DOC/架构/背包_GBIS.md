@@ -1,6 +1,6 @@
 # 背包 / 仓库系统（GBIS）
 
-> 类型：实现 | 状态：有效 | 核对：2026-11-05
+> 类型：实现 | 状态：有效 | 核对：2026-11-07
 > 何时读：改背包/仓库/装备槽/容器、拖拽、商店容器、存档
 > 关键词：GBIS 背包 仓库 inventory container 物品大类 category 装备槽 拖拽 Tooltip 存档 分页 Warehouse 商店 Shop
 > 代码：Windows/Inventory/grid_base_inventory_system/、Scripts/warehouse.gd
@@ -26,7 +26,7 @@ core/
 ├─ grid_base_inventory_system.gd        GBIS autoload：信号、Service、全局配置
 ├─ model/
 │  ├─ item/ItemData                     物品基类：名称、类型、图标、占格、材质、shader 参数
-│  ├─ item/SoulData                     extends ItemData：skill + equip_part + 战斗显示用剩余秒数
+│  ├─ item/SoulData                     extends ItemData：技能、触发规则、类型/标签、装备部位；运行期状态在游戏层 SoulRuntime
 │  └─ container/ContainerData           网格容器：格子↔物品映射、放置规则
 ├─ repository/
 │  └─ ContainerRepository               所有 ContainerData 的存取与存档
@@ -142,7 +142,7 @@ GBIS.add_item(inv_name, item_data)
 | `cell_2` | `EquipmentWindow/VBoxContainer/Cell2/SoulView` | `ARMSSOUL` | 10 列 × 2 行 | `SOUL` |
 | `cell_3` | `EquipmentWindow/VBoxContainer/Cell3/SoulView` | `LEGSSOUL` | 10 列 × 2 行 | `SOUL` |
 
-> 注意：`DOC/魂灵/开发指导文件.md` 写的是“每个部位均有 10 格”，但当前 `InventoryView` 只设置了 `container_columns = 10`，`container_rows` 用默认值 2，所以实际是 10×2 = 20 格。后续要么改文档，要么在场景里显式设置 `container_rows`。
+> 注意：魂灵窗口每个部位实际是 10×2 = 20 格（`InventoryView` 只设置了 `container_columns = 10`，`container_rows` 用默认值 2）。
 
 仓库容器：
 

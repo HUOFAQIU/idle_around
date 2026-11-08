@@ -4,6 +4,10 @@ extends Window
 ## 打开时摆在屏幕哪儿；x 或 y 是负数表示「居中」（就按 popup_centered 来）
 @export var open_position : Vector2i = Vector2i(-1, -1)
 
+## 置顶状态持久化 ID；留空时用脚本文件名（如 character_window）。
+## 节点改名不影响设置；脚本改名或换脚本时显式填写。
+@export var window_id : StringName = &""
+
 ## 顶部置顶栏
 const PIN_ROW_HEIGHT : int = 28
 const PIN_BUTTON_SIZE : Vector2i = Vector2i(24, 22)
@@ -30,7 +34,7 @@ func _ready() -> void:
 			self.hide()
 	)
 
-	_pinned = WindowPinSettings.load_pin(String(name))
+	_pinned = WindowPinSettings.load_pin(String(get_pin_key()))
 	_build_pin_row()
 	# 子类 _ready() 在 super() 之后继续加内容，等本帧结束再统一挪进内容区。
 	call_deferred("_wrap_content")
@@ -66,11 +70,21 @@ func set_pinned(on: bool) -> void:
 	if _pin_button != null:
 		_pin_button.set_pressed_no_signal(on)
 	_apply_pin_state()
-	WindowPinSettings.save_pin(String(name), on)
+	WindowPinSettings.save_pin(String(get_pin_key()), on)
 
 
 func is_pinned() -> bool:
 	return _pinned
+
+
+## 置顶设置键：优先用显式 window_id，否则用脚本文件名
+func get_pin_key() -> StringName:
+	if not window_id.is_empty():
+		return window_id
+	var window_script: Script = get_script()
+	if window_script != null and not window_script.resource_path.is_empty():
+		return StringName(window_script.resource_path.get_file().get_basename())
+	return StringName(name)
 
 
 func _apply_pin_state() -> void:

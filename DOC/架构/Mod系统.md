@@ -21,7 +21,7 @@
 - YARD registry 是编辑器烘焙的，运行时只读，无法追加条目；现已删除 `addons/yard/` 和 `game/content/Collection/*_registry.tres`。
 - `CollectionDB` 不再 `preload` registry，完全读取 `ModLoader.get_soul_entries()` / `get_monster_entries()`。
 - 官方内容清单在 `base_mods/core/mod.json`；新增魂灵/怪物/Cue 时改 manifest，不再依赖编辑器扫描。
-- `content_namespace = "global"` 让 core 保留原 ID（如 `xiao_lu_soul`、`fu_data`），旧存档不需要迁移。
+- `content_namespace = "global"` 让 core 保留原 ID（如 `xiao_lu_soul`、`fu_monster`）；旧怪物 ID `fu_data` / `snake_data` 由 `CollectionDB` 别名迁移。
 - 对外 API 不变：`get_soul()`、`get_soul_ids()`、`get_monster()`、`pick_random_monster()` 仍由 `CollectionDB` 提供。
 
 ## 3. 架构
@@ -113,7 +113,7 @@ res://mods/example_souls/content/monsters/fire_wolf_monster.tres
 
 ## 6. 内容 ID 与加载规则
 
-- 内置 core 在 manifest 里声明 `content_namespace: "global"`，内容 ID 沿用原值（如 `xiao_lu_soul`、`fu_data`），技能 ID 由魂灵 ID 去掉 `_soul` 后转 PascalCase（如 `XiaoLu`），Cue 标签也不加前缀（如 `Cue.Status.Burn`）。
+- 内置 core 在 manifest 里声明 `content_namespace: "global"`，内容 ID 沿用原值（如 `xiao_lu_soul`、`fu_monster`），技能 ID 由魂灵 ID 去掉 `_soul` 后转 PascalCase（如 `XiaoLu`），Cue 标签也不加前缀（如 `Cue.Status.Burn`）。
 - 第三方 mod 内容 ID：`<mod_id>:<local_id>`；技能 `SkillDefinition.id` 是 `ability_tag` 的后缀（不含 `Skill.`），格式 `Mod.<PascalModId>.<PascalName>`（如 `Mod.ExampleSouls.FireWolf`）；留空时由 `ModLoader` 按魂灵 content_id 自动派生。重复会互相顶掉。
 - 内容 ID / 技能 ID 的完整命名规则见 `指南/Mod制作.md` §3。
 - 第三方 Cue 标签：`Cue.Mod.<PascalModId>.<Name>`，例如 `example_souls` → `Cue.Mod.ExampleSouls.Fire`；不属于本 mod 命名空间的标签会被拒绝。`ModCueRegistrar` 把所有 ModLoader Cue 注册进 `GameplayCueManager`，场景根节点必须继承 `GameplayCueNotify`；已存在的标签不会被覆盖。

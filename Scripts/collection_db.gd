@@ -19,11 +19,15 @@ enum Kind {
 
 ## 旧版独立存档：只读迁移用；新存档由 SaveManager 统一管理
 const LEGACY_SAVE_PATH: String = "user://collection.cfg"
-## 旧版内容 ID 兼容：旧存档里可能还留着带 _2 后缀的键。
-## 读取时统一映射到当前 canonical ID，写回时只写 canonical ID。
+## 旧版内容 ID 兼容：读取时统一映射到当前 canonical ID，写回时只写 canonical ID。
 const LEGACY_SOUL_ID_ALIASES := {
 	&"du_ya_soul_2": &"du_ya_soul",
 	&"hua_liu_shen_soul_2": &"hua_liu_shen_soul",
+}
+## 怪物 ID 从 _data 后缀迁移到 _monster；旧存档/旧 mod 仍可读
+const LEGACY_MONSTER_ID_ALIASES := {
+	&"fu_data": &"fu_monster",
+	&"snake_data": &"snake_monster",
 }
 ## 测试开关：见闻条目是否全部按已解锁显示；默认关闭。
 ## 只影响显示，不写存档；调试窗口/TestAPI 可以临时切换。
@@ -70,7 +74,7 @@ func get_soul_id_by_name(item_name: String) -> StringName:
 
 
 func get_monster(id: StringName) -> MonsterData:
-	return _monsters.get(id)
+	return _monsters.get(_canonical_monster_id(id))
 
 
 func is_seen(kind: int, id: StringName) -> bool:
@@ -174,7 +178,7 @@ func apply_save_data(data: Dictionary) -> void:
 	var monsters: Variant = data.get("monsters", [])
 	if monsters is Array:
 		for id in monsters:
-			_seen[Kind.MONSTER][StringName(String(id))] = true
+			_seen[Kind.MONSTER][_canonical_monster_id(StringName(String(id)))] = true
 	var souls: Variant = data.get("souls", [])
 	if souls is Array:
 		for id in souls:
@@ -192,7 +196,7 @@ func load_legacy_state() -> bool:
 	if config.load(LEGACY_SAVE_PATH) != OK:
 		return false
 	for id in config.get_value("collection", "monsters", PackedStringArray()):
-		_seen[Kind.MONSTER][StringName(id)] = true
+		_seen[Kind.MONSTER][_canonical_monster_id(StringName(id))] = true
 	for id in config.get_value("collection", "souls", PackedStringArray()):
 		_seen[Kind.SOUL][_canonical_soul_id(StringName(id))] = true
 	state_reloaded.emit()
@@ -296,9 +300,13 @@ func _seen_ids(kind: int) -> Array[String]:
 
 
 func _canonical_id(kind: int, id: StringName) -> StringName:
-	return _canonical_soul_id(id) if kind == Kind.SOUL else id
+	return _canonical_soul_id(id) if kind == Kind.SOUL else _canonical_monster_id(id)
 
 
 func _canonical_soul_id(id: StringName) -> StringName:
 	return LEGACY_SOUL_ID_ALIASES.get(id, id)
+
+
+func _canonical_monster_id(id: StringName) -> StringName:
+	return LEGACY_MONSTER_ID_ALIASES.get(id, id)
 #endregion

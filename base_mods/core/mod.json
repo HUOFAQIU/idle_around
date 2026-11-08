@@ -94,12 +94,12 @@
 	],
 	"monsters": [
 	  {
-		"id": "fu_data",
-		"path": "monsters/fu/fu_data.tres"
+		"id": "fu_monster",
+		"path": "monsters/fu/fu_monster.tres"
 	  },
 	  {
-		"id": "snake_data",
-		"path": "monsters/snake/snake_data.tres"
+		"id": "snake_monster",
+		"path": "monsters/snake/snake_monster.tres"
 	  }
 	],
 	"cues": [

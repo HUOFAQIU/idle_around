@@ -442,14 +442,15 @@ static func get_orphaned_records() -> Array[Dictionary]:
 
 #region 窗口
 
-## 设置窗口置顶；window_name 为节点名（CharacterWindow 等），MainWindow 表示主窗口
+## 设置窗口置顶；window_name 为节点名（CharacterWindow 等），MainWindow 表示主窗口。
+## 持久化使用稳定 window_id（BaseWindow 默认取脚本文件名，主窗口为 main_window）。
 static func set_window_pinned(window_name : String, pinned : bool) -> bool:
 	if window_name == "MainWindow":
 		var main := _main_window()
 		if main == null:
 			return false
 		main.always_on_top = pinned
-		WindowPinSettings.save_pin(window_name, pinned)
+		WindowPinSettings.save_pin(WindowPinSettings.MAIN_WINDOW_ID, pinned)
 		_sync_main_pin_button(pinned)
 		return true
 	var window := _window_by_name(window_name)

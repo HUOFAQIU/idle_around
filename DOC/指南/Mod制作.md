@@ -94,7 +94,7 @@ user://mods/example_souls/
 
 - 魂灵/怪物 ID 是**存档键**：已发布的内容 ID 不要改名；必须改名时在 `CollectionDB` 加旧 ID 别名。
 - 技能 `SkillDefinition.id` 存的是 `ability_tag` 的后缀（不含 `Skill.`），所以必须满足 GAS 标签格式。留空时 `ModLoader` 按魂灵的 `content_id` 自动派生；core 技能 ID 由 `CoreContentValidator` 强制与魂灵 ID 对应。
-- core 的旧怪物 ID `fu_data`、`snake_data` 是兼容例外，新内容不要再用 `_data`。
+- core 的旧怪物 ID `fu_data`、`snake_data` 已迁移为 `fu_monster`、`snake_monster`；`_data` 后缀仅作旧 mod 存档兼容，新内容不要再用。
 - Cue 场景根节点必须继承 `GameplayCueNotify`；注册发生在启动时，运行期不能新增或替换 Cue。
 - Cue 标签不要求登记到游戏的 `godot_gas/tag_registry.tres`，运行时按字符串匹配；modkit 的标签选择器只列本机 registry，可以直接编辑 `.tres` 文本，或在 modkit 的 registry 里临时加同名标签。
 - `path` 可以写相对路径（相对于 mod 根目录），也可以写 `res://mods/<mod_id>/...`；loose 模式会自动映射到 `user://mods/<mod_id>/...`。

@@ -1,7 +1,5 @@
 extends HBoxContainer
 
-const MAIN_WINDOW_PIN_KEY: String = "MainWindow"
-
 @onready var button: Button = $Button
 @onready var button_2: Button = $Button2
 @onready var button_6: Button = $Button6
@@ -14,7 +12,7 @@ func _ready() -> void:
 	# button
 	button.pressed.connect(_on_button_pressed)
 	# button_2
-	var main_pinned := WindowPinSettings.load_pin(MAIN_WINDOW_PIN_KEY)
+	var main_pinned := WindowPinSettings.load_pin(WindowPinSettings.MAIN_WINDOW_ID)
 	get_window().always_on_top = main_pinned
 	button_2.toggle_mode = true
 	button_2.button_pressed = main_pinned
@@ -38,7 +36,7 @@ func _on_button_pressed() -> void:
 
 func _on_button_2_toggled(on: bool) -> void:
 	get_window().always_on_top = on
-	WindowPinSettings.save_pin(MAIN_WINDOW_PIN_KEY, on)
+	WindowPinSettings.save_pin(WindowPinSettings.MAIN_WINDOW_ID, on)
 
 
 func _on_button_6_pressed() -> void:

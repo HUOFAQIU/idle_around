@@ -43,6 +43,8 @@ var _cue_tags: Dictionary[StringName, bool] = {}
 ## override 路径 -> 声明它的 mod
 var _overrides: Dictionary[String, StringName] = {}
 var _errors: Array[String] = []
+## 同一个效果可能被多颗魂灵引用，只校验一次
+var _validated_effect_ids: Dictionary = {}
 var _config := ConfigFile.new()
 var _game_version: String = ""
 
@@ -474,6 +476,8 @@ func _load_content_entry(
 			var soul := resource as SoulData
 			soul.content_id = content_id
 			_normalize_skill_id(mod, soul)
+			_validate_soul_vocabulary(mod, soul)
+			_validate_soul_tags(mod, soul)
 			_soul_ids[content_id] = true
 			_soul_entries.append(_make_entry(kind, mod, content_id, path, resource))
 			mod.soul_count += 1
@@ -486,6 +490,7 @@ func _load_content_entry(
 				return
 			var monster := resource as MonsterData
 			monster.content_id = content_id
+			_validate_monster_config(mod, monster)
 			_monster_ids[content_id] = true
 			_monster_entries.append(_make_entry(kind, mod, content_id, path, resource))
 			mod.monster_count += 1
@@ -582,6 +587,110 @@ func _validate_external_skill_id(mod: ModInfo, skill: SkillDefinition) -> void:
 		_mod_error(mod, "外部技能资源缺少 id：%s" % skill.resource_path)
 	elif not CONTENT_NAMING.is_valid_tag(skill.id):
 		_mod_error(mod, "技能 id 不是合法 GAS 标签：%s" % skill.id)
+
+
+## 魂灵类型/标签使用固定前缀；拼错会让筛选和触发规则静默失效
+func _validate_soul_vocabulary(mod: ModInfo, soul: SoulData) -> void:
+	for type in soul.types:
+		if not _is_soul_type(type):
+			_mod_error(mod, "魂灵 %s 的类型应为 Soul.types.<PascalName>：%s" % [soul.content_id, type])
+	for tag in soul.tags:
+		if not _is_soul_tag(tag):
+			_mod_error(mod, "魂灵 %s 的标签应为 Soul.tags.<PascalName>：%s" % [soul.content_id, tag])
+	for trigger in soul.triggers:
+		if trigger == null:
+			continue
+		for type in trigger.required_soul_types:
+			if not _is_soul_type(type):
+				_mod_error(mod, "魂灵 %s 的触发条件类型应为 Soul.types.<PascalName>：%s" % [soul.content_id, type])
+
+
+## 稀有怪必须同时退出常规池，并且有可实例化的战斗场景
+func _validate_monster_config(mod: ModInfo, monster: MonsterData) -> void:
+	if not monster.is_rare:
+		return
+	if monster.spawn_weight > 0.0:
+		_mod_error(mod, "怪物 %s 标记为 is_rare，spawn_weight 应为 0" % monster.content_id)
+	if monster.battle_scene == null:
+		_mod_error(mod, "稀有怪 %s 缺少 battle_scene" % monster.content_id)
+
+
+func _is_soul_type(value: StringName) -> bool:
+	var text := String(value)
+	return text.begins_with("Soul.types.") and CONTENT_NAMING.is_valid_tag(text.trim_prefix("Soul.types."))
+
+
+func _is_soul_tag(value: StringName) -> bool:
+	var text := String(value)
+	return text.begins_with("Soul.tags.") and CONTENT_NAMING.is_valid_tag(text.trim_prefix("Soul.tags."))
+
+
+## 技能/触发器/效果里的标签引用：只校验格式和必要的命名空间，注册检查在 ModCueRegistrar
+func _validate_soul_tags(mod: ModInfo, soul: SoulData) -> void:
+	var skill := soul.skill
+	if skill != null:
+		_validate_tag(mod, skill.hit_cue_tag, "Cue.", "魂灵 %s 的 hit_cue_tag" % soul.content_id)
+		for tag in skill.cast_require_all_tags:
+			_validate_tag(mod, tag, "", "魂灵 %s 的 cast_require_all_tags" % soul.content_id)
+		for tag in skill.cast_block_tags:
+			_validate_tag(mod, tag, "", "魂灵 %s 的 cast_block_tags" % soul.content_id)
+		_validate_effects(mod, skill.effects, soul.content_id)
+		_validate_effects(mod, skill.self_effects, soul.content_id)
+	if soul is PassiveSoulData:
+		_validate_effects(mod, (soul as PassiveSoulData).passive_effects, soul.content_id)
+	for trigger in soul.triggers:
+		if trigger == null:
+			continue
+		_validate_tag(mod, trigger.event_tag, "Event.", "魂灵 %s 的 trigger.event_tag" % soul.content_id)
+		_validate_effects(mod, trigger.effects, soul.content_id)
+
+
+func _validate_effects(mod: ModInfo, effects: Array[GameplayEffect], owner: StringName) -> void:
+	for effect in effects:
+		if effect != null:
+			_validate_effect_tags(mod, effect, owner)
+
+
+func _validate_effect_tags(mod: ModInfo, effect: GameplayEffect, owner: StringName) -> void:
+	var effect_id := effect.get_instance_id()
+	if _validated_effect_ids.has(effect_id):
+		return
+	_validated_effect_ids[effect_id] = true
+
+	for tag in effect.granted_tags:
+		_validate_tag(mod, tag, "", "效果 %s 的 granted_tags" % owner)
+	for tag in effect.remove_effects_with_tags:
+		_validate_tag(mod, tag, "", "效果 %s 的 remove_effects_with_tags" % owner)
+	for tag in effect.application_cue_tags:
+		_validate_tag(mod, tag, "Cue.", "效果 %s 的 application_cue_tags" % owner)
+	for tag in effect.persistent_cue_tags:
+		_validate_tag(mod, tag, "Cue.", "效果 %s 的 persistent_cue_tags" % owner)
+	for tag in effect.periodic_cue_tags:
+		_validate_tag(mod, tag, "Cue.", "效果 %s 的 periodic_cue_tags" % owner)
+	for tag in effect.removal_cue_tags:
+		_validate_tag(mod, tag, "Cue.", "效果 %s 的 removal_cue_tags" % owner)
+	for tag in effect.event_tags:
+		_validate_tag(mod, tag, "Event.", "效果 %s 的 event_tags" % owner)
+
+	for execution in effect.executions:
+		if execution is SoulDamageExecution:
+			for type in (execution as SoulDamageExecution).matching_soul_types:
+				if not _is_soul_type(type):
+					_mod_error(mod, "效果 %s 的 matching_soul_types 应为 Soul.types.<PascalName>：%s" % [owner, type])
+	for overflow in effect.overflow_effects:
+		if overflow != null:
+			_validate_effect_tags(mod, overflow, owner)
+
+
+func _validate_tag(mod: ModInfo, tag: StringName, required_prefix: String, context: String) -> void:
+	if tag.is_empty():
+		return
+	var text := String(tag)
+	if not CONTENT_NAMING.is_valid_tag(text):
+		_mod_error(mod, "%s 不是合法 GAS 标签：%s" % [context, text])
+		return
+	if not required_prefix.is_empty() and not text.begins_with(required_prefix):
+		_mod_error(mod, "%s 应以 %s 开头：%s" % [context, required_prefix, text])
 
 
 func _validate_overrides(mod: ModInfo) -> void:

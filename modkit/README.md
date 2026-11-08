@@ -46,9 +46,21 @@ TestAPI.add_soul_to_warehouse(&"example_souls:fire_wolf_soul")
   --script res://modkit/validate_core_manifest.gd
 ```
 
-检查项：manifest 格式、`id=core` / `content_namespace=global`、魂灵/怪物/Cue 条目与目录文件是否一一对应、重复 ID/路径。退出码 `0` 表示通过，`1` 表示有错误。
+检查项：manifest 格式、`id=core` / `content_namespace=global`、魂灵/怪物/Cue 条目与目录文件是否一一对应、重复 ID/路径、ID/标签格式、魂灵技能 ID 是否与 content_id 派生值一致。退出码 `0` 表示通过，`1` 表示有错误。
 
 运行时也可以用 `TestAPI.validate_core_manifest()` 查询同一份校验结果。
+
+## 校验容器名
+
+场景里的 `container_name` 是字面量，不能直接引用 `ContainerIds` 常量。改场景或常量后运行：
+
+```text
+"U:\Godot_ver\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64.exe" ^
+  --headless --path "U:\Godot_Project\idle_around" ^
+  --script res://modkit/validate_container_ids.gd
+```
+
+对比装备/仓库/商店场景的 `container_name` 与 `Scripts/container_ids.gd`。运行时可用 `TestAPI.validate_container_ids()` 检查容器是否都注册成功。
 
 ## 发布 mod
 

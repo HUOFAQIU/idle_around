@@ -40,6 +40,7 @@ TestAPI.stop_battle()
 | `equip_soul(id, part := "") -> bool` | 放入 `cell_0..3`；`part` 为空时按魂灵部位，ANY 依次尝试四个部位 |
 | `clear_container(container) -> void` | 清空容器并刷新 |
 | `get_container_items(container) -> Array[String]` | 容器内物品名 |
+| `validate_container_ids() -> Array[String]` | 校验 `ContainerIds` 里的仓库、商店、魂灵格是否都已注册；主场景运行后调用 |
 | `set_unlock_all(enabled) -> void` | 切换见闻全解锁（不写存档） |
 | `get_seen_ids(kind) -> Array[StringName]` | 真实已解锁 ID |
 | `is_seen(kind, id) -> bool` | 单个条目是否解锁 |
@@ -143,7 +144,7 @@ print(TestAPI.is_window_pinned("CharacterWindow"))
 print(TestAPI.get_window_pin_states())
 ```
 
-窗口置顶状态存在 `user://Settings.cfg` 的 `[window_pins]` 段。键是 `BaseWindow.get_pin_key()`（默认脚本文件名，如 `character_window`）或 `main_window`，与节点名解耦。`TooltipWindow` / `ItemWindow` 没有置顶接口，固定 transient 跟随主窗口。
+窗口置顶状态存在 `user://Settings.cfg` 的 `[window_pins]` 段。键是 `BaseWindow.get_pin_key()`（默认脚本文件名，如 `character_window`）或 `main_window`，与节点名解耦；旧节点名键首次读取时自动迁移。`TooltipWindow` / `ItemWindow` 没有置顶接口，固定 transient 跟随主窗口。
 
 ## 颜色
 

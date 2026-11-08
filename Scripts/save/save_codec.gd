@@ -14,10 +14,8 @@ static func encode_item(item: ItemData) -> Dictionary:
 		return {}
 	if item is SoulData:
 		var soul := item as SoulData
-		# content_id 在加载时写入并随 duplicate() 保留；旧档/老资源没有时按名字兜底
+		# content_id 在加载时写入并随 duplicate() 保留；name 只用于排查
 		var id: StringName = soul.content_id
-		if id.is_empty():
-			id = CollectionDB.get_soul_id_by_name(soul.item_name)
 		if id.is_empty():
 			push_warning("存档：魂灵没有 content_id「%s」" % soul.item_name)
 			return {}
@@ -38,9 +36,6 @@ static func decode_item(record: Dictionary) -> ItemData:
 		return null
 	var id := StringName(String(record.get("id", "")))
 	var soul := CollectionDB.get_soul(id)
-	if soul == null and record.has("name"):
-		var fallback_id := CollectionDB.get_soul_id_by_name(String(record["name"]))
-		soul = CollectionDB.get_soul(fallback_id)
 	if soul == null:
 		push_warning("存档：找不到魂灵「%s」" % id)
 		return null

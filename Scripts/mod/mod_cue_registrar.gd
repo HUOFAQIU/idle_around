@@ -9,10 +9,14 @@ extends Node
 ## GameplayCueManager autoload 挂掉。
 
 var _mod_registered_tags: Array[StringName] = []
+## 引用检查去重：同一个 Cue 标签/效果可能被多颗魂灵引用
+var _checked_cue_tags: Dictionary = {}
+var _checked_effect_ids: Dictionary = {}
 
 
 func _ready() -> void:
 	_register_mod_cues()
+	_validate_cue_references()
 
 
 ## 运行时注册一个 Cue；标签已存在时返回 false
@@ -40,6 +44,55 @@ func get_mod_cues() -> Array[Dictionary]:
 ## 某个 mod Cue 是否已注册
 func is_mod_cue_registered(tag: StringName) -> bool:
 	return _mod_registered_tags.has(tag)
+
+
+## Cue 注册完成后，检查魂灵技能/效果引用的 Cue 标签是否真的存在
+func _validate_cue_references() -> void:
+	for entry in ModLoader.get_soul_entries():
+		var soul := entry.resource as SoulData
+		if soul != null:
+			_validate_soul_cue_references(entry, soul)
+
+
+func _validate_soul_cue_references(entry: ModContentEntry, soul: SoulData) -> void:
+	var skill := soul.skill
+	if skill != null:
+		_check_cue_tag(entry, skill.hit_cue_tag)
+		_check_effect_cues(entry, skill.effects)
+		_check_effect_cues(entry, skill.self_effects)
+	if soul is PassiveSoulData:
+		_check_effect_cues(entry, (soul as PassiveSoulData).passive_effects)
+	for trigger in soul.triggers:
+		if trigger != null:
+			_check_effect_cues(entry, trigger.effects)
+
+
+func _check_effect_cues(entry: ModContentEntry, effects: Array[GameplayEffect]) -> void:
+	for effect in effects:
+		if effect == null:
+			continue
+		var effect_id := effect.get_instance_id()
+		if _checked_effect_ids.has(effect_id):
+			continue
+		_checked_effect_ids[effect_id] = true
+		for tag in effect.application_cue_tags:
+			_check_cue_tag(entry, tag)
+		for tag in effect.persistent_cue_tags:
+			_check_cue_tag(entry, tag)
+		for tag in effect.periodic_cue_tags:
+			_check_cue_tag(entry, tag)
+		for tag in effect.removal_cue_tags:
+			_check_cue_tag(entry, tag)
+		_check_effect_cues(entry, effect.overflow_effects)
+
+
+func _check_cue_tag(entry: ModContentEntry, tag: StringName) -> void:
+	if tag.is_empty() or _checked_cue_tags.has(tag):
+		return
+	_checked_cue_tags[tag] = true
+	if GameplayCueManager._cue_scenes.has(tag):
+		return
+	ModLoader.report_warning("%s: Cue 标签未注册：%s（%s）" % [entry.mod_id, tag, entry.content_id])
 
 
 func _register_mod_cues() -> void:

@@ -7,7 +7,7 @@ class_name ItemData
 signal sig_refresh
 
 @export_group("Common Settings")
-## 物品名称，需要唯一
+## 物品显示名；只用于 UI/日志，不参与 ID、存档查找或唯一性约束
 @export var item_name: String = "Item Name"
 ## 物品大类，值为“ANY”表示所有大类
 @export_enum("ANY", "SOUL") var category: String = "ANY"

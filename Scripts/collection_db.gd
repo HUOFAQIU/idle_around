@@ -36,10 +36,6 @@ var unlock_all_for_testing: bool = false
 ## content_id → 资源
 var _souls: Dictionary[StringName, SoulData] = {}
 var _monsters: Dictionary[StringName, MonsterData] = {}
-## item_name → content_id。
-## GBIS.add_item() 会 duplicate() 物品，副本没有 resource_path，
-## 所以收到入包信号时不能靠 UID 反查，只能靠物品名。
-var _soul_id_by_name: Dictionary[String, StringName] = {}
 ## 已遇见：Kind → { content_id: true }
 var _seen: Dictionary = {}
 
@@ -66,11 +62,6 @@ func get_monster_ids() -> Array[StringName]:
 
 func get_soul(id: StringName) -> SoulData:
 	return _souls.get(_canonical_soul_id(id))
-
-
-## 按物品名反查 content_id；背包里的副本没有 resource_path，只能用名字
-func get_soul_id_by_name(item_name: String) -> StringName:
-	return _soul_id_by_name.get(item_name, &"")
 
 
 func get_monster(id: StringName) -> MonsterData:
@@ -136,14 +127,13 @@ func pick_rare_monster() -> MonsterData:
 	return candidates.pick_random() if not candidates.is_empty() else null
 
 
-## 魂灵“首次获得”即记录。入包信号给的是副本，优先用副本携带的 content_id
+## 魂灵“首次获得”即记录；content_id 随 duplicate() 进入背包副本
 func mark_soul_seen(soul: SoulData) -> void:
 	if soul == null:
 		return
 	var id: StringName = soul.content_id
 	if id.is_empty():
-		id = _soul_id_by_name.get(soul.item_name, &"")
-	if id.is_empty():
+		push_warning("见闻：魂灵没有 content_id「%s」" % soul.item_name)
 		return
 	_mark_seen(Kind.SOUL, id)
 
@@ -232,13 +222,6 @@ func _register_soul(id: StringName, soul: SoulData) -> void:
 		push_warning("见闻：魂灵 ID 重复，已跳过 %s" % id)
 		return
 	_souls[id] = soul
-	if _soul_id_by_name.has(soul.item_name):
-		push_warning("见闻：魂灵物品名重复「%s」（%s / %s）" % [
-			soul.item_name,
-			_soul_id_by_name[soul.item_name],
-			id,
-		])
-	_soul_id_by_name[soul.item_name] = id
 
 
 ## 两个资源共用同一个 skill.id 会让 Skill.<id> 的 ability tag 互相顶掉

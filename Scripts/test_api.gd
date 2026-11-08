@@ -163,6 +163,17 @@ static func get_container_items(container : String) -> Array[String]:
 	return names
 
 
+## 校验 ContainerIds 里的容器是否都已注册；在主场景运行后调用
+static func validate_container_ids() -> Array[String]:
+	var errors: Array[String] = []
+	var expected: Array[String] = [CONTAINER_IDS.MAIN_INVENTORY, CONTAINER_IDS.SHOP]
+	expected.append_array(CONTAINER_IDS.soul_cells())
+	for container_name in expected:
+		if ContainerRepository.instance.get_container(container_name) == null:
+			errors.append("容器未注册：%s" % container_name)
+	return errors
+
+
 ## 临时切换见闻“全部已解锁”；不改存档
 static func set_unlock_all(enabled : bool) -> void:
 	CollectionDB.set_unlock_all_for_testing(enabled)

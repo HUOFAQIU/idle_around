@@ -1,6 +1,6 @@
 # 给游戏加特效（GameplayCue）
 
-> 类型：指南 | 状态：有效 | 整理：2026-11-07
+> 类型：指南 | 状态：有效 | 整理：2026-11-08
 > 何时读：新增/调试 GameplayCue 特效
 > 关键词：特效 GameplayCue Cue 场景 对象池 补间 注册 挂钩 灼烧 剧毒 冻结 恐狼 爪痕 hit_cue_tag 命中特效 mod 内置 core manifest
 > 代码：`base_mods/core/mod.json`、`godot_gas/cue_registry.tres`、`addons/GodotGAS/cues/`、`Scripts/mod/mod_cue_registrar.gd`
@@ -19,7 +19,7 @@
 - 单位一销毁，挂在上面的 cue 跟着没 —— 这正好满足"关窗＝全部还原"
 
 代码位置：`addons/GodotGAS/cues/gameplay_cue_notify.gd`（基类）、
-`GameplayCueManager`（GodotGAS autoload）启动时加载 `godot_gas/cue_registry.tres`（当前为空）；`ModCueRegistrar`（autoload）随后把 ModLoader 的 core 和第三方 mod Cue 注册进去
+`GameplayCueManager`（GodotGAS autoload）启动时加载 `godot_gas/cue_registry.tres`（当前为空）；`ModCueRegistrar`（autoload）随后把 ModLoader 的 core 和第三方 mod Cue 注册进去。注册完成后会检查技能 `hit_cue_tag` 和效果里的 `application/persistent/periodic/removal_cue_tags` 是否指向已注册标签；缺失会写进 `ModLoader.get_errors()`。
 
 ---
 

@@ -128,7 +128,7 @@ res://mods/example_souls/content/monsters/fire_wolf_monster.tres
 
 - 存档仍然只存字符串 ID，不存资源路径。
 - core 的 ID 保持原值，旧存档不需要迁移；第三方 mod 使用带前缀的 ID。
-- `SoulData` 和 `MonsterData` 新增 `content_id`；`SaveCodec` 编码时优先用它，`item_name` 只做旧档兜底。
+- `SoulData` 和 `MonsterData` 新增 `content_id`；`SaveCodec` 编码时直接用它，`item_name` 只做显示和排查。
 - 这样两个 mod 的魂灵即使显示名相同，也不会串档。
 - **缺失内容不能静默丢**：读档时找不到的内容记录写入 `orphaned` 段；写档时原样带回。重新启用 mod 后，下一次读档会尝试放回原容器/仓库。
 - `version` 仍是 1。

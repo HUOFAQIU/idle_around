@@ -22,7 +22,7 @@ camp = 2
 
 [resource]
 script = ExtResource("1_skilldef")
-id = "xiaolu"
+id = "XiaoLu"
 description = "冷却 4 秒，回复自身 30 点血量，并净化治疗量 5% 的灼烧和剧毒。"
 effects = Array[ExtResource("2_effect")]([SubResource("Resource_effect_heal")])
 cooldown_seconds = 4.0

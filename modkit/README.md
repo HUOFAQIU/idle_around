@@ -5,7 +5,7 @@
 示例包含：
 
 - 一颗新魂灵 `example_souls:fire_wolf_soul`；
-- 一条技能 `example_souls_fire_wolf_skill`：4 秒冷却，3 格内最近敌人 12 点伤害；
+- 一条技能 `Mod.ExampleSouls.FireWolf`（ability tag `Skill.Mod.ExampleSouls.FireWolf`）：4 秒冷却，3 格内最近敌人 12 点伤害；
 - 一个自定义 Cue `Cue.Mod.ExampleSouls.Fire`：火焰粒子爆发。
 
 ## 快速开始
@@ -70,8 +70,8 @@ example_souls/
 
 ## 内容规则
 
-- 魂灵/怪物 ID：`<mod_id>:<local_id>`。
-- 技能 ID：`<mod_id>_<local_id>`，示例是 `example_souls_fire_wolf_skill`。
+- 魂灵/怪物 ID：`<mod_id>:<local_id>`；local_id 用小写 snake_case，魂灵以 `_soul` 结尾、怪物以 `_monster` 结尾。
+- 技能 ID：`Mod.<PascalModId>.<PascalName>`，示例是 `Mod.ExampleSouls.FireWolf`；留空时 `ModLoader` 会按魂灵 content_id 自动派生。
 - Cue 标签：`Cue.Mod.<PascalModId>.<Name>`，示例是 `Cue.Mod.ExampleSouls.Fire`。
 - Cue 场景根节点必须继承 `GameplayCueNotify`。
 - 技能、效果可以引用原版脚本和资源；新魂灵/怪物/Cue 必须在 `mod.json` 的 `content` 里登记。

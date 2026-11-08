@@ -10,7 +10,7 @@ mode = 0
 
 [resource]
 script = ExtResource("2_skill")
-id = "dianchi"
+id = "DianChi"
 description = "冷却 4 秒，给左侧紧邻的魂灵充能 2 秒。"
 cooldown_seconds = 4.0
 target_rule = SubResource("Resource_soul_target")

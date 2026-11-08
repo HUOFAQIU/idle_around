@@ -10,7 +10,7 @@ mode = 0
 
 [resource]
 script = ExtResource("2_skill")
-id = "kafei"
+id = "KaFei"
 description = "冷却 4 秒，加速左侧紧邻的魂灵 2 秒。"
 cooldown_seconds = 4.0
 target_rule = SubResource("Resource_soul_target")

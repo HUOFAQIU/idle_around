@@ -2,11 +2,11 @@
 
 > 类型：设计 | 状态：部分实现（内置 core mod 已接入；Steam 后置）
 > 何时读：改 mod 加载、内容注册、存档兼容，或准备接 Steam 创意工坊
-> 关键词：mod ModLoader manifest PCK 创意工坊 Workshop content_id orphaned 加载顺序 内置 core content_namespace content_root validate_core_manifest manifest 校验
+> 关键词：mod ModLoader manifest PCK 创意工坊 Workshop content_id orphaned 加载顺序 内置 core content_namespace content_root validate_core_manifest manifest 校验 技能 ID 命名 PascalCase
 > 代码：`Scripts/mod/`、`Scripts/collection_db.gd`、`Scripts/save/`、`project.godot`、`base_mods/core/mod.json`
 > 相关：`架构/存档.md`、`架构/扩展点.md`、`指南/Mod制作.md`
 > 不覆盖：Steamworks 后台配置、GodotSteam 完整 API
-> 核对：2026-11-07
+> 核对：2026-11-08
 
 ## 1. 目标与边界
 
@@ -102,7 +102,7 @@ PCK 内部内容放在命名空间目录：
 
 ```text
 res://mods/example_souls/content/souls/fire_wolf_soul.tres
-res://mods/example_souls/content/monsters/fire_wolf_data.tres
+res://mods/example_souls/content/monsters/fire_wolf_monster.tres
 ```
 
 - 正式发布用 PCK；loose 目录只用于开发，贴图不会走 Godot 导入流程。
@@ -113,8 +113,9 @@ res://mods/example_souls/content/monsters/fire_wolf_data.tres
 
 ## 6. 内容 ID 与加载规则
 
-- 内置 core 在 manifest 里声明 `content_namespace: "global"`，内容 ID 沿用原值（如 `xiao_lu_soul`、`fu_data`），技能 ID 和 Cue 标签也不加前缀（如 `Cue.Status.Burn`）。
-- 第三方 mod 内容 ID：`<mod_id>:<local_id>`；技能 `SkillDefinition.id`：`<mod_id>_<local_id>`，因为 `ability_tag = "Skill." + id`，重复会互相顶掉。
+- 内置 core 在 manifest 里声明 `content_namespace: "global"`，内容 ID 沿用原值（如 `xiao_lu_soul`、`fu_data`），技能 ID 由魂灵 ID 去掉 `_soul` 后转 PascalCase（如 `XiaoLu`），Cue 标签也不加前缀（如 `Cue.Status.Burn`）。
+- 第三方 mod 内容 ID：`<mod_id>:<local_id>`；技能 `SkillDefinition.id` 是 `ability_tag` 的后缀（不含 `Skill.`），格式 `Mod.<PascalModId>.<PascalName>`（如 `Mod.ExampleSouls.FireWolf`）；留空时由 `ModLoader` 按魂灵 content_id 自动派生。重复会互相顶掉。
+- 内容 ID / 技能 ID 的完整命名规则见 `指南/Mod制作.md` §3。
 - 第三方 Cue 标签：`Cue.Mod.<PascalModId>.<Name>`，例如 `example_souls` → `Cue.Mod.ExampleSouls.Fire`；不属于本 mod 命名空间的标签会被拒绝。`ModCueRegistrar` 把所有 ModLoader Cue 注册进 `GameplayCueManager`，场景根节点必须继承 `GameplayCueNotify`；已存在的标签不会被覆盖。
 - `content_namespace: "global"` 和 `content_root` 只允许内置来源；第三方写了会被拒绝并记入 `ModLoader.get_errors()`。
 - 加载顺序：内置 mod 固定在最前；第三方按用户在 Mod 窗口排的基础顺序，存在 `user://mods.cfg` 的 `[order]`。`dependencies` 是硬依赖，缺失/禁用时依赖方不加载；`load_after` 是软顺序。两者都会覆盖用户顺序，冲突时以依赖为准。

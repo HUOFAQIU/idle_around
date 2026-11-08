@@ -10,7 +10,7 @@ mode = 5
 
 [resource]
 script = ExtResource("4_an4kq")
-id = "xianzi"
+id = "XianZi"
 description = "冷却 5 秒，冻结同一部位行内左右相邻的魂灵 1 秒。"
 cooldown_seconds = 5.0
 target_rule = SubResource("Resource_kcwuw")

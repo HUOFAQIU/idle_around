@@ -8,7 +8,9 @@
 
 class_name SkillDefinition extends Resource
 
-## 英文短 id（用于 ability_tag 等内部标识）
+## ability_tag 的后缀（不含 "Skill."），必须符合 GAS 标签格式。
+## core 为 <PascalName>（如 XiaoLu），第三方为 Mod.<PascalModId>.<PascalName>。
+## 留空时由 ModLoader 按魂灵 content_id 自动派生。
 @export var id: String = ""
 
 ## 面向玩家的技能描述（与下面字段一一对应）

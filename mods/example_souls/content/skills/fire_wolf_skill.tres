@@ -21,7 +21,7 @@ max_range = 3
 
 [resource]
 script = ExtResource("4_skill")
-id = "example_souls_fire_wolf_skill"
+id = "Mod.ExampleSouls.FireWolf"
 description = "冷却 4 秒，对 3 格内最近的敌人造成 12 点伤害，并播放自定义火焰特效。"
 effects = Array[ExtResource("3_effect")]([SubResource("Resource_effect_damage")])
 hit_cue_tag = &"Cue.Mod.ExampleSouls.Fire"

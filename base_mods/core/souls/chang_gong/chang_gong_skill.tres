@@ -31,7 +31,7 @@ max_range = 20
 
 [resource]
 script = ExtResource("6_kxtoe")
-id = "changgong"
+id = "ChangGong"
 description = "冷却 4 秒，对 20 格内最近的 3 个目标各造成 50 点伤害。"
 effects = Array[ExtResource("3_nlx2s")]([SubResource("Resource_effect_damage")])
 cooldown_seconds = 4.0

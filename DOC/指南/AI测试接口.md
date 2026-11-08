@@ -1,8 +1,8 @@
 # AI 测试接口 TestAPI
 
-> 类型：指南 | 状态：有效 | 核对：2026-11-07
+> 类型：指南 | 状态：有效 | 核对：2026-11-08
 > 何时读：写自动化测试/探针、构造战斗或背包场景、验证新功能
-> 关键词：测试 TestAPI 探针 自动化 战斗快照 魂灵 仓库 见闻 商店 冷却 冻结 触发器 类型 标签 充能 卡面 tooltip 伤害缩放 多重触发 cast_times releases 颜色 色板 存档 save 爪痕 play_claw_cue mod ModLoader ModWindow 加载顺序 order mod_cue_registrar cue Cue 特效 manifest 创意工坊 内置 core content_id validate_core_manifest manifest 校验 窗口置顶 T Settings.cfg
+> 关键词：测试 TestAPI 探针 自动化 战斗快照 魂灵 仓库 见闻 商店 冷却 冻结 触发器 类型 标签 充能 卡面 tooltip 伤害缩放 多重触发 cast_times releases 颜色 色板 存档 save 爪痕 play_claw_cue mod ModLoader ModWindow 加载顺序 order mod_cue_registrar cue Cue 特效 manifest 创意工坊 内置 core content_id validate_core_manifest manifest 校验 技能 ID ability_tag 命名 窗口置顶 T Settings.cfg
 > 代码：`Scripts/test_api.gd`、`Windows/Battle/battle_window.gd`、`Scripts/collection_db.gd`、`Scripts/save/`、`Scripts/mod/`、`base_mods/core/mod.json`
 > 约定：新增功能/内容时，同步补 TestAPI 方法并更新本文。
 
@@ -22,7 +22,7 @@ print(state)
 TestAPI.stop_battle()
 ```
 
-魂灵/怪物 ID 用 `TestAPI.get_soul_ids()`、`TestAPI.get_monster_ids()` 查，必须是 `content_id`（core 如 `snake_data`、`fu_data`；第三方带 `<mod_id>:` 前缀）。旧存档里带 `_2` 后缀的魂灵 ID 由 `CollectionDB` 自动映射到当前 canonical ID。
+魂灵/怪物 ID 用 `TestAPI.get_soul_ids()`、`TestAPI.get_monster_ids()` 查，必须是 `content_id`（core 如 `snake_data`、`fu_data`；第三方带 `<mod_id>:` 前缀）。技能标签用 `TestAPI.get_skill_tags()` 查，core 如 `Skill.XiaoLu`，第三方如 `Skill.Mod.ExampleSouls.FireWolf`。旧存档里带 `_2` 后缀的魂灵 ID 由 `CollectionDB` 自动映射到当前 canonical ID。
 
 ## 背包 / 见闻
 
@@ -46,6 +46,7 @@ TestAPI.stop_battle()
 | `get_soul_ids()` / `get_monster_ids()` | 列出内容条目（core + 第三方 mod） |
 | `get_soul_types(id) -> Array[StringName]` | 魂灵类型，如 `Soul.types.Wolf`、`Soul.types.Animal` |
 | `get_soul_tags(id) -> Array[StringName]` | 魂灵见闻标签，如 `Soul.tags.Small`、`Soul.tags.Burn` |
+| `get_skill_tags() -> Array[Dictionary]` | 所有魂灵的 `content_id`、技能 ID 和 `ability_tag`，用于核对技能命名规范 |
 | `get_soul_card_info(id) -> Dictionary` | 魂灵卡面：`icon` 路径、`columns`/`rows`、`label` 名称文本 |
 | `get_soul_damage_scaling(id) -> Dictionary` | 直接伤害的 `base_damage` / `bonus_per_matching_soul` / `matching_soul_types` |
 | `get_soul_cast_times(id) -> int` | 魂灵技能的多重触发次数；未知魂灵或无技能返回 `0` |

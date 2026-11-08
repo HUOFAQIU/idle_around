@@ -12,7 +12,7 @@ camp = 2
 
 [resource]
 script = ExtResource("2_skill")
-id = "mianbao"
+id = "MianBao"
 description = "冷却 5 秒，生命再生量提高 5。"
 effects = Array[ExtResource("1_effect")]([ExtResource("4_regen_apply"), ExtResource("5_regen_tick")])
 cooldown_seconds = 5.0

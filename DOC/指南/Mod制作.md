@@ -2,10 +2,10 @@
 
 > 类型：指南 | 状态：部分实现（内置 core 已接入）
 > 何时读：制作、打包、调试 idle_around 的 mod，或新增官方内容
-> 关键词：mod.json content.pck modkit 示例 mod pack_example patch 导出 覆盖 加载顺序 内置 core content_root content_namespace validate_core_manifest manifest 校验
+> 关键词：mod.json content.pck modkit 示例 mod pack_example patch 导出 覆盖 加载顺序 内置 core content_root content_namespace validate_core_manifest manifest 校验 内容 ID 技能 ID 命名 PascalCase content_id
 > 代码：`Scripts/mod/`、`Scripts/collection_db.gd`、`base_mods/core/mod.json`
 > 相关：`架构/Mod系统.md`
-> 核对：2026-11-07
+> 核对：2026-11-08
 
 ## 1. 最小 mod
 
@@ -41,8 +41,8 @@ user://mods/example_souls/
 	],
 	"monsters": [
 	  {
-		"id": "example_souls:fire_wolf",
-		"path": "content/monsters/fire_wolf_data.tres"
+		"id": "example_souls:fire_wolf_monster",
+		"path": "content/monsters/fire_wolf_monster.tres"
 	  }
 	],
 	"cues": [
@@ -75,10 +75,26 @@ user://mods/example_souls/
 
 ## 3. 内容路径与 ID
 
-- 魂灵/怪物 ID：`<mod_id>:<local_id>`，例如 `example_souls:fire_wolf_soul`。
-- 内置 core 是例外：manifest 声明 `content_namespace: "global"`，ID 沿用原值（`xiao_lu_soul`、`fu_data`），技能 ID 和 Cue 标签也不加前缀（`Cue.Status.Burn`）。
-- 技能 `SkillDefinition.id`：`<mod_id>_<local_id>`，例如 `example_souls_fire_wolf_skill`；新技能不加前缀会和别的 mod 的 `Skill.<id>` 撞车。
-- Cue 标签：`Cue.Mod.<PascalModId>.<Name>`，例如 `Cue.Mod.ExampleSouls.Fire`。`<PascalModId>` 是 mod id 的 PascalCase 形式（`example_souls` → `ExampleSouls`），不属于本 mod 命名空间的标签会被拒绝。
+### 3.1 命名规则
+
+- 资源 ID（`content_id`、`local_id`）统一小写 snake_case：`^[a-z][a-z0-9_]*$`。
+- GAS 标签每一段用 PascalCase；`GameplayTagRegistry` 不接受下划线，也不允许段首小写。
+- 分隔符固定：mod 内容 ID 用 `:` 分隔命名空间，GAS 标签用 `.` 分隔层级，不要混用。
+
+| 类型 | 规则 | 示例 |
+|---|---|---|
+| mod id | `^[a-z][a-z0-9_]{2,63}$` | `example_souls` |
+| core 魂灵 ID | `<name>_soul` | `xiao_lu_soul` |
+| core 怪物 ID | `<name>_monster`（旧内容 `_data` 兼容） | `snake_monster` |
+| 第三方魂灵/怪物 ID | `<mod_id>:<name>_<kind>` | `example_souls:fire_wolf_soul` |
+| core 技能 ID | 魂灵 ID 去掉 `_soul` 后转 PascalCase | `XiaoLu` → `Skill.XiaoLu` |
+| 第三方技能 ID | `Mod.<PascalModId>.<PascalName>` | `Mod.ExampleSouls.FireWolf` → `Skill.Mod.ExampleSouls.FireWolf` |
+| core Cue | `Cue.<Category>.<Name>` | `Cue.Status.Burn` |
+| 第三方 Cue | `Cue.Mod.<PascalModId>.<Name>` | `Cue.Mod.ExampleSouls.Fire` |
+
+- 魂灵/怪物 ID 是**存档键**：已发布的内容 ID 不要改名；必须改名时在 `CollectionDB` 加旧 ID 别名。
+- 技能 `SkillDefinition.id` 存的是 `ability_tag` 的后缀（不含 `Skill.`），所以必须满足 GAS 标签格式。留空时 `ModLoader` 按魂灵的 `content_id` 自动派生；core 技能 ID 由 `CoreContentValidator` 强制与魂灵 ID 对应。
+- core 的旧怪物 ID `fu_data`、`snake_data` 是兼容例外，新内容不要再用 `_data`。
 - Cue 场景根节点必须继承 `GameplayCueNotify`；注册发生在启动时，运行期不能新增或替换 Cue。
 - Cue 标签不要求登记到游戏的 `godot_gas/tag_registry.tres`，运行时按字符串匹配；modkit 的标签选择器只列本机 registry，可以直接编辑 `.tres` 文本，或在 modkit 的 registry 里临时加同名标签。
 - `path` 可以写相对路径（相对于 mod 根目录），也可以写 `res://mods/<mod_id>/...`；loose 模式会自动映射到 `user://mods/<mod_id>/...`。
@@ -100,7 +116,7 @@ user://mods/example_souls/
 
 脚本会生成 `user://mods/example_souls/content.pck` 并把 `mod.json` 复制到旁边。打包脚本走 `--script` 模式；`SaveManager` 检测到没有主场景会跳过读档，不会碰存档。重启游戏后，Mod 窗口里能看到 `Example Souls`；用 `TestAPI.add_soul_to_warehouse(&"example_souls:fire_wolf_soul")` 可以把魂灵放进仓库。
 
-改一个新 mod 时，复制 `mods/example_souls/` 为 `mods/<mod_id>/`，同步修改 `mod.json` 的 `id`、内容 ID、技能 ID 和 Cue 前缀，再复制或改造 `pack_example.gd` 里的 `MOD_ID`。`mods/` 和 `modkit/` 不会打进正式游戏包。
+改一个新 mod 时，复制 `mods/example_souls/` 为 `mods/<mod_id>/`，同步修改 `mod.json` 的 `id`、内容 ID、技能 ID（`Mod.<PascalModId>.<PascalName>`）和 Cue 前缀，再复制或改造 `pack_example.gd` 里的 `MOD_ID`。`mods/` 和 `modkit/` 不会打进正式游戏包。
 
 ### 4.2 用 patch 导出
 
@@ -140,6 +156,7 @@ user://mods/example_souls/
 - `TestAPI.get_mod_errors()`：加载器、内容合并和 Cue 注册诊断汇总。
 - `TestAPI.is_builtin_mod(id)`：是否为内置 mod。
 - `TestAPI.get_mod_content_ids(id)`：该 mod 注册的 souls / monsters / cues ID 列表。
+- `TestAPI.get_skill_tags()`：所有魂灵的 `content_id`、技能 ID 和 `ability_tag`，用于核对技能命名。
 - `TestAPI.validate_core_manifest()`：校验 `base_mods/core/mod.json` 与内容文件是否一致；返回错误列表。
 - `TestAPI.get_mod_cues()`：mod Cue 的标签、来源、路径、是否注册成功。
 - `TestAPI.is_mod_cue_registered(tag)`：单个 mod Cue 是否已注册。

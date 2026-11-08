@@ -204,6 +204,21 @@ static func get_soul_tags(id : StringName) -> Array[StringName]:
 	return soul.tags.duplicate()
 
 
+## 所有魂灵的 content_id、技能 ID 和 ability_tag；用于验证技能命名规范化
+static func get_skill_tags() -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	for id in CollectionDB.get_soul_ids():
+		var soul := CollectionDB.get_soul(id)
+		if soul == null or soul.skill == null:
+			continue
+		result.append({
+			"content_id": String(id),
+			"skill_id": soul.skill.id,
+			"ability_tag": "Skill." + soul.skill.id,
+		})
+	return result
+
+
 ## 魂灵卡面信息：图标路径、占格、名称标签文本；用于验证卡面统一替换
 static func get_soul_card_info(id : StringName) -> Dictionary:
 	var soul := CollectionDB.get_soul(id)

@@ -11,7 +11,7 @@ include_self = true
 
 [resource]
 script = ExtResource("2_skill")
-id = "yu"
+id = "Yu"
 description = "冷却 3 秒，加速随机一个魂灵 1 秒（包括自己）。"
 cooldown_seconds = 3.0
 target_rule = SubResource("Resource_soul_target")

@@ -10,7 +10,7 @@ mode = 5
 
 [resource]
 script = ExtResource("2_skill")
-id = "wa"
+id = "Wa"
 description = "冷却 7 秒，减速两侧紧邻的魂灵 2 秒。"
 cooldown_seconds = 7.0
 target_rule = SubResource("Resource_soul_target")

@@ -10,7 +10,7 @@ mode = 2
 
 [resource]
 script = ExtResource("2_skill")
-id = "hualiushen"
+id = "HuaLiuShen"
 description = "冷却 4 秒，加速自身任意一颗魂灵 2 秒（不受位置和部位限制）。"
 cooldown_seconds = 4.0
 target_rule = SubResource("Resource_soul_target")

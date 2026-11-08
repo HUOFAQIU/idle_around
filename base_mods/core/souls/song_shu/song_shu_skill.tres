@@ -9,7 +9,7 @@ script = ExtResource("3_soul_rule")
 
 [resource]
 script = ExtResource("2_skill")
-id = "songshu"
+id = "SongShu"
 description = "冷却 4 秒，加速右侧紧邻的魂灵 2 秒。"
 cooldown_seconds = 4.0
 target_rule = SubResource("Resource_soul_target")

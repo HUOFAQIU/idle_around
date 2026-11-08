@@ -22,6 +22,8 @@ const CONFIG_PATH: String = "user://mods.cfg"
 const MANIFEST_FILE: String = "mod.json"
 const PACK_FILE: String = "content.pck"
 const GAME_VERSION_SETTING: String = "application/config/version"
+## 用 preload 而不是全局类名，保证 --script 无头模式也能解析
+const ContentNamingUtil: GDScript = preload("res://Scripts/mod/content_naming.gd")
 
 var _mods: Array[ModInfo] = []
 ## 按依赖/加载顺序排好、本次真正要加载的 mod
@@ -445,14 +447,7 @@ func _load_content_entry(
 		_mod_error(mod, "content.%s 条目缺少 id/tag 或 path" % key)
 		return
 
-	var global_namespace := mod.manifest.content_namespace == "global"
-	if kind == ModContentEntry.Kind.CUE:
-		var cue_prefix := _cue_tag_prefix(mod)
-		if not global_namespace and (not raw_id.begins_with(cue_prefix) or raw_id.length() == cue_prefix.length()):
-			_mod_error(mod, "cue 标签必须使用 %s 前缀：%s" % [cue_prefix, raw_id])
-			return
-	elif not global_namespace and not raw_id.begins_with(String(mod.id) + ":"):
-		_mod_error(mod, "内容 ID 必须以 %s: 开头：%s" % [mod.id, raw_id])
+	if not _validate_content_id(mod, kind, raw_id):
 		return
 
 	var path := _resolve_content_path(mod, raw_path).simplify_path()
@@ -478,7 +473,7 @@ func _load_content_entry(
 				return
 			var soul := resource as SoulData
 			soul.content_id = content_id
-			_warn_skill_id(mod, soul)
+			_normalize_skill_id(mod, soul)
 			_soul_ids[content_id] = true
 			_soul_entries.append(_make_entry(kind, mod, content_id, path, resource))
 			mod.soul_count += 1
@@ -522,17 +517,71 @@ func _make_entry(
 	return entry
 
 
-func _warn_skill_id(mod: ModInfo, soul: SoulData) -> void:
-	# 全局命名空间（内置官方内容）沿用原有技能 ID，不强制前缀
-	if mod.manifest.content_namespace == "global":
+## 校验内容 ID / Cue 标签的前缀、字符集和类型后缀；返回 false 表示该条目不加载
+func _validate_content_id(mod: ModInfo, kind: ModContentEntry.Kind, raw_id: String) -> bool:
+	var global_namespace := mod.manifest.content_namespace == "global"
+	if kind == ModContentEntry.Kind.CUE:
+		var cue_prefix := _cue_tag_prefix(mod)
+		if not global_namespace and (not raw_id.begins_with(cue_prefix) or raw_id.length() == cue_prefix.length()):
+			_mod_error(mod, "cue 标签必须使用 %s 前缀：%s" % [cue_prefix, raw_id])
+			return false
+		if not ContentNamingUtil.is_valid_tag(raw_id):
+			_mod_error(mod, "cue 标签不是合法 GAS 标签：%s" % raw_id)
+			return false
+		return true
+
+	if not global_namespace and not raw_id.begins_with(String(mod.id) + ":"):
+		_mod_error(mod, "内容 ID 必须以 %s: 开头：%s" % [mod.id, raw_id])
+		return false
+	var local_id: String = ContentNamingUtil.local_id_of(StringName(raw_id), mod.id)
+	if not ContentNamingUtil.is_valid_local_id(local_id):
+		_mod_error(mod, "内容 ID 不合法（小写 snake_case）：%s" % raw_id)
+		return false
+	if kind == ModContentEntry.Kind.SOUL and not ContentNamingUtil.is_soul_local_id(local_id):
+		_mod_error(mod, "魂灵 ID 应以 %s 结尾：%s" % [ContentNamingUtil.SOUL_SUFFIX, raw_id])
+		return false
+	if kind == ModContentEntry.Kind.MONSTER and not ContentNamingUtil.is_monster_local_id(local_id, global_namespace):
+		_mod_error(mod, "怪物 ID 应以 %s 结尾：%s" % [ContentNamingUtil.MONSTER_SUFFIX, raw_id])
+		return false
+	return true
+
+
+## 技能 ID 存的是 ability_tag 后缀：为空时按 content_id 派生，非空时校验格式与命名空间
+func _normalize_skill_id(mod: ModInfo, soul: SoulData) -> void:
+	var skill := soul.skill
+	if skill == null:
 		return
-	if soul.skill == null or soul.skill.id.is_empty():
+	var owns_skill := not skill.resource_path.is_empty() and skill.resource_path.begins_with(_content_root(mod))
+	if not owns_skill:
+		_validate_external_skill_id(mod, skill)
 		return
-	var skill_path := soul.skill.resource_path
-	if skill_path.is_empty() or not skill_path.begins_with(_content_root(mod)):
+
+	var global_namespace := mod.manifest.content_namespace == "global"
+	if skill.id.is_empty():
+		skill.id = ContentNamingUtil.skill_suffix(mod.id, soul.content_id, global_namespace)
 		return
-	if not soul.skill.id.begins_with(String(mod.id) + "_"):
-		_mod_error(mod, "技能 id 未加 mod 前缀：%s" % soul.skill.id)
+	if not ContentNamingUtil.is_valid_tag(skill.id):
+		_mod_error(mod, "技能 id 不是合法 GAS 标签：%s" % skill.id)
+		return
+	if not ContentNamingUtil.is_skill_suffix_allowed(skill.id, mod.id, global_namespace):
+		_mod_error(mod, "技能 id 必须使用 %s%s. 前缀：%s" % [
+			ContentNamingUtil.MOD_TAG_PREFIX,
+			ContentNamingUtil.to_pascal(String(mod.id)),
+			skill.id,
+		])
+		return
+	if global_namespace:
+		var expected: String = ContentNamingUtil.skill_suffix(mod.id, soul.content_id, true)
+		if skill.id != expected:
+			_mod_error(mod, "core 技能 id 应与魂灵 ID 对应，应为 %s：%s" % [expected, skill.id])
+
+
+## mod 引用外部技能资源时只校验格式，不要求本 mod 命名空间
+func _validate_external_skill_id(mod: ModInfo, skill: SkillDefinition) -> void:
+	if skill.id.is_empty():
+		_mod_error(mod, "外部技能资源缺少 id：%s" % skill.resource_path)
+	elif not ContentNamingUtil.is_valid_tag(skill.id):
+		_mod_error(mod, "技能 id 不是合法 GAS 标签：%s" % skill.id)
 
 
 func _validate_overrides(mod: ModInfo) -> void:
@@ -585,10 +634,7 @@ func _migrated_override_path(path: String) -> String:
 
 ## Cue 标签命名空间：mod id（snake_case）转 PascalCase，例如 example_souls → Cue.Mod.ExampleSouls.
 func _cue_tag_prefix(mod: ModInfo) -> String:
-	var pascal := ""
-	for part in String(mod.id).split("_", false):
-		pascal += part.substr(0, 1).to_upper() + part.substr(1)
-	return "Cue.Mod.%s." % pascal
+	return "Cue.Mod.%s." % ContentNamingUtil.to_pascal(String(mod.id))
 
 
 func _content_root(mod: ModInfo) -> String:

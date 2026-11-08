@@ -5,16 +5,8 @@ extends RefCounted
 ## 约定：新增功能/内容时，在这里补测试方法，并更新 `DOC/指南/AI测试接口.md`。
 ## 这些方法会改运行时状态，只在测试/探针里用，不要接入正式玩法。
 
-const WAREHOUSE : String = "inventory_0"
-## 商店容器名（见 shop_window.tscn）
-const SHOP : String = "shop_0"
-## 部位 → 魂灵窗口容器名（见 equipment_window.tscn）
-const SOUL_CELLS := {
-	"HEADSOUL": "cell_0",
-	"TORSOSOUL": "cell_1",
-	"ARMSSOUL": "cell_2",
-	"LEGSSOUL": "cell_3",
-}
+## 容器名集中定义；用 preload 而不是全局类名，保证 --script 无头模式也能解析
+const CONTAINER_IDS: GDScript = preload("res://Scripts/container_ids.gd")
 ## 测试用灼烧效果：施加 + 周期
 const BURN_APPLY : GameplayEffect = preload("res://base_mods/core/effects/burn_apply.tres")
 const BURN_TICK : GameplayEffect = preload("res://base_mods/core/effects/burn_tick.tres")
@@ -45,7 +37,9 @@ static func get_game_color(constant_name : String) -> String:
 #region 背包 / 见闻
 
 ## 按 content_id 把魂灵放进指定容器（默认仓库第 1 页）
-static func add_soul(id : StringName, container : String = WAREHOUSE) -> bool:
+static func add_soul(id : StringName, container : String = "") -> bool:
+	if container.is_empty():
+		container = CONTAINER_IDS.MAIN_INVENTORY
 	var soul := CollectionDB.get_soul(id)
 	if soul == null:
 		push_warning("TestAPI：魂灵不存在 %s" % id)
@@ -78,11 +72,11 @@ static func shop_add_soul(id : StringName) -> bool:
 	if soul == null:
 		push_warning("TestAPI：魂灵不存在 %s" % id)
 		return false
-	if not GBIS.shop_names.has(SHOP):
+	if not GBIS.shop_names.has(CONTAINER_IDS.SHOP):
 		push_warning("TestAPI：商店容器尚未注册，先打开商店窗口")
 		return false
 	var goods : Array[ItemData] = [soul]
-	GBIS.shop_service.load_goods(SHOP, goods)
+	GBIS.shop_service.load_goods(CONTAINER_IDS.SHOP, goods)
 	GBIS.sig_inv_refresh.emit()
 	return true
 
@@ -136,13 +130,12 @@ static func equip_soul(id : StringName, part : String = "") -> bool:
 		return false
 	if part.is_empty():
 		if soul.equip_part == "ANY":
-			for soul_part in SOUL_CELLS:
-				var any_cell : String = SOUL_CELLS[soul_part]
-				if GBIS.add_item(any_cell, soul):
+			for cell_name in CONTAINER_IDS.soul_cells():
+				if GBIS.add_item(cell_name, soul):
 					return true
 			return false
 		part = soul.equip_part
-	var cell : String = SOUL_CELLS.get(part, "")
+	var cell : String = CONTAINER_IDS.soul_cell_for_part(part)
 	if cell.is_empty():
 		push_warning("TestAPI：未知部位 %s" % part)
 		return false
@@ -280,6 +273,11 @@ static func get_soul_tooltip_bbcode(id : StringName) -> String:
 
 static func get_monster_ids() -> Array[StringName]:
 	return CollectionDB.get_monster_ids()
+
+
+## 标记为稀有的怪物 content_id
+static func get_rare_monster_ids() -> Array[StringName]:
+	return CollectionDB.get_rare_monster_ids()
 
 
 static func _inventory_window() -> InventoryWindow:

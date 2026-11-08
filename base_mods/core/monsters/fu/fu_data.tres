@@ -15,4 +15,5 @@ display_name = "蝮"
 icon = SubResource("AtlasTexture_fu")
 max_health = 1000.0
 spawn_weight = 0.0
+is_rare = true
 battle_scene = ExtResource("1_scene")

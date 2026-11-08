@@ -4,15 +4,14 @@ extends BaseWindow
 ## 角色倒下后多久重开一整场
 const REVIVE_DELAY : float = 3.0
 
-## 特殊怪：不参与常规随机刷怪，每击杀 RARE_SPAWN_EVERY_KILLS 只常规怪后刷一只
-const RARE_MONSTER_ID : StringName = &"fu_data"
+## 每击杀 RARE_SPAWN_EVERY_KILLS 只常规怪，下一只改用怪物数据里的 is_rare 标记
 const RARE_SPAWN_EVERY_KILLS : int = 10
 
 ## 玩家单位：配置好的场景，开战时直接实例化
 const PLAYER_SCENE := preload("res://game/content/Player/player.tscn")
 
-## 魂灵窗口里那四个格子（容器名，见 equipment_window.tscn）
-const SOUL_SLOT_NAMES : Array[String] = ["cell_0", "cell_1", "cell_2", "cell_3"]
+## 容器名集中定义；用 preload 而不是全局类名，保证 --script 无头模式也能解析
+const CONTAINER_IDS: GDScript = preload("res://Scripts/container_ids.gd")
 
 ## 格子上画距离数字（调试用）
 const SHOW_DEBUG_DISTANCE : bool = false
@@ -39,9 +38,9 @@ var _battle : BattleManager
 var _run_id : int = 0
 ## 测试接口：下一次刷怪强制使用这个 ID，刷出后清空
 var _test_monster_id : StringName = &""
-## 常规怪击杀计数；每满 RARE_SPAWN_EVERY_KILLS，排队一只蝮
+## 常规怪击杀计数；每满 RARE_SPAWN_EVERY_KILLS，排队一只稀有怪
 var _normal_kills : int = 0
-## 已排队、等下一拍刷出的蝮数量
+## 已排队、等下一拍刷出的稀有怪数量
 var _pending_rare_spawns : int = 0
 ## FPS 文本刷新计数
 var _fps_frames : int = 0
@@ -241,25 +240,25 @@ func _spawn_enemy(cell: Vector2i) -> void:
 	CollectionDB.mark_monster_seen(monster)
 
 
-## 选怪优先级：测试强制 ID > 已排队的蝮 > 常规随机池
+## 选怪优先级：测试强制 ID > 已排队的稀有怪 > 常规随机池
 func _pick_monster_for_spawn() -> MonsterData:
 	if not _test_monster_id.is_empty():
 		var forced := CollectionDB.get_monster(_test_monster_id)
 		_test_monster_id = &""
 		return forced
 	if _pending_rare_spawns > 0:
-		var rare := CollectionDB.get_monster(RARE_MONSTER_ID)
+		var rare := CollectionDB.pick_rare_monster()
 		if rare != null:
 			_pending_rare_spawns -= 1
 			return rare
 	return CollectionDB.pick_random_monster()
 
 
-## 常规怪死亡计数；每满阈值，把下一只刷怪换成蝮
+## 常规怪死亡计数；每满阈值，把下一只刷怪换成稀有怪
 func _on_enemy_died(_unit: BattleUnit, monster: MonsterData) -> void:
 	if _battle == null or not _battle.is_running:
 		return
-	if monster == null or monster.spawn_weight <= 0.0:
+	if monster == null or monster.is_rare or monster.spawn_weight <= 0.0:
 		return
 	_normal_kills += 1
 	if _normal_kills < RARE_SPAWN_EVERY_KILLS:
@@ -272,7 +271,7 @@ func _on_enemy_died(_unit: BattleUnit, monster: MonsterData) -> void:
 ## 返回按“部位行从上到下、行内从左到右”排好的位置信息。
 func _equipped_souls() -> Array[SoulSlot]:
 	var slots : Array[SoulSlot] = []
-	for slot_name in SOUL_SLOT_NAMES:
+	for slot_name in CONTAINER_IDS.soul_cells():
 		var container := ContainerRepository.instance.get_container(slot_name)
 		if container == null:
 			continue

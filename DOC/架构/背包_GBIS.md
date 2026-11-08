@@ -1,6 +1,6 @@
 # 背包 / 仓库系统（GBIS）
 
-> 类型：实现 | 状态：有效 | 核对：2026-11-07
+> 类型：实现 | 状态：有效 | 核对：2026-11-08
 > 何时读：改背包/仓库/装备槽/容器、拖拽、商店容器、存档
 > 关键词：GBIS 背包 仓库 inventory container 物品大类 category 装备槽 拖拽 Tooltip 存档 分页 Warehouse 商店 Shop
 > 代码：Windows/Inventory/grid_base_inventory_system/、Scripts/warehouse.gd
@@ -18,6 +18,7 @@
 - `ContainerRepository` / `EquipmentSlotRepository` 是 `Resource` 单例（`static var instance`），通过 `GBIS` 的 Service 访问。
 - 视图层通过 `GBIS` 的信号刷新，不直接互相引用。
 - 游戏层另有 `Warehouse` autoload（`Scripts/warehouse.gd`）：启动时预注册 `inventory_0..inventory_9` 十页仓库，并提供 `add_item()` 跨页找空位；它只调用 GBIS 的公开接口，不修改框架本身。
+- 容器名常量集中在 `Scripts/container_ids.gd`（`inventory_0`、`shop_0`、`cell_0..3`、部位映射）；场景 `.tscn` 里的 `container_name` 仍是字面量，改名时必须两边一起改。
 
 ### 7.2 分层与主要类
 

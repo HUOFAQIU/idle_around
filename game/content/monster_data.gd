@@ -19,6 +19,9 @@ class_name MonsterData extends Resource
 @export var max_health: float = 100.0
 ## 常规刷怪权重；0 表示不参与常规随机刷怪，只能由特殊规则或测试刷出
 @export_range(0.0, 100.0, 0.1) var spawn_weight: float = 1.0
+## 稀有标记：不参与常规随机池，由 BattleWindow 每击杀 N 只常规怪后替换刷出。
+## 稀有怪应同时把 spawn_weight 设为 0；死亡也不计入常规击杀数。
+@export var is_rare: bool = false
 ## 携带的魂灵与各自的掉落几率；部位由魂灵自身的 equip_part 决定
 @export var soul_entries: Array[MonsterSoulEntry] = []
 ## 战斗时实例化的场景

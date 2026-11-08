@@ -28,7 +28,7 @@ TestAPI.stop_battle()
 
 | 方法 | 说明 |
 |---|---|
-| `add_soul(id, container := "inventory_0") -> bool` | 按 content_id 放入指定容器（默认仓库第 1 页） |
+| `add_soul(id, container := "") -> bool` | 按 content_id 放入指定容器；`container` 为空时放仓库第 1 页 |
 | `add_soul_to_warehouse(id) -> bool` | 按 content_id 放入仓库，从第 1 页开始找空位 |
 | `show_shop() -> bool` | 显示商店窗口；找不到窗口返回 `false` |
 | `shop_add_soul(id) -> bool` | 按 content_id 往 `shop_0` 追加一颗魂灵；清空用 `clear_container("shop_0")` |
@@ -44,6 +44,7 @@ TestAPI.stop_battle()
 | `get_seen_ids(kind) -> Array[StringName]` | 真实已解锁 ID |
 | `is_seen(kind, id) -> bool` | 单个条目是否解锁 |
 | `get_soul_ids()` / `get_monster_ids()` | 列出内容条目（core + 第三方 mod） |
+| `get_rare_monster_ids() -> Array[StringName]` | 标记为 `is_rare` 的怪物 content_id |
 | `get_soul_types(id) -> Array[StringName]` | 魂灵类型，如 `Soul.types.Wolf`、`Soul.types.Animal` |
 | `get_soul_tags(id) -> Array[StringName]` | 魂灵见闻标签，如 `Soul.tags.Small`、`Soul.tags.Burn` |
 | `get_skill_tags() -> Array[Dictionary]` | 所有魂灵的 `content_id`、技能 ID 和 `ability_tag`，用于核对技能命名规范 |

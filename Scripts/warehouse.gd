@@ -13,8 +13,8 @@ const PAGE_COLUMNS: int = 26
 const PAGE_ROWS: int = 24
 ## 每页允许的物品大类
 const PAGE_TYPES: Array[String] = ["SOUL"]
-## 容器名前缀；第 1 页是 inventory_0
-const PAGE_NAME_PREFIX: String = "inventory_"
+## 用 preload 而不是全局类名，保证 --script 无头模式也能解析
+const CONTAINER_IDS: GDScript = preload("res://Scripts/container_ids.gd")
 
 
 func _ready() -> void:
@@ -26,14 +26,14 @@ func _ready() -> void:
 
 ## 页码（0 起）→ 容器名
 static func page_name(page: int) -> String:
-	return "%s%d" % [PAGE_NAME_PREFIX, page]
+	return CONTAINER_IDS.warehouse_page(page)
 
 
 ## 容器名 → 页码（0 起）；不是仓库页时返回 -1
 static func page_index(container_name: String) -> int:
-	if not container_name.begins_with(PAGE_NAME_PREFIX):
+	if not container_name.begins_with(CONTAINER_IDS.WAREHOUSE_PREFIX):
 		return -1
-	var index_text := container_name.trim_prefix(PAGE_NAME_PREFIX)
+	var index_text := container_name.trim_prefix(CONTAINER_IDS.WAREHOUSE_PREFIX)
 	if not index_text.is_valid_int():
 		return -1
 	var page := index_text.to_int()

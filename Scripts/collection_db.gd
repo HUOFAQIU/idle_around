@@ -93,12 +93,12 @@ func get_seen_ids(kind: int) -> Array[StringName]:
 	return ids
 
 
-## 从常规刷怪池里按 spawn_weight 随机挑一只；权重 0 的怪只走特殊规则
+## 从常规刷怪池里按 spawn_weight 随机挑一只；权重 0 或 is_rare 的怪不参与
 func pick_random_monster() -> MonsterData:
 	var candidates: Array[MonsterData] = []
 	var total_weight: float = 0.0
 	for monster in _monsters.values():
-		if monster == null or monster.battle_scene == null or monster.spawn_weight <= 0.0:
+		if monster == null or monster.is_rare or monster.battle_scene == null or monster.spawn_weight <= 0.0:
 			continue
 		candidates.append(monster)
 		total_weight += monster.spawn_weight
@@ -111,6 +111,25 @@ func pick_random_monster() -> MonsterData:
 		if roll <= 0.0:
 			return monster
 	return candidates.back()
+
+
+## 标记为稀有的怪物 content_id；没有配置时返回空数组
+func get_rare_monster_ids() -> Array[StringName]:
+	var ids: Array[StringName] = []
+	for id in _monsters:
+		var monster: MonsterData = _monsters[id]
+		if monster != null and monster.is_rare:
+			ids.append(id)
+	return ids
+
+
+## 从稀有怪里随机挑一只；没有配置或没配战斗场景时返回 null
+func pick_rare_monster() -> MonsterData:
+	var candidates: Array[MonsterData] = []
+	for monster in _monsters.values():
+		if monster != null and monster.is_rare and monster.battle_scene != null:
+			candidates.append(monster)
+	return candidates.pick_random() if not candidates.is_empty() else null
 
 
 ## 魂灵“首次获得”即记录。入包信号给的是副本，优先用副本携带的 content_id

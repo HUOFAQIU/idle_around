@@ -3,6 +3,8 @@
 ## 只读 SoulRuntime，不反向改战斗状态；由 DebugWindow 定时调用 refresh()。
 extends PanelContainer
 
+const CONTAINER_IDS := preload("res://Scripts/container_ids.gd")
+
 var runtime: SoulRuntime
 
 var _icon: TextureRect
@@ -117,14 +119,5 @@ func refresh() -> void:
 func _part_text() -> String:
 	if runtime == null or runtime.slot == null:
 		return ""
-	match runtime.slot.container_name:
-		"cell_0":
-			return "头部"
-		"cell_1":
-			return "身体"
-		"cell_2":
-			return "手部"
-		"cell_3":
-			return "腿部"
-		_:
-			return runtime.slot.container_name
+	var part: String = CONTAINER_IDS.part_for_soul_cell(runtime.slot.container_name)
+	return SoulText.part_name(part) if not part.is_empty() else runtime.slot.container_name

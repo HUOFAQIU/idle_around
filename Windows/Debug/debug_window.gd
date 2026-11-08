@@ -11,6 +11,7 @@ const UNITS_MAX_ROWS: int = 100
 const PENDING_MAX: int = 2000
 const LOG_MAX_LINES: int = 1200
 const SOUL_STATUS_ROW := preload("res://Windows/Debug/soul_status_row.gd")
+const CONTAINER_IDS := preload("res://Scripts/container_ids.gd")
 
 const CATEGORY_NAMES := {
 	CombatEvent.BATTLE: "战斗",
@@ -1311,15 +1312,6 @@ func _selected_runtime_id(tree: Tree) -> int:
 func _part_text(runtime: SoulRuntime) -> String:
 	if runtime == null or runtime.slot == null:
 		return ""
-	match runtime.slot.container_name:
-		"cell_0":
-			return "头部"
-		"cell_1":
-			return "身体"
-		"cell_2":
-			return "手部"
-		"cell_3":
-			return "腿部"
-		_:
-			return runtime.slot.container_name
+	var part: String = CONTAINER_IDS.part_for_soul_cell(runtime.slot.container_name)
+	return SoulText.part_name(part) if not part.is_empty() else runtime.slot.container_name
 #endregion

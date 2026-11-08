@@ -6,7 +6,7 @@ extends RefCounted
 ## 资源类型、内部引用是否可加载仍由 ModLoader 在启动时检查。
 
 ## 用 preload 而不是全局类名，保证 modkit 的 --script 无头模式能解析
-const ContentNamingUtil: GDScript = preload("res://Scripts/mod/content_naming.gd")
+const CONTENT_NAMING: GDScript = preload("res://Scripts/mod/content_naming.gd")
 
 const CORE_ID: String = "core"
 const CORE_ROOT: String = "res://base_mods/core"
@@ -120,21 +120,21 @@ static func _validate_kind(
 static func _validate_entry_id(id_kind: String, id: String, errors: Array[String]) -> void:
 	match id_kind:
 		"soul":
-			if not ContentNamingUtil.is_valid_local_id(id):
+			if not CONTENT_NAMING.is_valid_local_id(id):
 				errors.append("魂灵 ID 不合法（小写 snake_case）：%s" % id)
-			elif not ContentNamingUtil.is_soul_local_id(id):
-				errors.append("魂灵 ID 应以 %s 结尾：%s" % [ContentNamingUtil.SOUL_SUFFIX, id])
+			elif not CONTENT_NAMING.is_soul_local_id(id):
+				errors.append("魂灵 ID 应以 %s 结尾：%s" % [CONTENT_NAMING.SOUL_SUFFIX, id])
 		"monster":
-			if not ContentNamingUtil.is_valid_local_id(id):
+			if not CONTENT_NAMING.is_valid_local_id(id):
 				errors.append("怪物 ID 不合法（小写 snake_case）：%s" % id)
-			elif not ContentNamingUtil.is_monster_local_id(id, true):
+			elif not CONTENT_NAMING.is_monster_local_id(id, true):
 				errors.append("怪物 ID 应以 %s 结尾（旧内容可用 %s）：%s" % [
-					ContentNamingUtil.MONSTER_SUFFIX,
-					ContentNamingUtil.LEGACY_MONSTER_SUFFIX,
+					CONTENT_NAMING.MONSTER_SUFFIX,
+					CONTENT_NAMING.LEGACY_MONSTER_SUFFIX,
 					id,
 				])
 		"cue":
-			if not ContentNamingUtil.is_valid_tag(id):
+			if not CONTENT_NAMING.is_valid_tag(id):
 				errors.append("Cue 标签不是合法 GAS 标签：%s" % id)
 
 
@@ -161,7 +161,7 @@ static func _validate_soul_skills(content: Dictionary, errors: Array[String]) ->
 		if skill == null:
 			errors.append("魂灵 %s 的技能资源加载失败：%s" % [content_id, skill_path])
 			continue
-		var expected: String = ContentNamingUtil.skill_suffix(&"", StringName(content_id), true)
+		var expected: String = CONTENT_NAMING.skill_suffix(&"", StringName(content_id), true)
 		var actual := String(skill.get("id"))
 		if actual.is_empty():
 			errors.append("魂灵 %s 的技能 id 为空，应为 %s" % [content_id, expected])

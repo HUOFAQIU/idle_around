@@ -346,6 +346,11 @@ static func get_save_path() -> String:
 	return SaveManager.get_save_path()
 
 
+## 存档状态：ready / read_only / missing_containers
+static func get_save_status() -> Dictionary:
+	return SaveManager.get_save_status()
+
+
 ## 当前内存状态的存档快照（不写盘），用于检查序列化结果
 static func dump_save() -> Dictionary:
 	return SaveManager.collect_save_data()

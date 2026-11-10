@@ -166,7 +166,7 @@ res://mods/example_souls/content/monsters/fire_wolf_monster.tres
 - `content_namespace: "global"` 保留旧 ID；内容资源已经物理迁移到 `base_mods/core/` 的 `souls/`、`monsters/`、`effects/`、`cues/`。
 - 官方 Cue 场景在 `base_mods/core/cues/`，逻辑脚本仍在 `game/battle/cues/`；`godot_gas/cue_registry.tres` 为空。
 - 导出时 `export_presets.cfg` 的 `include_filter` 必须包含 `base_mods/*/mod.json`；`exclude_filter` 用 `mods/*,modkit/*`，不能写成 `*mods/*`，否则会误伤 `base_mods/`。
-- 改完官方内容后运行 `modkit/validate_core_manifest.gd`（或 `TestAPI.validate_core_manifest()`），检查 manifest 是否漏登记、路径不存在或 ID 重复。
+- 改完官方内容后运行 `modkit/validate_core_manifest.gd`（或 `TestAPI.validate_core_manifest()`），检查 manifest 是否漏登记、路径不存在、ID 重复，以及资源是否误设中文 `resource_name`。
 
 ## 9. 安全边界
 

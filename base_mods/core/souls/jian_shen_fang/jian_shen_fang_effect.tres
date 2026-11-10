@@ -11,7 +11,6 @@ attribute_name = "damage_bonus"
 magnitude = 50.0
 
 [resource]
-resource_name = "健身房"
 script = ExtResource("4_2h8ci")
 policy = 2
 modifiers = Array[ExtResource("2_modifier")]([SubResource("Resource_modifier_damage_bonus")])

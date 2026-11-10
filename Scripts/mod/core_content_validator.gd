@@ -15,6 +15,8 @@ const SOUL_SUFFIXES: Array[String] = ["_soul.tres"]
 ## 新怪物用 _monster；_data 是旧版 core 的兼容后缀
 const MONSTER_SUFFIXES: Array[String] = ["_monster.tres", "_data.tres"]
 const CUE_SUFFIXES: Array[String] = [".tscn"]
+## 资源不应设置中文 resource_name；这里做文本扫描，避免 modkit 的 --script 模式加载资源
+const RESOURCE_NAME_PATTERN: String = "(?m)^\\s*resource_name\\s*=\\s*\"(.*)\"\\s*$"
 
 
 ## 返回错误列表；空数组表示 manifest 与内容文件一致
@@ -31,6 +33,7 @@ static func validate() -> Array[String]:
 	_validate_kind(content, "monsters", "id", "path", CORE_ROOT.path_join("monsters"), MONSTER_SUFFIXES, "monster", errors)
 	_validate_kind(content, "cues", "tag", "scene", CORE_ROOT.path_join("cues"), CUE_SUFFIXES, "cue", errors)
 	_validate_soul_skills(content, errors)
+	_validate_resource_names(errors)
 	return errors
 
 
@@ -183,6 +186,34 @@ static func _skill_path_from_soul(soul_path: String) -> String:
 		"(?m)^\\[ext_resource[^\\]]*path=\"([^\"]+)\"[^\\]]*id=\"%s\"\\]" % ref_id
 	).search(text)
 	return ext.get_string(1) if ext != null else ""
+
+
+## 资源不应设置中文 resource_name；编辑器按文件名显示即可。
+static func _validate_resource_names(errors: Array[String]) -> void:
+	var files: Array[String] = []
+	var suffixes: Array[String] = [".tres"]
+	_collect_files_recursive(CORE_ROOT, suffixes, files)
+	files.sort()
+	var pattern := RegEx.create_from_string(RESOURCE_NAME_PATTERN)
+	for path in files:
+		var text := FileAccess.get_file_as_string(path)
+		if text.is_empty():
+			continue
+		var found := pattern.search(text)
+		if found == null:
+			continue
+		var resource_name := found.get_string(1)
+		if _contains_han(resource_name):
+			errors.append("资源不应设置中文 resource_name：%s（%s）" % [path, resource_name])
+
+
+## 基本汉字 + 扩展 A；覆盖常见中文资源名即可
+static func _contains_han(text: String) -> bool:
+	for i in text.length():
+		var code := text.unicode_at(i)
+		if code >= 0x3400 and code <= 0x9FFF:
+			return true
+	return false
 
 
 static func _resolve_path(root: String, raw_path: String) -> String:

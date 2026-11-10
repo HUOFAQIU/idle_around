@@ -32,10 +32,6 @@
 		"path": "souls/du_ya/du_ya_soul.tres"
 	  },
 	  {
-		"id": "dun_soul",
-		"path": "souls/dun/dun_soul.tres"
-	  },
-	  {
 		"id": "hua_liu_shen_soul",
 		"path": "souls/hua_liu_shen/hua_liu_shen_soul.tres"
 	  },

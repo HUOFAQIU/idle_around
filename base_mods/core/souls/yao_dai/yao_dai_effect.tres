@@ -12,7 +12,6 @@ operation = 1
 magnitude = 0.4
 
 [resource]
-resource_name = "腰带"
 script = ExtResource("4_re211")
 policy = 2
 modifiers = Array[ExtResource("2_modifier")]([SubResource("Resource_modifier_max_health")])

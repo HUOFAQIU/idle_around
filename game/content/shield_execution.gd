@@ -15,4 +15,6 @@ func execute(spec: GameplayEffectSpec, _target_asc: AbilitySystemComponent) -> D
 	var amount := maxf(base_shield * multiplier, 0.0)
 	if amount <= 0.0:
 		return {}
+	if multiplier > 1.0 and spec != null:
+		spec.inject_tag(GameplayTags.Event_Combat_Critical)
 	return {"shield": amount}

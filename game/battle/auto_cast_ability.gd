@@ -450,18 +450,11 @@ func _play_hit_cue(target: BattleUnit) -> void:
 	var direction := -1.0 if _hit_cue_count % 2 == 0 else 1.0
 	_hit_cue_count += 1
 	var payload := {"direction": direction}
-	if _is_dying(target) and target.get_parent() != null:
+	if target.is_dying() and target.get_parent() != null:
 		payload["position"] = target.global_position
 		GameplayCueManager.execute_cue(skill.hit_cue_tag, target.get_parent(), payload)
 		return
 	target.asc.execute_cue(skill.hit_cue_tag, payload)
-
-
-## 目标是否已经在这一击里被打死（死亡是延迟到帧末处理的，所以要看血量而不是 is_dead）
-func _is_dying(target: BattleUnit) -> bool:
-	if target.is_dead:
-		return true
-	return target.health_attr != null and target.health_attr.current_value <= 0.0
 
 
 func _apply_effect_list_to_target(

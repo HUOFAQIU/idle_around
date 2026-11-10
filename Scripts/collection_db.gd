@@ -41,6 +41,7 @@ var _seen: Dictionary = {}
 
 
 func _ready() -> void:
+	_reset_seen()
 	_load_catalog()
 	GBIS.sig_inv_item_added.connect(_on_inv_item_added)
 	GBIS.sig_inv_refresh.connect(_scan_owned_souls)
@@ -161,10 +162,7 @@ func to_save_data() -> Dictionary:
 
 ## 用统一存档里的 collection 段覆盖当前状态；不触发解锁信号
 func apply_save_data(data: Dictionary) -> void:
-	_seen = {
-		Kind.MONSTER: {},
-		Kind.SOUL: {},
-	}
+	_reset_seen()
 	var monsters: Variant = data.get("monsters", [])
 	if monsters is Array:
 		for id in monsters:
@@ -178,10 +176,7 @@ func apply_save_data(data: Dictionary) -> void:
 
 ## 读取旧版 user://collection.cfg；成功返回 true（只读，不删除旧文件）
 func load_legacy_state() -> bool:
-	_seen = {
-		Kind.MONSTER: {},
-		Kind.SOUL: {},
-	}
+	_reset_seen()
 	var config := ConfigFile.new()
 	if config.load(LEGACY_SAVE_PATH) != OK:
 		return false
@@ -195,6 +190,14 @@ func load_legacy_state() -> bool:
 
 
 #region 内部
+## 建立两个 Kind 的空桶；必须在连接物品信号前调用。
+func _reset_seen() -> void:
+	_seen = {
+		Kind.MONSTER: {},
+		Kind.SOUL: {},
+	}
+
+
 func _load_catalog() -> void:
 	for entry in ModLoader.get_soul_entries():
 		var soul := entry.resource as SoulData
@@ -245,6 +248,8 @@ func _warn_duplicate_skill_ids() -> void:
 
 
 func _mark_seen(kind: int, id: StringName) -> void:
+	if not _seen.has(kind):
+		_seen[kind] = {}
 	var seen: Dictionary = _seen[kind]
 	if seen.has(id):
 		return

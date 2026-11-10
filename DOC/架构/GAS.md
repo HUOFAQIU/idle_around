@@ -1,6 +1,6 @@
 # GAS 适配层
 
-> 类型：实现 | 状态：有效 | 核对：2026-11-07
+> 类型：实现 | 状态：有效 | 核对：2026-11-10
 > 何时读：改属性集、标签注册、Cue 清单
 > 关键词：GAS GameplayAbility AttributeSet Tag Cue godot_gas
 > 代码：godot_gas/、base_mods/core/mod.json

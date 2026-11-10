@@ -1,6 +1,6 @@
 # AI 测试接口 TestAPI
 
-> 类型：指南 | 状态：有效 | 核对：2026-11-08
+> 类型：指南 | 状态：有效 | 核对：2026-11-10
 > 何时读：写自动化测试/探针、构造战斗或背包场景、验证新功能
 > 关键词：测试 TestAPI 探针 自动化 战斗快照 魂灵 仓库 见闻 商店 冷却 冻结 触发器 类型 标签 充能 卡面 tooltip 伤害缩放 多重触发 cast_times releases 颜色 色板 存档 save 爪痕 play_claw_cue mod ModLoader ModWindow 加载顺序 order mod_cue_registrar cue Cue 特效 manifest 创意工坊 内置 core content_id validate_core_manifest manifest 校验 技能 ID ability_tag 命名 窗口置顶 T Settings.cfg window_id
 > 代码：`Scripts/test_api.gd`、`Windows/Battle/battle_window.gd`、`Scripts/collection_db.gd`、`Scripts/save/`、`Scripts/mod/`、`base_mods/core/mod.json`
@@ -77,6 +77,7 @@ TestAPI.cancel_moving_item()               # 物品回到 (0, 0)
 | `delete_save() -> bool` | 只删除磁盘存档，不改变当前内存状态；要回到新游戏再调用 `load_save()` |
 | `has_save() -> bool` | 是否存在主文件或备份 |
 | `get_save_path() -> String` | 返回 `user://saves/slot_0.json`；绝对路径用 `ProjectSettings.globalize_path()` |
+| `get_save_status() -> Dictionary` | `ready` / `read_only` / `missing_containers`；缺容器时只读，不读也不写 |
 | `dump_save() -> Dictionary` | 当前内存状态的存档快照，不写盘；用于检查序列化结果 |
 
 ```gdscript

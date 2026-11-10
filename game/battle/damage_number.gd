@@ -1,7 +1,7 @@
 ## 单位头顶跳一下的数字：伤害红、治疗/再生绿、灼烧橙、护盾黄、剧毒绿，边升边淡出。
 ##
-## 挂在单位节点底下，所以单位走它跟着走、单位没了它跟着没，
-## 不需要外面拿个容器管它们。
+## 普通情况挂在单位节点下，单位走它跟着走；
+## 致命一击改挂战场层，避免单位释放时数字一起消失。
 
 class_name DamageNumber extends Label
 
@@ -30,7 +30,8 @@ func setup(
 	burn: bool = false,
 	shield: bool = false,
 	poison: bool = false,
-	regen: bool = false
+	regen: bool = false,
+	anchor: Vector2 = Vector2.ZERO
 ) -> void:
 	var text_value := ("+%d" % roundi(amount)) if heal else ("-%d" % roundi(amount))
 	if critical:
@@ -38,7 +39,7 @@ func setup(
 	text = text_value
 	# Label 的坐标是左上角，所以要自己往左上挪半个身位，让它落在单位正上方
 	size = Vector2(48.0, 20.0)
-	position = Vector2(-24.0, -46.0)
+	position = anchor + Vector2(-24.0, -46.0)
 	horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	add_theme_font_size_override("font_size", CRIT_FONT_SIZE if critical else FONT_SIZE)
 	var color := COLOR_SHIELD if shield else (COLOR_POISON if poison else (COLOR_REGEN if regen else (COLOR_BURN if burn else (COLOR_CRIT if critical else (COLOR_HEAL if heal else COLOR_DAMAGE)))))

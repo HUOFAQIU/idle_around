@@ -157,7 +157,7 @@ user://mods/example_souls/
 - `TestAPI.is_builtin_mod(id)`：是否为内置 mod。
 - `TestAPI.get_mod_content_ids(id)`：该 mod 注册的 souls / monsters / cues ID 列表。
 - `TestAPI.get_skill_tags()`：所有魂灵的 `content_id`、技能 ID 和 `ability_tag`，用于核对技能命名。
-- `TestAPI.validate_core_manifest()`：校验 `base_mods/core/mod.json` 与内容文件是否一致；返回错误列表。
+- `TestAPI.validate_core_manifest()`：校验 `base_mods/core/mod.json` 与内容文件是否一致，并检查资源是否误设中文 `resource_name`；返回错误列表。
 - `TestAPI.get_mod_cues()`：mod Cue 的标签、来源、路径、是否注册成功。
 - `TestAPI.is_mod_cue_registered(tag)`：单个 mod Cue 是否已注册。
 - `TestAPI.set_mod_enabled(id, enabled)`：写启用状态；重启后生效。
@@ -183,4 +183,4 @@ user://mods/example_souls/
 - 官方 ID 保持原值，不要加 `core:` 前缀；旧存档依赖这些 ID。
 - 内置 mod 只能 loose，不能把 `content.pck` 放进 `base_mods/`。
 - 导出：`include_filter` 必须包含 `base_mods/*/mod.json`；`exclude_filter` 用 `mods/*,modkit/*`，不要用 `*mods/*`。
-- 改完官方内容后跑 `modkit/validate_core_manifest.gd`，或调用 `TestAPI.validate_core_manifest()`，检查 manifest 是否漏登记/路径不存在。
+- 改完官方内容后跑 `modkit/validate_core_manifest.gd`，或调用 `TestAPI.validate_core_manifest()`，检查 manifest 是否漏登记、路径不存在和中文 `resource_name`。

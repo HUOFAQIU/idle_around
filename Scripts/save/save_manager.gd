@@ -27,20 +27,22 @@ var _play_time_sec: float = 0.0
 var _keep_backup_next_save: bool = false
 ## 读到未来版本的存档时只读，避免旧客户端覆盖新数据
 var _read_only: bool = false
-## 因 mod 缺失/容器满而暂时放不进世界的物品记录；写档时原样保留
+## 因 mod 缺失/容器缺失/容器满而暂时放不进世界的物品记录；写档时原样保留
 var _orphaned_records: Array[Dictionary] = []
 
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_connect_signals()
-	# 仓库页由 Warehouse autoload 预注册，其余容器由 InventoryView._ready() 注册；等一帧再读档
+	# 仓库页由 Warehouse autoload 预注册，魂灵格由 EquipmentWindow._ready() 注册；等一帧再读档
 	await get_tree().process_frame
-	# --script/工具模式没有主场景，装备槽等容器不会注册；
-	# 这时读档会跳过找不到的容器，若随后自动写档会丢物品，所以直接不读也不写。
+	# --script/工具模式没有主场景，容器不会注册；不读也不写，避免写档时丢掉未恢复的容器。
 	if get_tree().current_scene == null:
-		_read_only = true
-		set_process(false)
+		_enter_read_only("没有主场景（工具模式）", false)
+		return
+	var missing := _missing_save_containers()
+	if not missing.is_empty():
+		_enter_read_only("容器未注册：%s" % ", ".join(PackedStringArray(missing)), true)
 		return
 	load_game()
 
@@ -142,7 +144,7 @@ func load_game() -> bool:
 ## 当前内存状态的存档快照（不写盘）
 func collect_save_data() -> Dictionary:
 	var containers := {}
-	for inv_name in GBIS.inventory_names:
+	for inv_name in _expected_save_containers():
 		var container := ContainerRepository.instance.get_container(inv_name)
 		if container == null:
 			continue
@@ -182,6 +184,15 @@ func get_orphaned_records() -> Array[Dictionary]:
 	return result
 
 
+## 读档/写档是否可用；missing_containers 非空时只读。
+func get_save_status() -> Dictionary:
+	return {
+		"ready": _containers_ready(),
+		"read_only": _read_only,
+		"missing_containers": _missing_save_containers(),
+	}
+
+
 func get_save_path() -> String:
 	return SAVE_PATH
 
@@ -208,12 +219,38 @@ func mark_dirty(urgent: bool = false) -> void:
 
 
 #region 内部：容器
+## 进入只读：不读档也不写档，避免容器不齐时覆盖存档。
+func _enter_read_only(reason: String, report_error: bool) -> void:
+	_read_only = true
+	set_process(false)
+	if report_error:
+		push_error("存档：%s；本次不读档也不写档" % reason)
+
+
+## 存档必须覆盖的容器：仓库各页 + 四个魂灵格。
+func _expected_save_containers() -> Array[String]:
+	var names: Array[String] = []
+	for page in Warehouse.PAGE_COUNT:
+		names.append(Warehouse.page_name(page))
+	names.append_array(ContainerIds.soul_cells())
+	return names
+
+
+## 期望容器里当前还没注册的项；为空表示可以安全读写档。
+func _missing_save_containers() -> Array[String]:
+	var missing: Array[String] = []
+	for container_name in _expected_save_containers():
+		if not GBIS.inventory_names.has(container_name):
+			missing.append(container_name)
+	return missing
+
+
 func _containers_ready() -> bool:
-	return not GBIS.inventory_names.is_empty()
+	return _missing_save_containers().is_empty()
 
 
 func _clear_containers() -> void:
-	for inv_name in GBIS.inventory_names:
+	for inv_name in _expected_save_containers():
 		var container := ContainerRepository.instance.get_container(inv_name)
 		if container != null:
 			container.clear()
@@ -224,11 +261,15 @@ func _apply_containers(data: Dictionary) -> void:
 	if containers_data is Dictionary:
 		for key in containers_data:
 			var container_name := String(key)
+			var records: Variant = containers_data[key]
 			var container := ContainerRepository.instance.get_container(container_name)
 			if container == null:
-				push_warning("存档：容器不存在 %s，已跳过" % container_name)
+				if records is Array:
+					var preserved := _preserve_unknown_container(container_name, records as Array)
+					push_warning("存档：容器不存在 %s，已保留 %d 件物品到 orphaned" % [container_name, preserved])
+				else:
+					push_warning("存档：容器不存在 %s，且数据格式不对，已跳过" % container_name)
 				continue
-			var records: Variant = containers_data[key]
 			if not records is Array:
 				push_warning("存档：%s 的数据格式不对" % container_name)
 				continue
@@ -246,6 +287,16 @@ func _apply_containers(data: Dictionary) -> void:
 			if not Warehouse.add_item(item):
 				_orphaned_records.append(_make_orphaned_entry("", record_data))
 				push_warning("存档：拖拽中的物品无法放回仓库，已保留到 orphaned")
+
+
+## 未知容器的原始记录原样保留，避免之后写档时丢失。
+func _preserve_unknown_container(container_name: String, records: Array) -> int:
+	var preserved := 0
+	for record in records:
+		if record is Dictionary:
+			_orphaned_records.append(_make_orphaned_entry(container_name, record))
+			preserved += 1
+	return preserved
 
 
 func _apply_container(container: ContainerData, records: Array) -> void:

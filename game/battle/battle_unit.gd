@@ -462,6 +462,11 @@ func is_in_attack_range(other: BattleUnit) -> bool:
 	return other != null and distance_to_unit(other) <= attack_range
 
 
+## 这一击是否已经把生命打到 0（死亡延迟到帧末处理）
+func is_dying() -> bool:
+	return is_dead or (health_attr != null and health_attr.current_value <= 0.0)
+
+
 ## 单位级冻结（State.Frozen）：整个单位不充能、不释放、不移动
 func is_unit_frozen() -> bool:
 	return asc != null and asc.has_tag(GameplayTags.State_Frozen)
@@ -639,8 +644,15 @@ func _pop_number(
 	regen: bool = false
 ) -> void:
 	var number := DamageNumber.new()
-	add_child(number)  # 先入树，里面建补间要用
-	number.setup(amount, heal, critical, burn, shield, poison, regen)
+	# 致命伤害的数字不能挂在本单位下：目标帧末释放时会一起消失。
+	var number_parent: Node2D = self
+	var anchor := Vector2.ZERO
+	var parent := get_parent()
+	if not heal and not shield and is_dying() and parent is Node2D:
+		number_parent = parent as Node2D
+		anchor = number_parent.to_local(global_position)
+	number_parent.add_child(number)  # 先入树，里面建补间要用
+	number.setup(amount, heal, critical, burn, shield, poison, regen, anchor)
 
 
 ## 延迟一帧确认死亡：先让 effect_received 写伤害日志，再写“倒下”；

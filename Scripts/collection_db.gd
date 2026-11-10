@@ -12,11 +12,6 @@ signal entry_unlocked(kind: int, id: StringName)
 ## 读档整体替换“已遇见”状态后发出；图鉴窗口用它整体刷新
 signal state_reloaded
 
-enum Kind {
-	MONSTER,
-	SOUL,
-}
-
 ## 旧版独立存档：只读迁移用；新存档由 SaveManager 统一管理
 const LEGACY_SAVE_PATH: String = "user://collection.cfg"
 ## 旧版内容 ID 兼容：读取时统一映射到当前 canonical ID，写回时只写 canonical ID。
@@ -36,7 +31,7 @@ var unlock_all_for_testing: bool = false
 ## content_id → 资源
 var _souls: Dictionary[StringName, SoulData] = {}
 var _monsters: Dictionary[StringName, MonsterData] = {}
-## 已遇见：Kind → { content_id: true }
+## 已遇见：ContentKind.Kind → { content_id: true }
 var _seen: Dictionary = {}
 
 
@@ -136,7 +131,7 @@ func mark_soul_seen(soul: SoulData) -> void:
 	if id.is_empty():
 		push_warning("见闻：魂灵没有 content_id「%s」" % soul.item_name)
 		return
-	_mark_seen(Kind.SOUL, id)
+	_mark_seen(ContentKind.Kind.SOUL, id)
 
 
 ## 怪物“首次刷出”即记录；所有内容都由 ModLoader 写入 content_id
@@ -147,7 +142,7 @@ func mark_monster_seen(monster: MonsterData) -> void:
 	if id.is_empty():
 		push_warning("见闻：怪物没有 content_id「%s」" % monster.display_name)
 		return
-	_mark_seen(Kind.MONSTER, id)
+	_mark_seen(ContentKind.Kind.MONSTER, id)
 #endregion
 
 
@@ -155,8 +150,8 @@ func mark_monster_seen(monster: MonsterData) -> void:
 ## 供 SaveManager 序列化；数组里只放 canonical content_id
 func to_save_data() -> Dictionary:
 	return {
-		"monsters": _seen_ids(Kind.MONSTER),
-		"souls": _seen_ids(Kind.SOUL),
+		"monsters": _seen_ids(ContentKind.Kind.MONSTER),
+		"souls": _seen_ids(ContentKind.Kind.SOUL),
 	}
 
 
@@ -166,11 +161,11 @@ func apply_save_data(data: Dictionary) -> void:
 	var monsters: Variant = data.get("monsters", [])
 	if monsters is Array:
 		for id in monsters:
-			_seen[Kind.MONSTER][_canonical_monster_id(StringName(String(id)))] = true
+			_seen[ContentKind.Kind.MONSTER][_canonical_monster_id(StringName(String(id)))] = true
 	var souls: Variant = data.get("souls", [])
 	if souls is Array:
 		for id in souls:
-			_seen[Kind.SOUL][_canonical_soul_id(StringName(String(id)))] = true
+			_seen[ContentKind.Kind.SOUL][_canonical_soul_id(StringName(String(id)))] = true
 	state_reloaded.emit()
 
 
@@ -181,20 +176,20 @@ func load_legacy_state() -> bool:
 	if config.load(LEGACY_SAVE_PATH) != OK:
 		return false
 	for id in config.get_value("collection", "monsters", PackedStringArray()):
-		_seen[Kind.MONSTER][_canonical_monster_id(StringName(id))] = true
+		_seen[ContentKind.Kind.MONSTER][_canonical_monster_id(StringName(id))] = true
 	for id in config.get_value("collection", "souls", PackedStringArray()):
-		_seen[Kind.SOUL][_canonical_soul_id(StringName(id))] = true
+		_seen[ContentKind.Kind.SOUL][_canonical_soul_id(StringName(id))] = true
 	state_reloaded.emit()
 	return true
 #endregion
 
 
 #region 内部
-## 建立两个 Kind 的空桶；必须在连接物品信号前调用。
+## 建立两个种类的空桶；必须在连接物品信号前调用。
 func _reset_seen() -> void:
 	_seen = {
-		Kind.MONSTER: {},
-		Kind.SOUL: {},
+		ContentKind.Kind.MONSTER: {},
+		ContentKind.Kind.SOUL: {},
 	}
 
 
@@ -288,7 +283,7 @@ func _seen_ids(kind: int) -> Array[String]:
 
 
 func _canonical_id(kind: int, id: StringName) -> StringName:
-	return _canonical_soul_id(id) if kind == Kind.SOUL else _canonical_monster_id(id)
+	return _canonical_soul_id(id) if kind == ContentKind.Kind.SOUL else _canonical_monster_id(id)
 
 
 func _canonical_soul_id(id: StringName) -> StringName:

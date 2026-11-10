@@ -72,6 +72,14 @@ SaveManager
 - `GameplayCueManager` 的 autoload 必须指向 `addons/GodotGAS/managers/gameplay_cue_manager.gd`；`ModCueRegistrar` 必须排在它之后。不要再写一个继承 addon 管理器的项目包装脚本：导出包里路径式 extends 会解析失败。
 - GodotGAS 的 `gameplay_cue_manager.gd` 和 `utilities/project_settings.gd` 里直接引用 `EditorInterface` 的地方已改成 `Engine.get_singleton("EditorInterface")`，否则导出模板编译失败；`remove_persistent_cue` / `set_cue_state` 也改成允许已释放实例。升级 addon 时保留这些修改。
 
+### 4.1 内容种类与校验规格
+
+- `ContentKind.Kind` 是唯一的内容种类枚举（`SOUL / MONSTER / CUE`），`ModContentEntry`、`CollectionDB`、见闻窗口共用，不再各自定义裸 int。
+- `ContentKindSpec.all()` 是 manifest 内容段的单一规格表：`key`（souls/monsters/cues）、`id_field` / `path_field`（id/path 或 tag/scene）、ID 后缀、是否标签、core 目录与 core 文件后缀。
+- `ModLoader` 与 `CoreContentValidator` 都按这张表遍历；新增一种内容只需改规格表 + `ModLoader` 的类型注册分支。
+- 同一资源路径登记到两个内容 ID 会报错，避免共享资源被后一个 ID 改写 `content_id`。
+- manifest 里出现规格表之外的 `content.*` 段会 `push_warning`，不再静默忽略。
+
 ## 5. Mod 来源与包结构
 
 | 来源 | 目录 | 打包方式 | 说明 |
@@ -166,7 +174,7 @@ res://mods/example_souls/content/monsters/fire_wolf_monster.tres
 - `content_namespace: "global"` 保留旧 ID；内容资源已经物理迁移到 `base_mods/core/` 的 `souls/`、`monsters/`、`effects/`、`cues/`。
 - 官方 Cue 场景在 `base_mods/core/cues/`，逻辑脚本仍在 `game/battle/cues/`；`godot_gas/cue_registry.tres` 为空。
 - 导出时 `export_presets.cfg` 的 `include_filter` 必须包含 `base_mods/*/mod.json`；`exclude_filter` 用 `mods/*,modkit/*`，不能写成 `*mods/*`，否则会误伤 `base_mods/`。
-- 改完官方内容后运行 `modkit/validate_core_manifest.gd`（或 `TestAPI.validate_core_manifest()`），检查 manifest 是否漏登记、路径不存在、ID 重复，以及资源是否误设中文 `resource_name`；技能由 `SkillDefinition.steps` 组成，步骤类型、目标规则与字段是否一致由 ModLoader 在加载期检查；执行器字段（`attribute_name`、数值范围、`burn_effect` 等）也在加载期校验；怪物会校验 `display_name`、`max_health`、`attack_range`、`move_speed` 和 `battle_scene`。
+- 改完官方内容后运行 `modkit/validate_core_manifest.gd`（或 `TestAPI.validate_core_manifest()`），检查 manifest 是否漏登记、路径不存在、ID 重复，以及资源是否误设中文 `resource_name`；内容种类、字段名与文件后缀来自 `ContentKindSpec`，校验器不再复制这些常量；技能由 `SkillDefinition.steps` 组成，步骤类型、目标规则与字段是否一致由 ModLoader 在加载期检查；执行器字段（`attribute_name`、数值范围、`burn_effect` 等）也在加载期校验；怪物会校验 `display_name`、`max_health`、`attack_range`、`move_speed` 和 `battle_scene`。
 
 ## 9. 安全边界
 

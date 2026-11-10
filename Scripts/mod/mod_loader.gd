@@ -24,6 +24,7 @@ const PACK_FILE: String = "content.pck"
 const GAME_VERSION_SETTING: String = "application/config/version"
 ## 用 preload 而不是全局类名，保证 --script 无头模式也能解析
 const CONTENT_NAMING: GDScript = preload("res://Scripts/mod/content_naming.gd")
+const CONTENT_KIND_SPEC: GDScript = preload("res://Scripts/mod/content_kind_spec.gd")
 
 var _mods: Array[ModInfo] = []
 ## 按依赖/加载顺序排好、本次真正要加载的 mod
@@ -40,6 +41,8 @@ var _cue_entries: Array[ModContentEntry] = []
 var _soul_ids: Dictionary[StringName, bool] = {}
 var _monster_ids: Dictionary[StringName, bool] = {}
 var _cue_tags: Dictionary[StringName, bool] = {}
+## 内容路径 → 首次登记的 content_id；同一 .tres 不允许挂两个 ID
+var _content_paths: Dictionary[String, StringName] = {}
 ## override 路径 -> 声明它的 mod
 var _overrides: Dictionary[String, StringName] = {}
 var _errors: Array[String] = []
@@ -419,13 +422,18 @@ func _load_all_content() -> void:
 
 
 func _load_mod_content(mod: ModInfo) -> void:
-	_load_content_kind(mod, "souls", ModContentEntry.Kind.SOUL)
-	_load_content_kind(mod, "monsters", ModContentEntry.Kind.MONSTER)
-	_load_content_kind(mod, "cues", ModContentEntry.Kind.CUE)
+	var known: Dictionary = {}
+	for spec in CONTENT_KIND_SPEC.all():
+		known[String(spec.get("key", ""))] = true
+		_load_content_kind(mod, spec)
+	for key in mod.manifest.content.keys():
+		if not known.has(String(key)):
+			push_warning("ModLoader: %s: 未知 content 段 %s" % [mod.id, key])
 	_validate_overrides(mod)
 
 
-func _load_content_kind(mod: ModInfo, key: String, kind: ModContentEntry.Kind) -> void:
+func _load_content_kind(mod: ModInfo, spec: Dictionary) -> void:
+	var key := String(spec.get("key", ""))
 	var raw_entries: Variant = mod.manifest.content.get(key, [])
 	if not raw_entries is Array:
 		_mod_error(mod, "content.%s 必须是数组" % key)
@@ -434,22 +442,20 @@ func _load_content_kind(mod: ModInfo, key: String, kind: ModContentEntry.Kind) -
 		if not raw_entry is Dictionary:
 			_mod_error(mod, "content.%s 条目必须是对象" % key)
 			continue
-		_load_content_entry(mod, key, kind, raw_entry as Dictionary)
+		_load_content_entry(mod, spec, raw_entry as Dictionary)
 
 
-func _load_content_entry(
-	mod: ModInfo,
-	key: String,
-	kind: ModContentEntry.Kind,
-	raw_entry: Dictionary
-) -> void:
-	var raw_id := String(raw_entry.get("id", raw_entry.get("tag", "")))
-	var raw_path := String(raw_entry.get("path", raw_entry.get("scene", "")))
+func _load_content_entry(mod: ModInfo, spec: Dictionary, raw_entry: Dictionary) -> void:
+	var key := String(spec.get("key", ""))
+	var id_field := String(spec.get("id_field", "id"))
+	var path_field := String(spec.get("path_field", "path"))
+	var raw_id := String(raw_entry.get(id_field, ""))
+	var raw_path := String(raw_entry.get(path_field, ""))
 	if raw_id.is_empty() or raw_path.is_empty():
-		_mod_error(mod, "content.%s 条目缺少 id/tag 或 path" % key)
+		_mod_error(mod, "content.%s 条目缺少 %s / %s" % [key, id_field, path_field])
 		return
 
-	if not _validate_content_id(mod, kind, raw_id):
+	if not _validate_content_id(mod, spec, raw_id):
 		return
 
 	var path := _resolve_content_path(mod, raw_path).simplify_path()
@@ -459,14 +465,18 @@ func _load_content_entry(
 	if not ResourceLoader.exists(path):
 		_mod_error(mod, "内容不存在：%s" % path)
 		return
+	if _content_paths.has(path):
+		_mod_error(mod, "内容路径重复登记：%s（已用于 %s）" % [path, _content_paths[path]])
+		return
 	var resource := ResourceLoader.load(path)
 	if resource == null:
 		_mod_error(mod, "内容加载失败：%s" % path)
 		return
 
 	var content_id := StringName(raw_id)
+	var kind := int(spec.get("kind", ContentKind.Kind.SOUL))
 	match kind:
-		ModContentEntry.Kind.SOUL:
+		ContentKind.Kind.SOUL:
 			if not resource is SoulData:
 				_mod_error(mod, "魂灵资源类型不对：%s" % path)
 				return
@@ -480,9 +490,10 @@ func _load_content_entry(
 			_validate_soul_tags(mod, soul)
 			_validate_skill_steps(mod, soul)
 			_soul_ids[content_id] = true
+			_content_paths[path] = content_id
 			_soul_entries.append(_make_entry(kind, mod, content_id, path, resource))
 			mod.soul_count += 1
-		ModContentEntry.Kind.MONSTER:
+		ContentKind.Kind.MONSTER:
 			if not resource is MonsterData:
 				_mod_error(mod, "怪物资源类型不对：%s" % path)
 				return
@@ -493,9 +504,10 @@ func _load_content_entry(
 			monster.content_id = content_id
 			_validate_monster_config(mod, monster)
 			_monster_ids[content_id] = true
+			_content_paths[path] = content_id
 			_monster_entries.append(_make_entry(kind, mod, content_id, path, resource))
 			mod.monster_count += 1
-		ModContentEntry.Kind.CUE:
+		ContentKind.Kind.CUE:
 			if not resource is PackedScene:
 				_mod_error(mod, "Cue 资源不是 PackedScene：%s" % path)
 				return
@@ -503,12 +515,13 @@ func _load_content_entry(
 				_mod_error(mod, "Cue 标签重复：%s" % content_id)
 				return
 			_cue_tags[content_id] = true
+			_content_paths[path] = content_id
 			_cue_entries.append(_make_entry(kind, mod, content_id, path, resource))
 			mod.cue_count += 1
 
 
 func _make_entry(
-	kind: ModContentEntry.Kind,
+	kind: int,
 	mod: ModInfo,
 	content_id: StringName,
 	path: String,
@@ -524,9 +537,9 @@ func _make_entry(
 
 
 ## 校验内容 ID / Cue 标签的前缀、字符集和类型后缀；返回 false 表示该条目不加载
-func _validate_content_id(mod: ModInfo, kind: ModContentEntry.Kind, raw_id: String) -> bool:
+func _validate_content_id(mod: ModInfo, spec: Dictionary, raw_id: String) -> bool:
 	var global_namespace := mod.manifest.content_namespace == "global"
-	if kind == ModContentEntry.Kind.CUE:
+	if bool(spec.get("is_tag", false)):
 		var cue_prefix := _cue_tag_prefix(mod)
 		if not global_namespace and (not raw_id.begins_with(cue_prefix) or raw_id.length() == cue_prefix.length()):
 			_mod_error(mod, "cue 标签必须使用 %s 前缀：%s" % [cue_prefix, raw_id])
@@ -543,11 +556,16 @@ func _validate_content_id(mod: ModInfo, kind: ModContentEntry.Kind, raw_id: Stri
 	if not CONTENT_NAMING.is_valid_local_id(local_id):
 		_mod_error(mod, "内容 ID 不合法（小写 snake_case）：%s" % raw_id)
 		return false
-	if kind == ModContentEntry.Kind.SOUL and not CONTENT_NAMING.is_soul_local_id(local_id):
-		_mod_error(mod, "魂灵 ID 应以 %s 结尾：%s" % [CONTENT_NAMING.SOUL_SUFFIX, raw_id])
-		return false
-	if kind == ModContentEntry.Kind.MONSTER and not CONTENT_NAMING.is_monster_local_id(local_id, global_namespace):
-		_mod_error(mod, "怪物 ID 应以 %s 结尾：%s" % [CONTENT_NAMING.MONSTER_SUFFIX, raw_id])
+	var suffix := String(spec.get("id_suffix", ""))
+	if suffix.is_empty():
+		return true
+	var legacy := String(spec.get("legacy_suffix", ""))
+	var suffix_ok := local_id.ends_with(suffix) and local_id.length() > suffix.length()
+	if not suffix_ok and global_namespace and not legacy.is_empty():
+		suffix_ok = local_id.ends_with(legacy) and local_id.length() > legacy.length()
+	if not suffix_ok:
+		var expected := suffix if legacy.is_empty() else "%s（旧内容可用 %s）" % [suffix, legacy]
+		_mod_error(mod, "%s ID 应以 %s 结尾：%s" % [String(spec.get("label", "内容")), expected, raw_id])
 		return false
 	return true
 

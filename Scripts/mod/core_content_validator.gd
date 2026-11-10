@@ -7,14 +7,11 @@ extends RefCounted
 
 ## 用 preload 而不是全局类名，保证 modkit 的 --script 无头模式能解析
 const CONTENT_NAMING: GDScript = preload("res://Scripts/mod/content_naming.gd")
+const CONTENT_KIND_SPEC: GDScript = preload("res://Scripts/mod/content_kind_spec.gd")
 
 const CORE_ID: String = "core"
 const CORE_ROOT: String = "res://base_mods/core"
 const MANIFEST_PATH: String = CORE_ROOT + "/mod.json"
-const SOUL_SUFFIXES: Array[String] = ["_soul.tres"]
-## 新怪物用 _monster；_data 是旧版 core 的兼容后缀
-const MONSTER_SUFFIXES: Array[String] = ["_monster.tres", "_data.tres"]
-const CUE_SUFFIXES: Array[String] = [".tscn"]
 ## 资源不应设置中文 resource_name；这里做文本扫描，避免 modkit 的 --script 模式加载资源
 const RESOURCE_NAME_PATTERN: String = "(?m)^\\s*resource_name\\s*=\\s*\"(.*)\"\\s*$"
 
@@ -29,9 +26,8 @@ static func validate() -> Array[String]:
 	var content := _content_section(manifest, errors)
 	if content.is_empty():
 		return errors
-	_validate_kind(content, "souls", "id", "path", CORE_ROOT.path_join("souls"), SOUL_SUFFIXES, "soul", errors)
-	_validate_kind(content, "monsters", "id", "path", CORE_ROOT.path_join("monsters"), MONSTER_SUFFIXES, "monster", errors)
-	_validate_kind(content, "cues", "tag", "scene", CORE_ROOT.path_join("cues"), CUE_SUFFIXES, "cue", errors)
+	for spec in CONTENT_KIND_SPEC.all():
+		_validate_kind(content, spec, errors)
 	_validate_soul_skills(content, errors)
 	_validate_resource_names(errors)
 	return errors
@@ -66,16 +62,13 @@ static func _content_section(manifest: Dictionary, errors: Array[String]) -> Dic
 	return content as Dictionary
 
 
-static func _validate_kind(
-	content: Dictionary,
-	key: String,
-	id_key: String,
-	path_key: String,
-	dir: String,
-	suffixes: Array[String],
-	id_kind: String,
-	errors: Array[String]
-) -> void:
+static func _validate_kind(content: Dictionary, spec: Dictionary, errors: Array[String]) -> void:
+	var key := String(spec.get("key", ""))
+	var id_key := String(spec.get("id_field", "id"))
+	var path_key := String(spec.get("path_field", "path"))
+	var dir := CORE_ROOT.path_join(String(spec.get("core_dir", key)))
+	var suffixes: Array[String] = []
+	suffixes.assign(spec.get("core_suffixes", []))
 	var raw_entries: Variant = content.get(key, [])
 	if not raw_entries is Array:
 		errors.append("content.%s 必须是数组" % key)
@@ -96,7 +89,7 @@ static func _validate_kind(
 			errors.append("content.%s 的 %s 重复：%s" % [key, id_key, id])
 		else:
 			declared_ids[id] = true
-			_validate_entry_id(id_kind, id, errors)
+			_validate_entry_id(spec, id, errors)
 
 		var raw_path := String(entry.get(path_key, ""))
 		if raw_path.is_empty():
@@ -120,30 +113,33 @@ static func _validate_kind(
 			errors.append("content.%s 缺少 manifest 条目：%s" % [key, path])
 
 
-static func _validate_entry_id(id_kind: String, id: String, errors: Array[String]) -> void:
-	match id_kind:
-		"soul":
-			if not CONTENT_NAMING.is_valid_local_id(id):
-				errors.append("魂灵 ID 不合法（小写 snake_case）：%s" % id)
-			elif not CONTENT_NAMING.is_soul_local_id(id):
-				errors.append("魂灵 ID 应以 %s 结尾：%s" % [CONTENT_NAMING.SOUL_SUFFIX, id])
-		"monster":
-			if not CONTENT_NAMING.is_valid_local_id(id):
-				errors.append("怪物 ID 不合法（小写 snake_case）：%s" % id)
-			elif not CONTENT_NAMING.is_monster_local_id(id, true):
-				errors.append("怪物 ID 应以 %s 结尾（旧内容可用 %s）：%s" % [
-					CONTENT_NAMING.MONSTER_SUFFIX,
-					CONTENT_NAMING.LEGACY_MONSTER_SUFFIX,
-					id,
-				])
-		"cue":
-			if not CONTENT_NAMING.is_valid_tag(id):
-				errors.append("Cue 标签不是合法 GAS 标签：%s" % id)
+static func _validate_entry_id(spec: Dictionary, id: String, errors: Array[String]) -> void:
+	var label := String(spec.get("label", "内容"))
+	if bool(spec.get("is_tag", false)):
+		if not CONTENT_NAMING.is_valid_tag(id):
+			errors.append("Cue 标签不是合法 GAS 标签：%s" % id)
+		return
+	if not CONTENT_NAMING.is_valid_local_id(id):
+		errors.append("%s ID 不合法（小写 snake_case）：%s" % [label, id])
+		return
+	var suffix := String(spec.get("id_suffix", ""))
+	if suffix.is_empty():
+		return
+	var legacy := String(spec.get("legacy_suffix", ""))
+	var suffix_ok := id.ends_with(suffix) and id.length() > suffix.length()
+	if not suffix_ok and not legacy.is_empty():
+		suffix_ok = id.ends_with(legacy) and id.length() > legacy.length()
+	if not suffix_ok:
+		var expected := suffix if legacy.is_empty() else "%s（旧内容可用 %s）" % [suffix, legacy]
+		errors.append("%s ID 应以 %s 结尾：%s" % [label, expected, id])
 
 
 ## core 魂灵技能 ID 必须由 content_id 派生，避免同一个 Skill.<id> 被顶掉或拼写漂移
 static func _validate_soul_skills(content: Dictionary, errors: Array[String]) -> void:
-	var raw_entries: Variant = content.get("souls", [])
+	var soul_spec: Dictionary = CONTENT_KIND_SPEC.for_key("souls")
+	if soul_spec.is_empty():
+		return
+	var raw_entries: Variant = content.get(String(soul_spec.get("key", "souls")), [])
 	if not raw_entries is Array:
 		return
 	for raw_entry in raw_entries:

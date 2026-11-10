@@ -20,27 +20,27 @@ const FLY_END_MARGIN: float = 24.0
 ## 飞入动画层；必须在 BaseWindow 把 Root 挪进内容区之前解析，之后按绝对路径会找不到
 @onready var fly_layer: Control = $Root/FlyLayer
 
-## 当前分类：CollectionDB.Kind
-var _kind: int = CollectionDB.Kind.MONSTER
+## 当前分类：ContentKind.Kind
+var _kind: int = ContentKind.Kind.MONSTER
 
 
 func _ready() -> void:
 	super()
 	title = "见闻"
-	monster_button.pressed.connect(_select_kind.bind(CollectionDB.Kind.MONSTER))
-	soul_button.pressed.connect(_select_kind.bind(CollectionDB.Kind.SOUL))
+	monster_button.pressed.connect(_select_kind.bind(ContentKind.Kind.MONSTER))
+	soul_button.pressed.connect(_select_kind.bind(ContentKind.Kind.SOUL))
 	CollectionDB.entry_unlocked.connect(_on_entry_unlocked)
 	CollectionDB.state_reloaded.connect(_on_state_reloaded)
 	visibility_changed.connect(_on_visibility_changed)
 	hint_label.add_theme_color_override("font_color", GameColors.to_color(GameColors.TEXT_SECONDARY))
-	_select_kind(CollectionDB.Kind.MONSTER)
+	_select_kind(ContentKind.Kind.MONSTER)
 
 
 ## 切换怪物 / 魂灵页签
 func _select_kind(kind: int) -> void:
 	_kind = kind
-	monster_button.button_pressed = kind == CollectionDB.Kind.MONSTER
-	soul_button.button_pressed = kind == CollectionDB.Kind.SOUL
+	monster_button.button_pressed = kind == ContentKind.Kind.MONSTER
+	soul_button.button_pressed = kind == ContentKind.Kind.SOUL
 	_refresh()
 
 
@@ -56,7 +56,7 @@ func _refresh() -> void:
 
 func _sorted_ids() -> Array[StringName]:
 	var ids: Array[StringName] = []
-	if _kind == CollectionDB.Kind.MONSTER:
+	if _kind == ContentKind.Kind.MONSTER:
 		ids.assign(CollectionDB.get_monster_ids())
 	else:
 		ids.assign(CollectionDB.get_soul_ids())
@@ -66,7 +66,7 @@ func _sorted_ids() -> Array[StringName]:
 
 ## 排序和条目显示都用它：怪物取 display_name，魂灵取 item_name
 func _entry_name(id: StringName) -> String:
-	if _kind == CollectionDB.Kind.MONSTER:
+	if _kind == ContentKind.Kind.MONSTER:
 		var monster := CollectionDB.get_monster(id)
 		return monster.display_name if monster != null else String(id)
 	var soul := CollectionDB.get_soul(id)
@@ -74,7 +74,7 @@ func _entry_name(id: StringName) -> String:
 
 
 func _entry_icon(id: StringName) -> Texture2D:
-	if _kind == CollectionDB.Kind.MONSTER:
+	if _kind == ContentKind.Kind.MONSTER:
 		var monster := CollectionDB.get_monster(id)
 		return monster.icon if monster != null else null
 	var soul := CollectionDB.get_soul(id)
@@ -92,7 +92,7 @@ func _make_entry_cell(id: StringName) -> Control:
 	button.expand_icon = true
 	if not seen:
 		button.modulate = GameColors.to_color(GameColors.LOCKED_MODULATE)
-	elif _kind == CollectionDB.Kind.SOUL:
+	elif _kind == ContentKind.Kind.SOUL:
 		button.mouse_entered.connect(_show_soul_tooltip.bind(id))
 		button.mouse_exited.connect(_hide_tooltip)
 		button.gui_input.connect(_on_entry_gui_input.bind(id, button))
@@ -110,7 +110,7 @@ func _make_entry_cell(id: StringName) -> Control:
 ## 魂灵页已遇见条目：悬停显示与仓库一致的 tooltip
 func _show_soul_tooltip(id: StringName) -> void:
 	var tip := TooltipWindow.instance
-	if _kind != CollectionDB.Kind.SOUL or not is_instance_valid(tip):
+	if _kind != ContentKind.Kind.SOUL or not is_instance_valid(tip):
 		return
 	var soul := CollectionDB.get_soul(id)
 	if soul == null or not CollectionDB.is_seen(_kind, id):
@@ -130,7 +130,7 @@ func _on_entry_gui_input(event: InputEvent, id: StringName, button: Button) -> v
 	var mouse_event := event as InputEventMouseButton
 	if mouse_event.button_index != MOUSE_BUTTON_RIGHT or not mouse_event.pressed:
 		return
-	if _kind != CollectionDB.Kind.SOUL or not CollectionDB.is_seen(_kind, id):
+	if _kind != ContentKind.Kind.SOUL or not CollectionDB.is_seen(_kind, id):
 		return
 	var soul := CollectionDB.get_soul(id)
 	if soul == null:

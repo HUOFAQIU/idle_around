@@ -33,3 +33,8 @@ func resolve_amount(spec: GameplayEffectSpec) -> float:
 		multiplier = CritResolution.multiplier(spec)
 
 	return floor(amount * multiplier)
+
+
+## 状态的显示名；未知属性回退到属性名。
+func status_display_name() -> String:
+	return StatusText.display_name(attribute_name)

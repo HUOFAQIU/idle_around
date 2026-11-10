@@ -6,7 +6,7 @@
 ##
 ## 异常状态的暴击只在施加时判定；施加后的每跳都不再暴击。
 ## 伤害交给 DamageResolver 分流：灼烧对护盾减半并向下取整。
-class_name BurnTickExecution extends GameplayExecutionCalculation
+class_name BurnTickExecution extends PeriodicStatusTickExecution
 
 ## 每层灼烧每跳的伤害
 @export var damage_per_stack: float = 1.0
@@ -14,14 +14,16 @@ class_name BurnTickExecution extends GameplayExecutionCalculation
 @export_range(0.0, 1.0, 0.01) var decay_rate: float = 0.03
 
 
-## 用 execution 类型判断“这是灼烧周期效果”，不依赖字符串 metadata。
-static func is_burn_tick_effect(effect: GameplayEffect) -> bool:
-	if effect == null:
-		return false
-	for execution in effect.executions:
-		if execution is BurnTickExecution:
-			return true
-	return false
+func status_attribute() -> String:
+	return "burn"
+
+
+func remove_when_zero() -> bool:
+	return true
+
+
+func popup_style() -> PopupStyle:
+	return PopupStyle.BURN
 
 
 func execute(_spec: GameplayEffectSpec, target_asc: AbilitySystemComponent) -> Dictionary:

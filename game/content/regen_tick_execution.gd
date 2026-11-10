@@ -4,25 +4,27 @@
 ## 属性原值不改动，反向比较由剧毒周期结算负责。
 ## 再生不是治疗，不触发治疗净化。
 ## 再生状态只在施加时判定暴击，之后每跳都不再暴击。
-class_name RegenTickExecution extends GameplayExecutionCalculation
+class_name RegenTickExecution extends NetStatusTickExecution
 
 ## 每点再生每跳恢复的生命
 @export var heal_per_stack: float = 1.0
 
 
-## 用 execution 类型判断“这是生命再生周期效果”。
-static func is_regen_tick_effect(effect: GameplayEffect) -> bool:
-	if effect == null:
-		return false
-	for execution in effect.executions:
-		if execution is RegenTickExecution:
-			return true
-	return false
+func status_attribute() -> String:
+	return "regen"
 
 
-func execute(_spec: GameplayEffectSpec, target_asc: AbilitySystemComponent) -> Dictionary:
-	var net_stacks := StatusNetRule.regen_minus_poison(target_asc)
-	if net_stacks <= 0:
-		return {}
+func popup_style() -> PopupStyle:
+	return PopupStyle.REGEN
 
-	return {"health": net_stacks * heal_per_stack}
+
+func is_heal() -> bool:
+	return true
+
+
+func net_stacks(target_asc: AbilitySystemComponent) -> float:
+	return StatusNetRule.regen_minus_poison(target_asc)
+
+
+func stack_amount() -> float:
+	return heal_per_stack

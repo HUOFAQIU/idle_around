@@ -500,53 +500,34 @@ func _on_attribute_changed(attribute_name: String, old_value: float, new_value: 
 		_check_health_triggers(old_value, new_value)
 
 
-## 周期效果每跳提交后由 ASC 发出；这里专门处理灼烧的每跳叙事。
-## 用 calculated_deltas 拿到经过血量钳制后的真实伤害，不再借用 attribute_changed。
+## 周期效果每跳提交后由 ASC 发出；这里统一处理周期状态叙事与归零移除。
 func _on_periodic_effect_ticked(active_effect: ActiveGameplayEffect, spec: GameplayEffectSpec) -> void:
 	if spec == null:
 		return
-	if BurnTickExecution.is_burn_tick_effect(spec.effect_def):
-		_handle_burn_tick(spec)
-		# 层数归零后移除周期效果：State.Burning 和灼烧火焰 Cue 一起结束
-		var burn_attr := asc.get_attribute("burn")
-		if burn_attr != null and burn_attr.current_value <= 0.0:
-			asc.remove_active_effect(active_effect)
-	elif PoisonTickExecution.is_poison_tick_effect(spec.effect_def):
-		_handle_poison_tick(spec)
-		# 剧毒被治疗净化到 0 后移除周期效果：State.Poisoned 和中毒光环 Cue 一起结束
-		var poison_attr := asc.get_attribute("poison")
-		if poison_attr != null and poison_attr.current_value <= 0.0:
-			asc.remove_active_effect(active_effect)
-	elif RegenTickExecution.is_regen_tick_effect(spec.effect_def):
-		_handle_regen_tick(spec)
+	var tick := PeriodicStatusTickExecution.find(spec.effect_def)
+	if tick == null:
+		return
+	_handle_periodic_tick(tick, active_effect, spec)
 
 
-func _handle_burn_tick(spec: GameplayEffectSpec) -> void:
+func _handle_periodic_tick(
+	tick: PeriodicStatusTickExecution,
+	active_effect: ActiveGameplayEffect,
+	spec: GameplayEffectSpec
+) -> void:
 	var health_delta := float(spec.calculated_deltas.get("health", 0.0))
 	var shield_delta := float(spec.calculated_deltas.get("shield", 0.0))
-	if health_delta >= 0.0 and shield_delta >= 0.0:
-		return
-
-	var source_name := _source_name(spec)
-	var effect_name := _effect_display_name(spec)
 	if shield_delta < 0.0:
-		_log_shield_absorb(-shield_delta, source_name, effect_name)
+		_log_shield_absorb(-shield_delta, _source_name(spec), _effect_display_name(spec))
 	if health_delta < 0.0:
-		_log_burn_tick(-health_delta, spec)
+		_log_periodic_damage(tick, -health_delta, spec)
+	elif health_delta > 0.0:
+		_log_periodic_heal(tick, health_delta, spec)
 
-
-func _handle_poison_tick(spec: GameplayEffectSpec) -> void:
-	var health_delta := float(spec.calculated_deltas.get("health", 0.0))
-	if health_delta >= 0.0:
-		return
-	_log_poison_tick(-health_delta, spec)
-
-
-func _handle_regen_tick(spec: GameplayEffectSpec) -> void:
-	var health_delta := float(spec.calculated_deltas.get("health", 0.0))
-	if health_delta <= 0.0:
-		return
-	_log_regen_tick(health_delta, spec)
+	if tick.remove_when_zero():
+		var attr := asc.get_attribute(tick.status_attribute())
+		if attr != null and attr.current_value <= 0.0:
+			asc.remove_active_effect(active_effect)
 
 
 ## 护盾吸收伤害的黄色日志和飘字
@@ -558,40 +539,38 @@ func _log_shield_absorb(amount: float, source_name: String, effect_name: String)
 	_pop_number(amount, false, false, false, true)
 
 
-## 灼烧每跳的实际生命伤害（经过血量钳制后的值）
-func _log_burn_tick(damage: float, spec: GameplayEffectSpec) -> void:
+func _log_periodic_damage(tick: PeriodicStatusTickExecution, damage: float, spec: GameplayEffectSpec) -> void:
 	if damage <= 0.0:
 		return
 	var old_value := health_attr.current_value + damage
 	var source_name := _source_name(spec)
 	var effect_name := _effect_display_name(spec)
 	_log("%s 受到【%s】（来自 %s）%.0f 点伤害，HP %.0f → %.0f"
-		% [unit_name, effect_name, source_name, damage, old_value, health_attr.current_value], GameColors.BURN)
-	_pop_number(damage, false, false, true)
+		% [unit_name, effect_name, source_name, damage, old_value, health_attr.current_value], tick.log_color())
+	_pop_periodic_number(tick, damage)
 
 
-## 剧毒每跳：无视护盾，直接扣生命；墨绿日志/飘字。
-func _log_poison_tick(damage: float, spec: GameplayEffectSpec) -> void:
-	if damage <= 0.0:
+func _log_periodic_heal(tick: PeriodicStatusTickExecution, amount: float, spec: GameplayEffectSpec) -> void:
+	if amount <= 0.0:
 		return
-	var old_value := health_attr.current_value + damage
-	var source_name := _source_name(spec)
-	var effect_name := _effect_display_name(spec)
-	_log("%s 受到【%s】（来自 %s）%.0f 点伤害，HP %.0f → %.0f"
-		% [unit_name, effect_name, source_name, damage, old_value, health_attr.current_value], GameColors.POISON)
-	_pop_number(damage, false, false, false, false, true)
-
-
-## 生命再生每跳：恢复生命，不净化；亮绿色日志/飘字。
-func _log_regen_tick(damage: float, spec: GameplayEffectSpec) -> void:
-	if damage <= 0.0:
-		return
-	var old_value := health_attr.current_value - damage
+	var old_value := health_attr.current_value - amount
 	var source_name := _source_name(spec)
 	var effect_name := _effect_display_name(spec)
 	_log("%s 受到【%s】（来自 %s）影响，恢复 %.0f 点生命，HP %.0f → %.0f"
-		% [unit_name, effect_name, source_name, damage, old_value, health_attr.current_value], GameColors.REGEN)
-	_pop_number(damage, true, false, false, false, false, true)
+		% [unit_name, effect_name, source_name, amount, old_value, health_attr.current_value], tick.log_color())
+	_pop_periodic_number(tick, amount)
+
+
+func _pop_periodic_number(tick: PeriodicStatusTickExecution, amount: float) -> void:
+	match tick.popup_style():
+		PeriodicStatusTickExecution.PopupStyle.BURN:
+			_pop_number(amount, false, false, true)
+		PeriodicStatusTickExecution.PopupStyle.POISON:
+			_pop_number(amount, false, false, false, false, true)
+		PeriodicStatusTickExecution.PopupStyle.REGEN:
+			_pop_number(amount, true, false, false, false, false, true)
+		_:
+			_pop_number(amount, tick.is_heal())
 
 
 func _source_name(spec: GameplayEffectSpec) -> String:

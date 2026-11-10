@@ -1,7 +1,7 @@
 ## 调试/日志用的统一显示名。
 ##
-## 效果名优先用 spec.display_name（由技能/触发器写入），其次按 execution
-## 类型识别灼烧/剧毒/再生，最后退回效果资源文件名。不要在别处再写一套。
+## 周期/状态效果优先用 execution 自己的状态元数据，其次 spec.display_name
+##（由技能/触发器写入），最后退回效果资源文件名。不要在别处再写一套。
 class_name CombatNames extends RefCounted
 
 
@@ -11,25 +11,17 @@ static func effect_name(spec: GameplayEffectSpec) -> String:
 	var effect := spec.effect_def
 	if effect == null:
 		return "未知效果"
-	# 先按 execution 类型给状态/周期效果一个稳定名字；
+	# 周期/状态效果从 execution 自己的元数据取稳定名字；
 	# spec.display_name 是技能/魂灵名，留给普通伤害/治疗这类效果。
 	for execution in effect.executions:
+		if execution is PeriodicStatusTickExecution:
+			return (execution as PeriodicStatusTickExecution).status_display_name()
 		if execution is StatusApplyExecution:
-			match (execution as StatusApplyExecution).attribute_name:
-				"burn":
-					return "灼烧"
-				"poison":
-					return "剧毒"
-				"regen":
-					return "生命再生"
-		if execution is BurnTickExecution:
-			return "灼烧"
-		if execution is PoisonTickExecution:
-			return "剧毒"
-		if execution is RegenTickExecution:
-			return "生命再生"
+			var status_name := (execution as StatusApplyExecution).status_display_name()
+			if not status_name.is_empty():
+				return status_name
 		if execution is RegenFromBurnExecution:
-			return "生命再生"
+			return StatusText.display_name("regen")
 		if execution is HealExecution:
 			return "治疗"
 		if execution is ShieldExecution:

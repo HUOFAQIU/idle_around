@@ -6,9 +6,16 @@ func load_goods(shop_name: String, goods: Array[ItemData]) -> void:
 	for good in goods:
 		_container_repository.get_container(shop_name).add_item(good.duplicate())
 
-## 购买物品
-func buy(shop_name: String, item: ItemData) -> bool:
-	return item.buy()
+## 购买物品：检查购买条件，放进第一个有空位的背包，再扣费。
+## 购买链路由服务层负责，ItemData 只保留 can_buy() / cost() 钩子。
+func buy(_shop_name: String, item: ItemData) -> bool:
+	if item == null or not item.can_buy():
+		return false
+	for target_inv in GBIS.inventory_names:
+		if GBIS.inventory_service.add_item(target_inv, item):
+			item.cost()
+			return true
+	return false
 
 ## 出售物品（只结算，不负责从容器移除）
 func sell_item(item: ItemData) -> bool:

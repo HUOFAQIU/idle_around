@@ -1,6 +1,6 @@
 # 背包 / 仓库系统（GBIS）
 
-> 类型：实现 | 状态：有效 | 核对：2026-11-09
+> 类型：实现 | 状态：有效 | 核对：2026-11-10
 > 何时读：改背包/仓库/装备槽/容器、拖拽、商店容器、存档
 > 关键词：GBIS 背包 仓库 inventory container 物品大类 category 装备槽 拖拽 Tooltip 存档 分页 Warehouse 商店 Shop
 > 代码：Windows/Inventory/grid_base_inventory_system/、Scripts/warehouse.gd
@@ -175,7 +175,7 @@ GBIS.add_item(inv_name, item_data)
 
 `ShopWindow`（`Windows/Shop/shop_window.tscn`）内嵌 `ShopView`，容器名 `shop_0`，20 列 × 10 行（32 px 格子，640×320；窗口 640×356）。`ShopView._ready()` 会注册商店容器，并清空后重新加载场景 `goods` 数组里的货物。
 
-- 点击货物：`ShopService.buy()` → `ItemData.buy()`；默认 `can_buy()` 恒为 `true`，物品复制进第一个有空位的背包，`cost()` 只打警告。
+- 点击货物：`ShopService.buy()` 检查 `ItemData.can_buy()`，把物品复制进第一个有空位的背包，再调 `cost()`；默认 `can_buy()` 恒为 `true`，`cost()` 只打警告。购买链路只在服务层，模型不再反向调用 `inventory_service`。
 - 拖着物品点商店格子：`ShopService.sell()` → `ItemData.can_sell()` / `sold()`；默认 `can_sell()` 为 `true`，`sold()` 只打警告，物品从手上消失。
 - Shift + 右键点仓库物品：`InventoryService.quick_sell()` 直接结算并移除原格物品；要求商店和该仓库页都在 `GBIS.opened_containers` 里，否则不生效。
 - 价格、货币、货物配置都还没定义。正式做买卖需要具体的 `ItemData` 子类重写 `can_buy()` / `cost()` / `can_sell()` / `sold()`，货物可填 `ShopView.goods` 或调 `ShopService.load_goods()`。

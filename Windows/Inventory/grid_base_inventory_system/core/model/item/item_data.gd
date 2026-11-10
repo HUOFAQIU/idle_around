@@ -70,13 +70,3 @@ func cost() -> void:
 ## 出售后增加资源
 func sold() -> void:
 	push_warning("[Override this function] [%s] add resource" % item_name)
-
-## 购买并添加到背包
-func buy() -> bool:
-	if not can_buy():
-		return false
-	for target_inv in GBIS.inventory_names:
-		if GBIS.inventory_service.add_item(target_inv, self):
-			cost()
-			return true
-	return false

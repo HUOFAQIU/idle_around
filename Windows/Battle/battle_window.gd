@@ -132,6 +132,7 @@ func _start_battle() -> void:
 	add_child(_battle)
 	_battle.map = ground_tilemaplayer
 	_battle.spawn_enemy = _spawn_enemy
+	_battle.loot_sink = Warehouse.add_item
 	_battle.setup()
 	_attach_battle_observers()
 

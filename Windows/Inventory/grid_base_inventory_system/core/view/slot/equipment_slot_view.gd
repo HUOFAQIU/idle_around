@@ -1,5 +1,5 @@
 @tool
-extends Control
+extends RefreshableView
 ## 装备槽视图
 class_name EquipmentSlotView
 
@@ -56,6 +56,7 @@ func is_empty() -> bool:
 
 ## 刷新装备槽显示
 func refresh() -> void:
+	super()
 	_clear_slot()
 	var slot_data = GBIS.equipment_slot_service.get_slot(slot_name)
 	if slot_data:
@@ -84,17 +85,19 @@ func _ready() -> void:
 	_init_item_container()
 	GBIS.sig_slot_item_equipped.connect(_on_item_equipped)
 	GBIS.sig_slot_item_unequipped.connect(_on_item_unequipped)
-	GBIS.sig_slot_refresh.connect(refresh)
+	GBIS.sig_slot_refresh.connect(mark_dirty)
 	mouse_entered.connect(_on_slot_hover)
 	mouse_exited.connect(_on_slot_lose_hover)
-	
+
 	visibility_changed.connect(_on_visible_changed)
-	
-	call_deferred("refresh")
+
+	mark_dirty()
 
 func _on_visible_changed() -> void:
 	if is_visible_in_tree():
-		GBIS.opened_equipment_slots.append(slot_name)
+		if not GBIS.opened_equipment_slots.has(slot_name):
+			GBIS.opened_equipment_slots.append(slot_name)
+		_sync_after_show()
 	else:
 		GBIS.opened_equipment_slots.erase(slot_name)
 

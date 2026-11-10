@@ -8,9 +8,6 @@ class_name InventoryView
 ## 装备部位限制（NONE = 普通背包，不限制）
 @export_enum("NONE", "HEADSOUL", "TORSOSOUL", "ARMSSOUL", "LEGSSOUL") var equip_part: String = "NONE"
 
-## 隐藏期间容器数据变过；下次显示时才重建，避免每次打开都全量刷新
-var _needs_refresh: bool = false
-
 func grid_hover(grid_id: Vector2i) -> void:
 	_handle_grid_hover(grid_id, true)
  
@@ -69,45 +66,33 @@ func change_data_source(new_container_name: String) -> void:
 	var old_container_name := container_name
 	var was_visible := is_visible_in_tree()
 	GBIS.item_focus_service.item_lose_focus()
-	_clear_inv()
-	for child in get_children():
-		remove_child(child)
-		child.queue_free()
 
 	var ret = GBIS.inventory_service.regist(new_container_name, container_columns, container_rows, false, avilable_types)
 	ret.equip_part = "" if equip_part == "NONE" else equip_part
+	var shape_changed: bool = ret.columns != container_columns or ret.rows != container_rows
 	container_name = new_container_name
 	avilable_types = ret.avilable_types
 	container_columns = ret.columns
 	container_rows = ret.rows
-	_init_grid_container()
-	_init_item_container()
-	_init_grids()
+
+	if shape_changed:
+		_clear_inv()
+		for child in get_children():
+			remove_child(child)
+			child.queue_free()
+		_init_grid_container()
+		_init_item_container()
+		_init_grids()
+	else:
+		# 同尺寸翻页：保留格子 Control 与信号连接，只清物品和占用状态
+		_clear_inv()
 
 	# 快速移动只认打开的容器：旧页移出，新页在窗口可见时加入
 	GBIS.opened_containers.erase(old_container_name)
 	if was_visible and not GBIS.opened_containers.has(new_container_name):
 		GBIS.opened_containers.append(new_container_name)
 
-	call_deferred("refresh")
-
-
-## 重建后清掉脏标记；隐藏期间的增删改只置脏，等下次显示统一重建
-func refresh() -> void:
-	super()
-	_needs_refresh = false
-
-
-## 显示时只有隐藏期间数据变过才重建
-func _should_refresh_on_show() -> bool:
-	return _needs_refresh
-
-
-## 不重建时只把物品视图贴回格子：隐藏阶段布局还没结算，ItemView 位置可能停在容器原点
-func _on_shown_without_refresh() -> void:
-	for item in _items:
-		var grids: Array = _item_grids_map[item]
-		item.global_position = _grid_map[grids[0]].global_position
+	mark_dirty()
 
 
 ## 初始化
@@ -141,15 +126,15 @@ func _ready() -> void:
 	GBIS.sig_inv_item_added.connect(_on_item_added)
 	GBIS.sig_inv_item_removed.connect(_on_item_removed)
 	GBIS.sig_inv_item_updated.connect(_on_inv_item_updated)
-	GBIS.sig_inv_refresh.connect(refresh)
+	GBIS.sig_inv_refresh.connect(mark_dirty)
 	GBIS.moving_item_service.moving_item_cleared.connect(_on_moving_item_cleared)
-	
+
 	visibility_changed.connect(_on_visible_changed)
-	
+
 	if not stack_num_font:
 		stack_num_font = get_theme_font("font")
-	
-	call_deferred("refresh")
+
+	mark_dirty()
 
 ## 拖拽中右键取消：放回原格；来源未知的拖拽（分割等）不处理
 func _input(event: InputEvent) -> void:
@@ -172,9 +157,9 @@ func _on_item_added(inv_name:String, item_data: ItemData, grids: Array[Vector2i]
 	if not inv_name == container_name:
 		return
 	if not is_visible_in_tree():
-		_needs_refresh = true
+		mark_dirty()
 		return
-	
+
 	var item = _draw_item(item_data, grids[0])
 	_items.append(item)
 	_item_grids_map[item] = grids
@@ -187,9 +172,9 @@ func _on_item_removed(inv_name:String, item_data: ItemData) -> void:
 	if not inv_name == container_name:
 		return
 	if not is_visible_in_tree():
-		_needs_refresh = true
+		mark_dirty()
 		return
-	
+
 	for i in range(_items.size() - 1, -1, -1):
 		var item = _items[i]
 		if item.data == item_data:
@@ -206,9 +191,9 @@ func _on_inv_item_updated(inv_name: String, grid_id: Vector2i) -> void:
 	if not inv_name == container_name:
 		return
 	if not is_visible_in_tree():
-		_needs_refresh = true
+		mark_dirty()
 		return
-	
+
 	_grid_item_map[grid_id].queue_redraw()
 
 ## 绘制物品

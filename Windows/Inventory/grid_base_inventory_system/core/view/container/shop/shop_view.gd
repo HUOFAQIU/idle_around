@@ -51,14 +51,14 @@ func _ready() -> void:
 	_init_grid_container()
 	_init_item_container()
 	_init_grids()
-	GBIS.sig_inv_refresh.connect(refresh)
-	
+	GBIS.sig_inv_refresh.connect(mark_dirty)
+
 	visibility_changed.connect(_on_visible_changed)
-	
+
 	if not stack_num_font:
 		stack_num_font = get_theme_font("font")
-	
-	call_deferred("refresh")
+
+	mark_dirty()
 
 ## 初始化格子View
 func _init_grids() -> void:

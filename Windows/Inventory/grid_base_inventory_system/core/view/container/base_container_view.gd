@@ -1,5 +1,5 @@
 @tool
-extends Control
+extends RefreshableView
 ## 背包视图，控制背包的绘制
 class_name BaseContainerView
 
@@ -92,6 +92,7 @@ var _grid_item_map: Dictionary[Vector2i, ItemView]
 
 ## 刷新背包显示
 func refresh() -> void:
+	super()
 	_clear_inv()
 	var container_data = GBIS.inventory_service.get_container(container_name)
 	if not container_data:
@@ -119,29 +120,19 @@ func refresh() -> void:
 func find_item_view_by_grid(grid_id: Vector2i) -> ItemView:
 	return _grid_item_map.get(grid_id)
 
-## 显示时是否需要重建视图；默认每次显示都重建，子类可以只在数据变过时重建
-func _should_refresh_on_show() -> bool:
-	return true
-
-
-## 显示但不重建时调用；子类可以在这里做轻量同步（例如按显示后的布局重新摆放物品）
+## 显示但不重建时调用；把现有 ItemView 按显示后的格子坐标重新摆放。
+## 隐藏阶段布局还没结算，ItemView 位置可能停在容器原点。
 func _on_shown_without_refresh() -> void:
-	pass
+	for item in _items:
+		var grids: Array = _item_grids_map[item]
+		item.global_position = _grid_map[grids[0]].global_position
 
 
 func _on_visible_changed() -> void:
 	if is_visible_in_tree():
 		if not GBIS.opened_containers.has(container_name):
 			GBIS.opened_containers.append(container_name)
-		# 需要等待GirdContainer处理完成，否则其下的所有grid没有position信息
-		await get_tree().process_frame
-		# 等待期间可能又被关掉；隐藏时重建没有意义
-		if not is_visible_in_tree():
-			return
-		if _should_refresh_on_show():
-			refresh()
-		else:
-			_on_shown_without_refresh()
+		_sync_after_show()
 	else:
 		GBIS.opened_containers.erase(container_name)
 
@@ -149,6 +140,9 @@ func _on_visible_changed() -> void:
 ## 注意，只清空显示，不清空数据库
 func _clear_inv() -> void:
 	for item in _items:
+		# 先摘出树再释放，翻页重建时新旧 ItemView 不会同帧叠在一起
+		if item.get_parent() != null:
+			item.get_parent().remove_child(item)
 		item.queue_free()
 	_items = []
 	_item_grids_map = {}

@@ -1,6 +1,6 @@
 # 背包 / 仓库系统（GBIS）
 
-> 类型：实现 | 状态：有效 | 核对：2026-11-10
+> 类型：实现 | 状态：有效 | 核对：2026-11-11
 > 何时读：改背包/仓库/装备槽/容器、拖拽、商店容器、存档
 > 关键词：GBIS 背包 仓库 inventory container 物品大类 category 装备槽 拖拽 Tooltip 存档 分页 Warehouse 商店 Shop
 > 代码：Windows/Inventory/grid_base_inventory_system/、Scripts/warehouse.gd
@@ -64,7 +64,9 @@ core/
 
 当前项目实际监听：
 
-- `InventoryView`：`sig_inv_item_added/removed/updated/refresh`；
+- `InventoryView`：`sig_inv_item_added/removed/updated` 做增量更新，`sig_inv_refresh` 只置脏；
+- `ShopView`：`sig_inv_refresh` 只置脏；
+- `EquipmentSlotView`：`sig_slot_refresh` 只置脏。
 - `InventoryWindow`：`sig_item_focused` / `sig_item_focus_lost`，用来显示/隐藏 TooltipWindow 的 `ITEM` 层；`SoulData` 会附带 `SoulTooltip.build()` 生成的正文，其他物品仍只有标题。
 
 ### 7.4 数据流
@@ -83,9 +85,9 @@ InventoryView._ready()
 - `InventoryView._ready()` 在编辑器模式下只重算尺寸，不注册容器。
 - 仓库页由 `Warehouse` 预注册；`InventoryView._ready()` 再注册同名容器时 `regist()` 直接返回已有容器，不会重建数据。
 - 容器可见时会把名字加入 `GBIS.opened_containers`，不可见时移除；快速移动和快速出售只考虑打开着的容器。`_ready()` 用 `is_visible_in_tree()` 判断，隐藏窗口里的视图不会提前登记。
-- 仓库翻页调用 `InventoryView.change_data_source()`：清掉旧视图状态后重建当前页，并同步 `opened_containers`。
-- 显示时只有隐藏期间数据变过才重建：隐藏时的 `sig_inv_item_added/removed/updated` 只置 `_needs_refresh`，再次可见后统一 `refresh()`；没有变化时打开窗口不重建。`await process_frame` 之后若窗口又被关掉，本次不刷新，脏标记留到下次显示。
-- 不重建时走 `_on_shown_without_refresh()`，把现有 ItemView 按显示后的格子坐标重新摆放；隐藏阶段布局还没结算，ItemView 位置会停在容器原点，若只跳过重建不重摆，物品会全部叠在左上角。
+- 所有视图继承 `RefreshableView`：数据变化只调 `mark_dirty()`。可见时在本帧末合并重建一次；隐藏时只记脏，下次显示、布局结算后重建。重建后清脏；没有脏标记时显示只调 `_on_shown_without_refresh()` 把 ItemView 按当前格子坐标重新摆放，避免隐藏阶段布局未结算导致物品叠在容器原点。
+- 仓库翻页调用 `InventoryView.change_data_source()`：目标页行列不变时保留格子 Control 和信号连接（仓库 10 页均为 26×24），只清物品与占用状态；行列变化时才重建格子层。翻页后同样只置脏。
+- `await process_frame` 之后若窗口又被关掉，本次不刷新，脏标记留到下次显示。
 
 **添加物品**
 

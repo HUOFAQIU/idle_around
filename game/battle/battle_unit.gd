@@ -285,9 +285,6 @@ func unregister_soul_runtimes() -> void:
 
 func _connect_asc() -> void:
 	asc.attribute_changed.connect(_on_attribute_changed)
-	asc.active_effect_added.connect(_on_active_effect_added)
-	asc.active_effect_removed.connect(_on_active_effect_removed)
-	asc.effect_received.connect(_on_effect_received)
 	asc.periodic_effect_ticked.connect(_on_periodic_effect_ticked)
 
 
@@ -324,19 +321,8 @@ func health_percent() -> float:
 	return health_attr.current_value / maxf(max_health_attr.current_value, 0.001)
 
 
-#region 观战日志与死亡
-func _log(text: String, color: String = "white") -> void:
-	if battle:
-		battle.log_line(text, color)
-
-
-## 效果显示名：灼烧/剧毒周期效果优先显示中文；
-## 其余优先 spec 上由技能写入的显示名，再退回 resource_name / 文件名。
-func _effect_display_name(spec: GameplayEffectSpec) -> String:
-	return CombatNames.effect_name(spec)
-
-
-## 血条和死亡只看属性变化；伤害/治疗叙事走 effect_received。
+#region 死亡与周期状态
+## 血条和死亡只看属性变化；伤害/治疗叙事由 CombatNarrator 订阅 ASC 信号。
 ## 生命值变化同时驱动“首次低于比例”类魂灵触发器。
 func _on_attribute_changed(attribute_name: String, old_value: float, new_value: float, _spec: GameplayEffectSpec) -> void:
 	if attribute_name != "health":
@@ -347,99 +333,16 @@ func _on_attribute_changed(attribute_name: String, old_value: float, new_value: 
 		_check_health_triggers(old_value, new_value)
 
 
-## 周期效果每跳提交后由 ASC 发出；这里统一处理周期状态叙事与归零移除。
+## 周期效果每跳提交后由 ASC 发出；这里只负责归零移除，叙事由 CombatNarrator 订阅同一信号。
 func _on_periodic_effect_ticked(active_effect: ActiveGameplayEffect, spec: GameplayEffectSpec) -> void:
 	if spec == null:
 		return
 	var tick := PeriodicStatusTickExecution.find(spec.effect_def)
-	if tick == null:
+	if tick == null or not tick.remove_when_zero():
 		return
-	_handle_periodic_tick(tick, active_effect, spec)
-
-
-func _handle_periodic_tick(
-	tick: PeriodicStatusTickExecution,
-	active_effect: ActiveGameplayEffect,
-	spec: GameplayEffectSpec
-) -> void:
-	var health_delta := float(spec.calculated_deltas.get("health", 0.0))
-	var shield_delta := float(spec.calculated_deltas.get("shield", 0.0))
-	if shield_delta < 0.0:
-		_log_shield_absorb(-shield_delta, _source_name(spec), _effect_display_name(spec))
-	if health_delta < 0.0:
-		_log_periodic_damage(tick, -health_delta, spec)
-	elif health_delta > 0.0:
-		_log_periodic_heal(tick, health_delta, spec)
-
-	if tick.remove_when_zero():
-		var attr := asc.get_attribute(tick.status_attribute())
-		if attr != null and attr.current_value <= 0.0:
-			asc.remove_active_effect(active_effect)
-
-
-## 护盾吸收伤害的黄色日志和飘字
-func _log_shield_absorb(amount: float, source_name: String, effect_name: String) -> void:
-	if amount <= 0.0:
-		return
-	_log("%s 的护盾吸收 %.0f 点【%s】伤害（来自 %s）"
-		% [unit_name, amount, effect_name, source_name], GameColors.SHIELD)
-
-
-func _log_periodic_damage(tick: PeriodicStatusTickExecution, damage: float, spec: GameplayEffectSpec) -> void:
-	if damage <= 0.0:
-		return
-	var old_value := health_attr.current_value + damage
-	var source_name := _source_name(spec)
-	var effect_name := _effect_display_name(spec)
-	_log("%s 受到【%s】（来自 %s）%.0f 点伤害，HP %.0f → %.0f"
-		% [unit_name, effect_name, source_name, damage, old_value, health_attr.current_value], tick.log_color())
-
-
-func _log_periodic_heal(tick: PeriodicStatusTickExecution, amount: float, spec: GameplayEffectSpec) -> void:
-	if amount <= 0.0:
-		return
-	var old_value := health_attr.current_value - amount
-	var source_name := _source_name(spec)
-	var effect_name := _effect_display_name(spec)
-	_log("%s 受到【%s】（来自 %s）影响，恢复 %.0f 点生命，HP %.0f → %.0f"
-		% [unit_name, effect_name, source_name, amount, old_value, health_attr.current_value], tick.log_color())
-
-
-func _source_name(spec: GameplayEffectSpec) -> String:
-	return CombatNames.source_name(spec)
-
-
-## 效果生命周期：只有对方真正收到效果时才写伤害/治疗日志和飘字。
-## 击杀那一下也要显示，所以这里不因为 is_dead 直接返回。
-func _on_effect_received(_source_asc: AbilitySystemComponent, spec: GameplayEffectSpec) -> void:
-	if spec == null:
-		return
-	if spec.effect_def is PassiveEffect:
-		return
-	# 周期效果在施加时只做了预览计算，并没有真正扣血；
-	# 伤害要等每一跳通过 periodic_effect_ticked 单独记账。
-	if spec.period > 0.0:
-		return
-	var health_delta := float(spec.calculated_deltas.get("health", 0.0))
-	var shield_delta := float(spec.calculated_deltas.get("shield", 0.0))
-	if is_zero_approx(health_delta) and shield_delta >= 0.0:
-		return
-
-	var current := health_attr.current_value
-	var old_value := current - health_delta
-	var source_name := _source_name(spec)
-	var effect_name := _effect_display_name(spec)
-	var critical := spec.has_tag(GameplayTags.Event_Combat_Critical)
-	var crit_suffix := "（暴击）" if critical else ""
-
-	if shield_delta < 0.0:
-		_log_shield_absorb(-shield_delta, source_name, effect_name)
-	if health_delta < 0.0:
-		_log("%s 受到【%s】（来自 %s）%.0f 点伤害%s，HP %.0f → %.0f"
-			% [unit_name, effect_name, source_name, -health_delta, crit_suffix, old_value, current], GameColors.DAMAGE)
-	elif health_delta > 0.0:
-		_log("%s 回复 %.0f 点生命%s，HP %.0f → %.0f"
-			% [unit_name, health_delta, crit_suffix, old_value, current], GameColors.HEAL)
+	var attr := asc.get_attribute(tick.status_attribute())
+	if attr != null and attr.current_value <= 0.0:
+		asc.remove_active_effect(active_effect)
 
 
 ## 延迟一帧确认死亡：先让 effect_received 写伤害日志，再写“倒下”；
@@ -465,41 +368,11 @@ func cleanup_asc() -> void:
 		asc.cleanup()
 
 
-func _on_active_effect_added(active_effect: ActiveGameplayEffect) -> void:
-	var def := active_effect.get_effect_def()
-	if is_dead or def == null or def.policy == GameplayEffect.DurationPolicy.INSTANT or def is PassiveEffect:
-		return
-	if _has_suppressed_state_log(active_effect):
-		return
-	var duration_text := "持续" if def.policy == GameplayEffect.DurationPolicy.INFINITE else "%.1f 秒" % active_effect.time_remaining
-	var effect_name := _effect_display_name(active_effect.spec)
-	_log("%s 获得状态【%s】（%s）" % [unit_name, effect_name, duration_text], GameColors.status_color(effect_name))
-
-
-func _on_active_effect_removed(active_effect: ActiveGameplayEffect) -> void:
-	var def := active_effect.get_effect_def()
-	if is_dead or def == null or def.policy == GameplayEffect.DurationPolicy.INSTANT or def is PassiveEffect:
-		return
-	if _has_suppressed_state_log(active_effect):
-		return
-	_log("%s 的状态【%s】结束" % [unit_name, _effect_display_name(active_effect.spec)], "gray")
-
-
-## 批量触发施加的效果不逐目标写状态日志，避免全体冻结时刷屏
-func _has_suppressed_state_log(active_effect: ActiveGameplayEffect) -> bool:
-	return (
-		active_effect != null
-		and active_effect.spec != null
-		and active_effect.spec.has_tag(SUPPRESS_STATE_LOG_TAG)
-	)
-
-
 func _die() -> void:
 	is_dead = true
 	asc.add_tag(GameplayTags.State_Dead)
 	if brain != null:
 		brain.set_process(false)
 		brain.set_physics_process(false)
-	_log("%s 倒下了！" % unit_name, "#ffcc44")
 	died.emit(self)
 #endregion

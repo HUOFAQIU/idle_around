@@ -35,7 +35,6 @@ func execute(ctx: SkillCastContext) -> SkillStepResult:
 		"release_index": ctx.release_index,
 		"release_count": ctx.release_count,
 	})
-	ctx.battle.log_cast(ctx.caster_unit, ctx.ability.ability_name, groups)
 
 	if projectile_scene != null:
 		ctx.ability.launch_projectiles(self, groups, ctx)

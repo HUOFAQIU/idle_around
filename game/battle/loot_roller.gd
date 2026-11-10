@@ -1,18 +1,16 @@
 ## 掉落判定：每项掉落各掷一次骰子。
 ##
-## 入包动作由外部注入（BattleWindow 接 Warehouse.add_item），
-## 本类不直接依赖仓库；日志仍通过 log_line 回调交给战斗叙事。
+## 入包动作由外部注入（BattleSession 接 Warehouse.add_item），
+## 本类不直接依赖仓库；日志由 CombatNarrator 订阅 battle/drop 事件生成。
 class_name LootRoller extends RefCounted
 
 var _events: BattleEventBus
 var _deliver: Callable
-var _log_line: Callable
 
 
-func _init(events: BattleEventBus, deliver: Callable, log_line: Callable) -> void:
+func _init(events: BattleEventBus, deliver: Callable) -> void:
 	_events = events
 	_deliver = deliver
-	_log_line = log_line
 
 
 func roll(unit: BattleUnit, rng: RandomNumberGenerator) -> void:
@@ -34,9 +32,3 @@ func roll(unit: BattleUnit, rng: RandomNumberGenerator) -> void:
 			"chance": entry.chance,
 			"success": added,
 		}, BattleEvent.IMPORTANCE_IMPORTANT)
-		if not _log_line.is_valid():
-			continue
-		if added:
-			_log_line.call("%s 掉落了【%s】" % [unit.unit_name, entry.item.item_name], "#ffd866")
-		else:
-			_log_line.call("仓库已满，【%s】掉落丢失" % entry.item.item_name, "yellow")

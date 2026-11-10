@@ -71,6 +71,7 @@ func _activate_ability() -> bool:
 			"actor_unit": owner_unit,
 			"soul": source_name,
 			"trigger": label,
+			"trigger_name": definition.trigger_name,
 			"event": String(definition.event_tag),
 			"target_scope": PassiveTrigger.target_scope_name(definition.target_scope),
 			"targets": targets.size(),
@@ -80,13 +81,6 @@ func _activate_ability() -> bool:
 		if runtime != null:
 			runtime.add_counter("triggers_fired")
 			runtime.set_counter_timestamp("last_trigger_t", battle.elapsed_seconds())
-		if suppress_state_logs:
-			battle.log_line(
-				"%s 触发【%s】：%d 个目标" % [source_name, label, targets.size()],
-				"#8cd9ff"
-			)
-		elif not definition.trigger_name.is_empty():
-			battle.log_line("%s 触发【%s】" % [source_name, definition.trigger_name], "#8cd9ff")
 
 	for target in targets:
 		for effect in definition.effects:
@@ -107,11 +101,6 @@ func _activate_ability() -> bool:
 			runtime.add_counter("charges_given", definition.charge_source_seconds)
 		if owner_unit.brain != null:
 			owner_unit.brain.request_activation(source_ability, trace)
-		if battle != null:
-			battle.log_line(
-				"%s 获得充能（%.1f 秒）" % [source_name, definition.charge_source_seconds],
-				GameColors.CHARGE
-			)
 	return true
 
 

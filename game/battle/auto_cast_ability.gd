@@ -238,16 +238,15 @@ func _log_empty_activation(
 	var detail := "没有目标"
 	if not reasons.is_empty():
 		detail = "；".join(PackedStringArray(reasons))
+	var caster := _caster_unit()
+	var narrate := has_soul_step or (caster != null and caster.team == BattleUnit.Team.PLAYER)
 	_record_cast("empty", trace, {
 		"detail": detail,
 		"release_count": release_count,
+		"narrate": narrate,
 	})
-	var caster := _caster_unit()
-	var is_player := caster != null and caster.team == BattleUnit.Team.PLAYER
-	if has_soul_step or is_player:
-		battle.log_line("%s 的【%s】空放了（%s）" % [_caster_name(), ability_name, detail], "gray")
-		if soul_runtime != null:
-			soul_runtime.add_counter("empty_casts")
+	if narrate and soul_runtime != null:
+		soul_runtime.add_counter("empty_casts")
 
 
 ## 多重触发次数：至少释放 1 次
@@ -306,8 +305,6 @@ func _on_projectiles_finished(result: Variant, target_count: int, trace: CombatT
 		"hit_count": hit_count,
 		"missed": missed,
 	})
-	if missed > 0:
-		battle.log_line("%s 的【%s】有 %d 支空了" % [_caster_name(), ability_name, missed], "gray")
 
 
 ## 对施法者自己结算 self_effects；每次释放各结算一次，独立掷暴击。
@@ -444,10 +441,6 @@ func caster_unit() -> BattleUnit:
 	return _caster_unit()
 
 
-func caster_name() -> String:
-	return _caster_name()
-
-
 func get_battle_manager() -> BattleManager:
 	return _get_battle()
 
@@ -511,11 +504,6 @@ func _target_count(groups: Array) -> int:
 
 func _caster_unit() -> BattleUnit:
 	return owner_asc.get_parent() as BattleUnit
-
-
-func _caster_name() -> String:
-	var caster := _caster_unit()
-	return caster.unit_name if caster else "???"
 
 
 func _get_battle() -> BattleManager:

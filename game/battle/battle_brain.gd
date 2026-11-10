@@ -177,8 +177,7 @@ func _physics_process(_delta: float) -> void:
 		if charged == null:
 			continue
 		charged.tick_activation_lock(base_units)
-		for status_name in charged.tick_status(base_units):
-			unit.battle.log_line("%s 的状态【%s】结束" % [ability.ability_name, status_name], "gray")
+		charged.tick_status(base_units)
 		# 单位级冻结或魂灵自身冻结时都不充能；吟唱等施法过程不阻塞冷却
 		if not frozen and not charged.is_frozen():
 			charged.tick_charge(base_units)

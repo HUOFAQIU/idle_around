@@ -32,6 +32,7 @@ var _battle : BattleManager:
 var _telemetry_adapter : CombatTelemetryAdapter
 var _info_log_adapter : BattleLogAdapter
 var _console_log_adapter : CombatConsoleAdapter
+var _narrator : CombatNarrator
 ## FPS 文本刷新计数
 var _fps_frames : int = 0
 ## 上一帧鼠标在不在本窗口里（用来判断"刚离开"这一下）
@@ -127,6 +128,7 @@ func _attach_battle_observers(battle: BattleManager) -> void:
 	_telemetry_adapter = CombatTelemetryAdapter.new(battle.events)
 	_info_log_adapter = BattleLogAdapter.new(battle.events, InfoWindow.instance.append_line)
 	_console_log_adapter = CombatConsoleAdapter.new(battle.events)
+	_narrator = CombatNarrator.new(battle)
 
 
 func _on_battle_started(_battle_manager: BattleManager) -> void:
@@ -138,6 +140,7 @@ func _on_battle_ended() -> void:
 	_telemetry_adapter = null
 	_info_log_adapter = null
 	_console_log_adapter = null
+	_narrator = null
 	player_health_bar.visible = false
 	player_regen_bar.visible = false
 	player_shield_bar.visible = false

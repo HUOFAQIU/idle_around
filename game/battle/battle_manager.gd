@@ -69,7 +69,7 @@ func setup() -> void:
 	grid = BattleGrid.new(map)
 	spawner = EnemySpawner.new(rng)
 	spawner.spawn_enemy = spawn_enemy
-	_loot = LootRoller.new(events, loot_sink, log_line)
+	_loot = LootRoller.new(events, loot_sink)
 
 
 func add_unit(unit: BattleUnit) -> void:
@@ -99,10 +99,6 @@ func start_battle() -> void:
 	is_running = true
 	_start_msec = Time.get_ticks_msec()
 	spawner.rebuild(grid, player_cell())
-	log_line("========== 战斗开始 ==========", "yellow")
-	for unit in units:
-		log_line("%s  HP %.0f"
-			% [unit.unit_name, unit.health_attr.current_value], "white")
 
 	# 开局：所有能力从 0 开始充能
 	for unit in units:
@@ -228,25 +224,6 @@ func log_line(text: String, color: String = "white") -> void:
 	)
 
 
-## 施法报幕："长弓 施放【长弓】→ 蛇、蛇、蛇"
-func log_cast(caster: BattleUnit, skill_name: String, groups: Array) -> void:
-	log_line("%s 施放【%s】→ %s" % [caster.unit_name, skill_name, _format_targets(groups)], "#6fb7ff")
-
-
-func _format_targets(groups: Array) -> String:
-	var counts: Dictionary = {}
-	var order: Array = []
-	for group in groups:
-		for unit in group:
-			if not counts.has(unit.unit_name):
-				counts[unit.unit_name] = 0
-				order.append(unit.unit_name)
-			counts[unit.unit_name] += 1
-	var parts: Array[String] = []
-
-	for unit_name in order:
-		parts.append(unit_name if counts[unit_name] == 1 else "%s ×%d" % [unit_name, counts[unit_name]])
-	return "、".join(parts)
 #endregion
 
 

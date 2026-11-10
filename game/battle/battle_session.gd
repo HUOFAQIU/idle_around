@@ -67,6 +67,9 @@ func start(p_slots: Array[SoulSlot], test_monster_id: StringName = &"") -> void:
 	CombatTelemetry.begin_run(run_id, battle, battle.player.loadout)
 	CombatTelemetry.watch_unit(battle.player)
 	battle.start_battle()
+	battle.log_line("========== 战斗开始 ==========", "yellow")
+	for unit in battle.units:
+		battle.log_line("%s  HP %.0f" % [unit.unit_name, unit.health_attr.current_value], "white")
 	# 立刻先来一只，不然点完还得对着空场等第一拍
 	battle.spawn_one()
 	battle_started.emit(battle)

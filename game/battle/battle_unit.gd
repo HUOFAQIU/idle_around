@@ -155,8 +155,8 @@ func _apply_health_delta_effect(health_delta: float) -> void:
 	asc.apply_gameplay_effect(sync_effect, asc)
 
 
-## 战场上有单位改变格子：向自己的 ASC 广播 UnitMoved 事件。
-func _on_battle_unit_moved(moving_unit: BattleUnit, from_cell: Vector2i, to_cell: Vector2i) -> void:
+## 战场上有敌方单位改变格子；由 BattleManager 只派发给注册了 UnitMoved 触发器的单位。
+func on_enemy_moved(moving_unit: BattleUnit, from_cell: Vector2i, to_cell: Vector2i) -> void:
 	if is_dead or battle == null or not battle.is_running or asc == null:
 		return
 	if moving_unit == null or moving_unit.is_dead or moving_unit.team == team:
@@ -219,8 +219,8 @@ func notify_freeze_applied(event_target: BattleUnit, parent_trace: CombatTrace =
 	if battle == null or not battle.is_running or event_target == null:
 		return
 	var trace := parent_trace if parent_trace != null else CombatTrace.new("event:FreezeApplied", null)
-	for unit in battle.units_of_team(opposing_team(event_target.team)):
-		if unit == null or unit.is_dead or unit.asc == null:
+	for unit in battle.trigger_listeners(GameplayTags.Event_Combat_FreezeApplied):
+		if unit.team == event_target.team or unit.asc == null:
 			continue
 		if unit.soul_loadout == null or not unit.soul_loadout.has_trigger(GameplayTags.Event_Combat_FreezeApplied):
 			continue
@@ -265,9 +265,28 @@ func add_soul_abilities(
 	slots: Array[SoulSlot] = []
 ) -> Array[AutoCastAbility]:
 	soul_loadout = SoulLoadout.new(self, soul_list, slots)
-	if battle != null and not battle.unit_moved.is_connected(_on_battle_unit_moved):
-		battle.unit_moved.connect(_on_battle_unit_moved)
+	_refresh_trigger_listeners()
 	return soul_loadout.abilities
+
+
+## 只有带广播型触发器（UnitMoved / FreezeApplied）的单位才注册监听
+func _refresh_trigger_listeners() -> void:
+	if battle == null:
+		return
+	_sync_trigger_listener(GameplayTags.Event_Movement_UnitMoved)
+	_sync_trigger_listener(GameplayTags.Event_Combat_FreezeApplied)
+
+
+func _sync_trigger_listener(event_tag: StringName) -> void:
+	var enabled := soul_loadout != null and soul_loadout.has_trigger(event_tag)
+	battle.set_trigger_listener(self, event_tag, enabled)
+
+
+func _clear_trigger_listeners() -> void:
+	if battle == null:
+		return
+	battle.set_trigger_listener(self, GameplayTags.Event_Movement_UnitMoved, false)
+	battle.set_trigger_listener(self, GameplayTags.Event_Combat_FreezeApplied, false)
 
 
 ## 某颗来源魂灵的运行期状态；source_index 与构建时的魂灵顺序一致
@@ -361,8 +380,9 @@ func _die_deferred() -> void:
 	_die()
 
 
-## 销毁单位前调用：停技能、清 active effects，避免 GAS 泄漏。
+## 销毁单位前调用：撤销广播监听、停技能、清 active effects，避免 GAS 泄漏。
 func cleanup_asc() -> void:
+	_clear_trigger_listeners()
 	unregister_soul_runtimes()
 	if asc != null:
 		asc.cleanup()

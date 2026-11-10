@@ -137,28 +137,23 @@ func apply_freeze(seconds: float, trace: CombatTrace = null) -> bool:
 	return true
 
 
-## 状态计时：返回本次到期的状态名（用于打“结束”日志）
+## 状态计时：到期时发 status_expired，叙事由 CombatNarrator 订阅。
 ## 冻结期间也照常倒计时，加速/减速不受冻结影响。
-func tick_status(base_units: int) -> Array[String]:
-	var expired: Array[String] = []
+func tick_status(base_units: int) -> void:
 	if base_units <= 0:
-		return expired
+		return
 	if haste_units > 0:
 		haste_units = maxi(haste_units - base_units, 0)
 		if haste_units == 0:
-			expired.append("加速")
 			status_expired.emit("加速")
 	if slow_units > 0:
 		slow_units = maxi(slow_units - base_units, 0)
 		if slow_units == 0:
-			expired.append("减速")
 			status_expired.emit("减速")
 	if freeze_units > 0:
 		freeze_units = maxi(freeze_units - base_units, 0)
 		if freeze_units == 0:
-			expired.append("冻结")
 			status_expired.emit("冻结")
-	return expired
 
 
 func has_haste() -> bool:

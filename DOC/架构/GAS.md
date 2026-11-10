@@ -1,6 +1,6 @@
 # GAS 适配层
 
-> 类型：实现 | 状态：有效 | 核对：2026-11-10
+> 类型：实现 | 状态：有效 | 核对：2026-11-11
 > 何时读：改属性集、标签注册、Cue 清单
 > 关键词：GAS GameplayAbility AttributeSet Tag Cue godot_gas
 > 代码：godot_gas/、base_mods/core/mod.json
@@ -34,7 +34,7 @@
 | `State.Frozen` | `ChargedAbility.FROZEN_TAG`（`BattleBrain.FROZEN_TAG` 别名）；单位级冻结由 `freeze_unit.tres` 挂/摘，同时驱动 `Cue.Status.Freeze` |
 | `Cue.Status.Freeze` | 单位冻结持久光环（`base_mods/core/cues/freeze_cue.tscn`） |
 | `Cue.Combat.ClawSlash` | 恐狼命中爪痕（`base_mods/core/cues/claw_slash_cue.tscn`）；`kong_lang_skill.tres` 的 `hit_cue_tag` 触发，带方向/位置 |
-| `Event.Movement.UnitMoved` | 敌方跨格；`BattleUnit._on_battle_unit_moved()` 发送 |
+| `Event.Movement.UnitMoved` | 敌方跨格；`BattleUnit.on_enemy_moved()` 接收，`BattleManager` 只派发给注册了该触发器的单位 |
 | `Event.Health.BelowPercent` | 生命下降；`BattleUnit._check_health_triggers()` 发送 |
 | `Event.Combat.SoulUsed` | 魂灵成功激活；`AutoCastAbility._notify_soul_used()` 发送 |
 | `Event.Combat.FreezeApplied` | 单位被冻结；`BattleUnit.notify_freeze_applied()` 发送 |

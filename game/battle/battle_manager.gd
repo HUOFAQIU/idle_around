@@ -14,9 +14,6 @@
 
 class_name BattleManager extends Node
 
-## 任一单位改变格子时转发；触发型被动用它监听“敌方移动”。
-signal unit_moved(unit: BattleUnit, from_cell: Vector2i, to_cell: Vector2i)
-
 ## 移动按实例 ID 分片：每帧最多只驱动 MOVE_BUDGET_PER_FRAME 个移动体；
 ## 怪物少时不分片（逐帧移动，视觉顺滑），多了才分片；速度按同样的倍数补偿。
 ## 每帧最多驱动多少个怪物的移动
@@ -62,6 +59,8 @@ var _loot: LootRoller
 var _start_msec: int = 0
 ## 当前移动分片
 var _move_slice: int = 0
+## 广播型触发器事件的监听者：事件标签 → 确实带该触发器的单位
+var _trigger_listeners: Dictionary = {}
 
 
 func setup() -> void:
@@ -91,8 +90,32 @@ func add_unit(unit: BattleUnit) -> void:
 		unit.brain.set_physics_process(false)
 
 
+## 只在有监听者时派发“敌方移动”，不再让所有单位各接一次全局信号
 func _on_unit_moved(unit: BattleUnit, from_cell: Vector2i, to_cell: Vector2i) -> void:
-	unit_moved.emit(unit, from_cell, to_cell)
+	for listener in trigger_listeners(GameplayTags.Event_Movement_UnitMoved):
+		listener.on_enemy_moved(unit, from_cell, to_cell)
+
+
+## 单位声明/撤销对某个广播型触发器事件的关注
+func set_trigger_listener(unit: BattleUnit, event_tag: StringName, enabled: bool) -> void:
+	var listeners: Array = _trigger_listeners.get(event_tag, [])
+	var index := listeners.find(unit)
+	if enabled and index == -1:
+		listeners.append(unit)
+	elif not enabled and index >= 0:
+		listeners.remove_at(index)
+	_trigger_listeners[event_tag] = listeners
+
+
+## 某类广播事件的监听者快照；跳过已死亡/已释放的单位
+func trigger_listeners(event_tag: StringName) -> Array[BattleUnit]:
+	var result: Array[BattleUnit] = []
+	var listeners: Array = _trigger_listeners.get(event_tag, [])
+	for item in listeners:
+		var unit := item as BattleUnit
+		if unit != null and is_instance_valid(unit) and not unit.is_dead:
+			result.append(unit)
+	return result
 
 
 func start_battle() -> void:

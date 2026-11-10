@@ -228,8 +228,14 @@ func _spawn_enemy(cell: Vector2i) -> void:
 		return
 	unit.unit_name = monster.display_name
 	unit.max_health = monster.max_health
+	unit.attack_range = monster.attack_range
+	unit.move_speed = monster.move_speed
 	unit.drops = monster.drop_entries()
 	unit.souls = monster.soul_list()
+	var body := unit.get_node_or_null("Body") as Sprite2D
+	if body != null and monster.icon != null:
+		body.texture = monster.icon
+		body.region_enabled = false
 	units_root.add_child(unit)
 	unit.setup_from_scene(_battle)
 	unit.set_cell(cell)

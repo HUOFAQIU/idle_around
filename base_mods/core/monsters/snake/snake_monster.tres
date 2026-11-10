@@ -28,5 +28,7 @@ soul = ExtResource("5_hualiushen")
 script = ExtResource("7_data")
 display_name = "蛇"
 icon = SubResource("AtlasTexture_snake")
+attack_range = 30.0
+move_speed = 11.0
 soul_entries = Array[ExtResource("2_entry")]([SubResource("Resource_soul_duya"), SubResource("Resource_soul_jianya"), SubResource("Resource_soul_hualiushen")])
 battle_scene = ExtResource("1_scene")

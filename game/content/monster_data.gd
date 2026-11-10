@@ -1,7 +1,7 @@
 ## 怪物数据：图鉴与刷怪共用的一份资源。
 ##
-## 场景（battle_scene）只负责战斗表现；名字、血量、掉落、携带魂灵都写在这里，
-## 由刷怪方在实例化场景后注入 BattleUnit，避免场景和数据各存一份。
+## 场景（battle_scene）只负责碰撞体与节点结构；名字、血量、攻击范围、移速、
+## 贴图、掉落、携带魂灵都写在这里，由刷怪方在实例化场景后注入 BattleUnit。
 class_name MonsterData extends Resource
 
 ## 运行期稳定 ID：由 ModLoader 从 manifest 写入（core 沿用原 ID）。
@@ -10,13 +10,15 @@ class_name MonsterData extends Resource
 
 ## 图鉴显示名，也是战斗中的头顶名字
 @export var display_name: String = ""
-## 图鉴图标
+## 图鉴图标，也用作战斗贴图（推荐 AtlasTexture）
 @export var icon: Texture2D
-## 图鉴文案
-@export_multiline var description: String = ""
 
 ## 血量上限（战斗时写入 ASC）
 @export var max_health: float = 100.0
+## 攻击范围（像素，圆心到圆心）
+@export_range(0.0, 1000.0, 0.1) var attack_range: float = 30.0
+## 移动速度（像素/秒）
+@export_range(0.0, 1000.0, 0.1) var move_speed: float = 11.0
 ## 常规刷怪权重；0 表示不参与常规随机刷怪，只能由特殊规则或测试刷出
 @export_range(0.0, 100.0, 0.1) var spawn_weight: float = 1.0
 ## 稀有标记：不参与常规随机池，由 BattleWindow 每击杀 N 只常规怪后替换刷出。

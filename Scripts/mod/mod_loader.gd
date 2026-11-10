@@ -606,14 +606,22 @@ func _validate_soul_vocabulary(mod: ModInfo, soul: SoulData) -> void:
 				_mod_error(mod, "魂灵 %s 的触发条件类型应为 Soul.types.<PascalName>：%s" % [soul.content_id, type])
 
 
-## 稀有怪必须同时退出常规池，并且有可实例化的战斗场景
+## 所有怪物共用的基础字段 + 稀有怪额外规则
 func _validate_monster_config(mod: ModInfo, monster: MonsterData) -> void:
+	if monster.display_name.is_empty():
+		_mod_error(mod, "怪物 %s 缺少 display_name" % monster.content_id)
+	if monster.max_health <= 0.0:
+		_mod_error(mod, "怪物 %s 的 max_health 必须大于 0：%s" % [monster.content_id, monster.max_health])
+	if monster.attack_range < 0.0:
+		_mod_error(mod, "怪物 %s 的 attack_range 不能为负：%s" % [monster.content_id, monster.attack_range])
+	if monster.move_speed < 0.0:
+		_mod_error(mod, "怪物 %s 的 move_speed 不能为负：%s" % [monster.content_id, monster.move_speed])
+	if monster.battle_scene == null:
+		_mod_error(mod, "怪物 %s 缺少 battle_scene" % monster.content_id)
 	if not monster.is_rare:
 		return
 	if monster.spawn_weight > 0.0:
 		_mod_error(mod, "怪物 %s 标记为 is_rare，spawn_weight 应为 0" % monster.content_id)
-	if monster.battle_scene == null:
-		_mod_error(mod, "稀有怪 %s 缺少 battle_scene" % monster.content_id)
 
 
 func _is_soul_type(value: StringName) -> bool:

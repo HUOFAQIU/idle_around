@@ -166,7 +166,7 @@ res://mods/example_souls/content/monsters/fire_wolf_monster.tres
 - `content_namespace: "global"` 保留旧 ID；内容资源已经物理迁移到 `base_mods/core/` 的 `souls/`、`monsters/`、`effects/`、`cues/`。
 - 官方 Cue 场景在 `base_mods/core/cues/`，逻辑脚本仍在 `game/battle/cues/`；`godot_gas/cue_registry.tres` 为空。
 - 导出时 `export_presets.cfg` 的 `include_filter` 必须包含 `base_mods/*/mod.json`；`exclude_filter` 用 `mods/*,modkit/*`，不能写成 `*mods/*`，否则会误伤 `base_mods/`。
-- 改完官方内容后运行 `modkit/validate_core_manifest.gd`（或 `TestAPI.validate_core_manifest()`），检查 manifest 是否漏登记、路径不存在、ID 重复，以及资源是否误设中文 `resource_name`；技能由 `SkillDefinition.steps` 组成，步骤类型、目标规则与字段是否一致由 ModLoader 在加载期检查；执行器字段（`attribute_name`、数值范围、`burn_effect` 等）也在加载期校验。
+- 改完官方内容后运行 `modkit/validate_core_manifest.gd`（或 `TestAPI.validate_core_manifest()`），检查 manifest 是否漏登记、路径不存在、ID 重复，以及资源是否误设中文 `resource_name`；技能由 `SkillDefinition.steps` 组成，步骤类型、目标规则与字段是否一致由 ModLoader 在加载期检查；执行器字段（`attribute_name`、数值范围、`burn_effect` 等）也在加载期校验；怪物会校验 `display_name`、`max_health`、`attack_range`、`move_speed` 和 `battle_scene`。
 
 ## 9. 安全边界
 

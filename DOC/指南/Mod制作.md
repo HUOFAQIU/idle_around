@@ -178,7 +178,7 @@ user://mods/example_souls/
 - 清单：`base_mods/core/mod.json`；内容资源已经物理迁移到 `base_mods/core/` 的 `souls/`、`monsters/`、`effects/`、`cues/`，manifest 不再填写 `content_root`。
 - 当前条目：`souls` 20 条、`monsters` 2 条、`cues` 5 条。技能、触发器、effects 不单独登记，由魂灵/技能资源内部引用。
 - 新增官方魂灵：把 `.tres` 放到 `base_mods/core/souls/<name>/`，在 `content.souls` 加 `{ "id": "<id>", "path": "souls/<name>/<file>.tres" }`。
-- 新增官方怪物：数据放 `base_mods/core/monsters/<name>/`，在 `content.monsters` 加 `{ "id": "<id>", "path": "monsters/<name>/<file>.tres" }`；`battle_scene` 仍由 `MonsterData` 内部引用。
+- 新增官方怪物：数据放 `base_mods/core/monsters/<name>/`，在 `content.monsters` 加 `{ "id": "<id>", "path": "monsters/<name>/<file>.tres" }`；`display_name` / `max_health` / `attack_range` / `move_speed` / `icon` / `battle_scene` 都配在 `MonsterData`，战斗场景不再写这些字段。
 - 新增官方 Cue：场景放 `base_mods/core/cues/`，逻辑脚本可放 `game/battle/cues/`，在 `content.cues` 加 `{ "tag": "...", "scene": "cues/<file>.tscn" }`。
 - 官方 ID 保持原值，不要加 `core:` 前缀；旧存档依赖这些 ID。
 - 内置 mod 只能 loose，不能把 `content.pck` 放进 `base_mods/`。

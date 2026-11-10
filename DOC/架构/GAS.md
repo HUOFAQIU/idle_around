@@ -28,7 +28,7 @@
 | 标签 | 使用处 |
 |---|---|
 | `State.Dead` | `BattleUnit._die()` 添加；效果查询里用来排除尸体 |
-| `Event.Combat.Critical` | 直接伤害/护盾等即时效果暴击时 `inject_tag`；`BattleUnit` 用它判断日志和飘字样式。异常状态只在施放时判定暴击，周期 tick 不带此标签 |
+| `Event.Combat.Critical` | 直接伤害/护盾等即时效果暴击时 `inject_tag`；`BattleUnit` 用它判断日志样式，`UnitPresenter` 用它判断飘字样式。异常状态只在施放时判定暴击，周期 tick 不带此标签 |
 | `Team.Player` / `Team.Enemy` | `BattleUnit._init_attributes()` 按 `team` 字段添加 |
 | `State.Burning` / `State.Poisoned` | 灼烧/剧毒周期效果的 `granted_tags` |
 | `State.Frozen` | `ChargedAbility.FROZEN_TAG`（`BattleBrain.FROZEN_TAG` 别名）；单位级冻结由 `freeze_unit.tres` 挂/摘，同时驱动 `Cue.Status.Freeze` |

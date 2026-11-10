@@ -46,6 +46,8 @@ const SUPPRESS_STATE_LOG_TAG : StringName = &"Data.SuppressStateLog"
 var battle: BattleManager
 var asc: AbilitySystemComponent
 var brain: BattleBrain
+## 表现层：血条/染色/名字/飘字；随单位一起释放
+var _presenter: UnitPresenter
 var is_dead: bool = false
 var _death_queued: bool = false
 ## 本场魂灵装载（槽位、技能、触发器、运行期状态）；由 add_soul_abilities() 创建
@@ -99,23 +101,10 @@ func setup_from_scene(
 	# 场景配置的魂灵 → 技能/运行期状态（玩家场景 souls 为空，由 BattleWindow 从装备读取后调用）
 	add_soul_abilities(souls)
 
-	var health_bar := get_node_or_null("HealthBar") as UnitHealthBar
-	if health_bar != null:
-		health_bar.bind(health_attr, max_health_attr, asc, _bar_color())
-
-	# 外观：场景只负责贴图，阵营染色统一走 GameColors
-	var body := get_node_or_null("Body") as Sprite2D
-	if body != null:
-		body.modulate = GameColors.to_color(
-			GameColors.PLAYER_MODULATE if team == Team.PLAYER else GameColors.ENEMY_MODULATE
-		)
-
-	# 头顶名字：场景里有 Name 标签就跟着 unit_name 走
-	var name_label := get_node_or_null("Name") as Label
-	if name_label != null:
-		name_label.text = unit_name
-		name_label.add_theme_color_override("font_color", GameColors.to_color(GameColors.TEXT_PRIMARY))
-		name_label.add_theme_color_override("font_outline_color", GameColors.to_color(GameColors.TEXT_OUTLINE))
+	# 表现（血条/染色/名字/飘字）交给 presenter，单位本身只保留战斗身份
+	_presenter = UnitPresenter.new(self)
+	_presenter.name = "Presenter"
+	add_child(_presenter)
 
 	_connect_asc()
 
@@ -302,11 +291,6 @@ func _connect_asc() -> void:
 	asc.periodic_effect_ticked.connect(_on_periodic_effect_ticked)
 
 
-## 血条颜色：敌红我绿
-func _bar_color() -> Color:
-	return GameColors.to_color(GameColors.HEALTH_FILL) if team == Team.PLAYER else GameColors.to_color(GameColors.HEALTH_FILL_ENEMY)
-
-
 ## 放到某个格子上（出生/瞬移用，瞬时）。实时移动不经过这里。
 func set_cell(p_cell: Vector2i) -> void:
 	cell = p_cell
@@ -399,7 +383,6 @@ func _log_shield_absorb(amount: float, source_name: String, effect_name: String)
 		return
 	_log("%s 的护盾吸收 %.0f 点【%s】伤害（来自 %s）"
 		% [unit_name, amount, effect_name, source_name], GameColors.SHIELD)
-	_pop_number(amount, false, false, false, true)
 
 
 func _log_periodic_damage(tick: PeriodicStatusTickExecution, damage: float, spec: GameplayEffectSpec) -> void:
@@ -410,7 +393,6 @@ func _log_periodic_damage(tick: PeriodicStatusTickExecution, damage: float, spec
 	var effect_name := _effect_display_name(spec)
 	_log("%s 受到【%s】（来自 %s）%.0f 点伤害，HP %.0f → %.0f"
 		% [unit_name, effect_name, source_name, damage, old_value, health_attr.current_value], tick.log_color())
-	_pop_periodic_number(tick, damage)
 
 
 func _log_periodic_heal(tick: PeriodicStatusTickExecution, amount: float, spec: GameplayEffectSpec) -> void:
@@ -421,19 +403,6 @@ func _log_periodic_heal(tick: PeriodicStatusTickExecution, amount: float, spec: 
 	var effect_name := _effect_display_name(spec)
 	_log("%s 受到【%s】（来自 %s）影响，恢复 %.0f 点生命，HP %.0f → %.0f"
 		% [unit_name, effect_name, source_name, amount, old_value, health_attr.current_value], tick.log_color())
-	_pop_periodic_number(tick, amount)
-
-
-func _pop_periodic_number(tick: PeriodicStatusTickExecution, amount: float) -> void:
-	match tick.popup_style():
-		PeriodicStatusTickExecution.PopupStyle.BURN:
-			_pop_number(amount, false, false, true)
-		PeriodicStatusTickExecution.PopupStyle.POISON:
-			_pop_number(amount, false, false, false, false, true)
-		PeriodicStatusTickExecution.PopupStyle.REGEN:
-			_pop_number(amount, true, false, false, false, false, true)
-		_:
-			_pop_number(amount, tick.is_heal())
 
 
 func _source_name(spec: GameplayEffectSpec) -> String:
@@ -468,33 +437,9 @@ func _on_effect_received(_source_asc: AbilitySystemComponent, spec: GameplayEffe
 	if health_delta < 0.0:
 		_log("%s 受到【%s】（来自 %s）%.0f 点伤害%s，HP %.0f → %.0f"
 			% [unit_name, effect_name, source_name, -health_delta, crit_suffix, old_value, current], GameColors.DAMAGE)
-		_pop_number(-health_delta, false, critical)
 	elif health_delta > 0.0:
 		_log("%s 回复 %.0f 点生命%s，HP %.0f → %.0f"
 			% [unit_name, health_delta, crit_suffix, old_value, current], GameColors.HEAL)
-		_pop_number(health_delta, true, critical)
-
-
-## 头顶跳一个数字
-func _pop_number(
-	amount: float,
-	heal: bool,
-	critical: bool = false,
-	burn: bool = false,
-	shield: bool = false,
-	poison: bool = false,
-	regen: bool = false
-) -> void:
-	var number := DamageNumber.new()
-	# 致命伤害的数字不能挂在本单位下：目标帧末释放时会一起消失。
-	var number_parent: Node2D = self
-	var anchor := Vector2.ZERO
-	var parent := get_parent()
-	if not heal and not shield and is_dying() and parent is Node2D:
-		number_parent = parent as Node2D
-		anchor = number_parent.to_local(global_position)
-	number_parent.add_child(number)  # 先入树，里面建补间要用
-	number.setup(amount, heal, critical, burn, shield, poison, regen, anchor)
 
 
 ## 延迟一帧确认死亡：先让 effect_received 写伤害日志，再写“倒下”；

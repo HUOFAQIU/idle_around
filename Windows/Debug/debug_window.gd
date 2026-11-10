@@ -112,6 +112,8 @@ var _paused: bool = false
 var _follow_tail: bool = true
 var _refresh_accum: float = 0.0
 var _slow_refresh_accum: float = 0.0
+## 搜索防抖代次：连续输入时只让最后一次重建
+var _search_generation: int = 0
 var _snapshot: Dictionary = {}
 var _selected_unit_id: int = 0
 var _selected_unit: BattleUnit
@@ -147,10 +149,12 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	if not visible:
 		return
+	var tab := _tabs.get_current_tab()
 	_refresh_accum += delta
 	if _refresh_accum >= REFRESH_INTERVAL:
 		_refresh_accum = 0.0
-		if not _paused:
+		# 快照只服务总览/单位/触发器/GAS 页，其余页签不构建
+		if not _paused and (tab == 0 or tab == 3 or tab == 4 or tab == 5):
 			_refresh_live()
 		_refresh_timeline_incremental()
 		_update_status()
@@ -240,6 +244,7 @@ func _build_ui() -> void:
 	_build_gas_tab()
 	_build_log_tab()
 	_build_settings_tab()
+	_tabs.tab_changed.connect(_on_tab_changed)
 
 	_status_label = Label.new()
 	_status_label.name = "StatusLabel"
@@ -441,12 +446,22 @@ func _connect_controls() -> void:
 	_importance_option.item_selected.connect(func(_index: int): _rebuild_timeline())
 	_current_run_check.toggled.connect(func(_on: bool): _rebuild_timeline())
 	_follow_check.toggled.connect(_on_follow_toggled)
-	_search_edit.text_changed.connect(func(_text: String): _rebuild_timeline())
+	_search_edit.text_changed.connect(_on_search_changed)
 	_watch_button.pressed.connect(_on_watch_pressed)
 	_max_events_spin.value_changed.connect(_on_max_events_changed)
 	_detail_global_check.toggled.connect(_on_detail_global_toggled)
 	_unlock_all_check.toggled.connect(_on_unlock_all_toggled)
 	visibility_changed.connect(_on_visibility_changed)
+
+
+## 搜索框逐字重建 2000 行太贵，200ms 防抖；连续输入只保留最后一次
+func _on_search_changed(_text: String) -> void:
+	_search_generation += 1
+	var generation := _search_generation
+	await get_tree().create_timer(0.2).timeout
+	if generation != _search_generation or not visible:
+		return
+	_rebuild_timeline()
 
 
 func _sync_controls() -> void:
@@ -829,10 +844,21 @@ func _format_recent_events() -> String:
 	return "\n".join(lines)
 
 
+## 只刷新当前页签对应的树，避免每 0.5 秒重建三棵树
 func _refresh_trees() -> void:
-	_refresh_soul_tree()
-	_refresh_unit_tree()
-	_refresh_trigger_tree()
+	match _tabs.get_current_tab():
+		2:
+			_refresh_soul_tree()
+		3:
+			_refresh_unit_tree()
+		4:
+			_refresh_trigger_tree()
+
+
+func _on_tab_changed(_tab: int) -> void:
+	_refresh_live()
+	_refresh_trees()
+	_refresh_gas()
 
 
 func _refresh_soul_tree() -> void:
@@ -1180,6 +1206,8 @@ func _on_trigger_selected() -> void:
 
 
 func _refresh_gas() -> void:
+	if _tabs.get_current_tab() != 5:
+		return
 	var lines: Array[String] = []
 	lines.append("[b]GAS 状态[/b]")
 	var battle := CombatTelemetry.current_battle

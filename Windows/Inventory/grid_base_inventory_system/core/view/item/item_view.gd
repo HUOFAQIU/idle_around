@@ -28,15 +28,13 @@ var stack_num_color: Color = GameColors.STACK_NUM_COLOR
 
 ## 物品数据
 var data: ItemData
-## 绘制基础大小（格子大小）
+## 绘制基础大小（格子大小）；值没变时不重算尺寸
 var base_size: int:
 	set(value):
+		if base_size == value:
+			return
 		base_size = value
 		call_deferred("recalculate_size")
-## 是否正在移动
-var _is_moving: bool = false
-## 移动偏移量（坐标）
-var _moving_offset: Vector2i = Vector2i.ZERO
 ## 魂灵名称标签（只对 SoulData 创建）
 var _soul_name_label: Label
 ## 状态徽章（只对 SoulData 创建）
@@ -95,11 +93,6 @@ func recalculate_size() -> void:
 	_refresh_soul_name_label()
 	_refresh_status_badges()
 
-## 移动
-func move(offset: Vector2i = Vector2i.ZERO) -> void:
-	_is_moving = true
-	_moving_offset = offset
-
 ## 绘制物品
 func _draw() -> void:
 	if data.icon:
@@ -117,18 +110,6 @@ func _draw() -> void:
 			if data is SoulData and param_name == "progress":
 				value = _runtime.scanline_progress if _runtime != null else 0.0
 			(material as ShaderMaterial).set_shader_parameter(param_name, value)
-
-## 跟随鼠标
-func _process(_delta: float) -> void:
-	update_moving_position()
-
-
-func update_moving_position() -> void:
-	if not _is_moving:
-		return
-	@warning_ignore("integer_division")
-	global_position = get_global_mouse_position() - Vector2(base_size * _moving_offset) - Vector2(base_size / 2, base_size / 2)
-
 
 func _on_data_refresh() -> void:
 	queue_redraw()

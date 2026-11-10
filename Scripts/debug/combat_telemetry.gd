@@ -15,6 +15,8 @@ signal run_ended(run_id: int)
 
 const MAX_EVENTS_DEFAULT: int = 5000
 const MIN_EVENTS: int = 100
+## JSONL 每写这么多行 flush 一次，避免逐条事件触发磁盘刷新
+const FILE_FLUSH_EVERY: int = 50
 
 ## 总开关；关闭时 record() 立即返回，正式游戏可以整体关掉
 var enabled: bool = true
@@ -36,11 +38,12 @@ var current_battle: BattleManager
 var watch_unit_id: int = 0
 
 var _seq: int = 0
-## 已绑定信号的对象实例 id，避免重复连接
+## 已绑定信号的对象实例 id → "full" / "death"，避免重复连接
 var _bound_units: Dictionary = {}
 var _bound_abilities: Dictionary = {}
 var _file: FileAccess
 var _file_path: String = ""
+var _file_lines: int = 0
 var _run_started_msec: int = 0
 
 
@@ -116,6 +119,9 @@ func record(
 ) -> Dictionary:
 	if not enabled:
 		return {}
+	# 详细事件在没有任何关注对象时直接丢弃，不做 duplicate / 归一化
+	if importance == CombatEvent.DETAIL and not record_detail_globally and watch_unit_id == 0:
+		return {}
 
 	var event: Dictionary = fields.duplicate()
 	_normalize_units(event)
@@ -142,32 +148,45 @@ func record(
 
 	if _file != null:
 		_file.store_line(JSON.stringify(event))
-		_file.flush()
+		_file_lines += 1
+		if _file_lines % FILE_FLUSH_EVERY == 0:
+			_file.flush()
 
 	event_recorded.emit(event)
 	return event
 
 
-## 关注单位：详细事件只记录它；传 null 取消关注
+## 关注单位：详细事件只记录它；传 null 取消关注。
+## 被关注时再补绑它的 ASC 信号，避免给所有刷出来的怪都绑一遍。
 func watch_unit(unit: BattleUnit) -> void:
 	watch_unit_id = unit.get_instance_id() if unit != null and is_instance_valid(unit) else 0
+	if unit != null and is_instance_valid(unit):
+		bind_unit(unit)
 
 
 #endregion
 
 
 #region GAS 信号绑定
-## 绑定一个单位的 ASC 信号；同一单位只绑一次。
-## 所有回调只管记录，不做任何战斗判定。
+## 绑定一个单位的信号；同一单位只绑一次。
+## 玩家和当前关注单位绑完整 ASC 信号；其他敌人只绑死亡（重要事件），
+## 等 watch_unit() 关注时再补绑详细信号，避免无限刷怪时反复连接 13 个信号。
 func bind_unit(unit: BattleUnit) -> void:
 	if unit == null or not is_instance_valid(unit) or unit.asc == null:
 		return
 	var unit_id := unit.get_instance_id()
-	if _bound_units.has(unit_id):
+	var state := String(_bound_units.get(unit_id, ""))
+	if state == "full":
 		return
-	_bound_units[unit_id] = true
+	var full := unit.team == BattleUnit.Team.PLAYER or unit_id == watch_unit_id
+	if not full and state.is_empty():
+		unit.died.connect(_on_unit_died)
+		_bound_units[unit_id] = "death"
+		return
+	_bound_units[unit_id] = "full"
 
-	unit.died.connect(_on_unit_died)
+	if not unit.died.is_connected(_on_unit_died):
+		unit.died.connect(_on_unit_died)
 	var asc := unit.asc
 	asc.tag_added.connect(_on_tag_added.bind(unit))
 	asc.tag_count_changed.connect(_on_tag_count_changed.bind(unit))
@@ -507,8 +526,6 @@ func _on_ability_charge_added(
 	fields["detail"] = "外部充能 %.2f 秒" % seconds
 	if trace != null:
 		fields["trace"] = trace
-	if runtime != null:
-		runtime.add_counter("charges_received", maxf(new_seconds - old_seconds, 0.0))
 	record(
 		CombatEvent.SOUL,
 		"charge",
@@ -777,6 +794,7 @@ func _open_file() -> void:
 		current_run_id,
 	]
 	_file = FileAccess.open(_file_path, FileAccess.WRITE)
+	_file_lines = 0
 	if _file == null:
 		push_warning("CombatTelemetry：无法打开录制文件 %s" % _file_path)
 	else:
@@ -785,6 +803,8 @@ func _open_file() -> void:
 
 func _close_file() -> void:
 	if _file != null:
+		_file.flush()
 		_file.close()
 		_file = null
+	_file_lines = 0
 #endregion

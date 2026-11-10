@@ -81,7 +81,13 @@ func add_charge(seconds: float, trace: CombatTrace = null) -> void:
 	add_charge_units(_seconds_to_units(seconds))
 	var after := charge_seconds()
 	if not is_equal_approx(before, after):
+		_on_charge_received(maxf(after - before, 0.0))
 		charge_added.emit(seconds, before, after, trace)
+
+
+## 子类钩子：外部充能实际生效后更新运行期统计；默认无操作
+func _on_charge_received(_seconds: float) -> void:
+	pass
 
 
 ## 直接加刻度（内部/测试用）

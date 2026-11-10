@@ -60,6 +60,12 @@ func _ready() -> void:
 		apply_definition(skill)
 
 
+## 外部充能实际生效后累计本魂灵的运行期统计
+func _on_charge_received(seconds: float) -> void:
+	if soul_runtime != null:
+		soul_runtime.add_counter("charges_received", seconds)
+
+
 ## 把一份 SkillDefinition 翻译成框架的技能配置。
 ## p_display_name 来自魂灵物品的 item_name；不传时退回内部 id。
 func apply_definition(def: SkillDefinition, p_display_name: String = "") -> void:

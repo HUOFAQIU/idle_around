@@ -1,11 +1,11 @@
-[gd_resource type="Resource" script_class="SkillDefinition" format=3 uid="uid://dgadyrmn6ur71"]
+[gd_resource type="Resource" script_class="UnitSkillDefinition" format=3 uid="uid://dgadyrmn6ur71"]
 
 [ext_resource type="Script" uid="uid://b7ovihaaijli7" path="res://addons/GodotGAS/effects/gameplay_execution_calculation.gd" id="1_exec_base"]
 [ext_resource type="Script" uid="uid://dxtfmpqjh3pta" path="res://game/content/soul_damage_execution.gd" id="2_exec"]
 [ext_resource type="Script" uid="uid://c81papidngxvg" path="res://addons/GodotGAS/effects/gameplay_effect.gd" id="3_effect"]
 [ext_resource type="Script" uid="uid://ccvfqmqr8q1pm" path="res://addons/GodotGAS/gameplay_tag/gameplay_tag_query.gd" id="4_query"]
 [ext_resource type="Script" uid="uid://bcow77l0bnh0s" path="res://addons/GodotGAS/effects/gameplay_effect_modifier.gd" id="5_sh8xf"]
-[ext_resource type="Script" uid="uid://ktr72cmavmyy" path="res://game/content/skill_definition.gd" id="5_skill"]
+[ext_resource type="Script" uid="uid://c7bgnw6fvruto" path="res://game/content/unit_skill_definition.gd" id="5_skill"]
 [ext_resource type="Script" uid="uid://cf2mx3u4jfquk" path="res://game/content/target_rule.gd" id="6_target"]
 
 [sub_resource type="Resource" id="Resource_query_not_dead"]
@@ -36,4 +36,4 @@ hit_cue_tag = &"Cue.Combat.ClawSlash"
 cooldown_seconds = 1.0
 cast_times = 2
 target_rule = SubResource("Resource_target_rule")
-metadata/_custom_type_script = "uid://ktr72cmavmyy"
+metadata/_custom_type_script = "uid://c7bgnw6fvruto"

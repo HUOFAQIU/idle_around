@@ -41,6 +41,14 @@ enum Camp {
 @export var include_self: bool = false
 
 
+func domain() -> Domain:
+	return Domain.UNIT
+
+
+func max_range_cells() -> int:
+	return max_range
+
+
 ## 解析出"施加批次"：Array[Array[BattleUnit]]
 ##
 ## 一个批次 = 一次目标解析 = 一组目标：

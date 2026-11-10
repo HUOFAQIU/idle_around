@@ -242,7 +242,10 @@ static func get_soul_damage_scaling(id : StringName) -> Dictionary:
 	var soul := CollectionDB.get_soul(id)
 	if soul == null or soul.skill == null:
 		return {}
-	for effect in soul.skill.effects:
+	var unit_skill := soul.skill as UnitSkillDefinition
+	if unit_skill == null:
+		return {}
+	for effect in unit_skill.effects:
 		if effect == null:
 			continue
 		for execution in effect.executions:

@@ -1,7 +1,7 @@
-[gd_resource type="Resource" script_class="SkillDefinition" format=3 uid="uid://c0qdo1xpmp7af"]
+[gd_resource type="Resource" script_class="UnitSkillDefinition" format=3 uid="uid://c0qdo1xpmp7af"]
 
 [ext_resource type="Script" uid="uid://c81papidngxvg" path="res://addons/GodotGAS/effects/gameplay_effect.gd" id="1_effect"]
-[ext_resource type="Script" uid="uid://ktr72cmavmyy" path="res://game/content/skill_definition.gd" id="2_skill"]
+[ext_resource type="Script" uid="uid://c7bgnw6fvruto" path="res://game/content/unit_skill_definition.gd" id="2_skill"]
 [ext_resource type="Script" uid="uid://cf2mx3u4jfquk" path="res://game/content/target_rule.gd" id="3_rule"]
 [ext_resource type="Resource" uid="uid://bpj04jw1ld8ce" path="res://base_mods/core/effects/burn_apply.tres" id="4_burn_apply"]
 [ext_resource type="Resource" uid="uid://dmsdlaiwop06p" path="res://base_mods/core/effects/burn_tick.tres" id="5_burn_tick"]

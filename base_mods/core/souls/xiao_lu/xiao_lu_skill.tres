@@ -1,7 +1,7 @@
-[gd_resource type="Resource" script_class="SkillDefinition" format=3 uid="uid://byh5mdt4b84yp"]
+[gd_resource type="Resource" script_class="UnitSkillDefinition" format=3 uid="uid://byh5mdt4b84yp"]
 
 [ext_resource type="Script" uid="uid://b7ovihaaijli7" path="res://addons/GodotGAS/effects/gameplay_execution_calculation.gd" id="1_sd1or"]
-[ext_resource type="Script" uid="uid://ktr72cmavmyy" path="res://game/content/skill_definition.gd" id="1_skilldef"]
+[ext_resource type="Script" uid="uid://c7bgnw6fvruto" path="res://game/content/unit_skill_definition.gd" id="1_skilldef"]
 [ext_resource type="Script" uid="uid://c81papidngxvg" path="res://addons/GodotGAS/effects/gameplay_effect.gd" id="2_effect"]
 [ext_resource type="Script" uid="uid://diihs2hkb2gen" path="res://game/content/heal_execution.gd" id="3_heal"]
 [ext_resource type="Script" uid="uid://bcow77l0bnh0s" path="res://addons/GodotGAS/effects/gameplay_effect_modifier.gd" id="3_modifier"]
@@ -26,4 +26,4 @@ description = "冷却 4 秒，回复自身 30 点血量，并净化治疗量 5% 
 effects = Array[ExtResource("2_effect")]([SubResource("Resource_effect_heal")])
 cooldown_seconds = 4.0
 target_rule = SubResource("Resource_target_rule")
-metadata/_custom_type_script = "uid://ktr72cmavmyy"
+metadata/_custom_type_script = "uid://c7bgnw6fvruto"

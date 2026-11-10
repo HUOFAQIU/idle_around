@@ -478,6 +478,7 @@ func _load_content_entry(
 			_normalize_skill_id(mod, soul)
 			_validate_soul_vocabulary(mod, soul)
 			_validate_soul_tags(mod, soul)
+			_validate_skill_target_rule(mod, soul)
 			_soul_ids[content_id] = true
 			_soul_entries.append(_make_entry(kind, mod, content_id, path, resource))
 			mod.soul_count += 1
@@ -629,12 +630,14 @@ func _is_soul_tag(value: StringName) -> bool:
 func _validate_soul_tags(mod: ModInfo, soul: SoulData) -> void:
 	var skill := soul.skill
 	if skill != null:
-		_validate_tag(mod, skill.hit_cue_tag, "Cue.", "魂灵 %s 的 hit_cue_tag" % soul.content_id)
+		var unit_skill := skill as UnitSkillDefinition
+		if unit_skill != null:
+			_validate_tag(mod, unit_skill.hit_cue_tag, "Cue.", "魂灵 %s 的 hit_cue_tag" % soul.content_id)
+			_validate_effects(mod, unit_skill.effects, soul.content_id)
 		for tag in skill.cast_require_all_tags:
 			_validate_tag(mod, tag, "", "魂灵 %s 的 cast_require_all_tags" % soul.content_id)
 		for tag in skill.cast_block_tags:
 			_validate_tag(mod, tag, "", "魂灵 %s 的 cast_block_tags" % soul.content_id)
-		_validate_effects(mod, skill.effects, soul.content_id)
 		_validate_effects(mod, skill.self_effects, soul.content_id)
 	if soul is PassiveSoulData:
 		_validate_effects(mod, (soul as PassiveSoulData).passive_effects, soul.content_id)
@@ -643,6 +646,41 @@ func _validate_soul_tags(mod: ModInfo, soul: SoulData) -> void:
 			continue
 		_validate_tag(mod, trigger.event_tag, "Event.", "魂灵 %s 的 trigger.event_tag" % soul.content_id)
 		_validate_effects(mod, trigger.effects, soul.content_id)
+
+
+## 技能子类、目标规则与 domain 必须一致；否则运行期会走错分支或没有任何效果。
+func _validate_skill_target_rule(mod: ModInfo, soul: SoulData) -> void:
+	var skill := soul.skill
+	if skill == null:
+		return
+	var rule := skill.target_rule
+	if rule == null:
+		_mod_error(mod, "魂灵 %s 的技能缺少 target_rule" % soul.content_id)
+		return
+	var rule_type := "unknown"
+	if rule.get_script() != null:
+		rule_type = rule.get_script().resource_path
+
+	if skill is UnitSkillDefinition:
+		if not rule is TargetRule or rule.domain() != TargetRuleBase.Domain.UNIT:
+			_mod_error(mod, "魂灵 %s 是 UnitSkillDefinition，target_rule 必须是 TargetRule（UNIT）：%s" % [soul.content_id, rule_type])
+		return
+
+	if skill is SoulSkillDefinition:
+		if not rule is SoulTargetRule or rule.domain() != TargetRuleBase.Domain.SOUL:
+			_mod_error(mod, "魂灵 %s 是 SoulSkillDefinition，target_rule 必须是 SoulTargetRule（SOUL）：%s" % [soul.content_id, rule_type])
+			return
+		var soul_skill := skill as SoulSkillDefinition
+		if (
+			soul_skill.haste_duration <= 0.0
+			and soul_skill.slow_duration <= 0.0
+			and soul_skill.freeze_duration <= 0.0
+			and soul_skill.charge_duration <= 0.0
+		):
+			_mod_error(mod, "魂灵 %s 的魂灵目标技能没有任何状态时长" % soul.content_id)
+		return
+
+	_mod_error(mod, "魂灵 %s 的技能必须是 UnitSkillDefinition 或 SoulSkillDefinition：%s" % [soul.content_id, skill.resource_path])
 
 
 func _validate_effects(mod: ModInfo, effects: Array[GameplayEffect], owner: StringName) -> void:

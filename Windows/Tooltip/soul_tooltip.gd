@@ -80,12 +80,11 @@ static func _part_line(soul: SoulData) -> String:
 	return "{ %s }" % SoulText.part_name(soul.equip_part)
 
 
-## 攻击距离取目标规则的格数；非 TargetRule（如 SoulTargetRule）按 0 显示
+## 攻击距离取目标规则的格数；魂灵目标规则按 0 显示
 static func _attack_range(skill: SkillDefinition) -> int:
-	var rule: TargetRuleBase = skill.target_rule if skill != null else null
-	if rule is TargetRule:
-		return (rule as TargetRule).max_range
-	return 0
+	if skill == null or skill.target_rule == null:
+		return 0
+	return skill.target_rule.max_range_cells()
 
 
 static func _crit_chance(skill: SkillDefinition) -> float:

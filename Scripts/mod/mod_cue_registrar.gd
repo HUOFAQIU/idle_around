@@ -57,8 +57,10 @@ func _validate_cue_references() -> void:
 func _validate_soul_cue_references(entry: ModContentEntry, soul: SoulData) -> void:
 	var skill := soul.skill
 	if skill != null:
-		_check_cue_tag(entry, skill.hit_cue_tag)
-		_check_effect_cues(entry, skill.effects)
+		var unit_skill := skill as UnitSkillDefinition
+		if unit_skill != null:
+			_check_cue_tag(entry, unit_skill.hit_cue_tag)
+			_check_effect_cues(entry, unit_skill.effects)
 		_check_effect_cues(entry, skill.self_effects)
 	if soul is PassiveSoulData:
 		_check_effect_cues(entry, (soul as PassiveSoulData).passive_effects)

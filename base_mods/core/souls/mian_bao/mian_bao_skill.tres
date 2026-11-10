@@ -1,7 +1,7 @@
-[gd_resource type="Resource" script_class="SkillDefinition" format=3 uid="uid://6wd287pv6a1u"]
+[gd_resource type="Resource" script_class="UnitSkillDefinition" format=3 uid="uid://6wd287pv6a1u"]
 
 [ext_resource type="Script" uid="uid://c81papidngxvg" path="res://addons/GodotGAS/effects/gameplay_effect.gd" id="1_effect"]
-[ext_resource type="Script" uid="uid://ktr72cmavmyy" path="res://game/content/skill_definition.gd" id="2_skill"]
+[ext_resource type="Script" uid="uid://c7bgnw6fvruto" path="res://game/content/unit_skill_definition.gd" id="2_skill"]
 [ext_resource type="Script" uid="uid://cf2mx3u4jfquk" path="res://game/content/target_rule.gd" id="3_rule"]
 [ext_resource type="Resource" uid="uid://cogjdx7837g5f" path="res://base_mods/core/effects/regen_apply.tres" id="4_regen_apply"]
 [ext_resource type="Resource" uid="uid://bvfgu7w8dkpmg" path="res://base_mods/core/effects/regen_tick.tres" id="5_regen_tick"]

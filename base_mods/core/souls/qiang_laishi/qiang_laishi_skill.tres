@@ -1,9 +1,9 @@
-[gd_resource type="Resource" script_class="SkillDefinition" format=3 uid="uid://ci2pv5v7onmiv"]
+[gd_resource type="Resource" script_class="UnitSkillDefinition" format=3 uid="uid://ci2pv5v7onmiv"]
 
 [ext_resource type="Script" uid="uid://b7ovihaaijli7" path="res://addons/GodotGAS/effects/gameplay_execution_calculation.gd" id="1_exec_base"]
 [ext_resource type="Script" uid="uid://bcow77l0bnh0s" path="res://addons/GodotGAS/effects/gameplay_effect_modifier.gd" id="2_6ppkn"]
 [ext_resource type="Script" uid="uid://c81papidngxvg" path="res://addons/GodotGAS/effects/gameplay_effect.gd" id="2_effect"]
-[ext_resource type="Script" uid="uid://ktr72cmavmyy" path="res://game/content/skill_definition.gd" id="3_skill"]
+[ext_resource type="Script" uid="uid://c7bgnw6fvruto" path="res://game/content/unit_skill_definition.gd" id="3_skill"]
 [ext_resource type="Script" uid="uid://cf2mx3u4jfquk" path="res://game/content/target_rule.gd" id="4_rule"]
 [ext_resource type="Script" uid="uid://0gyrmbkubn73" path="res://game/content/shield_execution.gd" id="5_shield"]
 

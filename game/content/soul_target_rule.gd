@@ -22,6 +22,10 @@ enum Mode { LEFT, RIGHT, RANDOM, SELF, ALL, BOTH_SIDES }
 @export var count: int = 1
 
 
+func domain() -> Domain:
+	return Domain.SOUL
+
+
 ## 解析出本次要施加状态的魂灵能力。
 ## rng 用战斗的全局随机源，保证可复现。
 func resolve(caster: ChargedAbility, rng: RandomNumberGenerator) -> Array[ChargedAbility]:

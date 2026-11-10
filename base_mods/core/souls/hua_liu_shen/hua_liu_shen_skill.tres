@@ -1,7 +1,7 @@
-[gd_resource type="Resource" script_class="SkillDefinition" format=3 uid="uid://y5yro1kosrer"]
+[gd_resource type="Resource" script_class="SoulSkillDefinition" format=3 uid="uid://y5yro1kosrer"]
 
 [ext_resource type="Script" uid="uid://c81papidngxvg" path="res://addons/GodotGAS/effects/gameplay_effect.gd" id="1_effect"]
-[ext_resource type="Script" uid="uid://ktr72cmavmyy" path="res://game/content/skill_definition.gd" id="2_skill"]
+[ext_resource type="Script" uid="uid://bxpui8n87sc5f" path="res://game/content/soul_skill_definition.gd" id="2_skill"]
 [ext_resource type="Script" uid="uid://urle87hlfidy" path="res://game/content/soul_target_rule.gd" id="3_soul_rule"]
 
 [sub_resource type="Resource" id="Resource_soul_target"]
@@ -15,4 +15,4 @@ description = "冷却 4 秒，加速自身任意一颗魂灵 2 秒（不受位�
 cooldown_seconds = 4.0
 target_rule = SubResource("Resource_soul_target")
 haste_duration = 2.0
-metadata/_custom_type_script = "uid://ktr72cmavmyy"
+metadata/_custom_type_script = "uid://bxpui8n87sc5f"

@@ -13,17 +13,11 @@ class_name SkillDefinition extends Resource
 ## 留空时由 ModLoader 按魂灵 content_id 自动派生。
 @export var id: String = ""
 
-## 面向玩家的技能描述（与下面字段一一对应）
+## 面向玩家的技能描述
 @export_multiline var description: String = ""
 
-## 施加到每个目标的效果列表（可多个：例如"伤害 + 中毒"）
-@export var effects: Array[GameplayEffect] = []
 ## 只对施法者自己结算的效果列表（例如"攻击敌人的同时提高自身再生"）
 @export var self_effects: Array[GameplayEffect] = []
-
-## 命中特效标签：每次结算到目标身上时，在该目标身上播一次（场景要登记到 cue_registry）。
-## 留空 = 不播。恐狼用它在两次伤害上交替播放左右爪痕。
-@export var hit_cue_tag: StringName = &""
 
 ## 冷却时长（秒）。魂灵使用充能模型：ChargedAbility 按 1/120 秒刻度累加，
 ## 充满后释放；这不是 GAS 的 DURATION 冷却效果。
@@ -38,26 +32,10 @@ class_name SkillDefinition extends Resource
 @export_range(0.0, 1.0, 0.01) var crit_chance: float = 0.0
 @export var crit_multiplier: float = 1.5
 
-## 目标选择规则：
-##   TargetRule      选战斗单位，使用 effects / projectile_scene
-##   SoulTargetRule  选魂灵，使用 haste/slow/freeze/charge 时长
+## 目标选择规则；具体字段由子类决定：
+##   UnitSkillDefinition 使用 effects / projectile_scene
+##   SoulSkillDefinition 使用 haste/slow/freeze/charge 时长
 @export var target_rule: TargetRuleBase
-
-## 加速/减速/冻结时长（秒）；0 = 不施加。只有 target_rule 是 SoulTargetRule 时才生效。
-@export_range(0.0, 60.0, 0.1) var haste_duration: float = 0.0
-@export_range(0.0, 60.0, 0.1) var slow_duration: float = 0.0
-@export_range(0.0, 60.0, 0.1) var freeze_duration: float = 0.0
-
-## 充能数值（秒）：直接给目标减少多少当前冷却；0 = 不充能。
-@export_range(0.0, 60.0, 0.1) var charge_duration: float = 0.0
-
-## 投射物场景。留空 = 选完目标立刻结算（比如治疗）；
-## 填了 = 每个目标发一支，射向它"此刻"的坐标，飞到谁身上才算打中谁，
-## 飞空了就是空了 —— 空箭是设计的一部分，不是 bug。
-@export var projectile_scene: PackedScene
-
-## 投射物飞行速度（像素/秒）；0 或负数使用投射物默认速度
-@export var projectile_speed: float = 420.0
 
 ## 吟唱时间（秒）；0 = 瞬发。吟唱结束会重新选目标，避免对着尸体放大。
 @export_range(0.0, 10.0, 0.1) var cast_time: float = 0.0

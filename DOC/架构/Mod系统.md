@@ -78,6 +78,7 @@ SaveManager
 - `ContentKindSpec.all()` 是 manifest 内容段的单一规格表：`key`（souls/monsters/cues）、`id_field` / `path_field`（id/path 或 tag/scene）、ID 后缀、是否标签、core 目录与 core 文件后缀。
 - `ModLoader` 与 `CoreContentValidator` 都按这张表遍历；新增一种内容只需改规格表 + `ModLoader` 的类型注册分支。
 - 同一资源路径登记到两个内容 ID 会报错，避免共享资源被后一个 ID 改写 `content_id`。
+- 语义校验失败（魂灵词表/标签、技能步骤、怪物配置、executor 字段等）的条目不会注册：不写入 ID 表、不进入 `CollectionDB`/刷怪池，mod 的内容计数也不增加。
 - manifest 里出现规格表之外的 `content.*` 段会 `push_warning`，不再静默忽略。
 
 ## 5. Mod 来源与包结构

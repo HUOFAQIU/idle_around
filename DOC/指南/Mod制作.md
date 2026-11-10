@@ -5,7 +5,7 @@
 > 关键词：mod.json content.pck modkit 示例 mod pack_example patch 导出 覆盖 加载顺序 内置 core content_root content_namespace validate_core_manifest manifest 校验 内容 ID 技能 ID 命名 PascalCase content_id
 > 代码：`Scripts/mod/`、`Scripts/collection_db.gd`、`base_mods/core/mod.json`
 > 相关：`架构/Mod系统.md`
-> 核对：2026-11-08
+> 核对：2026-11-10
 
 ## 1. 最小 mod
 
@@ -184,4 +184,4 @@ user://mods/example_souls/
 - 内置 mod 只能 loose，不能把 `content.pck` 放进 `base_mods/`。
 - 导出：`include_filter` 必须包含 `base_mods/*/mod.json`；`exclude_filter` 用 `mods/*,modkit/*`，不要用 `*mods/*`。
 - 改完官方内容后跑 `modkit/validate_core_manifest.gd`，或调用 `TestAPI.validate_core_manifest()`，检查 manifest 是否漏登记、路径不存在和中文 `resource_name`。
-- 技能由 `SkillDefinition.steps` 组成；步骤类型、`target_rule` 与字段不一致（例如 `UnitSkillStep` 配 `SoulTargetRule`、`SoulSkillStep` 没有任何时长）会在 ModLoader 加载时报错。执行器字段也会校验：`StatusApplyExecution.attribute_name` 必须是 `burn/poison/regen`，伤害/治疗/护盾数值不能为负，`RegenFromBurnExecution.burn_effect` 必须能找到灼烧执行。看 `ModLoader.get_errors()` 或 ModWindow。
+- 技能由 `SkillDefinition.steps` 组成；步骤类型、`target_rule` 与字段不一致（例如 `UnitSkillStep` 配 `SoulTargetRule`、`SoulSkillStep` 没有任何时长）会在 ModLoader 加载时报错。执行器字段也会校验：`StatusApplyExecution.attribute_name` 必须是 `burn/poison/regen`，伤害/治疗/护盾数值不能为负，`RegenFromBurnExecution.burn_effect` 必须能找到灼烧执行。校验失败的条目不会注册（不进入图鉴/刷怪池，mod 内容计数也不增加）；看 `ModLoader.get_errors()` 或 ModWindow。

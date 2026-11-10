@@ -485,10 +485,14 @@ func _load_content_entry(mod: ModInfo, spec: Dictionary, raw_entry: Dictionary) 
 				return
 			var soul := resource as SoulData
 			soul.content_id = content_id
+			var errors_before := _errors.size()
 			_normalize_skill_id(mod, soul)
 			_validate_soul_vocabulary(mod, soul)
 			_validate_soul_tags(mod, soul)
 			_validate_skill_steps(mod, soul)
+			# 语义校验失败的内容不注册，避免“报错但已加载”的半坏状态
+			if _errors.size() > errors_before:
+				return
 			_soul_ids[content_id] = true
 			_content_paths[path] = content_id
 			_soul_entries.append(_make_entry(kind, mod, content_id, path, resource))
@@ -502,7 +506,10 @@ func _load_content_entry(mod: ModInfo, spec: Dictionary, raw_entry: Dictionary) 
 				return
 			var monster := resource as MonsterData
 			monster.content_id = content_id
+			var errors_before := _errors.size()
 			_validate_monster_config(mod, monster)
+			if _errors.size() > errors_before:
+				return
 			_monster_ids[content_id] = true
 			_content_paths[path] = content_id
 			_monster_entries.append(_make_entry(kind, mod, content_id, path, resource))

@@ -50,4 +50,4 @@ GAS 属性：
 - `pre_attribute_change()` 负责下限/上限钳制，`post_attribute_change()` 负责 `max_health` 变化时同步 `health`。
 - `BattleUnit._apply_passive_effects()` 在被动最大生命变化后，用运行时 `INSTANT GameplayEffect`（health `ADD health_delta`）同步当前生命，不再直接调用 ASC 内部改属性方法；此时还没连接日志/血条，所以不会产生开场飘字。
 
-调试接入：`CombatTelemetry.bind_unit()` 监听 ASC 的属性/标签/效果/能力/GameplayEvent 信号；项目侧创建的 spec 使用 `SoulEffectContext`（`GameplayEffectContext` 子类）携带 `CombatTrace`，调试窗口据此还原因果链。详见 `架构/调试与遥测.md`。
+调试接入：`BattleUnit` 在 ASC 就绪时发 `BattleEventBus.unit_asc_ready`，`CombatTelemetryAdapter` 收到后调用 `CombatTelemetry.bind_unit()` 监听 ASC 的属性/标签/效果/能力/GameplayEvent 信号；项目侧创建的 spec 使用 `SoulEffectContext`（`GameplayEffectContext` 子类）携带 `CombatTrace`，调试窗口据此还原因果链。详见 `架构/调试与遥测.md`。

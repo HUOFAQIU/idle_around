@@ -4,21 +4,23 @@
 ## “单位 → 可序列化字段”的转换，避免把 Node 引用写进事件缓冲。
 class_name CombatEvent extends RefCounted
 
-## 重要事件：默认显示在时间线
-const IMPORTANT: String = "important"
-## 详细事件：只在关注单位或打开详细模式时记录
-const DETAIL: String = "detail"
+## 分类与重要度沿用模拟层事件总线的词表，保证两边字符串永远一致。
 
-const BATTLE: String = "battle"
-const CAST: String = "cast"
-const SOUL: String = "soul"
-const TRIGGER: String = "trigger"
-const EFFECT: String = "effect"
-const ATTRIBUTE: String = "attribute"
-const TAG: String = "tag"
-const CUE: String = "cue"
-const LOG: String = "log"
-const SYSTEM: String = "system"
+## 重要事件：默认显示在时间线
+const IMPORTANT: String = BattleEvent.IMPORTANCE_IMPORTANT
+## 详细事件：只在关注单位或打开详细模式时记录
+const DETAIL: String = BattleEvent.IMPORTANCE_DETAIL
+
+const BATTLE: String = BattleEvent.CATEGORY_BATTLE
+const CAST: String = BattleEvent.CATEGORY_CAST
+const SOUL: String = BattleEvent.CATEGORY_SOUL
+const TRIGGER: String = BattleEvent.CATEGORY_TRIGGER
+const EFFECT: String = BattleEvent.CATEGORY_EFFECT
+const ATTRIBUTE: String = BattleEvent.CATEGORY_ATTRIBUTE
+const TAG: String = BattleEvent.CATEGORY_TAG
+const CUE: String = BattleEvent.CATEGORY_CUE
+const LOG: String = BattleEvent.CATEGORY_LOG
+const SYSTEM: String = BattleEvent.CATEGORY_SYSTEM
 
 const CATEGORY_COLORS := {
 	BATTLE: "#ffd866",

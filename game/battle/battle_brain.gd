@@ -81,12 +81,12 @@ func request_activation(ability: ChargedAbility, trace: CombatTrace = null) -> v
 	_pending_activations.append(ability)
 	for runtime in unit.loadout:
 		if runtime != null and runtime.ability == ability:
-			CombatTelemetry.record(CombatEvent.SOUL, "pending", {
+			unit.battle.events.emit_event(BattleEvent.CATEGORY_SOUL, "pending", {
 				"actor_unit": unit,
 				"soul": runtime.display_name(),
 				"ability": ability.ability_name,
 				"trace": trace,
-			}, CombatEvent.DETAIL)
+			}, BattleEvent.IMPORTANCE_DETAIL)
 			break
 	if trace != null:
 		_pending_traces[ability.get_instance_id()] = trace
@@ -143,12 +143,12 @@ func _flush_pending_activations() -> void:
 		if not ability.can_activate_now():
 			continue
 		if not unit.asc.can_activate_ability(ability):
-			CombatTelemetry.record(CombatEvent.SOUL, "flush_skip", {
+			unit.battle.events.emit_event(BattleEvent.CATEGORY_SOUL, "flush_skip", {
 				"actor_unit": unit,
 				"ability": ability.ability_name,
 				"detail": "ASC 门卫拒绝",
 				"trace": trace,
-			}, CombatEvent.DETAIL)
+			}, BattleEvent.IMPORTANCE_DETAIL)
 			continue
 		ability.try_activate(trace)  # 开火即忘；激活锁在 AutoCastAbility._activate_ability() 里扣
 	_flushing = false

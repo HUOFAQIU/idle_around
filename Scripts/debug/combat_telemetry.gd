@@ -148,11 +148,6 @@ func record(
 	return event
 
 
-## 镜像战斗日志；InfoWindow 的中文叙事也进同一套时间线
-func record_log(line: String, color: String = "white") -> void:
-	record(CombatEvent.LOG, "line", {"text": line, "color": color}, CombatEvent.IMPORTANT)
-
-
 ## 关注单位：详细事件只记录它；传 null 取消关注
 func watch_unit(unit: BattleUnit) -> void:
 	watch_unit_id = unit.get_instance_id() if unit != null and is_instance_valid(unit) else 0

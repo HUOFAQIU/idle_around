@@ -81,8 +81,8 @@ func setup_from_scene(
 	# 属性集配在场景的 ASC 节点上，入树时框架已经深拷贝好；这里只写初始数值
 	_init_attributes()
 	_apply_passive_effects(passive_effects)
-	# 先接遥测信号，后面的 add_soul_abilities() 才能记录能力授予/触发能力
-	CombatTelemetry.bind_unit(self)
+	# 先让观察者接上 GAS 信号，后面的 add_soul_abilities() 才能记录能力授予/触发能力
+	battle.events.unit_asc_ready.emit(self)
 
 	brain = get_node("BattleBrain")
 	brain.unit = self
@@ -400,7 +400,7 @@ func _build_soul_runtimes(
 		if team == Team.PLAYER:
 			SoulRuntimeDB.register(runtime)
 		if ability != null:
-			CombatTelemetry.bind_ability(ability, self, runtime)
+			battle.events.soul_runtime_created.emit(self, ability, runtime)
 
 
 ## 单位销毁/战斗结束：注销运行期状态，避免 ItemView 和调试窗口读到旧对象。

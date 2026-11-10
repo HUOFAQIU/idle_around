@@ -34,6 +34,10 @@ const FPS_UPDATE_FRAMES : int = 15
 ## 现在这一场。开打时建，关窗/重开时整个销毁 —— 单位的属性、标签、冷却
 ## 全挂在它下面的节点上，所以销毁就等于全清，不用写复原逻辑
 var _battle : BattleManager
+## 事件总线的观察者；随这一场一起创建、一起丢弃
+var _telemetry_adapter : CombatTelemetryAdapter
+var _info_log_adapter : BattleLogAdapter
+var _console_log_adapter : CombatConsoleAdapter
 ## 重开代次：角色倒下要等 3 秒，这期间玩家自己点了重开的话，那次等待作废
 var _run_id : int = 0
 ## 测试接口：下一次刷怪强制使用这个 ID，刷出后清空
@@ -129,9 +133,9 @@ func _start_battle() -> void:
 	_battle.name = "BattleManager"
 	add_child(_battle)
 	_battle.map = ground_tilemaplayer
-	_battle.log_sink = InfoWindow.instance.append_line
 	_battle.spawn_enemy = _spawn_enemy
 	_battle.setup()
+	_attach_battle_observers()
 
 	InfoWindow.instance.clear_log()
 	_battle_slots = _equipped_souls()
@@ -149,6 +153,14 @@ func _start_battle() -> void:
 	start_button.text = "重开"
 
 
+## 事件总线的观察者：遥测、战斗信息窗、控制台。
+## 必须在生成任何单位之前挂好，否则会漏掉 unit_asc_ready 与首批战斗事件。
+func _attach_battle_observers() -> void:
+	_telemetry_adapter = CombatTelemetryAdapter.new(_battle.events)
+	_info_log_adapter = BattleLogAdapter.new(_battle.events, InfoWindow.instance.append_line)
+	_console_log_adapter = CombatConsoleAdapter.new(_battle.events)
+
+
 # 关窗＝这场战斗结束。下次打开窗口看到的，就是这一关的初始状态
 func _end_battle() -> void:
 	_run_id += 1  # 让"等 3 秒重开"作废
@@ -159,6 +171,9 @@ func _end_battle() -> void:
 
 func _clear_battle() -> void:
 	CombatTelemetry.end_run("clear")
+	_telemetry_adapter = null
+	_info_log_adapter = null
+	_console_log_adapter = null
 	_normal_kills = 0
 	_pending_rare_spawns = 0
 	player_health_bar.visible = false

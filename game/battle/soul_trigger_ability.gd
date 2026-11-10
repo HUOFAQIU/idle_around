@@ -67,7 +67,7 @@ func _activate_ability() -> bool:
 	var runtime := owner_unit.runtime_for_source_index(source_index)
 
 	if battle != null:
-		CombatTelemetry.record(CombatEvent.TRIGGER, "fired", {
+		battle.events.emit_event(BattleEvent.CATEGORY_TRIGGER, "fired", {
 			"actor_unit": owner_unit,
 			"soul": source_name,
 			"trigger": label,
@@ -76,7 +76,7 @@ func _activate_ability() -> bool:
 			"targets": targets.size(),
 			"detail": "%s：%d 个目标" % [PassiveTrigger.event_label(definition.event_tag), targets.size()],
 			"trace": trace,
-		}, CombatEvent.IMPORTANT)
+		}, BattleEvent.IMPORTANCE_IMPORTANT)
 		if runtime != null:
 			runtime.add_counter("triggers_fired")
 			runtime.set_counter_timestamp("last_trigger_t", battle.elapsed_seconds())

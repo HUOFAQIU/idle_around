@@ -29,7 +29,7 @@
 | 确认功能是否已实现/已知坑 | `架构/现状与注意.md` | — |
 | AI/自动化测试、构造战斗或背包场景 | `指南/AI测试接口.md` | `Scripts/test_api.gd` |
 | 按症状排查战斗（不放技能/不触发/没伤害/Cue 不播/卡顿） | `指南/调试窗口.md` §常见排查、`架构/现状与注意.md` | `Windows/Debug/`、`game/battle/` |
-| 新增调试事件或理解遥测数据 | `架构/调试与遥测.md` | `Scripts/debug/`、`Windows/Debug/` |
+| 新增调试事件或理解遥测数据 | `架构/调试与遥测.md` | `game/battle/battle_event*.gd`、`Scripts/debug/`、`Windows/Debug/` |
 | 改魂灵冷却/充能/冻结/主动效果 | `魂灵/主动魂灵.md` | `base_mods/core/souls/`、`game/content/`、`game/battle/charged_ability.gd` |
 | 改被动魂灵/触发效果 | `魂灵/被动魂灵.md` | `base_mods/core/souls/`、`game/content/passive_soul_data.gd`、`passive_effect.gd`、`passive_trigger.gd` |
 | 确认四部位定位 | `魂灵/魂灵.md` | `Windows/Equipment/` |
@@ -60,10 +60,10 @@
 | `特效/effects.md` | 指南 | 有效 | 2026-11-10 |
 | `指南/AI测试接口.md` | 指南 | 有效 | 2026-11-10 |
 | `指南/调试窗口.md` | 指南 | 有效 | 2026-11-01 |
-| `架构/调试与遥测.md` | 实现 | 有效 | 2026-11-07 |
+| `架构/调试与遥测.md` | 实现 | 有效 | 2026-11-10 |
 | `背景故事/背景故事.md` | 设计 | 占位 | 2026-10-31 |
 | `archive/给AI玩的游戏.md` | 记录 | 归档 | 2026-10-31 |
-| `架构/00_总览.md` | 实现 | 有效 | 2026-11-07 |
+| `架构/00_总览.md` | 实现 | 有效 | 2026-11-10 |
 | `架构/窗口与场景.md` | 实现 | 有效 | 2026-11-10 |
 | `架构/战斗运行时_施法与冷却.md` | 实现 | 有效 | 2026-11-10 |
 | `架构/战斗运行时_移动与投射物.md` | 实现 | 有效 | 2026-11-10 |

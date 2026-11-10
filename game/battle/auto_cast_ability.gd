@@ -409,19 +409,23 @@ func _apply_effect_to_target(
 ## 广播“本魂灵被使用”；空放也广播，因为冷却已经消耗
 func _notify_soul_used(trace: CombatTrace) -> void:
 	var caster := _caster_unit()
-	if caster == null:
+	var battle := _get_battle()
+	if caster == null or battle == null:
 		return
 	var soul_label := ""
 	if soul_runtime != null:
 		soul_label = soul_runtime.display_name()
 	elif soul_data != null:
 		soul_label = soul_data.item_name
-	CombatTelemetry.record(CombatEvent.SOUL, "used", {
+	var importance := BattleEvent.IMPORTANCE_DETAIL
+	if caster.team == BattleUnit.Team.PLAYER:
+		importance = BattleEvent.IMPORTANCE_IMPORTANT
+	battle.events.emit_event(BattleEvent.CATEGORY_SOUL, "used", {
 		"actor_unit": caster,
 		"soul": soul_label,
 		"ability": ability_name,
 		"trace": trace,
-	}, CombatEvent.IMPORTANT if caster.team == BattleUnit.Team.PLAYER else CombatEvent.DETAIL)
+	}, importance)
 	caster.notify_soul_used(self, trace)
 
 
@@ -462,6 +466,9 @@ func target_count(groups: Array) -> int:
 
 
 func _record_cast(type: String, trace: CombatTrace, fields: Dictionary = {}) -> void:
+	var battle := _get_battle()
+	if battle == null:
+		return
 	var caster := _caster_unit()
 	fields["actor_unit"] = caster
 	fields["ability"] = ability_name
@@ -470,10 +477,10 @@ func _record_cast(type: String, trace: CombatTrace, fields: Dictionary = {}) -> 
 		fields["soul"] = soul_runtime.display_name()
 	if trace != null:
 		fields["trace"] = trace
-	var importance := CombatEvent.DETAIL
+	var importance := BattleEvent.IMPORTANCE_DETAIL
 	if caster != null and caster.team == BattleUnit.Team.PLAYER:
-		importance = CombatEvent.IMPORTANT
-	CombatTelemetry.record(CombatEvent.CAST, type, fields, importance)
+		importance = BattleEvent.IMPORTANCE_IMPORTANT
+	battle.events.emit_event(BattleEvent.CATEGORY_CAST, type, fields, importance)
 
 
 func _targets_summary(groups: Array) -> String:

@@ -10,22 +10,26 @@
 | 了解项目结构、autoload、输入动作 | `架构/00_总览.md` | `project.godot` |
 | 改启动链、窗口外壳、窗口清单/单例 | `架构/窗口与场景.md` | `Main/control.gd`、`Windows/base_window.gd` |
 | 改窗口置顶、T 按钮、置顶持久化 | `架构/窗口与场景.md` | `Windows/base_window.gd`、`Main/status_bar_container.gd`、`Scripts/window_pin_settings.gd` |
+| 置顶失效/置顶设置丢失/窗口改名 | `架构/窗口与场景.md` §9（常见排查） | `Windows/base_window.gd`、`Scripts/window_pin_settings.gd` |
 | 改战斗单位、施法、冷却/扫描线 | `架构/战斗运行时_施法与冷却.md` | `game/battle/`、`Windows/Battle/` |
 | 改移动、攻击范围门控、刷怪、空间索引、投射物 | `架构/战斗运行时_移动与投射物.md` | `game/battle/`、`Windows/Battle/` |
 | 改暴击/伤害/异常、开战关窗、玩家怪物场景 | `架构/战斗运行时_伤害与流程.md` | `game/battle/`、`Windows/Battle/` |
 | 改技能/目标规则/魂灵/怪物数据/掉落 | `架构/战斗数据与魂灵.md` | `base_mods/core/`、`game/content/` |
 | 改背包/仓库/装备槽/拖拽 | `架构/背包_GBIS.md` | `Windows/Inventory/grid_base_inventory_system/`、`Scripts/warehouse.gd` |
 | 改存档/读档/存档格式/迁移 | `架构/存档.md` | `Scripts/save/` |
+| 读档丢物品/回退旧档/版本过高只读 | `架构/存档.md` §10（常见排查） | `Scripts/save/` |
 | 改 GAS 属性/标签/Cue | `架构/GAS.md`、`特效/effects.md` | `godot_gas/`、`addons/GodotGAS/`、`Scripts/mod/mod_cue_registrar.gd` |
 | 按完整链路理解系统 | `架构/关键流程.md` | `game/battle/`、`Windows/Inventory/` |
 | 新增魂灵/怪物/技能/窗口/特效 | `架构/扩展点.md` | `base_mods/core/`、`game/content/`、`Main/control.gd` |
 | 改 mod 加载/内容注册/存档兼容/管理窗口/加载顺序 | `架构/Mod系统.md` | `Scripts/mod/`、`Scripts/collection_db.gd`、`Scripts/save/`、`Windows/ModWindow/` |
+| mod 未生效/内容缺失/orphaned/Cue 未注册/顺序不生效 | `架构/Mod系统.md` §11（常见排查） | `Scripts/mod/`、`Windows/ModWindow/` |
 | 新增/修改官方魂灵、怪物、Cue | `架构/Mod系统.md`、`指南/Mod制作.md` | `base_mods/core/mod.json`、`modkit/validate_core_manifest.gd` |
 | 查/改内容 ID、技能 ID、Cue 标签命名 | `指南/Mod制作.md` §3.1、`架构/Mod系统.md` §6 | `Scripts/mod/content_naming.gd`、`Scripts/mod/mod_loader.gd` |
 | 制作/打包/发布 mod、看示例 | `指南/Mod制作.md` | `Scripts/mod/`、`mods/example_souls/`、`modkit/` |
 | 确认功能是否已实现/已知坑 | `架构/现状与注意.md` | — |
 | AI/自动化测试、构造战斗或背包场景 | `指南/AI测试接口.md` | `Scripts/test_api.gd` |
-| 排查战斗/魂灵/触发器/状态，或新增调试事件 | `指南/调试窗口.md`、`架构/调试与遥测.md` | `Windows/Debug/`、`Scripts/debug/` |
+| 按症状排查战斗（不放技能/不触发/没伤害/Cue 不播/卡顿） | `指南/调试窗口.md` §常见排查、`架构/现状与注意.md` | `Windows/Debug/`、`game/battle/` |
+| 新增调试事件或理解遥测数据 | `架构/调试与遥测.md` | `Scripts/debug/`、`Windows/Debug/` |
 | 改魂灵冷却/充能/冻结/主动效果 | `魂灵/主动魂灵.md` | `base_mods/core/souls/`、`game/content/`、`game/battle/charged_ability.gd` |
 | 改被动魂灵/触发效果 | `魂灵/被动魂灵.md` | `base_mods/core/souls/`、`game/content/passive_soul_data.gd`、`passive_effect.gd`、`passive_trigger.gd` |
 | 确认四部位定位 | `魂灵/魂灵.md` | `Windows/Equipment/` |
@@ -60,19 +64,19 @@
 | `背景故事/背景故事.md` | 设计 | 占位 | 2026-10-31 |
 | `archive/给AI玩的游戏.md` | 记录 | 归档 | 2026-10-31 |
 | `架构/00_总览.md` | 实现 | 有效 | 2026-11-07 |
-| `架构/窗口与场景.md` | 实现 | 有效 | 2026-11-08 |
+| `架构/窗口与场景.md` | 实现 | 有效 | 2026-11-10 |
 | `架构/战斗运行时_施法与冷却.md` | 实现 | 有效 | 2026-11-07 |
 | `架构/战斗运行时_移动与投射物.md` | 实现 | 有效 | 2026-11-08 |
 | `架构/战斗运行时_伤害与流程.md` | 实现 | 有效 | 2026-11-08 |
 | `架构/战斗数据与魂灵.md` | 实现 | 有效 | 2026-11-08 |
 | `架构/GAS.md` | 实现 | 有效 | 2026-11-07 |
 | `架构/背包_GBIS.md` | 实现 | 有效 | 2026-11-08 |
-| `架构/存档.md` | 实现 | 已实现 | 2026-11-08 |
+| `架构/存档.md` | 实现 | 已实现 | 2026-11-10 |
 | `架构/关键流程.md` | 实现 | 有效 | 2026-11-04 |
 | `架构/扩展点.md` | 指南 | 有效 | 2026-11-08 |
 | `架构/颜色与主题.md` | 实现 | 有效 | 2026-11-07 |
 | `架构/现状与注意.md` | 实现 | 有效 | 2026-11-08 |
-| `架构/Mod系统.md` | 设计 | 部分实现（内置 core mod 已接入） | 2026-11-08 |
+| `架构/Mod系统.md` | 设计 | 部分实现（内置 core mod 已接入） | 2026-11-10 |
 | `指南/Mod制作.md` | 指南 | 部分实现（内置 core 已接入） | 2026-11-08 |
 
 > `archive/souls.xlsx` 是旧计划表，文本工具读不了；要引用其中内容时先转成 Markdown 表格。
@@ -125,3 +129,5 @@
 2. 用关键词 grep 定位文件，先 `grep '^##'` 看标题，再按 `offset/limit` 只读命中节。
 3. 不整篇读超过 200 行的文档；标记为「记录」的文档只在明确查历史时读。
 4. 文档没覆盖时先 grep 代码符号，改完后把缺口补进对应文档。
+5. 排障先查症状路由：症状 → 本页路由表 → 目标文档「常见排查」→ 再 grep 代码，不从头读实现文档。
+6. 修复后把「症状 → 检查点 → 结论」回写对应文档的「常见排查」节；跨主题的坑写进 `架构/现状与注意.md`。

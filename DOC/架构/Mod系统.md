@@ -2,11 +2,11 @@
 
 > 类型：设计 | 状态：部分实现（内置 core mod 已接入；Steam 后置）
 > 何时读：改 mod 加载、内容注册、存档兼容，或准备接 Steam 创意工坊
-> 关键词：mod ModLoader manifest PCK 创意工坊 Workshop content_id orphaned 加载顺序 内置 core content_namespace content_root validate_core_manifest manifest 校验 技能 ID 命名 PascalCase
+> 关键词：mod ModLoader manifest PCK 创意工坊 Workshop content_id orphaned 加载顺序 内置 core content_namespace content_root validate_core_manifest manifest 校验 技能 ID 命名 PascalCase 常见排查 排障 症状 未生效 未注册 顺序不生效
 > 代码：`Scripts/mod/`、`Scripts/collection_db.gd`、`Scripts/save/`、`project.godot`、`base_mods/core/mod.json`
 > 相关：`架构/存档.md`、`架构/扩展点.md`、`指南/Mod制作.md`
 > 不覆盖：Steamworks 后台配置、GodotSteam 完整 API
-> 核对：2026-11-08
+> 核对：2026-11-10
 
 ## 1. 目标与边界
 
@@ -182,3 +182,22 @@ res://mods/example_souls/content/monsters/fire_wolf_monster.tres
 3. 更新检测：对比安装时间戳/manifest 版本，提示重启。
 4. 发布：先用 `steamcmd +workshop_build_item` 或独立工具；稳定后再做游戏内 UGC 上传。
 5. 需要 Steamworks App ID、Workshop 配置、法律协议和举报/下架流程。
+
+## 11. 常见排查
+
+1. **Mod 列表报错/内容数量为 0**
+   - 先看 `ModWindow` 列表里的逐条错误和 `ModLoader.get_errors()`；
+   - manifest 字段缺失、内容路径不存在、ID 冲突、依赖缺失都会在这一步报错；内置 core 改完先跑 `validate_core_manifest.gd`。
+2. **Mod 启用了但内容不出现**
+   - 启用勾选只写 `user://mods.cfg`，运行期不重载，必须重启；
+   - 第三方内容 ID 必须是 `<mod_id>:<local_id>`，技能 ID 是 `Mod.<PascalModId>.<PascalName>`；`content_namespace` / `content_root` 只允许内置来源；
+   - loose mod 确认 `user://mods/<id>/mod.json` 存在；PCK 确认挂载成功且内容在 `res://mods/<id>/content/` 下。
+3. **读档后内容缺失/进 orphaned**
+   - 缺内容不会丢弃，写进存档 `orphaned` 段；重新启用对应 mod 后再次读档会尝试放回；
+   - 不要为了消 warning 手动删 `orphaned`，先确认 ID 与 `mod.json` 登记一致。
+4. **Cue 不播/注册失败**
+   - 看 `ModLoader.get_errors()` 与 `ModCueRegistrar`；第三方标签必须是 `Cue.Mod.<PascalModId>.<Name>`；
+   - 场景根节点必须继承 `GameplayCueNotify`；运行期不能新增/替换/注销 Cue，改完重启。
+5. **调整加载顺序不生效**
+   - `mods.cfg` 的 `[order]` 只在重启后生效；`dependencies` / `load_after` 会覆盖用户顺序；
+   - 对比 `get_mod_order()`（用户顺序）与 `get_mod_load_order()`（实际顺序），冲突时以依赖为准。

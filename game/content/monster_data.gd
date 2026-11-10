@@ -30,7 +30,7 @@ class_name MonsterData extends Resource
 @export var battle_scene: PackedScene
 
 
-## 按配置顺序取出魂灵，交给 BattleUnit.add_soul_abilities() 生成技能
+## 按配置顺序取出魂灵，交给 SoulLoadout 生成技能
 func soul_list() -> Array[SoulData]:
 	var result : Array[SoulData] = []
 	for entry in soul_entries:

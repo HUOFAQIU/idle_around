@@ -38,7 +38,7 @@ enum WaitResult {
 	STOPPED,    ## 战斗结束或施法者倒下
 }
 
-## 本技能的数据定义（由 BattleUnit.add_soul_abilities() 注入）
+## 本技能的数据定义（由 SoulLoadout 构建时注入）
 @export var skill: SkillDefinition
 ## 本技能来源的魂灵数据；用于 OTHER_SOUL_USED 触发器的标签过滤
 var soul_data: SoulData

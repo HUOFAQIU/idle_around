@@ -52,8 +52,6 @@ var _fps_frames : int = 0
 var _battle_souls : Array[SoulData] = []
 ## 与 _battle_souls 同下标：魂灵在装备栏里的位置（左右/触发顺序用）
 var _battle_slots : Array[SoulSlot] = []
-## 与 _battle_souls 同下标：每颗魂灵对应的技能（没有技能为 null）
-var _soul_abilities : Array[AutoCastAbility] = []
 ## 上一帧鼠标在不在本窗口里（用来判断"刚离开"这一下）
 var _mouse_was_inside : bool = false
 
@@ -182,7 +180,6 @@ func _clear_battle() -> void:
 	player_burn_bar.visible = false
 	player_poison_bar.visible = false
 	SoulRuntimeDB.clear()
-	_soul_abilities.clear()
 	_battle_slots.clear()
 	for child in units_root.get_children():
 		if child is BattleUnit:
@@ -196,14 +193,7 @@ func _clear_battle() -> void:
 # 角色：站在战场中心，技能全部来自装备上的魂灵
 # 注意是"一颗魂灵一个技能"：同一颗魂灵装两把也要各算各的冷却，不能去重
 func _spawn_player(slots: Array[SoulSlot]) -> BattleUnit:
-	var passive_effects: Array[GameplayEffect] = []
-	for slot in slots:
-		var passive := slot.soul as PassiveSoulData
-		if passive == null:
-			continue
-		for effect in passive.passive_effects:
-			if effect != null:
-				passive_effects.append(effect)
+	var passive_effects := SoulLoadout.collect_passive_effects(_battle_souls)
 
 	var unit := PLAYER_SCENE.instantiate() as BattleUnit
 	units_root.add_child(unit)
@@ -218,12 +208,11 @@ func _spawn_player(slots: Array[SoulSlot]) -> BattleUnit:
 	player_burn_bar.bind(unit.asc.get_attribute("burn"), unit.asc)
 	player_poison_bar.bind(unit.asc.get_attribute("poison"), unit.asc)
 
-	# 魂灵 → 技能 + 运行期状态：和怪物走同一条管线；
-	# slots 传进去后由 BattleUnit 统一写技能位置并建 SoulRuntime
-	_soul_abilities = unit.add_soul_abilities(_battle_souls, slots)
+	# 魂灵 → 技能 + 运行期状态：和怪物走同一条 SoulLoadout 管线
+	unit.add_soul_abilities(_battle_souls, slots)
 
 	var granted := 0
-	for ability in _soul_abilities:
+	for ability in unit.soul_loadout.abilities:
 		if ability != null:
 			granted += 1
 	if granted == 0:
@@ -333,16 +322,23 @@ func _push_scanlines() -> void:
 ## 扫描线的总开关：不在战斗时整条收起来（这是文档要的"战斗开始后才出现"）
 ## 被动魂灵没有冷却，不显示扫描线。
 func _set_scanlines(on: bool) -> void:
-	for i in _battle_souls.size():
-		var soul := _battle_souls[i]
-		var has_active := i < _soul_abilities.size() and _soul_abilities[i] != null
-		soul.set_scanline_enabled(on and has_active)
-	if not on and _battle != null and _battle.player != null:
-		for runtime in _battle.player.loadout:
+	var player := _battle.player if _battle != null else null
+	if on:
+		if player == null:
+			return
+		for runtime in player.loadout:
+			if runtime != null and runtime.soul != null:
+				runtime.soul.set_scanline_enabled(runtime.ability != null)
+		_push_scanlines()
+		return
+	# 关战/重开时 player 可能已经释放，按开战时的魂灵副本统一关掉
+	for soul in _battle_souls:
+		if soul != null:
+			soul.set_scanline_enabled(false)
+	if player != null:
+		for runtime in player.loadout:
 			if runtime != null:
 				runtime.clear_display()
-	elif on:
-		_push_scanlines()
 #endregion
 
 
@@ -488,23 +484,24 @@ func get_test_state() -> Dictionary:
 	state["enemies"] = enemies
 
 	var souls : Array = []
-	for i in _battle_souls.size():
-		var soul := _battle_souls[i]
-		var ability : AutoCastAbility = null
-		if i < _soul_abilities.size():
-			ability = _soul_abilities[i]
-		souls.append({
-			"name": soul.item_name,
-			"cooldown": ability.cooldown if ability != null else 0.0,
-			"charge_ratio": ability.charge_ratio() if ability != null else 0.0,
-			"charge_seconds": ability.charge_seconds() if ability != null else 0.0,
-			"haste": ability.haste_seconds() if ability != null else 0.0,
-			"slow": ability.slow_seconds() if ability != null else 0.0,
-			"freeze": ability.freeze_seconds() if ability != null else 0.0,
-			"frozen": ability.is_frozen() if ability != null else false,
-			"active": ability.is_active if ability != null else false,
-			"activation_lock": ability.activation_lock_seconds() if ability != null else 0.0,
-		})
+	var player := _battle.player
+	if player != null and player.soul_loadout != null:
+		for runtime in player.soul_loadout.runtimes:
+			if runtime == null:
+				continue
+			var ability: ChargedAbility = runtime.ability
+			souls.append({
+				"name": runtime.display_name(),
+				"cooldown": ability.cooldown if ability != null else 0.0,
+				"charge_ratio": ability.charge_ratio() if ability != null else 0.0,
+				"charge_seconds": ability.charge_seconds() if ability != null else 0.0,
+				"haste": ability.haste_seconds() if ability != null else 0.0,
+				"slow": ability.slow_seconds() if ability != null else 0.0,
+				"freeze": ability.freeze_seconds() if ability != null else 0.0,
+				"frozen": ability.is_frozen() if ability != null else false,
+				"active": ability.is_active if ability != null else false,
+				"activation_lock": ability.activation_lock_seconds() if ability != null else 0.0,
+			})
 	state["player_souls"] = souls
 	return state
 

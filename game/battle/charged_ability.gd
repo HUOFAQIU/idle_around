@@ -45,8 +45,8 @@ var freeze_units: int = 0
 var soul_container: String = ""
 var soul_column: int = -1
 var soul_width: int = 1
-## 同一单位本场所有魂灵能力（用于左右/随机目标）
-var soul_loadout: Array[ChargedAbility] = []
+## 同一单位本场所有魂灵能力（含自己；用于左右/随机目标）
+var unit_soul_abilities: Array[ChargedAbility] = []
 
 
 func reset_charge() -> void:

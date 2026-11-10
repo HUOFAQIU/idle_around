@@ -48,10 +48,15 @@ var asc: AbilitySystemComponent
 var brain: BattleBrain
 var is_dead: bool = false
 var _death_queued: bool = false
-## 本场从魂灵上生成的触发器能力（grant 到 ASC，监听 GameplayEvent）
-var _trigger_abilities: Array[SoulTriggerAbility] = []
+## 本场魂灵装载（槽位、技能、触发器、运行期状态）；由 add_soul_abilities() 创建
+var soul_loadout: SoulLoadout
+
 ## 本场魂灵运行期列表（与装备顺序一致；玩家/怪物都用）
-var loadout: Array[SoulRuntime] = []
+var loadout: Array[SoulRuntime]:
+	get:
+		if soul_loadout == null:
+			return []
+		return soul_loadout.runtimes
 
 ## 战场格子坐标（逻辑位置）
 var cell: Vector2i = Vector2i.ZERO
@@ -167,7 +172,7 @@ func _on_battle_unit_moved(moving_unit: BattleUnit, from_cell: Vector2i, to_cell
 		return
 	if moving_unit == null or moving_unit.is_dead or moving_unit.team == team:
 		return
-	if not _has_trigger(GameplayTags.Event_Movement_UnitMoved):
+	if soul_loadout == null or not soul_loadout.has_trigger(GameplayTags.Event_Movement_UnitMoved):
 		return
 	var trace := CombatTrace.new("event:UnitMoved", null)
 	asc.send_gameplay_event(GameplayTags.Event_Movement_UnitMoved, {
@@ -189,7 +194,7 @@ func _check_health_triggers(old_value: float, new_value: float) -> void:
 	if max_hp <= 0.0:
 		return
 	var ratio := new_value / max_hp
-	if not _has_health_trigger_for(ratio):
+	if soul_loadout == null or not soul_loadout.has_health_trigger_for(ratio):
 		return
 	var trace := CombatTrace.new("event:HealthBelowPercent", null)
 	asc.send_gameplay_event(GameplayTags.Event_Health_BelowPercent, {
@@ -205,7 +210,7 @@ func _check_health_triggers(old_value: float, new_value: float) -> void:
 func notify_soul_used(used: ChargedAbility, parent_trace: CombatTrace = null) -> void:
 	if is_dead or battle == null or not battle.is_running or asc == null:
 		return
-	if not _has_trigger(GameplayTags.Event_Combat_SoulUsed):
+	if soul_loadout == null or not soul_loadout.has_trigger(GameplayTags.Event_Combat_SoulUsed):
 		return
 	var trace := parent_trace if parent_trace != null else CombatTrace.new("event:SoulUsed", null)
 	var used_soul: SoulData = null
@@ -228,40 +233,13 @@ func notify_freeze_applied(event_target: BattleUnit, parent_trace: CombatTrace =
 	for unit in battle.units_of_team(opposing_team(event_target.team)):
 		if unit == null or unit.is_dead or unit.asc == null:
 			continue
-		if not unit._has_trigger(GameplayTags.Event_Combat_FreezeApplied):
+		if unit.soul_loadout == null or not unit.soul_loadout.has_trigger(GameplayTags.Event_Combat_FreezeApplied):
 			continue
 		unit.asc.send_gameplay_event(GameplayTags.Event_Combat_FreezeApplied, {
 			"target": event_target,
 			"source": self,
 			"trace": trace,
 		})
-
-
-## 把魂灵上的触发器变成 SoulTriggerAbility，grant 到 ASC。
-## 触发器能力不进入 BattleBrain.abilities，不会被主循环自动施放；
-## 只由 ASC.send_gameplay_event() 按 trigger_event_tag 唤醒。
-func _create_soul_trigger_abilities(
-	soul_list: Array[SoulData],
-	abilities: Array[AutoCastAbility]
-) -> void:
-	_trigger_abilities.clear()
-	for i in mini(soul_list.size(), abilities.size()):
-		var soul := soul_list[i]
-		if soul == null:
-			continue
-		for trigger in soul.triggers:
-			if trigger == null:
-				continue
-			var trigger_ability := SoulTriggerAbility.new(
-				trigger,
-				abilities[i],
-				soul.item_name,
-				i,
-				self
-			)
-			trigger_ability.owner_asc = asc
-			asc.grant_ability(trigger_ability)
-			_trigger_abilities.append(trigger_ability)
 
 
 ## 触发器效果对单个目标施加。事件来源是触发器所属单位。
@@ -293,142 +271,27 @@ func apply_trigger_effect(
 
 ## 把一批魂灵变成技能和运行期状态；返回与输入等长的能力数组，null 表示这颗魂灵没有技能。
 ## slots 留空时按魂灵部位生成虚拟魂灵栏（怪物用）；玩家由 BattleWindow 传入真实槽位。
-## 同时登记魂灵触发器；主动魂灵的触发器会绑定到它自己的技能上（用于触发充能）。
 func add_soul_abilities(
 	soul_list: Array[SoulData],
 	slots: Array[SoulSlot] = []
 ) -> Array[AutoCastAbility]:
-	var resolved_slots := slots
-	if resolved_slots.is_empty():
-		resolved_slots = _build_soul_slots(soul_list)
-
-	var result : Array[AutoCastAbility] = []
-	for i in soul_list.size():
-		var soul := soul_list[i]
-		result.append(null)
-		if soul == null or soul is PassiveSoulData or soul.skill == null:
-			continue
-		var ability := AutoCastAbility.new()
-		ability.apply_definition(soul.skill, soul.item_name)
-		ability.soul_data = soul
-		brain.add_ability(ability)
-		result[i] = ability
-	_create_soul_trigger_abilities(soul_list, result)
+	soul_loadout = SoulLoadout.new(self, soul_list, slots)
 	if battle != null and not battle.unit_moved.is_connected(_on_battle_unit_moved):
 		battle.unit_moved.connect(_on_battle_unit_moved)
-	apply_soul_slots(resolved_slots, result)
-	_build_soul_runtimes(soul_list, resolved_slots, result)
-	return result
+	return soul_loadout.abilities
 
 
-## 把魂灵栏位置写进技能，供左右相邻/随机等“选魂灵”规则使用。
-## slots 与 abilities 同下标；abilities 为 null 表示该魂灵没有技能（被动/未配）。
-func apply_soul_slots(slots: Array[SoulSlot], abilities: Array[AutoCastAbility]) -> void:
-	var ability_loadout : Array[ChargedAbility] = []
-	for ability in abilities:
-		if ability != null:
-			ability_loadout.append(ability)
-	for i in mini(slots.size(), abilities.size()):
-		var ability := abilities[i]
-		if ability == null or slots[i] == null:
-			continue
-		ability.soul_container = slots[i].container_name
-		ability.soul_column = slots[i].column
-		ability.soul_width = slots[i].width
-	for ability in ability_loadout:
-		ability.soul_loadout = ability_loadout
-
-
-## 建运行期状态并注册到 SoulRuntimeDB；玩家装备栏和调试窗口读同一份。
-## 被动魂灵也建运行时（ability 为 null），便于显示占格和触发器。
-func _has_trigger(event_tag: StringName) -> bool:
-	for trigger_ability in _trigger_abilities:
-		if trigger_ability == null or trigger_ability.trigger_event_tag != event_tag:
-			continue
-		if (
-			trigger_ability.definition != null
-			and trigger_ability.definition.once_per_battle
-			and trigger_ability.fired
-		):
-			continue
-		return true
-	return false
-
-
-## 当前生命比例是否还能命中至少一个 Health.BelowPercent 触发器
-func _has_health_trigger_for(ratio: float) -> bool:
-	for trigger_ability in _trigger_abilities:
-		if trigger_ability == null or trigger_ability.trigger_event_tag != GameplayTags.Event_Health_BelowPercent:
-			continue
-		var definition := trigger_ability.definition
-		if definition == null:
-			continue
-		if definition.once_per_battle and trigger_ability.fired:
-			continue
-		if ratio < definition.threshold_ratio:
-			return true
-	return false
-
-
+## 某颗来源魂灵的运行期状态；source_index 与构建时的魂灵顺序一致
 func runtime_for_source_index(index: int) -> SoulRuntime:
-	if index >= 0 and index < loadout.size():
-		return loadout[index]
-	return null
+	return soul_loadout.runtime_for_source_index(index) if soul_loadout != null else null
 
 
-func _build_soul_runtimes(
-	soul_list: Array[SoulData],
-	slots: Array[SoulSlot],
-	abilities: Array[AutoCastAbility]
-) -> void:
-	loadout.clear()
-	for i in soul_list.size():
-		var soul := soul_list[i]
-		if soul == null:
-			continue
-		var slot: SoulSlot = slots[i] if i < slots.size() else null
-		var ability: ChargedAbility = abilities[i] if i < abilities.size() else null
-		var runtime := SoulRuntime.new(soul, slot, ability, self)
-		for trigger_ability in _trigger_abilities:
-			if trigger_ability.source_index == i:
-				runtime.triggers.append(trigger_ability)
-		if ability is AutoCastAbility:
-			(ability as AutoCastAbility).soul_runtime = runtime
-		loadout.append(runtime)
-		# 只有玩家装备栏需要按 SoulData 实例反查运行时（ItemView 绑定）；
-		# 怪物的魂灵资源可能被多只怪共享，不能按同一实例 id 注册。
-		if team == Team.PLAYER:
-			SoulRuntimeDB.register(runtime)
-		if ability != null:
-			battle.events.soul_runtime_created.emit(self, ability, runtime)
-
-
-## 单位销毁/战斗结束：注销运行期状态，避免 ItemView 和调试窗口读到旧对象。
+## 单位销毁/战斗结束：注销运行期状态，避免 ItemView 和调试窗口读到旧对象
 func unregister_soul_runtimes() -> void:
-	for runtime in loadout:
-		if runtime != null:
-			SoulRuntimeDB.unregister(runtime)
-	loadout.clear()
-
-
-## 怪物没有真实的魂灵容器：按配置顺序、按部位分组排成虚拟魂灵栏。
-## 只处理实际配置的部位，蛇不会凭空多出手/腿。
-func _build_soul_slots(soul_list: Array[SoulData]) -> Array[SoulSlot]:
-	var slots : Array[SoulSlot] = []
-	var part_columns : Dictionary = {}
-	for soul in soul_list:
-		if soul == null:
-			slots.append(null)
-			continue
-		var part := soul.equip_part if not soul.equip_part.is_empty() else "ANY"
-		var slot := SoulSlot.new()
-		slot.soul = soul
-		slot.container_name = part
-		slot.column = int(part_columns.get(part, 0))
-		slot.width = maxi(soul.columns, 1)
-		part_columns[part] = slot.column + slot.width
-		slots.append(slot)
-	return slots
+	if soul_loadout == null:
+		return
+	soul_loadout.clear()
+	soul_loadout = null
 
 
 func _connect_asc() -> void:

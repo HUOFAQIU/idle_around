@@ -34,7 +34,7 @@ func resolve(caster: ChargedAbility, rng: RandomNumberGenerator) -> Array[Charge
 		return result
 
 	var candidates: Array[ChargedAbility] = []
-	for ability in caster.soul_loadout:
+	for ability in caster.unit_soul_abilities:
 		if ability == null:
 			continue
 		if ability.cooldown <= 0.0:

@@ -392,7 +392,7 @@ func _apply_effect_to_target(
 	var spec := GameplayEffectSpec.new(effect, context, ability_level)
 	spec.display_name = ability_name
 	# 异常状态的暴击在释放时已经结算进施加数值；后续每跳不再乘倍率。
-	spec.set_set_by_caller_magnitude(SoulDamageExecution.CRIT_MULTIPLIER_TAG, crit_multiplier)
+	spec.set_set_by_caller_magnitude(GameplayTags.Data_CritMultiplier, crit_multiplier)
 	owner_asc.apply_effect_spec_to_target(spec, target.asc)
 	# 每冻住一个目标算一次冻结事件；全场任何单位的冻结触发器都会收到广播
 	if effect.granted_tags.has(GameplayTags.State_Frozen):

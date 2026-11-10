@@ -12,18 +12,12 @@ class_name HealExecution extends GameplayExecutionCalculation
 
 
 func execute(spec: GameplayEffectSpec, target_asc: AbilitySystemComponent) -> Dictionary:
-	var multiplier := 1.0
-	if spec != null:
-		multiplier = maxf(
-			spec.get_set_by_caller_magnitude(SoulDamageExecution.CRIT_MULTIPLIER_TAG, 1.0),
-			0.0
-		)
+	var multiplier := CritResolution.multiplier(spec)
 	var heal := maxf(base_heal * multiplier, 0.0)
 	if heal <= 0.0:
 		return {}
 
-	if multiplier > 1.0 and spec != null:
-		spec.inject_tag(GameplayTags.Event_Combat_Critical)
+	CritResolution.inject_if_critical(spec, multiplier)
 
 	var result := {"health": heal}
 	if target_asc != null:

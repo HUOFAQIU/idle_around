@@ -40,6 +40,8 @@
 | `Event.Combat.FreezeApplied` | 单位被冻结；`BattleUnit.notify_freeze_applied()` 发送 |
 | `Data.TriggerMagnitude` / `Data.CritMultiplier` / `Data.SuppressStateLog` | 触发数值 / 暴击倍率 / 批量日志抑制的 SetByCaller 键 |
 
+执行器统一通过 `CritResolution`（`game/content/crit_resolution.gd`）读取暴击倍率，并在暴击时注入 `Event.Combat.Critical`；SetByCaller 键统一使用自动生成的 `GameplayTags.Data_*`，不要手写字符串。
+
 GAS 属性：
 
 - 两个 `AttributeSet` 的默认生命值都是 500，但 `BattleUnit._init_attributes()` 会用场景根节点的 `max_health` 覆盖 `max_health` 和 `health` 的 `base_value`。

@@ -282,7 +282,7 @@ func apply_trigger_effect(
 	var spec := GameplayEffectSpec.new(effect, context, 1.0)
 	if not display_name.is_empty():
 		spec.display_name = display_name
-	spec.set_set_by_caller_magnitude(PassiveTrigger.MAGNITUDE_TAG, magnitude)
+	spec.set_set_by_caller_magnitude(GameplayTags.Data_TriggerMagnitude, magnitude)
 	if suppress_state_log:
 		spec.inject_tag(SUPPRESS_STATE_LOG_TAG)
 	asc.apply_effect_spec_to_target(spec, target.asc)

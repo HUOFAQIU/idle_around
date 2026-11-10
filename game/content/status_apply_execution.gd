@@ -27,12 +27,9 @@ func resolve_amount(spec: GameplayEffectSpec) -> float:
 	var amount := base_amount
 	var multiplier := 1.0
 	if spec != null:
-		var trigger_amount := spec.get_set_by_caller_magnitude(PassiveTrigger.MAGNITUDE_TAG, -1.0)
+		var trigger_amount := spec.get_set_by_caller_magnitude(GameplayTags.Data_TriggerMagnitude, -1.0)
 		if trigger_amount >= 0.0:
 			amount = trigger_amount
-		multiplier = maxf(
-			spec.get_set_by_caller_magnitude(SoulDamageExecution.CRIT_MULTIPLIER_TAG, 1.0),
-			0.0
-		)
+		multiplier = CritResolution.multiplier(spec)
 
 	return floor(amount * multiplier)

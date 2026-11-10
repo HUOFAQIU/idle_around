@@ -6,9 +6,6 @@
 ## 并在事件产生处发送，不需要改这里。
 class_name PassiveTrigger extends Resource
 
-## 触发效果读取数值用的 SetByCaller 标签
-const MAGNITUDE_TAG : StringName = &"Data.TriggerMagnitude"
-
 ## 效果施加范围
 enum TargetScope {
 	EVENT_TARGET,  ## 事件目标（例：移动的怪物、被冻结的单位）

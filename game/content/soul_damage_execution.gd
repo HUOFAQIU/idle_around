@@ -7,9 +7,6 @@
 ## 灼烧/剧毒/治疗不要挂这个 execution，它们走自己的效果。
 class_name SoulDamageExecution extends GameplayExecutionCalculation
 
-## AutoCastAbility 写入的暴击倍率标签；不暴击时写 1.0
-const CRIT_MULTIPLIER_TAG : StringName = &"Data.CritMultiplier"
-
 ## 这个伤害效果的基础伤害（正数）
 @export var base_damage: float = 0.0
 
@@ -28,16 +25,13 @@ func execute(spec: GameplayEffectSpec, target_asc: AbilitySystemComponent) -> Di
 		if attr != null:
 			damage_bonus = maxf(attr.current_value, 0.0)
 
-	var crit_multiplier := 1.0
-	if spec != null:
-		crit_multiplier = maxf(spec.get_set_by_caller_magnitude(CRIT_MULTIPLIER_TAG, 1.0), 0.0)
+	var crit_multiplier := CritResolution.multiplier(spec)
 
 	var soul_bonus := _matching_soul_bonus(source_asc)
 	var damage := maxf(base_damage + damage_bonus + soul_bonus, 0.0) * crit_multiplier
 	if damage <= 0.0:
 		return {}
-	if crit_multiplier > 1.0:
-		spec.inject_tag(GameplayTags.Event_Combat_Critical)
+	CritResolution.inject_if_critical(spec, crit_multiplier)
 	return DamageResolver.split_damage(target_asc, damage, 1.0)
 
 

@@ -17,6 +17,8 @@ const MAX_EVENTS_DEFAULT: int = 5000
 const MIN_EVENTS: int = 100
 ## JSONL 每写这么多行 flush 一次，避免逐条事件触发磁盘刷新
 const FILE_FLUSH_EVERY: int = 50
+## 缓冲溢出时一次裁掉的比例，避免每条事件都搬整个数组
+const TRIM_RATIO: float = 0.1
 
 ## 总开关；关闭时 record() 立即返回，正式游戏可以整体关掉
 var enabled: bool = true
@@ -143,8 +145,7 @@ func record(
 
 	events.append(event)
 	if events.size() > max_events:
-		events.pop_front()
-		dropped_events += 1
+		_trim_events()
 
 	if _file != null:
 		_file.store_line(JSON.stringify(event))
@@ -283,6 +284,16 @@ func export_jsonl(path: String = "") -> String:
 		file.store_line(JSON.stringify(event))
 	file.close()
 	return ProjectSettings.globalize_path(path)
+
+
+## 溢出时一次性裁掉约 10%，摊销 pop_front 的搬数组成本
+func _trim_events() -> void:
+	var trim := maxi(int(ceil(float(max_events) * TRIM_RATIO)), 1)
+	trim = mini(trim, events.size())
+	var remaining: Array[Dictionary] = []
+	remaining.assign(events.slice(trim))
+	events = remaining
+	dropped_events += trim
 
 
 func clear() -> void:

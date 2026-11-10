@@ -1,38 +1,29 @@
 extends Node
 ## 存档管理（Autoload：SaveManager）。
 ##
-## 单槽 JSON 存档，路径 `user://saves/slot_0.json`。
+## 单槽 JSON 存档门面：顶层文档见 SaveDocument，文件读写见 SaveStorage，
+## 去抖/心跳见 SaveScheduler，容器与见闻各是一个 SaveParticipant。
 ## 只保存玩家进度：容器里的物品 + 见闻；战斗运行期状态和静态资源数据不存。
 ## 写入采用临时文件 + 备份轮换；启动等一帧（容器注册完）后自动读档。
 
-const SAVE_DIR: String = "user://saves"
-const SAVE_FILE: String = "slot_0.json"
-const SAVE_PATH: String = SAVE_DIR + "/" + SAVE_FILE
-const BACKUP_FILE: String = SAVE_FILE + ".bak"
-const TEMP_FILE: String = SAVE_FILE + ".tmp"
-const TEMP_PATH: String = SAVE_DIR + "/" + TEMP_FILE
-const BACKUP_PATH: String = SAVE_DIR + "/" + BACKUP_FILE
-const SAVE_VERSION: int = 1
-## 普通物品变化后延迟写盘，避免战斗掉落逐次写文件
-const DEBOUNCE_SECONDS: float = 2.0
-## 没有变化时也定期写一次，刷新 saved_at / play_time
-const HEARTBEAT_SECONDS: float = 30.0
+const SAVE_VERSION: int = SaveDocument.VERSION
 
-var _dirty: bool = false
-var _urgent: bool = false
+var _storage := SaveStorage.new()
+var _scheduler := SaveScheduler.new()
+var _containers := ContainerSaveParticipant.new()
+var _collection := CollectionSaveParticipant.new()
+var _participants: Array[SaveParticipant] = []
+
 var _loading: bool = false
-var _since_save: float = 0.0
 var _play_time_sec: float = 0.0
 ## 从备份恢复后的第一次写盘不要覆盖那份备份
 var _keep_backup_next_save: bool = false
-## 读到未来版本的存档时只读，避免旧客户端覆盖新数据
-var _read_only: bool = false
-## 因 mod 缺失/容器缺失/容器满而暂时放不进世界的物品记录；写档时原样保留
-var _orphaned_records: Array[Dictionary] = []
 
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	_participants.append(_containers)
+	_participants.append(_collection)
 	_connect_signals()
 	# 仓库页由 Warehouse autoload 预注册，魂灵格由 EquipmentWindow._ready() 注册；等一帧再读档
 	await get_tree().process_frame
@@ -40,7 +31,7 @@ func _ready() -> void:
 	if get_tree().current_scene == null:
 		_enter_read_only("没有主场景（工具模式）", false)
 		return
-	var missing := _missing_save_containers()
+	var missing := _containers.missing_containers()
 	if not missing.is_empty():
 		_enter_read_only("容器未注册：%s" % ", ".join(PackedStringArray(missing)), true)
 		return
@@ -49,12 +40,9 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	_play_time_sec += delta
-	if _loading or _read_only:
+	if _loading or _storage.is_read_only():
 		return
-	_since_save += delta
-	if _dirty and (_urgent or _since_save >= DEBOUNCE_SECONDS):
-		save_now()
-	elif _since_save >= HEARTBEAT_SECONDS:
+	if _scheduler.tick(delta):
 		save_now()
 
 
@@ -66,18 +54,17 @@ func _notification(what: int) -> void:
 #region 公共接口
 ## 立即写档；失败时保留脏标记，下个去抖周期重试
 func save_now() -> bool:
-	_since_save = 0.0
-	_urgent = false
-	if _loading or _read_only:
+	_scheduler.begin_save()
+	if _loading or _storage.is_read_only():
 		return false
-	if not _containers_ready():
+	if not _containers.containers_ready():
 		push_error("存档：容器尚未注册，不能写档")
 		return false
 	var keep_backup := _keep_backup_next_save
-	var ok := _write_save_file(collect_save_data(), keep_backup)
+	var ok := _storage.write(collect_save_data(), keep_backup)
 	if ok:
 		_keep_backup_next_save = false
-		_dirty = false
+		_scheduler.on_saved()
 	return ok
 
 
@@ -85,7 +72,7 @@ func save_now() -> bool:
 func load_game() -> bool:
 	if _loading:
 		return false
-	if not _containers_ready():
+	if not _containers.containers_ready():
 		push_error("存档：容器尚未注册，不能读档")
 		return false
 	if GBIS.has_moving_item():
@@ -93,47 +80,38 @@ func load_game() -> bool:
 		return false
 
 	_keep_backup_next_save = false
-	var data := _read_save_file(SAVE_PATH)
+	var data := _storage.read_primary()
 	var write_back := false
 	if data.is_empty():
-		data = _read_save_file(BACKUP_PATH)
+		data = _storage.read_backup()
 		if not data.is_empty():
 			push_warning("存档：主文件不可用，已回退到备份")
 			write_back = true
 			_keep_backup_next_save = true
 	var has_disk_data := not data.is_empty()
-	_read_only = false
+	_storage.set_read_only(false)
 	if has_disk_data:
-		var version := int(data.get("version", 0))
-		if version > SAVE_VERSION:
-			push_warning("存档：版本 %d 高于当前 %d，只读不覆盖" % [version, SAVE_VERSION])
-			_read_only = true
-		elif version != SAVE_VERSION:
-			data = _migrate(data, version)
+		var version := SaveDocument.version_of(data)
+		if version > SaveDocument.VERSION:
+			push_warning("存档：版本 %d 高于当前 %d，只读不覆盖" % [version, SaveDocument.VERSION])
+			_storage.set_read_only(true, "存档版本过高")
+		elif version != SaveDocument.VERSION:
+			data = SaveDocument.migrate(data, version)
 			write_back = true
 	else:
-		data = _empty_save_data()
+		data = SaveDocument.empty()
 		write_back = true
 
 	_loading = true
-	_dirty = false
-	_urgent = false
-	_orphaned_records = _read_orphaned_records(data)
-	var restore_count := _orphaned_records.size()
-	_clear_containers()
-	_apply_containers(data)
-	var collection_data: Variant = data.get("collection")
-	if has_disk_data and collection_data is Dictionary:
-		CollectionDB.apply_save_data(collection_data)
-	elif CollectionDB.load_legacy_state():
-		push_warning("存档：已从旧 collection.cfg 迁移见闻记录")
-		write_back = true
-	else:
-		CollectionDB.apply_save_data({})
-	_restore_orphaned_records(restore_count)
-	_play_time_sec = float(data.get("play_time_sec", 0.0))
+	_scheduler.reset()
+	for participant in _participants:
+		if participant.apply_from(data, has_disk_data):
+			write_back = true
+	for participant in _participants:
+		if participant.finish_load():
+			write_back = true
+	_play_time_sec = float(data.get(SaveDocument.KEY_PLAY_TIME, 0.0))
 	_loading = false
-	_since_save = 0.0
 	# 一次性让所有 InventoryView 重建，避免逐件信号
 	GBIS.sig_inv_refresh.emit()
 	if write_back:
@@ -143,248 +121,56 @@ func load_game() -> bool:
 
 ## 当前内存状态的存档快照（不写盘）
 func collect_save_data() -> Dictionary:
-	var containers := {}
-	for inv_name in _expected_save_containers():
-		var container := ContainerRepository.instance.get_container(inv_name)
-		if container == null:
-			continue
-		var records := SaveCodec.encode_container(container)
-		if not records.is_empty():
-			containers[inv_name] = records
-	var detached: Array = []
-	if GBIS.has_moving_item():
-		var record := SaveCodec.encode_item(GBIS.moving_item_service.moving_item)
-		if not record.is_empty():
-			detached.append(record)
-	var data := {
-		"version": SAVE_VERSION,
-		"saved_at_unix": int(Time.get_unix_time_from_system()),
-		"play_time_sec": _play_time_sec,
-		"containers": containers,
-		"detached": detached,
-		"collection": CollectionDB.to_save_data(),
-	}
-	if not _orphaned_records.is_empty():
-		var orphaned: Array = []
-		for entry in _orphaned_records:
-			orphaned.append(entry.duplicate(true))
-		data["orphaned"] = orphaned
-	return data
+	var document := SaveDocument.build(_play_time_sec)
+	for participant in _participants:
+		participant.collect_into(document)
+	return document
 
 
 func has_save() -> bool:
-	return FileAccess.file_exists(SAVE_PATH) or FileAccess.file_exists(BACKUP_PATH)
+	return _storage.has_save()
 
 
 ## 当前存档里因 mod 缺失/放不下而保留的原始记录
 func get_orphaned_records() -> Array[Dictionary]:
-	var result: Array[Dictionary] = []
-	for entry in _orphaned_records:
-		result.append(entry.duplicate(true))
-	return result
+	return _containers.get_orphaned_records()
 
 
-## 读档/写档是否可用；missing_containers 非空时只读。
+## 读档/写档是否可用；missing_containers 非空时只读
 func get_save_status() -> Dictionary:
 	return {
-		"ready": _containers_ready(),
-		"read_only": _read_only,
-		"missing_containers": _missing_save_containers(),
+		"ready": _containers.containers_ready(),
+		"read_only": _storage.is_read_only(),
+		"missing_containers": _containers.missing_containers(),
 	}
 
 
 func get_save_path() -> String:
-	return SAVE_PATH
+	return _storage.path()
 
 
 ## 只删除磁盘文件，不改变当前内存状态
 func delete_save() -> bool:
-	var dir := DirAccess.open(SAVE_DIR)
-	if dir == null:
-		return true
-	var ok := true
-	for file_name in [SAVE_FILE, BACKUP_FILE, TEMP_FILE]:
-		if dir.file_exists(file_name) and dir.remove(file_name) != OK:
-			ok = false
-	return ok
+	return _storage.delete()
 
 
 ## 外部系统（见闻、未来的 progression）在状态变化时调用
 func mark_dirty(urgent: bool = false) -> void:
-	if _loading or _read_only:
+	if _loading or _storage.is_read_only():
 		return
-	_dirty = true
-	_urgent = _urgent or urgent
+	_scheduler.mark_dirty(urgent)
 #endregion
 
 
-#region 内部：容器
-## 进入只读：不读档也不写档，避免容器不齐时覆盖存档。
+#region 内部
+## 进入只读：不读档也不写档，避免容器不齐时覆盖存档
 func _enter_read_only(reason: String, report_error: bool) -> void:
-	_read_only = true
+	_storage.set_read_only(true, reason)
 	set_process(false)
 	if report_error:
 		push_error("存档：%s；本次不读档也不写档" % reason)
 
 
-## 存档必须覆盖的容器：仓库各页 + 四个魂灵格。
-func _expected_save_containers() -> Array[String]:
-	var names: Array[String] = []
-	for page in Warehouse.PAGE_COUNT:
-		names.append(Warehouse.page_name(page))
-	names.append_array(ContainerIds.soul_cells())
-	return names
-
-
-## 期望容器里当前还没注册的项；为空表示可以安全读写档。
-func _missing_save_containers() -> Array[String]:
-	var missing: Array[String] = []
-	for container_name in _expected_save_containers():
-		if not GBIS.inventory_names.has(container_name):
-			missing.append(container_name)
-	return missing
-
-
-func _containers_ready() -> bool:
-	return _missing_save_containers().is_empty()
-
-
-func _clear_containers() -> void:
-	for inv_name in _expected_save_containers():
-		var container := ContainerRepository.instance.get_container(inv_name)
-		if container != null:
-			container.clear()
-
-
-func _apply_containers(data: Dictionary) -> void:
-	var containers_data: Variant = data.get("containers", {})
-	if containers_data is Dictionary:
-		for key in containers_data:
-			var container_name := String(key)
-			var records: Variant = containers_data[key]
-			var container := ContainerRepository.instance.get_container(container_name)
-			if container == null:
-				if records is Array:
-					var preserved := _preserve_unknown_container(container_name, records as Array)
-					push_warning("存档：容器不存在 %s，已保留 %d 件物品到 orphaned" % [container_name, preserved])
-				else:
-					push_warning("存档：容器不存在 %s，且数据格式不对，已跳过" % container_name)
-				continue
-			if not records is Array:
-				push_warning("存档：%s 的数据格式不对" % container_name)
-				continue
-			_apply_container(container, records)
-	var detached: Variant = data.get("detached", [])
-	if detached is Array:
-		for record in detached:
-			if not record is Dictionary:
-				continue
-			var record_data := record as Dictionary
-			var item := SaveCodec.decode_item(record_data)
-			if item == null:
-				_orphaned_records.append(_make_orphaned_entry("", record_data))
-				continue
-			if not Warehouse.add_item(item):
-				_orphaned_records.append(_make_orphaned_entry("", record_data))
-				push_warning("存档：拖拽中的物品无法放回仓库，已保留到 orphaned")
-
-
-## 未知容器的原始记录原样保留，避免之后写档时丢失。
-func _preserve_unknown_container(container_name: String, records: Array) -> int:
-	var preserved := 0
-	for record in records:
-		if record is Dictionary:
-			_orphaned_records.append(_make_orphaned_entry(container_name, record))
-			preserved += 1
-	return preserved
-
-
-func _apply_container(container: ContainerData, records: Array) -> void:
-	records.sort_custom(SaveCodec.sort_records)
-	for record in records:
-		if not record is Dictionary:
-			continue
-		var record_data := record as Dictionary
-		var item := SaveCodec.decode_item(record_data)
-		if item == null:
-			_orphaned_records.append(_make_orphaned_entry(container.container_name, record_data))
-			continue
-		var anchor := SaveCodec.anchor_from_record(record_data)
-		if not container.try_add_to_grid(item, anchor).is_empty():
-			continue
-		if not container.add_item(item).is_empty():
-			push_warning("存档：%s 的「%s」无法放回原格 %s，已放到第一个空位" % [container.container_name, item.item_name, anchor])
-			continue
-		if Warehouse.add_item(item):
-			push_warning("存档：%s 的「%s」放不下，已转入仓库" % [container.container_name, item.item_name])
-			continue
-		_orphaned_records.append(_make_orphaned_entry(container.container_name, record_data))
-		push_warning("存档：物品无处安放，已保留到 orphaned：%s" % item.item_name)
-
-
-## 构造一条保留记录；container 为空表示原本在鼠标上
-func _make_orphaned_entry(container_name: String, record: Dictionary) -> Dictionary:
-	return {
-		"container": container_name,
-		"record": record.duplicate(true),
-	}
-
-
-func _read_orphaned_records(data: Dictionary) -> Array[Dictionary]:
-	var result: Array[Dictionary] = []
-	var raw: Variant = data.get("orphaned", [])
-	if not raw is Array:
-		return result
-	for entry in raw:
-		if entry is Dictionary:
-			result.append((entry as Dictionary).duplicate(true))
-	return result
-
-
-## 读档末尾再试一次存档里带回来的保留物品；本次新产生的保留记录不重复尝试
-func _restore_orphaned_records(restore_count: int) -> void:
-	var remaining: Array[Dictionary] = []
-	var index := 0
-	for entry in _orphaned_records:
-		if index >= restore_count:
-			remaining.append(entry)
-			index += 1
-			continue
-		index += 1
-		var record: Variant = entry.get("record", {})
-		if not record is Dictionary:
-			remaining.append(entry)
-			continue
-		var record_data := record as Dictionary
-		var item := SaveCodec.decode_item(record_data)
-		if item == null:
-			remaining.append(entry)
-			continue
-		var container_name := String(entry.get("container", ""))
-		if _try_restore_item(item, record_data, container_name):
-			continue
-		remaining.append(entry)
-	_orphaned_records = remaining
-
-
-func _try_restore_item(item: ItemData, record: Dictionary, container_name: String) -> bool:
-	if not container_name.is_empty():
-		var container := ContainerRepository.instance.get_container(container_name)
-		if container != null:
-			var anchor := SaveCodec.anchor_from_record(record)
-			if not container.try_add_to_grid(item, anchor).is_empty():
-				return true
-			if not container.add_item(item).is_empty():
-				push_warning("存档：缺失内容「%s」已恢复到 %s 的空位" % [item.item_name, container_name])
-				return true
-	if Warehouse.add_item(item):
-		push_warning("存档：缺失内容「%s」已放回仓库" % item.item_name)
-		return true
-	return false
-#endregion
-
-
-#region 内部：信号
 func _connect_signals() -> void:
 	GBIS.sig_inv_item_added.connect(_on_inv_item_added)
 	GBIS.sig_inv_item_removed.connect(_on_inv_item_removed)
@@ -412,96 +198,4 @@ func _on_inv_refresh() -> void:
 ## 见闻解锁不可再生，立即写盘
 func _on_collection_unlocked(_kind: int, _id: StringName) -> void:
 	mark_dirty(true)
-#endregion
-
-
-#region 内部：文件
-func _read_save_file(path: String) -> Dictionary:
-	if not FileAccess.file_exists(path):
-		return {}
-	var file := FileAccess.open(path, FileAccess.READ)
-	if file == null:
-		push_warning("存档：无法读取 %s（%s）" % [path, error_string(FileAccess.get_open_error())])
-		return {}
-	var text := file.get_as_text()
-	file.close()
-	var parsed: Variant = JSON.parse_string(text)
-	if not parsed is Dictionary:
-		push_warning("存档：%s JSON 解析失败" % path)
-		return {}
-	var data := parsed as Dictionary
-	if int(data.get("version", 0)) <= 0:
-		push_warning("存档：%s 缺少版本号" % path)
-		return {}
-	return data
-
-
-func _write_save_file(data: Dictionary, keep_backup: bool = false) -> bool:
-	if not _ensure_save_dir():
-		return false
-	var file := FileAccess.open(TEMP_PATH, FileAccess.WRITE)
-	if file == null:
-		push_warning("存档：无法写入临时文件 %s（%s）" % [TEMP_PATH, error_string(FileAccess.get_open_error())])
-		return false
-	file.store_string(JSON.stringify(data, "\t"))
-	file.flush()
-	file.close()
-
-	var dir := DirAccess.open(SAVE_DIR)
-	if dir == null:
-		push_warning("存档：无法打开目录 %s" % SAVE_DIR)
-		return false
-	if dir.file_exists(SAVE_FILE):
-		if keep_backup:
-			# 主文件已经损坏；只替换主文件，保留刚恢复用的好备份
-			var remove_err := dir.remove(SAVE_FILE)
-			if remove_err != OK:
-				push_warning("存档：无法移除损坏的主存档（%s）" % error_string(remove_err))
-				dir.remove(TEMP_FILE)
-				return false
-		else:
-			if dir.file_exists(BACKUP_FILE):
-				dir.remove(BACKUP_FILE)
-			var rotate_err := dir.rename(SAVE_FILE, BACKUP_FILE)
-			if rotate_err != OK:
-				push_warning("存档：无法轮换旧存档（%s）" % error_string(rotate_err))
-				dir.remove(TEMP_FILE)
-				return false
-	var rename_err := dir.rename(TEMP_FILE, SAVE_FILE)
-	if rename_err != OK:
-		push_warning("存档：无法写入正式存档（%s）" % error_string(rename_err))
-		if not keep_backup and dir.file_exists(BACKUP_FILE):
-			dir.rename(BACKUP_FILE, SAVE_FILE)
-		return false
-	return true
-
-
-func _ensure_save_dir() -> bool:
-	var absolute := ProjectSettings.globalize_path(SAVE_DIR)
-	if DirAccess.dir_exists_absolute(absolute):
-		return true
-	var err := DirAccess.make_dir_recursive_absolute(absolute)
-	if err != OK:
-		push_warning("存档：无法创建目录 %s（%s）" % [SAVE_DIR, error_string(err)])
-		return false
-	return true
-
-
-func _empty_save_data() -> Dictionary:
-	return {
-		"version": SAVE_VERSION,
-		"saved_at_unix": int(Time.get_unix_time_from_system()),
-		"play_time_sec": 0.0,
-		"containers": {},
-		"detached": [],
-		"collection": {"souls": [], "monsters": []},
-	}
-
-
-func _migrate(data: Dictionary, from_version: int) -> Dictionary:
-	if from_version <= 0:
-		push_warning("存档：旧格式没有版本号，按当前版本读取")
-	# 目前只有 v1；以后在这里按版本逐级迁移
-	data["version"] = SAVE_VERSION
-	return data
 #endregion

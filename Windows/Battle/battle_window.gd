@@ -1,15 +1,6 @@
 class_name BattleWindow
 extends BaseWindow
 
-## 角色倒下后多久重开一整场
-const REVIVE_DELAY : float = 3.0
-
-## 每击杀 RARE_SPAWN_EVERY_KILLS 只常规怪，下一只改用怪物数据里的 is_rare 标记
-const RARE_SPAWN_EVERY_KILLS : int = 10
-
-## 玩家单位：配置好的场景，开战时直接实例化
-const PLAYER_SCENE := preload("res://game/content/Player/player.tscn")
-
 ## 容器名集中定义；用 preload 而不是全局类名，保证 --script 无头模式也能解析
 const CONTAINER_IDS: GDScript = preload("res://Scripts/container_ids.gd")
 
@@ -31,27 +22,18 @@ const FPS_UPDATE_FRAMES : int = 15
 @onready var start_button: Button = $CanvasLayer/Control/GridContainer/StartButton
 @onready var fps_label: Label = $CanvasLayer/Control/FpsLabel
 
-## 现在这一场。开打时建，关窗/重开时整个销毁 —— 单位的属性、标签、冷却
-## 全挂在它下面的节点上，所以销毁就等于全清，不用写复原逻辑
-var _battle : BattleManager
+## 本场会话：创建/销毁 BattleManager、生成单位、稀有队列、复活重开
+var _session : BattleSession
+## 现在这一场；TestAPI 与快照沿用旧入口，实际由会话持有
+var _battle : BattleManager:
+	get:
+		return _session.battle if _session != null else null
 ## 事件总线的观察者；随这一场一起创建、一起丢弃
 var _telemetry_adapter : CombatTelemetryAdapter
 var _info_log_adapter : BattleLogAdapter
 var _console_log_adapter : CombatConsoleAdapter
-## 重开代次：角色倒下要等 3 秒，这期间玩家自己点了重开的话，那次等待作废
-var _run_id : int = 0
-## 测试接口：下一次刷怪强制使用这个 ID，刷出后清空
-var _test_monster_id : StringName = &""
-## 常规怪击杀计数；每满 RARE_SPAWN_EVERY_KILLS，排队一只稀有怪
-var _normal_kills : int = 0
-## 已排队、等下一拍刷出的稀有怪数量
-var _pending_rare_spawns : int = 0
 ## FPS 文本刷新计数
 var _fps_frames : int = 0
-## 这一场参战的魂灵（开打时从装备格里抓的，用来推扫描线）
-var _battle_souls : Array[SoulData] = []
-## 与 _battle_souls 同下标：魂灵在装备栏里的位置（左右/触发顺序用）
-var _battle_slots : Array[SoulSlot] = []
 ## 上一帧鼠标在不在本窗口里（用来判断"刚离开"这一下）
 var _mouse_was_inside : bool = false
 
@@ -76,6 +58,17 @@ func _ready() -> void:
 
 	# 关窗（标题栏 × 或主界面的切换按钮）＝ 这场战斗结束，下次打开回到初始状态
 	visibility_changed.connect(_on_visibility_changed)
+
+	# 会话负责战斗生命周期与生成逻辑；窗口只响应信号更新 UI
+	_session = BattleSession.new()
+	_session.name = "BattleSession"
+	add_child(_session)
+	_session.units_root = units_root
+	_session.map = ground_tilemaplayer
+	_session.attach_observers = _attach_battle_observers
+	_session.battle_started.connect(_on_battle_started)
+	_session.battle_ended.connect(_on_battle_ended)
+	_session.player_spawned.connect(_on_player_spawned)
 
 	if SHOW_DEBUG_DISTANCE:
 		for cell in ground_tilemaplayer.get_used_cells():
@@ -123,85 +116,39 @@ func _physics_process(_delta: float) -> void:
 
 # ▶：开打。跑起来之后这个按钮是「重开」，点了就把整场推倒重来
 # —— 开始和重开是同一件事：清场 + 重建
-func _start_battle() -> void:
-	_clear_battle()
-	_run_id += 1
-
-	_battle = BattleManager.new()
-	_battle.name = "BattleManager"
-	add_child(_battle)
-	_battle.map = ground_tilemaplayer
-	_battle.spawn_enemy = _spawn_enemy
-	_battle.loot_sink = Warehouse.add_item
-	_battle.setup()
-	_attach_battle_observers()
-
+func _start_battle(monster_id : StringName = &"") -> void:
 	InfoWindow.instance.clear_log()
-	_battle_slots = _equipped_souls()
-	_battle_souls.clear()
-	for slot in _battle_slots:
-		_battle_souls.append(slot.soul)
-	_battle.player = _spawn_player(_battle_slots)
-	CombatTelemetry.begin_run(_run_id, _battle, _battle.player.loadout)
-	CombatTelemetry.watch_unit(_battle.player)
-	_battle.start_battle()
-	# 立刻先来一只，不然点完还得对着空场等第一拍
-	_battle.spawn_one()
-	_set_scanlines(true)
-
-	start_button.text = "重开"
+	_session.start(_equipped_souls(), monster_id)
 
 
 ## 事件总线的观察者：遥测、战斗信息窗、控制台。
-## 必须在生成任何单位之前挂好，否则会漏掉 unit_asc_ready 与首批战斗事件。
-func _attach_battle_observers() -> void:
-	_telemetry_adapter = CombatTelemetryAdapter.new(_battle.events)
-	_info_log_adapter = BattleLogAdapter.new(_battle.events, InfoWindow.instance.append_line)
-	_console_log_adapter = CombatConsoleAdapter.new(_battle.events)
+## 会话在生成单位之前调用，保证不漏 unit_asc_ready 与首批战斗事件。
+func _attach_battle_observers(battle: BattleManager) -> void:
+	_telemetry_adapter = CombatTelemetryAdapter.new(battle.events)
+	_info_log_adapter = BattleLogAdapter.new(battle.events, InfoWindow.instance.append_line)
+	_console_log_adapter = CombatConsoleAdapter.new(battle.events)
 
 
-# 关窗＝这场战斗结束。下次打开窗口看到的，就是这一关的初始状态
-func _end_battle() -> void:
-	_run_id += 1  # 让"等 3 秒重开"作废
-	_clear_battle()
-	_set_scanlines(false)
-	start_button.text = "▷"
+func _on_battle_started(_battle_manager: BattleManager) -> void:
+	_set_scanlines(true)
+	start_button.text = "重开"
 
 
-func _clear_battle() -> void:
-	CombatTelemetry.end_run("clear")
+func _on_battle_ended() -> void:
 	_telemetry_adapter = null
 	_info_log_adapter = null
 	_console_log_adapter = null
-	_normal_kills = 0
-	_pending_rare_spawns = 0
 	player_health_bar.visible = false
 	player_regen_bar.visible = false
 	player_shield_bar.visible = false
 	player_burn_bar.visible = false
 	player_poison_bar.visible = false
-	SoulRuntimeDB.clear()
-	_battle_slots.clear()
-	for child in units_root.get_children():
-		if child is BattleUnit:
-			(child as BattleUnit).cleanup_asc()
-		child.queue_free()
-	if _battle:
-		_battle.queue_free()
-		_battle = null
+	_set_scanlines(false)
+	start_button.text = "▷"
 
 
-# 角色：站在战场中心，技能全部来自装备上的魂灵
-# 注意是"一颗魂灵一个技能"：同一颗魂灵装两把也要各算各的冷却，不能去重
-func _spawn_player(slots: Array[SoulSlot]) -> BattleUnit:
-	var passive_effects := SoulLoadout.collect_passive_effects(_battle_souls)
-
-	var unit := PLAYER_SCENE.instantiate() as BattleUnit
-	units_root.add_child(unit)
-	unit.setup_from_scene(_battle, passive_effects)
-	unit.set_cell(Vector2i.ZERO)
-	unit.died.connect(_on_player_died)
-	_battle.add_unit(unit)
+## 玩家生成后由窗口绑血条；会话不碰 UI
+func _on_player_spawned(unit: BattleUnit) -> void:
 	player_health_bar.bind(unit.health_attr, unit.max_health_attr, unit.asc)
 	player_health_bar.visible = true
 	player_regen_bar.bind(unit.asc.get_attribute("regen"), unit.asc)
@@ -209,73 +156,10 @@ func _spawn_player(slots: Array[SoulSlot]) -> BattleUnit:
 	player_burn_bar.bind(unit.asc.get_attribute("burn"), unit.asc)
 	player_poison_bar.bind(unit.asc.get_attribute("poison"), unit.asc)
 
-	# 魂灵 → 技能 + 运行期状态：和怪物走同一条 SoulLoadout 管线
-	unit.add_soul_abilities(_battle_souls, slots)
 
-	var granted := 0
-	for ability in unit.soul_loadout.abilities:
-		if ability != null:
-			granted += 1
-	if granted == 0:
-		_battle.log_line("没有装备主动魂灵 —— 角色不会任何技能", "yellow")
-
-	return unit
-
-
-# 怪物：场景只负责战斗表现，选哪只怪由刷怪规则决定
-func _spawn_enemy(cell: Vector2i) -> void:
-	var monster := _pick_monster_for_spawn()
-	if monster == null:
-		return
-	var unit := monster.battle_scene.instantiate() as BattleUnit
-	if unit == null:
-		push_warning("见闻：怪物场景根节点不是 BattleUnit")
-		return
-	unit.unit_name = monster.display_name
-	unit.max_health = monster.max_health
-	unit.attack_range = monster.attack_range
-	unit.move_speed = monster.move_speed
-	unit.drops = monster.drop_entries()
-	unit.souls = monster.soul_list()
-	var body := unit.get_node_or_null("Body") as Sprite2D
-	if body != null and monster.icon != null:
-		body.texture = monster.icon
-		body.region_enabled = false
-	units_root.add_child(unit)
-	unit.setup_from_scene(_battle)
-	unit.set_cell(cell)
-	# 同一格刷出来的怪加一点随机偏移，避免完全重叠；碰撞体负责其余的推开
-	unit.position += Vector2.from_angle(_battle.rng.randf() * TAU) * _battle.rng.randf_range(0.0, 12.0)
-	_battle.add_unit(unit)
-	unit.died.connect(_on_enemy_died.bind(monster))
-	CollectionDB.mark_monster_seen(monster)
-
-
-## 选怪优先级：测试强制 ID > 已排队的稀有怪 > 常规随机池
-func _pick_monster_for_spawn() -> MonsterData:
-	if not _test_monster_id.is_empty():
-		var forced := CollectionDB.get_monster(_test_monster_id)
-		_test_monster_id = &""
-		return forced
-	if _pending_rare_spawns > 0:
-		var rare := CollectionDB.pick_rare_monster()
-		if rare != null:
-			_pending_rare_spawns -= 1
-			return rare
-	return CollectionDB.pick_random_monster()
-
-
-## 常规怪死亡计数；每满阈值，把下一只刷怪换成稀有怪
-func _on_enemy_died(_unit: BattleUnit, monster: MonsterData) -> void:
-	if _battle == null or not _battle.is_running:
-		return
-	if monster == null or monster.is_rare or monster.spawn_weight <= 0.0:
-		return
-	_normal_kills += 1
-	if _normal_kills < RARE_SPAWN_EVERY_KILLS:
-		return
-	_normal_kills -= RARE_SPAWN_EVERY_KILLS
-	_pending_rare_spawns += 1
+# 关窗＝这场战斗结束。下次打开窗口看到的，就是这一关的初始状态
+func _end_battle() -> void:
+	_session.stop()
 
 
 ## 装备着的魂灵：魂灵窗口里那四个格子，每个其实是一个只收 SOUL 的小背包。
@@ -332,8 +216,10 @@ func _set_scanlines(on: bool) -> void:
 				runtime.soul.set_scanline_enabled(runtime.ability != null)
 		_push_scanlines()
 		return
-	# 关战/重开时 player 可能已经释放，按开战时的魂灵副本统一关掉
-	for soul in _battle_souls:
+	# 关战/重开时 player 可能已经释放，按本场魂灵副本统一关掉
+	if _session == null:
+		return
+	for soul in _session.souls:
 		if soul != null:
 			soul.set_scanline_enabled(false)
 	if player != null:
@@ -341,16 +227,6 @@ func _set_scanlines(on: bool) -> void:
 			if runtime != null:
 				runtime.clear_display()
 #endregion
-
-
-# 角色倒下：停一会儿，然后整场重来
-func _on_player_died(_unit: BattleUnit) -> void:
-	_battle.log_line("角色倒下了，%.0f 秒后重来……" % REVIVE_DELAY, "yellow")
-	var run_id := _run_id
-	await get_tree().create_timer(REVIVE_DELAY).timeout
-	if run_id != _run_id or not visible:
-		return
-	_start_battle()
 
 
 # ---------------------------------------------------------------- 界面
@@ -436,8 +312,7 @@ func _fps_color(fps : int) -> Color:
 
 ## 测试：开战；monster_id 非空时首只必刷该怪
 func start_battle_for_test(monster_id : StringName = &"") -> void:
-	_test_monster_id = monster_id
-	_start_battle()
+	_start_battle(monster_id)
 
 
 ## 测试：结束当前战斗
@@ -447,99 +322,26 @@ func stop_battle_for_test() -> void:
 
 ## 测试：立刻在远处空位刷一只指定怪物
 func spawn_monster_for_test(monster_id : StringName) -> bool:
-	if _battle == null or not _battle.is_running:
-		return false
-	if CollectionDB.get_monster(monster_id) == null:
-		return false
-	var before := _battle.units.size()
-	_test_monster_id = monster_id
-	_battle.spawn_one()
-	if _battle.units.size() > before:
-		return true
-	_test_monster_id = &""
-	return false
+	return _session.spawn_monster_for_test(monster_id)
 
 
 ## 测试：当前战斗快照；没有战斗时 running = false
 func get_test_state() -> Dictionary:
-	var state := {
-		"running": false,
-		"elapsed": 0.0,
-		"player": {},
-		"enemies": [],
-		"player_souls": [],
-		"normal_kills": _normal_kills,
-		"pending_rare_spawns": _pending_rare_spawns,
-	}
-	if _battle == null:
-		return state
-
-	state["running"] = _battle.is_running
-	state["elapsed"] = _battle.elapsed_seconds()
-	state["player"] = _unit_test_state(_battle.player)
-
-	var enemies : Array = []
-	for unit in _battle.units:
-		if unit != _battle.player:
-			enemies.append(_unit_test_state(unit))
-	state["enemies"] = enemies
-
-	var souls : Array = []
-	var player := _battle.player
-	if player != null and player.soul_loadout != null:
-		for runtime in player.soul_loadout.runtimes:
-			if runtime == null:
-				continue
-			var ability: ChargedAbility = runtime.ability
-			souls.append({
-				"name": runtime.display_name(),
-				"cooldown": ability.cooldown if ability != null else 0.0,
-				"charge_ratio": ability.charge_ratio() if ability != null else 0.0,
-				"charge_seconds": ability.charge_seconds() if ability != null else 0.0,
-				"haste": ability.haste_seconds() if ability != null else 0.0,
-				"slow": ability.slow_seconds() if ability != null else 0.0,
-				"freeze": ability.freeze_seconds() if ability != null else 0.0,
-				"frozen": ability.is_frozen() if ability != null else false,
-				"active": ability.is_active if ability != null else false,
-				"activation_lock": ability.activation_lock_seconds() if ability != null else 0.0,
-			})
-	state["player_souls"] = souls
-	return state
+	if _session == null:
+		return {
+			"running": false,
+			"elapsed": 0.0,
+			"player": {},
+			"enemies": [],
+			"player_souls": [],
+			"normal_kills": 0,
+			"pending_rare_spawns": 0,
+		}
+	return _session.get_state()
 
 
 ## 测试：战斗窗口右上角的 FPS 文本
 func get_fps_text_for_test() -> String:
 	return fps_label.text
-
-
-func _unit_test_state(unit : BattleUnit) -> Dictionary:
-	if unit == null:
-		return {}
-	var soul_names : Array[String] = []
-	for soul in unit.souls:
-		if soul != null:
-			soul_names.append(soul.item_name)
-	var regen_attr := unit.asc.get_attribute("regen") if unit.asc != null else null
-	var poison_attr := unit.asc.get_attribute("poison") if unit.asc != null else null
-	var distance_to_player := -1.0
-	var in_attack_range := false
-	if _battle != null and _battle.player != null:
-		distance_to_player = unit.distance_to_unit(_battle.player)
-		in_attack_range = unit.team == BattleUnit.Team.ENEMY and unit.is_in_attack_range(_battle.player)
-	return {
-		"name": unit.unit_name,
-		"hp": unit.health_attr.current_value if unit.health_attr != null else 0.0,
-		"max_hp": unit.max_health_attr.current_value if unit.max_health_attr != null else 0.0,
-		"shield": unit.shield_attr.current_value if unit.shield_attr != null else 0.0,
-		"regen": regen_attr.current_value if regen_attr != null else 0.0,
-		"poison": poison_attr.current_value if poison_attr != null else 0.0,
-		"dead": unit.is_dead,
-		"frozen": unit.asc.has_tag(GameplayTags.State_Frozen) if unit.asc != null else false,
-		"cell": [unit.cell.x, unit.cell.y],
-		"position": [unit.position.x, unit.position.y],
-		"distance_to_player": distance_to_player,
-		"in_attack_range": in_attack_range,
-		"souls": soul_names,
-	}
 
 #endregion

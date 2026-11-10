@@ -1,0 +1,276 @@
+## 一场战斗的会话：创建/销毁 BattleManager、生成玩家与怪物、稀有队列、复活重开。
+##
+## BattleWindow 只负责 UI：会话通过信号通知它什么时候该切按钮、绑血条、开关扫描线。
+## 场景节点、地图、观察者挂载都由窗口注入，避免会话反向依赖窗口。
+class_name BattleSession extends Node
+
+## 新一场开始（单位已生成、刷怪已启动）
+signal battle_started(battle: BattleManager)
+## 本场结束（清场完成，battle 已释放）
+signal battle_ended()
+## 玩家单位已生成；窗口用它绑血条
+signal player_spawned(unit: BattleUnit)
+
+## 角色倒下后多久重开一整场
+const REVIVE_DELAY: float = 3.0
+## 每击杀这么多只常规怪，下一只改用怪物数据里的 is_rare 标记
+const RARE_SPAWN_EVERY_KILLS: int = 10
+## 玩家单位：配置好的场景，开战时直接实例化
+const PLAYER_SCENE := preload("res://game/content/Player/player.tscn")
+
+## 单位节点容器（与地图同坐标系）
+var units_root: Node2D
+## 格子 → 像素换算用的地图
+var map: TileMapLayer
+## 观察者挂载回调，签名 func(battle: BattleManager)；必须在生成单位之前调用
+var attach_observers: Callable = Callable()
+
+## 当前场次；重开/关窗时自增，用来作废还没执行的复活等待
+var run_id: int = 0
+var battle: BattleManager
+## 本场装备的魂灵位置；关战后再开新场前一直保留
+var slots: Array[SoulSlot] = []
+## 与 slots 同下标的魂灵
+var souls: Array[SoulData] = []
+
+## 测试接口：下一次刷怪强制使用这个 ID，刷出后清空
+var _test_monster_id: StringName = &""
+## 常规怪击杀计数；每满 RARE_SPAWN_EVERY_KILLS，排队一只稀有怪
+var _normal_kills: int = 0
+## 已排队、等下一拍刷出的稀有怪数量
+var _pending_rare_spawns: int = 0
+
+
+## ▶ / 重开：清掉上一场，按给定槽位重新开一场。
+## test_monster_id 非空时首只必刷该怪（测试接口用）。
+func start(p_slots: Array[SoulSlot], test_monster_id: StringName = &"") -> void:
+	stop()
+	run_id += 1
+	_test_monster_id = test_monster_id
+	slots = p_slots
+	souls.clear()
+	for slot in slots:
+		souls.append(slot.soul)
+
+	battle = BattleManager.new()
+	battle.name = "BattleManager"
+	add_child(battle)
+	battle.map = map
+	battle.spawn_enemy = _spawn_enemy
+	battle.loot_sink = Warehouse.add_item
+	battle.setup()
+	if attach_observers.is_valid():
+		attach_observers.call(battle)
+
+	battle.player = _spawn_player()
+	player_spawned.emit(battle.player)
+	CombatTelemetry.begin_run(run_id, battle, battle.player.loadout)
+	CombatTelemetry.watch_unit(battle.player)
+	battle.start_battle()
+	# 立刻先来一只，不然点完还得对着空场等第一拍
+	battle.spawn_one()
+	battle_started.emit(battle)
+
+
+## 关窗/重开：作废复活等待，清掉所有单位和运行时状态
+func stop() -> void:
+	run_id += 1
+	CombatTelemetry.end_run("clear")
+	SoulRuntimeDB.clear()
+	for child in units_root.get_children():
+		if child is BattleUnit:
+			(child as BattleUnit).cleanup_asc()
+		child.queue_free()
+	if battle != null:
+		battle.queue_free()
+		battle = null
+	_normal_kills = 0
+	_pending_rare_spawns = 0
+	_test_monster_id = &""
+	battle_ended.emit()
+
+
+## 测试：立刻在远处空位刷一只指定怪物
+func spawn_monster_for_test(monster_id: StringName) -> bool:
+	if battle == null or not battle.is_running:
+		return false
+	if CollectionDB.get_monster(monster_id) == null:
+		return false
+	var before := battle.units.size()
+	_test_monster_id = monster_id
+	battle.spawn_one()
+	if battle.units.size() > before:
+		return true
+	_test_monster_id = &""
+	return false
+
+
+## 当前战斗快照；没有战斗时 running = false
+func get_state() -> Dictionary:
+	var state := {
+		"running": false,
+		"elapsed": 0.0,
+		"player": {},
+		"enemies": [],
+		"player_souls": [],
+		"normal_kills": _normal_kills,
+		"pending_rare_spawns": _pending_rare_spawns,
+	}
+	if battle == null:
+		return state
+
+	state["running"] = battle.is_running
+	state["elapsed"] = battle.elapsed_seconds()
+	state["player"] = _unit_state(battle.player)
+
+	var enemies : Array = []
+	for unit in battle.units:
+		if unit != battle.player:
+			enemies.append(_unit_state(unit))
+	state["enemies"] = enemies
+
+	var player_souls : Array = []
+	var player := battle.player
+	if player != null and player.soul_loadout != null:
+		for runtime in player.soul_loadout.runtimes:
+			if runtime == null:
+				continue
+			var ability: ChargedAbility = runtime.ability
+			player_souls.append({
+				"name": runtime.display_name(),
+				"cooldown": ability.cooldown if ability != null else 0.0,
+				"charge_ratio": ability.charge_ratio() if ability != null else 0.0,
+				"charge_seconds": ability.charge_seconds() if ability != null else 0.0,
+				"haste": ability.haste_seconds() if ability != null else 0.0,
+				"slow": ability.slow_seconds() if ability != null else 0.0,
+				"freeze": ability.freeze_seconds() if ability != null else 0.0,
+				"frozen": ability.is_frozen() if ability != null else false,
+				"active": ability.is_active if ability != null else false,
+				"activation_lock": ability.activation_lock_seconds() if ability != null else 0.0,
+			})
+	state["player_souls"] = player_souls
+	return state
+
+
+#region 生成
+## 角色：站在战场中心，技能全部来自装备上的魂灵
+## 注意是"一颗魂灵一个技能"：同一颗魂灵装两把也要各算各的冷却，不能去重
+func _spawn_player() -> BattleUnit:
+	var passive_effects := SoulLoadout.collect_passive_effects(souls)
+	var unit := PLAYER_SCENE.instantiate() as BattleUnit
+	units_root.add_child(unit)
+	unit.setup_from_scene(battle, passive_effects)
+	unit.set_cell(Vector2i.ZERO)
+	unit.died.connect(_on_player_died)
+	battle.add_unit(unit)
+
+	# 魂灵 → 技能 + 运行期状态：和怪物走同一条 SoulLoadout 管线
+	unit.add_soul_abilities(souls, slots)
+
+	var granted := 0
+	for ability in unit.soul_loadout.abilities:
+		if ability != null:
+			granted += 1
+	if granted == 0:
+		battle.log_line("没有装备主动魂灵 —— 角色不会任何技能", "yellow")
+	return unit
+
+
+## 怪物：场景只负责战斗表现，选哪只怪由刷怪规则决定
+func _spawn_enemy(cell: Vector2i) -> void:
+	var monster := _pick_monster_for_spawn()
+	if monster == null:
+		return
+	var unit := monster.battle_scene.instantiate() as BattleUnit
+	if unit == null:
+		push_warning("见闻：怪物场景根节点不是 BattleUnit")
+		return
+	unit.unit_name = monster.display_name
+	unit.max_health = monster.max_health
+	unit.attack_range = monster.attack_range
+	unit.move_speed = monster.move_speed
+	unit.drops = monster.drop_entries()
+	unit.souls = monster.soul_list()
+	var body := unit.get_node_or_null("Body") as Sprite2D
+	if body != null and monster.icon != null:
+		body.texture = monster.icon
+		body.region_enabled = false
+	units_root.add_child(unit)
+	unit.setup_from_scene(battle)
+	unit.set_cell(cell)
+	# 同一格刷出来的怪加一点随机偏移，避免完全重叠；碰撞体负责其余的推开
+	unit.position += Vector2.from_angle(battle.rng.randf() * TAU) * battle.rng.randf_range(0.0, 12.0)
+	battle.add_unit(unit)
+	unit.died.connect(_on_enemy_died.bind(monster))
+	CollectionDB.mark_monster_seen(monster)
+
+
+## 选怪优先级：测试强制 ID > 已排队的稀有怪 > 常规随机池
+func _pick_monster_for_spawn() -> MonsterData:
+	if not _test_monster_id.is_empty():
+		var forced := CollectionDB.get_monster(_test_monster_id)
+		_test_monster_id = &""
+		return forced
+	if _pending_rare_spawns > 0:
+		var rare := CollectionDB.pick_rare_monster()
+		if rare != null:
+			_pending_rare_spawns -= 1
+			return rare
+	return CollectionDB.pick_random_monster()
+
+
+## 常规怪死亡计数；每满阈值，把下一只刷怪换成稀有怪
+func _on_enemy_died(_unit: BattleUnit, monster: MonsterData) -> void:
+	if battle == null or not battle.is_running:
+		return
+	if monster == null or monster.is_rare or monster.spawn_weight <= 0.0:
+		return
+	_normal_kills += 1
+	if _normal_kills < RARE_SPAWN_EVERY_KILLS:
+		return
+	_normal_kills -= RARE_SPAWN_EVERY_KILLS
+	_pending_rare_spawns += 1
+#endregion
+
+
+## 角色倒下：停一会儿，然后整场重来；关窗/重开会让 run_id 变化，这次等待作废
+func _on_player_died(_unit: BattleUnit) -> void:
+	battle.log_line("角色倒下了，%.0f 秒后重来……" % REVIVE_DELAY, "yellow")
+	var current_run := run_id
+	var next_slots: Array[SoulSlot] = []
+	next_slots.append_array(slots)
+	await get_tree().create_timer(REVIVE_DELAY).timeout
+	if current_run != run_id:
+		return
+	start(next_slots)
+
+
+func _unit_state(unit: BattleUnit) -> Dictionary:
+	if unit == null:
+		return {}
+	var soul_names : Array[String] = []
+	for soul in unit.souls:
+		if soul != null:
+			soul_names.append(soul.item_name)
+	var regen_attr := unit.asc.get_attribute("regen") if unit.asc != null else null
+	var poison_attr := unit.asc.get_attribute("poison") if unit.asc != null else null
+	var distance_to_player := -1.0
+	var in_attack_range := false
+	if battle != null and battle.player != null:
+		distance_to_player = unit.distance_to_unit(battle.player)
+		in_attack_range = unit.team == BattleUnit.Team.ENEMY and unit.is_in_attack_range(battle.player)
+	return {
+		"name": unit.unit_name,
+		"hp": unit.health_attr.current_value if unit.health_attr != null else 0.0,
+		"max_hp": unit.max_health_attr.current_value if unit.max_health_attr != null else 0.0,
+		"shield": unit.shield_attr.current_value if unit.shield_attr != null else 0.0,
+		"regen": regen_attr.current_value if regen_attr != null else 0.0,
+		"poison": poison_attr.current_value if poison_attr != null else 0.0,
+		"dead": unit.is_dead,
+		"frozen": unit.asc.has_tag(GameplayTags.State_Frozen) if unit.asc != null else false,
+		"cell": [unit.cell.x, unit.cell.y],
+		"position": [unit.position.x, unit.position.y],
+		"distance_to_player": distance_to_player,
+		"in_attack_range": in_attack_range,
+		"souls": soul_names,
+	}

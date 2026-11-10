@@ -809,12 +809,6 @@ func _validate_execution_fields(mod: ModInfo, execution: Variant, owner: StringN
 		var shield := execution as ShieldExecution
 		if shield.base_shield < 0.0:
 			_mod_error(mod, "效果 %s 的 ShieldExecution.base_shield 不能为负：%s" % [owner, shield.base_shield])
-	elif execution is RegenFromBurnExecution:
-		var regen := execution as RegenFromBurnExecution
-		if regen.burn_effect == null:
-			_mod_error(mod, "效果 %s 的 RegenFromBurnExecution.burn_effect 不能为空" % owner)
-		elif not _effect_has_burn_apply(regen.burn_effect):
-			_mod_error(mod, "效果 %s 的 RegenFromBurnExecution.burn_effect 里没有 attribute_name=burn 的 StatusApplyExecution" % owner)
 
 
 func _validate_damage_execution(mod: ModInfo, damage: SoulDamageExecution, owner: StringName) -> void:
@@ -822,13 +816,6 @@ func _validate_damage_execution(mod: ModInfo, damage: SoulDamageExecution, owner
 		_mod_error(mod, "效果 %s 的伤害执行 base_damage 不能为负：%s" % [owner, damage.base_damage])
 	if damage.bonus_per_matching_soul < 0.0:
 		_mod_error(mod, "效果 %s 的伤害执行 bonus_per_matching_soul 不能为负：%s" % [owner, damage.bonus_per_matching_soul])
-
-
-func _effect_has_burn_apply(effect: GameplayEffect) -> bool:
-	for execution in effect.executions:
-		if execution is StatusApplyExecution and (execution as StatusApplyExecution).attribute_name == "burn":
-			return true
-	return false
 
 
 func _validate_tag(mod: ModInfo, tag: StringName, required_prefix: String, context: String) -> void:

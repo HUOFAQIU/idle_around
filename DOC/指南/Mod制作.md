@@ -184,4 +184,4 @@ user://mods/example_souls/
 - 内置 mod 只能 loose，不能把 `content.pck` 放进 `base_mods/`。
 - 导出：`include_filter` 必须包含 `base_mods/*/mod.json`；`exclude_filter` 用 `mods/*,modkit/*`，不要用 `*mods/*`。
 - 改完官方内容后跑 `modkit/validate_core_manifest.gd`，或调用 `TestAPI.validate_core_manifest()`，检查 manifest 是否漏登记、路径不存在和中文 `resource_name`。
-- 技能由 `SkillDefinition.steps` 组成；步骤类型、`target_rule` 与字段不一致（例如 `UnitSkillStep` 配 `SoulTargetRule`、`SoulSkillStep` 没有任何时长）会在 ModLoader 加载时报错。执行器字段也会校验：`StatusApplyExecution.attribute_name` 必须是 `burn/poison/regen`，伤害/治疗/护盾数值不能为负，`RegenFromBurnExecution.burn_effect` 必须能找到灼烧执行。校验失败的条目不会注册（不进入图鉴/刷怪池，mod 内容计数也不增加）；看 `ModLoader.get_errors()` 或 ModWindow。未知 manifest 字段、`content.*` 未知段只记 warning（`ModLoader.get_warnings()`），不阻止加载。
+- 技能由 `SkillDefinition.steps` 组成；步骤类型、`target_rule` 与字段不一致（例如 `UnitSkillStep` 配 `SoulTargetRule`、`SoulSkillStep` 没有任何时长）会在 ModLoader 加载时报错。执行器字段也会校验：`StatusApplyExecution.attribute_name` 必须是 `burn/poison/regen`，伤害/治疗/护盾数值不能为负。校验失败的条目不会注册（不进入图鉴/刷怪池，mod 内容计数也不增加）；看 `ModLoader.get_errors()` 或 ModWindow。未知 manifest 字段、`content.*` 未知段只记 warning（`ModLoader.get_warnings()`），不阻止加载。

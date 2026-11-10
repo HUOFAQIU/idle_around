@@ -20,8 +20,6 @@ static func effect_name(spec: GameplayEffectSpec) -> String:
 			var status_name := (execution as StatusApplyExecution).status_display_name()
 			if not status_name.is_empty():
 				return status_name
-		if execution is RegenFromBurnExecution:
-			return StatusText.display_name("regen")
 		if execution is HealExecution:
 			return "治疗"
 		if execution is ShieldExecution:

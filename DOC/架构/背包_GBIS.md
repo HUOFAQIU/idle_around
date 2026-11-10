@@ -1,6 +1,6 @@
 # 背包 / 仓库系统（GBIS）
 
-> 类型：实现 | 状态：有效 | 核对：2026-11-08
+> 类型：实现 | 状态：有效 | 核对：2026-11-09
 > 何时读：改背包/仓库/装备槽/容器、拖拽、商店容器、存档
 > 关键词：GBIS 背包 仓库 inventory container 物品大类 category 装备槽 拖拽 Tooltip 存档 分页 Warehouse 商店 Shop
 > 代码：Windows/Inventory/grid_base_inventory_system/、Scripts/warehouse.gd
@@ -42,7 +42,7 @@ core/
    ├─ container/InventoryView           背包视图（可配置类型/部位）
    ├─ container/BaseGridView            单个格子的绘制与悬停
    ├─ container/InventoryGridView       背包格子输入：左键拿/放、右键用、Shift+左键快移、Shift+右键快卖、中键分割
-   └─ item/ItemView                     物品图标 + 魂灵名称 Label + 堆叠数字 + shader 参数 + 魂灵加速/减速/冻结徽章
+   └─ item/ItemView                     物品图标 + 魂灵名称 Label + 堆叠数字 + shader 参数 + 魂灵加速/减速/冻结徽章（仅绑定运行期状态时创建）
 ```
 
 未接入的 `StackableData`、`ConsumableData`、`EquipmentData`、`EquipmentSlot*`、`DropAreaView` 见 7.8；商店见 7.7。
@@ -84,6 +84,8 @@ InventoryView._ready()
 - 仓库页由 `Warehouse` 预注册；`InventoryView._ready()` 再注册同名容器时 `regist()` 直接返回已有容器，不会重建数据。
 - 容器可见时会把名字加入 `GBIS.opened_containers`，不可见时移除；快速移动和快速出售只考虑打开着的容器。`_ready()` 用 `is_visible_in_tree()` 判断，隐藏窗口里的视图不会提前登记。
 - 仓库翻页调用 `InventoryView.change_data_source()`：清掉旧视图状态后重建当前页，并同步 `opened_containers`。
+- 显示时只有隐藏期间数据变过才重建：隐藏时的 `sig_inv_item_added/removed/updated` 只置 `_needs_refresh`，再次可见后统一 `refresh()`；没有变化时打开窗口不重建。`await process_frame` 之后若窗口又被关掉，本次不刷新，脏标记留到下次显示。
+- 不重建时走 `_on_shown_without_refresh()`，把现有 ItemView 按显示后的格子坐标重新摆放；隐藏阶段布局还没结算，ItemView 位置会停在容器原点，若只跳过重建不重摆，物品会全部叠在左上角。
 
 **添加物品**
 
@@ -95,8 +97,8 @@ GBIS.add_item(inv_name, item_data)
           → is_item_avilable()         （类型 + 部位检查）
           → 找第一个放得下的位置
       → sig_inv_item_added.emit()
-  → InventoryView._on_item_added()     （只处理自己的容器，且必须可见）
-  → 创建 ItemView
+  → InventoryView._on_item_added()     （只处理自己的容器；不可见时只置脏）
+  → 创建 ItemView                       （不可见时等下次显示统一重建）
 ```
 
 **拖拽物品**

@@ -69,18 +69,14 @@ func _init(data: ItemData, base_size: int, stack_num_font: Font = null, stack_nu
 		shader_material.set_shader_parameter("freeze_color", GameColors.to_color(GameColors.SOUL_FREEZE))
 	data.sig_refresh.connect(_on_data_refresh)
 
-## 入树后创建魂灵状态徽章，并尝试绑定战斗运行期状态
+## 入树后创建名称标签，并尝试绑定战斗运行期状态；徽章等真有运行期状态再建
 func _ready() -> void:
 	if data is SoulData:
 		_soul_name_label = _make_soul_name_label()
 		_refresh_soul_name_label()
-		_haste_badge = _make_status_badge(HASTE_BADGE_SCENE, "HasteBadge")
-		_slow_badge = _make_status_badge(SLOW_BADGE_SCENE, "SlowBadge")
-		_freeze_badge = _make_status_badge(FREEZE_BADGE_SCENE, "FreezeBadge")
 		SoulRuntimeDB.runtime_registered.connect(_on_runtime_registered)
 		SoulRuntimeDB.runtime_unregistered.connect(_on_runtime_unregistered)
 		_bind_runtime(SoulRuntimeDB.get_runtime(data as SoulData))
-		_refresh_status_badges()
 		_apply_freeze_shader()
 
 
@@ -159,6 +155,7 @@ func _bind_runtime(runtime: SoulRuntime) -> void:
 		_runtime.changed.disconnect(_on_runtime_changed)
 	_runtime = runtime
 	if _runtime != null:
+		_ensure_status_badges()
 		_runtime.changed.connect(_on_runtime_changed)
 	_set_progress_param(_runtime.scanline_progress if _runtime != null else 0.0)
 	_refresh_status_badges()
@@ -217,6 +214,18 @@ func _refresh_soul_name_label() -> void:
 	_soul_name_label.add_theme_font_size_override("font_size", font_size)
 	if _soul_name_label.text != data.item_name:
 		_soul_name_label.text = data.item_name
+
+
+## 状态徽章只在魂灵有运行期状态（装备/战斗中）时创建；仓库副本没有运行期状态，不建徽章
+func _ensure_status_badges() -> void:
+	if not data is SoulData:
+		return
+	if _haste_badge == null:
+		_haste_badge = _make_status_badge(HASTE_BADGE_SCENE, "HasteBadge")
+	if _slow_badge == null:
+		_slow_badge = _make_status_badge(SLOW_BADGE_SCENE, "SlowBadge")
+	if _freeze_badge == null:
+		_freeze_badge = _make_status_badge(FREEZE_BADGE_SCENE, "FreezeBadge")
 
 
 ## 实例化一个 Kits 徽章，尺寸固定 16×10，鼠标事件全部穿透

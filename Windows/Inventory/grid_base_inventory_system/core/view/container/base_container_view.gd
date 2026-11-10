@@ -119,13 +119,29 @@ func refresh() -> void:
 func find_item_view_by_grid(grid_id: Vector2i) -> ItemView:
 	return _grid_item_map.get(grid_id)
 
+## 显示时是否需要重建视图；默认每次显示都重建，子类可以只在数据变过时重建
+func _should_refresh_on_show() -> bool:
+	return true
+
+
+## 显示但不重建时调用；子类可以在这里做轻量同步（例如按显示后的布局重新摆放物品）
+func _on_shown_without_refresh() -> void:
+	pass
+
+
 func _on_visible_changed() -> void:
 	if is_visible_in_tree():
 		if not GBIS.opened_containers.has(container_name):
 			GBIS.opened_containers.append(container_name)
 		# 需要等待GirdContainer处理完成，否则其下的所有grid没有position信息
 		await get_tree().process_frame
-		refresh()
+		# 等待期间可能又被关掉；隐藏时重建没有意义
+		if not is_visible_in_tree():
+			return
+		if _should_refresh_on_show():
+			refresh()
+		else:
+			_on_shown_without_refresh()
 	else:
 		GBIS.opened_containers.erase(container_name)
 

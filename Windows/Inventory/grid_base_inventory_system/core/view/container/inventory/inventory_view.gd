@@ -8,6 +8,9 @@ class_name InventoryView
 ## 装备部位限制（NONE = 普通背包，不限制）
 @export_enum("NONE", "HEADSOUL", "TORSOSOUL", "ARMSSOUL", "LEGSSOUL") var equip_part: String = "NONE"
 
+## 隐藏期间容器数据变过；下次显示时才重建，避免每次打开都全量刷新
+var _needs_refresh: bool = false
+
 func grid_hover(grid_id: Vector2i) -> void:
 	_handle_grid_hover(grid_id, true)
  
@@ -88,6 +91,25 @@ func change_data_source(new_container_name: String) -> void:
 
 	call_deferred("refresh")
 
+
+## 重建后清掉脏标记；隐藏期间的增删改只置脏，等下次显示统一重建
+func refresh() -> void:
+	super()
+	_needs_refresh = false
+
+
+## 显示时只有隐藏期间数据变过才重建
+func _should_refresh_on_show() -> bool:
+	return _needs_refresh
+
+
+## 不重建时只把物品视图贴回格子：隐藏阶段布局还没结算，ItemView 位置可能停在容器原点
+func _on_shown_without_refresh() -> void:
+	for item in _items:
+		var grids: Array = _item_grids_map[item]
+		item.global_position = _grid_map[grids[0]].global_position
+
+
 ## 初始化
 func _ready() -> void:
 	if Engine.is_editor_hint():
@@ -150,6 +172,7 @@ func _on_item_added(inv_name:String, item_data: ItemData, grids: Array[Vector2i]
 	if not inv_name == container_name:
 		return
 	if not is_visible_in_tree():
+		_needs_refresh = true
 		return
 	
 	var item = _draw_item(item_data, grids[0])
@@ -164,6 +187,7 @@ func _on_item_removed(inv_name:String, item_data: ItemData) -> void:
 	if not inv_name == container_name:
 		return
 	if not is_visible_in_tree():
+		_needs_refresh = true
 		return
 	
 	for i in range(_items.size() - 1, -1, -1):
@@ -182,6 +206,7 @@ func _on_inv_item_updated(inv_name: String, grid_id: Vector2i) -> void:
 	if not inv_name == container_name:
 		return
 	if not is_visible_in_tree():
+		_needs_refresh = true
 		return
 	
 	_grid_item_map[grid_id].queue_redraw()

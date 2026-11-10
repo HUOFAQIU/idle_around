@@ -17,9 +17,8 @@ signal unit_moved(unit: BattleUnit, from_cell: Vector2i, to_cell: Vector2i)
 const SPAWN_INTERVAL : float = 1
 ## 只在距离角色至少这么多格的位置刷怪（距离正好等于该值也算）
 const SPAWN_MIN_DISTANCE : int = 5
-## 移动按实例 ID 分片：至少 6 片（10Hz），怪物越多分得越细，
-## 保证每帧大约只更新 MOVE_BUDGET_PER_FRAME 个移动体；速度按同样的倍数补偿。
-const MIN_MOVE_SLICES : int = 6
+## 移动按实例 ID 分片：每帧最多只驱动 MOVE_BUDGET_PER_FRAME 个移动体；
+## 怪物少时不分片（逐帧移动，视觉顺滑），多了才分片；速度按同样的倍数补偿。
 ## 每帧最多驱动多少个怪物的移动
 const MOVE_BUDGET_PER_FRAME : int = 200
 ## 空间索引的格子边长（像素）；只用于“附近有哪些单位”的查询
@@ -120,7 +119,7 @@ func _physics_process(delta: float) -> void:
 	if not is_running or player == null or player.is_dead:
 		return
 	var slices := maxi(
-		MIN_MOVE_SLICES,
+		1,
 		int(ceil(float(enemies.size()) / float(MOVE_BUDGET_PER_FRAME)))
 	)
 	_move_slice = (_move_slice + 1) % slices

@@ -667,12 +667,24 @@ func _validate_skill_steps(mod: ModInfo, soul: SoulData) -> void:
 			var unit_step := step as UnitSkillStep
 			if unit_step.target_rule == null or not unit_step.target_rule is TargetRule:
 				_mod_error(mod, "魂灵 %s 的第 %d 步 target_rule 必须是 TargetRule（UNIT）" % [soul.content_id, step_no])
+			elif unit_step.target_rule is TargetRule:
+				var unit_rule := unit_step.target_rule as TargetRule
+				if unit_rule.max_range < 0:
+					_mod_error(mod, "魂灵 %s 的第 %d 步 max_range 不能为负：%d" % [soul.content_id, step_no, unit_rule.max_range])
+				if unit_rule.count < 0:
+					_mod_error(mod, "魂灵 %s 的第 %d 步 count 不能为负：%d" % [soul.content_id, step_no, unit_rule.count])
 			if unit_step.effects.is_empty() and unit_step.projectile_scene == null:
 				_mod_error(mod, "魂灵 %s 的第 %d 步没有任何效果" % [soul.content_id, step_no])
+			if unit_step.status_magnitude < -1.0:
+				_mod_error(mod, "魂灵 %s 的第 %d 步 status_magnitude 不能小于 -1：%s" % [soul.content_id, step_no, unit_step.status_magnitude])
 		elif step is SoulSkillStep:
 			var soul_step := step as SoulSkillStep
 			if soul_step.target_rule == null or not soul_step.target_rule is SoulTargetRule:
 				_mod_error(mod, "魂灵 %s 的第 %d 步 target_rule 必须是 SoulTargetRule（SOUL）" % [soul.content_id, step_no])
+			elif soul_step.target_rule is SoulTargetRule:
+				var soul_rule := soul_step.target_rule as SoulTargetRule
+				if soul_rule.count < 0:
+					_mod_error(mod, "魂灵 %s 的第 %d 步 count 不能为负：%d" % [soul.content_id, step_no, soul_rule.count])
 			if (
 				soul_step.haste_duration <= 0.0
 				and soul_step.slow_duration <= 0.0
@@ -715,6 +727,7 @@ func _validate_effect_tags(mod: ModInfo, effect: GameplayEffect, owner: StringNa
 		_validate_tag(mod, tag, "Event.", "效果 %s 的 event_tags" % owner)
 
 	for execution in effect.executions:
+		_validate_execution_fields(mod, execution, owner)
 		if execution is SoulDamageExecution:
 			for type in (execution as SoulDamageExecution).matching_soul_types:
 				if not _is_soul_type(type):
@@ -722,6 +735,53 @@ func _validate_effect_tags(mod: ModInfo, effect: GameplayEffect, owner: StringNa
 	for overflow in effect.overflow_effects:
 		if overflow != null:
 			_validate_effect_tags(mod, overflow, owner)
+
+
+## 执行器字段校验：配错时运行期会静默无效果，尽量在加载期报出来。
+func _validate_execution_fields(mod: ModInfo, execution: Variant, owner: StringName) -> void:
+	if execution is StatusApplyExecution:
+		var status := execution as StatusApplyExecution
+		if not StatusText.NAMES.has(status.attribute_name):
+			_mod_error(mod, "效果 %s 的 StatusApplyExecution.attribute_name 不合法：%s（应为 burn / poison / regen）" % [owner, status.attribute_name])
+		if status.base_amount < 0.0:
+			_mod_error(mod, "效果 %s 的 StatusApplyExecution.base_amount 不能为负：%s" % [owner, status.base_amount])
+	elif execution is PoisonDamageExecution:
+		var poison := execution as PoisonDamageExecution
+		_validate_damage_execution(mod, poison, owner)
+		if poison.poison_ratio < 0.0 or poison.poison_ratio > 1.0:
+			_mod_error(mod, "效果 %s 的 PoisonDamageExecution.poison_ratio 必须在 0～1：%s" % [owner, poison.poison_ratio])
+	elif execution is SoulDamageExecution:
+		_validate_damage_execution(mod, execution as SoulDamageExecution, owner)
+	elif execution is HealExecution:
+		var heal := execution as HealExecution
+		if heal.base_heal < 0.0:
+			_mod_error(mod, "效果 %s 的 HealExecution.base_heal 不能为负：%s" % [owner, heal.base_heal])
+		if heal.cleanse_ratio < 0.0 or heal.cleanse_ratio > 1.0:
+			_mod_error(mod, "效果 %s 的 HealExecution.cleanse_ratio 必须在 0～1：%s" % [owner, heal.cleanse_ratio])
+	elif execution is ShieldExecution:
+		var shield := execution as ShieldExecution
+		if shield.base_shield < 0.0:
+			_mod_error(mod, "效果 %s 的 ShieldExecution.base_shield 不能为负：%s" % [owner, shield.base_shield])
+	elif execution is RegenFromBurnExecution:
+		var regen := execution as RegenFromBurnExecution
+		if regen.burn_effect == null:
+			_mod_error(mod, "效果 %s 的 RegenFromBurnExecution.burn_effect 不能为空" % owner)
+		elif not _effect_has_burn_apply(regen.burn_effect):
+			_mod_error(mod, "效果 %s 的 RegenFromBurnExecution.burn_effect 里没有 attribute_name=burn 的 StatusApplyExecution" % owner)
+
+
+func _validate_damage_execution(mod: ModInfo, damage: SoulDamageExecution, owner: StringName) -> void:
+	if damage.base_damage < 0.0:
+		_mod_error(mod, "效果 %s 的伤害执行 base_damage 不能为负：%s" % [owner, damage.base_damage])
+	if damage.bonus_per_matching_soul < 0.0:
+		_mod_error(mod, "效果 %s 的伤害执行 bonus_per_matching_soul 不能为负：%s" % [owner, damage.bonus_per_matching_soul])
+
+
+func _effect_has_burn_apply(effect: GameplayEffect) -> bool:
+	for execution in effect.executions:
+		if execution is StatusApplyExecution and (execution as StatusApplyExecution).attribute_name == "burn":
+			return true
+	return false
 
 
 func _validate_tag(mod: ModInfo, tag: StringName, required_prefix: String, context: String) -> void:

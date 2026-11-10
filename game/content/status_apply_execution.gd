@@ -1,7 +1,7 @@
 ## 通用异常状态施加。
 ##
-## 施加数值优先取触发器的 SetByCaller `Data.TriggerMagnitude`；
-## 没有时用 base_amount（主动技能使用），再乘释放时已经判定好的暴击倍率。
+## 施加数值优先取主动技能步骤的 `Data.SkillMagnitude`，其次触发器的
+## `Data.TriggerMagnitude`，最后用 base_amount，再乘释放时已经判定好的暴击倍率。
 ## 最终数值向下取整，和灼烧/剧毒的整数口径保持一致。
 class_name StatusApplyExecution extends GameplayExecutionCalculation
 
@@ -27,8 +27,11 @@ func resolve_amount(spec: GameplayEffectSpec) -> float:
 	var amount := base_amount
 	var multiplier := 1.0
 	if spec != null:
+		var skill_amount := spec.get_set_by_caller_magnitude(GameplayTags.Data_SkillMagnitude, -1.0)
 		var trigger_amount := spec.get_set_by_caller_magnitude(GameplayTags.Data_TriggerMagnitude, -1.0)
-		if trigger_amount >= 0.0:
+		if skill_amount >= 0.0:
+			amount = skill_amount
+		elif trigger_amount >= 0.0:
 			amount = trigger_amount
 		multiplier = CritResolution.multiplier(spec)
 

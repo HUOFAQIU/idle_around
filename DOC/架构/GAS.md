@@ -38,9 +38,9 @@
 | `Event.Health.BelowPercent` | 生命下降；`BattleUnit._check_health_triggers()` 发送 |
 | `Event.Combat.SoulUsed` | 魂灵成功激活；`AutoCastAbility._notify_soul_used()` 发送 |
 | `Event.Combat.FreezeApplied` | 单位被冻结；`BattleUnit.notify_freeze_applied()` 发送 |
-| `Data.TriggerMagnitude` / `Data.CritMultiplier` / `Data.SuppressStateLog` | 触发数值 / 暴击倍率 / 批量日志抑制的 SetByCaller 键 |
+| `Data.TriggerMagnitude` / `Data.SkillMagnitude` / `Data.CritMultiplier` / `Data.SuppressStateLog` | 触发数值 / 主动技能步骤数值 / 暴击倍率 / 批量日志抑制的 SetByCaller 键 |
 
-执行器统一通过 `CritResolution`（`game/content/crit_resolution.gd`）读取暴击倍率，并在暴击时注入 `Event.Combat.Critical`；SetByCaller 键统一使用自动生成的 `GameplayTags.Data_*`，不要手写字符串。
+执行器统一通过 `CritResolution`（`game/content/crit_resolution.gd`）读取暴击倍率，并在暴击时注入 `Event.Combat.Critical`；SetByCaller 键统一使用自动生成的 `GameplayTags.Data_*`，不要手写字符串。`StatusApplyExecution` 的数值优先级：`Data.SkillMagnitude` > `Data.TriggerMagnitude` > 效果资源 `base_amount`，再乘暴击倍率。
 
 GAS 属性：
 

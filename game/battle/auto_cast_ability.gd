@@ -338,9 +338,10 @@ func apply_effects(
 	effects: Array[GameplayEffect],
 	target: BattleUnit,
 	crit_multiplier: float,
-	trace: CombatTrace
+	trace: CombatTrace,
+	status_magnitude: float = -1.0
 ) -> void:
-	_apply_effect_list_to_target(effects, target, crit_multiplier, trace)
+	_apply_effect_list_to_target(effects, target, crit_multiplier, trace, status_magnitude)
 
 
 ## 在受击目标身上播放命中特效；方向按 step 自己的命中次数交替。
@@ -365,11 +366,12 @@ func _apply_effect_list_to_target(
 	effects: Array[GameplayEffect],
 	target: BattleUnit,
 	crit_multiplier: float,
-	trace: CombatTrace
+	trace: CombatTrace,
+	status_magnitude: float = -1.0
 ) -> void:
 	for effect in effects:
 		if effect != null:
-			_apply_effect_to_target(effect, target, crit_multiplier, trace)
+			_apply_effect_to_target(effect, target, crit_multiplier, trace, status_magnitude)
 
 
 ## 用当前目标建 spec，把暴击倍率注入给 SoulDamageExecution。
@@ -378,7 +380,8 @@ func _apply_effect_to_target(
 	effect: GameplayEffect,
 	target: BattleUnit,
 	crit_multiplier: float,
-	trace: CombatTrace
+	trace: CombatTrace,
+	status_magnitude: float = -1.0
 ) -> void:
 	if owner_asc == null or target == null or target.asc == null:
 		return
@@ -393,6 +396,8 @@ func _apply_effect_to_target(
 	spec.display_name = ability_name
 	# 异常状态的暴击在释放时已经结算进施加数值；后续每跳不再乘倍率。
 	spec.set_set_by_caller_magnitude(GameplayTags.Data_CritMultiplier, crit_multiplier)
+	if status_magnitude >= 0.0:
+		spec.set_set_by_caller_magnitude(GameplayTags.Data_SkillMagnitude, status_magnitude)
 	owner_asc.apply_effect_spec_to_target(spec, target.asc)
 	# 每冻住一个目标算一次冻结事件；全场任何单位的冻结触发器都会收到广播
 	if effect.granted_tags.has(GameplayTags.State_Frozen):

@@ -51,6 +51,7 @@ func refresh() -> void:
 			pending += 1
 		_add_mod_row(mod)
 	var error_count := ModLoader.get_errors().size()
+	var warning_count := ModLoader.get_warnings().size()
 
 	if mods.is_empty():
 		var empty := Label.new()
@@ -60,12 +61,14 @@ func refresh() -> void:
 		_list_box.add_child(empty)
 
 	_add_global_errors(mods)
+	_add_global_warnings(mods)
 	_rebuild_order()
-	_summary_label.text = "%d 个 mod · %d 个已加载 · %d 个被阻止 · %d 个错误" % [
+	_summary_label.text = "%d 个 mod · %d 个已加载 · %d 个被阻止 · %d 个错误 · %d 个警告" % [
 		mods.size(),
 		loaded,
 		blocked,
 		error_count,
+		warning_count,
 	]
 	_update_status(pending)
 
@@ -95,6 +98,7 @@ func get_test_state() -> Dictionary:
 		"order": order_ids,
 		"load_order": load_ids,
 		"errors": ModLoader.get_errors().size(),
+		"warnings": ModLoader.get_warnings().size(),
 		"summary": _summary_label.text if _summary_label != null else "",
 	}
 
@@ -294,6 +298,15 @@ func _add_mod_row(mod: Dictionary) -> void:
 		error_label.add_theme_color_override("font_color", GameColors.to_color(GameColors.DAMAGE))
 		row.add_child(error_label)
 
+	var mod_warnings: Array = mod.get("warnings", [])
+	for message in mod_warnings:
+		var warning_label := Label.new()
+		warning_label.text = "? " + String(message)
+		warning_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		warning_label.add_theme_font_size_override("font_size", 12)
+		warning_label.add_theme_color_override("font_color", GameColors.to_color(GameColors.WARNING))
+		row.add_child(warning_label)
+
 	_list_box.add_child(HSeparator.new())
 
 
@@ -320,6 +333,32 @@ func _add_global_errors(mods: Array[Dictionary]) -> void:
 		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		label.add_theme_font_size_override("font_size", 12)
 		label.add_theme_color_override("font_color", GameColors.to_color(GameColors.DAMAGE))
+		_list_box.add_child(label)
+
+
+func _add_global_warnings(mods: Array[Dictionary]) -> void:
+	var known: Dictionary[String, bool] = {}
+	for mod in mods:
+		for message in mod.get("warnings", []):
+			known[String(message)] = true
+	var leftovers: Array[String] = []
+	for message in ModLoader.get_warnings():
+		if not known.has(message):
+			leftovers.append(message)
+	if leftovers.is_empty():
+		return
+
+	var title := Label.new()
+	title.text = "加载器警告"
+	title.add_theme_font_size_override("font_size", 14)
+	title.add_theme_color_override("font_color", GameColors.to_color(GameColors.WARNING))
+	_list_box.add_child(title)
+	for message in leftovers:
+		var label := Label.new()
+		label.text = "? " + message
+		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		label.add_theme_font_size_override("font_size", 12)
+		label.add_theme_color_override("font_color", GameColors.to_color(GameColors.WARNING))
 		_list_box.add_child(label)
 
 
@@ -445,6 +484,9 @@ func _status_color(mod: Dictionary) -> Color:
 	var mod_errors: Array = mod.get("errors", [])
 	if bool(mod.get("blocked", false)) or not mod_errors.is_empty():
 		return GameColors.to_color(GameColors.DAMAGE)
+	var mod_warnings: Array = mod.get("warnings", [])
+	if not mod_warnings.is_empty():
+		return GameColors.to_color(GameColors.WARNING)
 	if _has_pending(mod):
 		return GameColors.to_color(GameColors.WARNING)
 	if not bool(mod.get("enabled", true)):

@@ -6,6 +6,12 @@ extends RefCounted
 
 const SUPPORTED_SCHEMA: int = 1
 const ID_PATTERN: String = "^[a-z][a-z0-9_]{2,63}$"
+## 已知顶层字段；出现其他字段时只警告，不阻止加载
+const KNOWN_KEYS: Array[String] = [
+	"schema", "id", "name", "version", "author", "description",
+	"game_version", "load_after", "dependencies", "content_namespace",
+	"content_root", "content", "overrides",
+]
 
 var id: StringName = &""
 var name: String = ""
@@ -26,6 +32,7 @@ var content_root: String = ""
 var content: Dictionary = {}
 var overrides: Array[String] = []
 var errors: Array[String] = []
+var warnings: Array[String] = []
 
 
 ## 读取并校验 mod.json；失败时 errors 里是原因
@@ -71,6 +78,9 @@ static func version_in_range(version: String, min_version: String, max_version: 
 
 
 func _apply(data: Dictionary) -> bool:
+	for key in data.keys():
+		if not KNOWN_KEYS.has(String(key)):
+			warnings.append("未知 manifest 字段：%s" % key)
 	var schema := int(data.get("schema", SUPPORTED_SCHEMA))
 	if schema != SUPPORTED_SCHEMA:
 		errors.append("manifest schema %d 不受支持（当前 %d）" % [schema, SUPPORTED_SCHEMA])

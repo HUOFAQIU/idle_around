@@ -1,6 +1,6 @@
 # AI 测试接口 TestAPI
 
-> 类型：指南 | 状态：有效 | 核对：2026-11-10
+> 类型：指南 | 状态：有效 | 核对：2026-11-11
 > 何时读：写自动化测试/探针、构造战斗或背包场景、验证新功能
 > 关键词：测试 TestAPI 探针 自动化 战斗快照 魂灵 仓库 见闻 商店 冷却 冻结 触发器 类型 标签 充能 卡面 tooltip 伤害缩放 多重触发 cast_times releases 颜色 色板 存档 save 爪痕 play_claw_cue mod ModLoader ModWindow 加载顺序 order mod_cue_registrar cue Cue 特效 manifest 创意工坊 内置 core content_id validate_core_manifest manifest 校验 技能 ID ability_tag 命名 窗口置顶 T Settings.cfg window_id
 > 代码：`Scripts/test_api.gd`、`Windows/Battle/battle_window.gd`、`Scripts/collection_db.gd`、`Scripts/save/`、`Scripts/mod/`、`base_mods/core/mod.json`
@@ -98,8 +98,9 @@ TestAPI.delete_save()
 
 | 方法 | 说明 |
 |---|---|
-| `get_mod_list() -> Array[Dictionary]` | 已发现 mod 的概况：`id`、`name`、`version`、`author`、`description`、`source`（`builtin`/`local`）、`builtin`、`locked`、`enabled`、`blocked`、`loaded`、`mounted`、`load_index`、内容数量和错误 |
+| `get_mod_list() -> Array[Dictionary]` | 已发现 mod 的概况：`id`、`name`、`version`、`author`、`description`、`source`（`builtin`/`local`）、`builtin`、`locked`、`enabled`、`blocked`、`loaded`、`mounted`、`load_index`、内容数量、错误和警告 |
 | `get_mod_errors() -> Array[String]` | `ModLoader` 的错误汇总；加载失败/ID 冲突/依赖缺失/Cue 注册失败都看这里 |
+| `get_mod_warnings() -> Array[String]` | 不阻止加载的诊断：未知 manifest 字段、技能 ID 冲突等 |
 | `is_builtin_mod(id) -> bool` | 某个 mod 是否为内置 mod（core） |
 | `get_mod_content_ids(id) -> Dictionary` | 某个 mod 注册的 `souls` / `monsters` / `cues` ID 列表 |
 | `validate_core_manifest() -> Array[String]` | 校验 `base_mods/core/mod.json` 与 `souls/`、`monsters/`、`cues/` 文件是否一一对应；空数组表示通过 |
@@ -116,6 +117,7 @@ TestAPI.delete_save()
 ```gdscript
 print(TestAPI.get_mod_list())
 print(TestAPI.get_mod_errors())
+print(TestAPI.get_mod_warnings())
 print(TestAPI.is_builtin_mod(&"core"))
 print(TestAPI.get_mod_content_ids(&"core"))  # souls 20 / monsters 2 / cues 5
 print(TestAPI.validate_core_manifest())

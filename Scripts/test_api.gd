@@ -409,6 +409,11 @@ static func get_mod_errors() -> Array[String]:
 	return ModLoader.get_errors()
 
 
+## 不阻止加载的 mod 诊断（未知 manifest 字段、技能 ID 冲突等）
+static func get_mod_warnings() -> Array[String]:
+	return ModLoader.get_warnings()
+
+
 ## 某个 mod 是否为内置 mod（core）
 static func is_builtin_mod(mod_id : StringName) -> bool:
 	var mod := ModLoader.get_mod(mod_id)

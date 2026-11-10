@@ -6,7 +6,7 @@
 > 代码：`Scripts/mod/`、`Scripts/collection_db.gd`、`Scripts/save/`、`project.godot`、`base_mods/core/mod.json`
 > 相关：`架构/存档.md`、`架构/扩展点.md`、`指南/Mod制作.md`
 > 不覆盖：Steamworks 后台配置、GodotSteam 完整 API
-> 核对：2026-11-10
+> 核对：2026-11-11
 
 ## 1. 目标与边界
 
@@ -79,7 +79,8 @@ SaveManager
 - `ModLoader` 与 `CoreContentValidator` 都按这张表遍历；新增一种内容只需改规格表 + `ModLoader` 的类型注册分支。
 - 同一资源路径登记到两个内容 ID 会报错，避免共享资源被后一个 ID 改写 `content_id`。
 - 语义校验失败（魂灵词表/标签、技能步骤、怪物配置、executor 字段等）的条目不会注册：不写入 ID 表、不进入 `CollectionDB`/刷怪池，mod 的内容计数也不增加。
-- manifest 里出现规格表之外的 `content.*` 段会 `push_warning`，不再静默忽略。
+- manifest 里出现规格表之外的 `content.*` 段、或任何未知顶层字段，都会记为 warning（`ModLoader.get_warnings()` / ModWindow 黄色行），不阻止加载。
+- 技能 ID 冲突等“能加载但有隐患”的情况也走 warning 通道；`get_errors()` 只保留阻止加载的错误。
 
 ## 5. Mod 来源与包结构
 

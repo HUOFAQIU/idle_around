@@ -46,6 +46,8 @@ var _content_paths: Dictionary[String, StringName] = {}
 ## override 路径 -> 声明它的 mod
 var _overrides: Dictionary[String, StringName] = {}
 var _errors: Array[String] = []
+## 不阻止加载的诊断（未知字段、技能 ID 冲突等）
+var _warnings: Array[String] = []
 ## 同一个效果可能被多颗魂灵引用，只校验一次
 var _validated_effect_ids: Dictionary = {}
 var _config := ConfigFile.new()
@@ -61,6 +63,8 @@ func _init() -> void:
 	_sort_mods()
 	_mount_and_load()
 	for message in _errors:
+		push_warning("ModLoader: " + message)
+	for message in _warnings:
 		push_warning("ModLoader: " + message)
 
 
@@ -95,6 +99,11 @@ func get_cue_entries() -> Array[ModContentEntry]:
 
 func get_errors() -> Array[String]:
 	return _errors.duplicate()
+
+
+## 不阻止加载的诊断（未知字段、技能 ID 冲突等）
+func get_warnings() -> Array[String]:
+	return _warnings.duplicate()
 
 
 ## 本次实际加载顺序（只含已启用且未被阻止的 mod）
@@ -146,9 +155,9 @@ func set_mod_order(ids: Array[StringName]) -> bool:
 	return true
 
 
-## 供内容合并阶段补充诊断（例如技能 ID 冲突）；会立即写 warning
+## 供内容合并阶段补充诊断（例如技能 ID 冲突）；不阻止加载
 func report_warning(message: String) -> void:
-	_errors.append(message)
+	_warnings.append(message)
 	push_warning("ModLoader: " + message)
 
 
@@ -174,6 +183,7 @@ func get_mod_list() -> Array[Dictionary]:
 			"monsters": mod.monster_count,
 			"cues": mod.cue_count,
 			"errors": mod.errors.duplicate(),
+			"warnings": mod.warnings.duplicate(),
 		})
 	return result
 
@@ -325,6 +335,10 @@ func _discover_mod_folder(folder: String, source: ModInfo.Source) -> void:
 	mod.manifest_path = manifest_path
 	mod.manifest = manifest
 	mod.enabled = true if source == ModInfo.Source.BUILTIN else _is_enabled(manifest.id)
+	for message in manifest.warnings:
+		var warning := "%s: %s" % [manifest.id, message]
+		mod.warnings.append(warning)
+		_warnings.append(warning)
 
 	var pack_path := folder.path_join(PACK_FILE)
 	if FileAccess.file_exists(pack_path):

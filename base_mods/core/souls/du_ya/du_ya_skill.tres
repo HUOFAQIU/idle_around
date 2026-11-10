@@ -1,13 +1,15 @@
-[gd_resource type="Resource" script_class="UnitSkillDefinition" format=3 uid="uid://bbc13ls5ov51o"]
+[gd_resource type="Resource" script_class="SkillDefinition" format=3 uid="uid://bbc13ls5ov51o"]
 
 [ext_resource type="Script" uid="uid://b7ovihaaijli7" path="res://addons/GodotGAS/effects/gameplay_execution_calculation.gd" id="1_exec_base"]
 [ext_resource type="Script" uid="uid://c81papidngxvg" path="res://addons/GodotGAS/effects/gameplay_effect.gd" id="2_effect"]
 [ext_resource type="Script" uid="uid://bcow77l0bnh0s" path="res://addons/GodotGAS/effects/gameplay_effect_modifier.gd" id="2_mfyci"]
-[ext_resource type="Script" uid="uid://c7bgnw6fvruto" path="res://game/content/unit_skill_definition.gd" id="3_skill"]
+[ext_resource type="Script" uid="uid://ktr72cmavmyy" path="res://game/content/skill_definition.gd" id="3_skill"]
 [ext_resource type="Script" uid="uid://cf2mx3u4jfquk" path="res://game/content/target_rule.gd" id="4_rule"]
 [ext_resource type="Script" uid="uid://bygmfist4u0x3" path="res://game/content/poison_damage_execution.gd" id="5_poison_damage"]
 [ext_resource type="Resource" uid="uid://eiwxffuc188x" path="res://base_mods/core/effects/poison_tick.tres" id="6_poison_tick"]
 
+[ext_resource type="Script" uid="uid://y8prij0xt0cx" path="res://game/content/skill_step.gd" id="skill_step_base"]
+[ext_resource type="Script" uid="uid://b7f1jf76sinhf" path="res://game/content/unit_skill_step.gd" id="skill_step_unit"]
 [sub_resource type="Resource" id="Resource_execution_poison_damage"]
 script = ExtResource("5_poison_damage")
 poison_ratio = 0.1
@@ -22,11 +24,16 @@ script = ExtResource("4_rule")
 mode = 3
 max_range = 1
 
+
+[sub_resource type="Resource" id="Resource_skill_step"]
+script = ExtResource("skill_step_unit")
+effects = Array[ExtResource("2_effect")]([SubResource("Resource_effect_poison_damage"), ExtResource("6_poison_tick")])
+target_rule = SubResource("Resource_target_rule")
+
 [resource]
 script = ExtResource("3_skill")
 id = "DuYa"
 description = "冷却 3 秒，对 1 格内最近的目标造成 5 点伤害，并施加相当于伤害 10% 的剧毒（最少 1 点）。"
-effects = Array[ExtResource("2_effect")]([SubResource("Resource_effect_poison_damage"), ExtResource("6_poison_tick")])
 cooldown_seconds = 3.0
-target_rule = SubResource("Resource_target_rule")
-metadata/_custom_type_script = "uid://c7bgnw6fvruto"
+steps = Array[ExtResource("skill_step_base")]([SubResource("Resource_skill_step")])
+metadata/_custom_type_script = "uid://ktr72cmavmyy"

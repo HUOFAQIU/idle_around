@@ -50,7 +50,8 @@ TestAPI.stop_battle()
 | `get_soul_tags(id) -> Array[StringName]` | 魂灵见闻标签，如 `Soul.tags.Small`、`Soul.tags.Burn` |
 | `get_skill_tags() -> Array[Dictionary]` | 所有魂灵的 `content_id`、技能 ID 和 `ability_tag`，用于核对技能命名规范 |
 | `get_soul_card_info(id) -> Dictionary` | 魂灵卡面：`icon` 路径、`columns`/`rows`、`label` 名称文本 |
-| `get_soul_damage_scaling(id) -> Dictionary` | 直接伤害的 `base_damage` / `bonus_per_matching_soul` / `matching_soul_types` |
+| `get_soul_damage_scaling(id) -> Dictionary` | 从所有 `UnitSkillStep` 里找第一个直接伤害的 `base_damage` / `bonus_per_matching_soul` / `matching_soul_types` |
+| `get_soul_steps(id) -> Array[Dictionary]` | 技能步骤：`index` / `type` / `domain` / `target_rule` / 效果数量 / 状态时长 |
 | `get_soul_cast_times(id) -> int` | 魂灵技能的多重触发次数；未知魂灵或无技能返回 `0` |
 | `get_soul_tooltip_text(id) -> String` | 魂灵 tooltip 完整纯文本；第一行是标题，后面是正文（格式见 `魂灵/魂灵.md`） |
 | `get_soul_tooltip_bbcode(id) -> String` | 魂灵 tooltip 的 BBCode 文本；正文状态词带颜色标签，用于验证上色 |

@@ -242,21 +242,56 @@ static func get_soul_damage_scaling(id : StringName) -> Dictionary:
 	var soul := CollectionDB.get_soul(id)
 	if soul == null or soul.skill == null:
 		return {}
-	var unit_skill := soul.skill as UnitSkillDefinition
-	if unit_skill == null:
-		return {}
-	for effect in unit_skill.effects:
-		if effect == null:
+	for step in soul.skill.steps:
+		if not step is UnitSkillStep:
 			continue
-		for execution in effect.executions:
-			if execution is SoulDamageExecution:
-				var damage := execution as SoulDamageExecution
-				return {
-					"base_damage": damage.base_damage,
-					"bonus_per_matching_soul": damage.bonus_per_matching_soul,
-					"matching_soul_types": damage.matching_soul_types.duplicate(),
-				}
+		for effect in (step as UnitSkillStep).effects:
+			if effect == null:
+				continue
+			for execution in effect.executions:
+				if execution is SoulDamageExecution:
+					var damage := execution as SoulDamageExecution
+					return {
+						"base_damage": damage.base_damage,
+						"bonus_per_matching_soul": damage.bonus_per_matching_soul,
+						"matching_soul_types": damage.matching_soul_types.duplicate(),
+					}
 	return {}
+
+
+## 技能步骤概况：类型、domain、目标规则、效果数量；用于验证多步骤技能
+static func get_soul_steps(id : StringName) -> Array[Dictionary]:
+	var soul := CollectionDB.get_soul(id)
+	if soul == null or soul.skill == null:
+		return []
+	var result: Array[Dictionary] = []
+	for index in soul.skill.steps.size():
+		var step := soul.skill.steps[index]
+		var info := {"index": index, "type": "unknown", "domain": ""}
+		var rule_path := ""
+		if step is UnitSkillStep:
+			var unit_step := step as UnitSkillStep
+			if unit_step.target_rule != null and unit_step.target_rule.get_script() != null:
+				rule_path = unit_step.target_rule.get_script().resource_path
+			info["type"] = "unit"
+			info["domain"] = "UNIT" if unit_step.target_rule != null else ""
+			info["target_rule"] = rule_path
+			info["effect_count"] = unit_step.effects.size()
+			info["projectile"] = unit_step.projectile_scene != null
+			info["hit_cue_tag"] = String(unit_step.hit_cue_tag)
+		elif step is SoulSkillStep:
+			var soul_step := step as SoulSkillStep
+			if soul_step.target_rule != null and soul_step.target_rule.get_script() != null:
+				rule_path = soul_step.target_rule.get_script().resource_path
+			info["type"] = "soul"
+			info["domain"] = "SOUL" if soul_step.target_rule != null else ""
+			info["target_rule"] = rule_path
+			info["haste_duration"] = soul_step.haste_duration
+			info["slow_duration"] = soul_step.slow_duration
+			info["freeze_duration"] = soul_step.freeze_duration
+			info["charge_duration"] = soul_step.charge_duration
+		result.append(info)
+	return result
 
 
 ## 魂灵技能的多重触发次数；未知魂灵或没有技能返回 0

@@ -1,6 +1,6 @@
 # 给游戏加特效（GameplayCue）
 
-> 类型：指南 | 状态：有效 | 整理：2026-11-08
+> 类型：指南 | 状态：有效 | 整理：2026-11-10
 > 何时读：新增/调试 GameplayCue 特效
 > 关键词：特效 GameplayCue Cue 场景 对象池 补间 注册 挂钩 灼烧 剧毒 冻结 恐狼 爪痕 hit_cue_tag 命中特效 mod 内置 core manifest
 > 代码：`base_mods/core/mod.json`、`godot_gas/cue_registry.tres`、`addons/GodotGAS/cues/`、`Scripts/mod/mod_cue_registrar.gd`
@@ -117,7 +117,7 @@ func execute_cue(target: Node, payload: Dictionary = {}) -> void:
 	super.execute_cue(target, payload)         # 父类会接着调 play_cue()
 ```
 
-技能数据也可以直接挂命中特效：`SkillDefinition.hit_cue_tag` 填标签后，`AutoCastAbility` 每次结算到目标身上都会调用 `target.asc.execute_cue()`，并带上 `{"direction": ±1.0}`。这一击会打死目标时，单位会被 `BattleManager` 当场 `queue_free()`，挂在它身下的 Cue 来不及画出来，所以改挂到战场单位层并带上 `{"position": 世界坐标}`，让特效留在怪物最后的位置。恐狼用它做两段伤害的左右交替爪痕：方向按每颗魂灵自己的命中次数交替，打空不消耗次数。cue 要读方向和位置时同样重写 `execute_cue()` 接住 payload。
+技能数据也可以直接挂命中特效：`UnitSkillStep.hit_cue_tag` 填标签后，`AutoCastAbility` 每次结算到目标身上都会调用 `target.asc.execute_cue()`，并带上 `{"direction": ±1.0}`。这一击会打死目标时，单位会被 `BattleManager` 当场 `queue_free()`，挂在它身下的 Cue 来不及画出来，所以改挂到战场单位层并带上 `{"position": 世界坐标}`，让特效留在怪物最后的位置。恐狼用它做两段伤害的左右交替爪痕：方向按每颗魂灵自己的命中次数交替，打空不消耗次数。cue 要读方向和位置时同样重写 `execute_cue()` 接住 payload。
 
 ---
 

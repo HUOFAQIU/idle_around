@@ -80,11 +80,17 @@ static func _part_line(soul: SoulData) -> String:
 	return "{ %s }" % SoulText.part_name(soul.equip_part)
 
 
-## 攻击距离取目标规则的格数；魂灵目标规则按 0 显示
+## 攻击距离取所有单位步骤里的最大格数；魂灵步骤按 0 算
 static func _attack_range(skill: SkillDefinition) -> int:
-	if skill == null or skill.target_rule == null:
+	if skill == null:
 		return 0
-	return skill.target_rule.max_range_cells()
+	var max_range := 0
+	for step in skill.steps:
+		if step is UnitSkillStep:
+			var unit_step := step as UnitSkillStep
+			if unit_step.target_rule != null:
+				max_range = maxi(max_range, unit_step.target_rule.max_range_cells())
+	return max_range
 
 
 static func _crit_chance(skill: SkillDefinition) -> float:

@@ -32,12 +32,11 @@ class_name SkillDefinition extends Resource
 @export_range(0.0, 1.0, 0.01) var crit_chance: float = 0.0
 @export var crit_multiplier: float = 1.5
 
-## 目标选择规则；具体字段由子类决定：
-##   UnitSkillDefinition 使用 effects / projectile_scene
-##   SoulSkillDefinition 使用 haste/slow/freeze/charge 时长
-@export var target_rule: TargetRuleBase
+## 释放步骤；按数组顺序执行。
+## 每一步自己决定目标域（单位/魂灵）、目标规则和效果。
+@export var steps: Array[SkillStep] = []
 
-## 吟唱时间（秒）；0 = 瞬发。吟唱结束会重新选目标，避免对着尸体放大。
+## 吟唱时间（秒）；0 = 瞬发。吟唱结束才执行 steps，避免对着尸体放大。
 @export_range(0.0, 10.0, 0.1) var cast_time: float = 0.0
 
 ## 施法条件：身上必须同时持有这些标签才能放（例如"只在受伤时治疗"）。

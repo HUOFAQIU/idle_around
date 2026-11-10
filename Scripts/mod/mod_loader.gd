@@ -478,7 +478,7 @@ func _load_content_entry(
 			_normalize_skill_id(mod, soul)
 			_validate_soul_vocabulary(mod, soul)
 			_validate_soul_tags(mod, soul)
-			_validate_skill_target_rule(mod, soul)
+			_validate_skill_steps(mod, soul)
 			_soul_ids[content_id] = true
 			_soul_entries.append(_make_entry(kind, mod, content_id, path, resource))
 			mod.soul_count += 1
@@ -630,15 +630,16 @@ func _is_soul_tag(value: StringName) -> bool:
 func _validate_soul_tags(mod: ModInfo, soul: SoulData) -> void:
 	var skill := soul.skill
 	if skill != null:
-		var unit_skill := skill as UnitSkillDefinition
-		if unit_skill != null:
-			_validate_tag(mod, unit_skill.hit_cue_tag, "Cue.", "魂灵 %s 的 hit_cue_tag" % soul.content_id)
-			_validate_effects(mod, unit_skill.effects, soul.content_id)
 		for tag in skill.cast_require_all_tags:
 			_validate_tag(mod, tag, "", "魂灵 %s 的 cast_require_all_tags" % soul.content_id)
 		for tag in skill.cast_block_tags:
 			_validate_tag(mod, tag, "", "魂灵 %s 的 cast_block_tags" % soul.content_id)
 		_validate_effects(mod, skill.self_effects, soul.content_id)
+		for step in skill.steps:
+			var unit_step := step as UnitSkillStep
+			if unit_step != null:
+				_validate_tag(mod, unit_step.hit_cue_tag, "Cue.", "魂灵 %s 的 hit_cue_tag" % soul.content_id)
+				_validate_effects(mod, unit_step.effects, soul.content_id)
 	if soul is PassiveSoulData:
 		_validate_effects(mod, (soul as PassiveSoulData).passive_effects, soul.content_id)
 	for trigger in soul.triggers:
@@ -648,39 +649,42 @@ func _validate_soul_tags(mod: ModInfo, soul: SoulData) -> void:
 		_validate_effects(mod, trigger.effects, soul.content_id)
 
 
-## 技能子类、目标规则与 domain 必须一致；否则运行期会走错分支或没有任何效果。
-func _validate_skill_target_rule(mod: ModInfo, soul: SoulData) -> void:
+## 步骤类型、目标规则与字段必须一致；否则运行期会走错分支或没有任何效果。
+func _validate_skill_steps(mod: ModInfo, soul: SoulData) -> void:
 	var skill := soul.skill
 	if skill == null:
 		return
-	var rule := skill.target_rule
-	if rule == null:
-		_mod_error(mod, "魂灵 %s 的技能缺少 target_rule" % soul.content_id)
+	if skill.steps.is_empty() and skill.self_effects.is_empty():
+		_mod_error(mod, "魂灵 %s 的技能没有任何步骤或自身效果" % soul.content_id)
 		return
-	var rule_type := "unknown"
-	if rule.get_script() != null:
-		rule_type = rule.get_script().resource_path
-
-	if skill is UnitSkillDefinition:
-		if not rule is TargetRule or rule.domain() != TargetRuleBase.Domain.UNIT:
-			_mod_error(mod, "魂灵 %s 是 UnitSkillDefinition，target_rule 必须是 TargetRule（UNIT）：%s" % [soul.content_id, rule_type])
-		return
-
-	if skill is SoulSkillDefinition:
-		if not rule is SoulTargetRule or rule.domain() != TargetRuleBase.Domain.SOUL:
-			_mod_error(mod, "魂灵 %s 是 SoulSkillDefinition，target_rule 必须是 SoulTargetRule（SOUL）：%s" % [soul.content_id, rule_type])
-			return
-		var soul_skill := skill as SoulSkillDefinition
-		if (
-			soul_skill.haste_duration <= 0.0
-			and soul_skill.slow_duration <= 0.0
-			and soul_skill.freeze_duration <= 0.0
-			and soul_skill.charge_duration <= 0.0
-		):
-			_mod_error(mod, "魂灵 %s 的魂灵目标技能没有任何状态时长" % soul.content_id)
-		return
-
-	_mod_error(mod, "魂灵 %s 的技能必须是 UnitSkillDefinition 或 SoulSkillDefinition：%s" % [soul.content_id, skill.resource_path])
+	for index in skill.steps.size():
+		var step := skill.steps[index]
+		var step_no := index + 1
+		if step == null:
+			_mod_error(mod, "魂灵 %s 的第 %d 个技能步骤为空" % [soul.content_id, step_no])
+			continue
+		if step is UnitSkillStep:
+			var unit_step := step as UnitSkillStep
+			if unit_step.target_rule == null or not unit_step.target_rule is TargetRule:
+				_mod_error(mod, "魂灵 %s 的第 %d 步 target_rule 必须是 TargetRule（UNIT）" % [soul.content_id, step_no])
+			if unit_step.effects.is_empty() and unit_step.projectile_scene == null:
+				_mod_error(mod, "魂灵 %s 的第 %d 步没有任何效果" % [soul.content_id, step_no])
+		elif step is SoulSkillStep:
+			var soul_step := step as SoulSkillStep
+			if soul_step.target_rule == null or not soul_step.target_rule is SoulTargetRule:
+				_mod_error(mod, "魂灵 %s 的第 %d 步 target_rule 必须是 SoulTargetRule（SOUL）" % [soul.content_id, step_no])
+			if (
+				soul_step.haste_duration <= 0.0
+				and soul_step.slow_duration <= 0.0
+				and soul_step.freeze_duration <= 0.0
+				and soul_step.charge_duration <= 0.0
+			):
+				_mod_error(mod, "魂灵 %s 的第 %d 步没有任何状态时长" % [soul.content_id, step_no])
+		else:
+			var step_path := ""
+			if step.get_script() != null:
+				step_path = step.get_script().resource_path
+			_mod_error(mod, "魂灵 %s 的第 %d 步类型未知：%s" % [soul.content_id, step_no, step_path])
 
 
 func _validate_effects(mod: ModInfo, effects: Array[GameplayEffect], owner: StringName) -> void:

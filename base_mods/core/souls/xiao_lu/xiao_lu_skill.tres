@@ -1,12 +1,14 @@
-[gd_resource type="Resource" script_class="UnitSkillDefinition" format=3 uid="uid://byh5mdt4b84yp"]
+[gd_resource type="Resource" script_class="SkillDefinition" format=3 uid="uid://byh5mdt4b84yp"]
 
 [ext_resource type="Script" uid="uid://b7ovihaaijli7" path="res://addons/GodotGAS/effects/gameplay_execution_calculation.gd" id="1_sd1or"]
-[ext_resource type="Script" uid="uid://c7bgnw6fvruto" path="res://game/content/unit_skill_definition.gd" id="1_skilldef"]
+[ext_resource type="Script" uid="uid://ktr72cmavmyy" path="res://game/content/skill_definition.gd" id="1_skilldef"]
 [ext_resource type="Script" uid="uid://c81papidngxvg" path="res://addons/GodotGAS/effects/gameplay_effect.gd" id="2_effect"]
 [ext_resource type="Script" uid="uid://diihs2hkb2gen" path="res://game/content/heal_execution.gd" id="3_heal"]
 [ext_resource type="Script" uid="uid://bcow77l0bnh0s" path="res://addons/GodotGAS/effects/gameplay_effect_modifier.gd" id="3_modifier"]
 [ext_resource type="Script" uid="uid://cf2mx3u4jfquk" path="res://game/content/target_rule.gd" id="5_rule"]
 
+[ext_resource type="Script" uid="uid://y8prij0xt0cx" path="res://game/content/skill_step.gd" id="skill_step_base"]
+[ext_resource type="Script" uid="uid://b7f1jf76sinhf" path="res://game/content/unit_skill_step.gd" id="skill_step_unit"]
 [sub_resource type="Resource" id="Resource_execution_heal"]
 script = ExtResource("3_heal")
 base_heal = 30.0
@@ -19,11 +21,15 @@ executions = Array[ExtResource("1_sd1or")]([SubResource("Resource_execution_heal
 script = ExtResource("5_rule")
 camp = 2
 
+[sub_resource type="Resource" id="Resource_skill_step"]
+script = ExtResource("skill_step_unit")
+effects = Array[ExtResource("2_effect")]([SubResource("Resource_effect_heal")])
+target_rule = SubResource("Resource_target_rule")
+
 [resource]
 script = ExtResource("1_skilldef")
 id = "XiaoLu"
 description = "冷却 4 秒，回复自身 30 点血量，并净化治疗量 5% 的灼烧和剧毒。"
-effects = Array[ExtResource("2_effect")]([SubResource("Resource_effect_heal")])
 cooldown_seconds = 4.0
-target_rule = SubResource("Resource_target_rule")
-metadata/_custom_type_script = "uid://c7bgnw6fvruto"
+steps = Array[ExtResource("skill_step_base")]([SubResource("Resource_skill_step")])
+metadata/_custom_type_script = "uid://ktr72cmavmyy"

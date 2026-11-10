@@ -1,0 +1,18 @@
+class_name SkillStepResult extends RefCounted
+## 一个技能步骤的执行结果。
+
+var hit: bool = false
+var empty_reason: String = ""
+
+
+static func hit_result() -> SkillStepResult:
+	return SkillStepResult.new(true, "")
+
+
+static func empty(reason: String) -> SkillStepResult:
+	return SkillStepResult.new(false, reason)
+
+
+func _init(p_hit: bool = false, p_empty_reason: String = "") -> void:
+	hit = p_hit
+	empty_reason = p_empty_reason

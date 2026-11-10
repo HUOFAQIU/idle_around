@@ -17,6 +17,8 @@ const FLY_END_MARGIN: float = 24.0
 @onready var soul_button: Button = $Root/VBox/KindRow/SoulButton
 @onready var entry_grid: GridContainer = $Root/VBox/Body/Scroll/EntryGrid
 @onready var hint_label: Label = $Root/VBox/HintLabel
+## 飞入动画层；必须在 BaseWindow 把 Root 挪进内容区之前解析，之后按绝对路径会找不到
+@onready var fly_layer: Control = $Root/FlyLayer
 
 ## 当前分类：CollectionDB.Kind
 var _kind: int = CollectionDB.Kind.MONSTER
@@ -142,9 +144,6 @@ func _on_entry_gui_input(event: InputEvent, id: StringName, button: Button) -> v
 ## 从被点条目的图标生成一个临时残影，向右飞出一条抛物线后淡出
 func _play_add_fly_animation(button: Button, icon: Texture2D) -> void:
 	if icon == null:
-		return
-	var fly_layer := $Root/FlyLayer as Control
-	if fly_layer == null:
 		return
 
 	var ghost := TextureRect.new()

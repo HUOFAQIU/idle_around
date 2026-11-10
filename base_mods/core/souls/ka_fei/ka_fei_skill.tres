@@ -18,6 +18,5 @@ haste_duration = 2.0
 [resource]
 script = ExtResource("2_skill")
 id = "KaFei"
-description = "冷却 4 秒，加速左侧紧邻的魂灵 2 秒。"
 cooldown_seconds = 4.0
 steps = Array[ExtResource("skill_step_base")]([SubResource("Resource_skill_step")])

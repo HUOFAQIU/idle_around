@@ -13,9 +13,6 @@ class_name SkillDefinition extends Resource
 ## 留空时由 ModLoader 按魂灵 content_id 自动派生。
 @export var id: String = ""
 
-## 面向玩家的技能描述
-@export_multiline var description: String = ""
-
 ## 只对施法者自己结算的效果列表（例如"攻击敌人的同时提高自身再生"）
 @export var self_effects: Array[GameplayEffect] = []
 

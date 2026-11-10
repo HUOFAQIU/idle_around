@@ -18,7 +18,6 @@ freeze_duration = 1.0
 [resource]
 script = ExtResource("4_an4kq")
 id = "XianZi"
-description = "冷却 5 秒，冻结同一部位行内左右相邻的魂灵 1 秒。"
 cooldown_seconds = 5.0
 steps = Array[ExtResource("skill_step_base")]([SubResource("Resource_skill_step")])
 metadata/_custom_type_script = "uid://ktr72cmavmyy"

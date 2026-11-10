@@ -30,6 +30,5 @@ target_rule = SubResource("Resource_target_rule")
 [resource]
 script = ExtResource("4_skill")
 id = "Mod.ExampleSouls.FireWolf"
-description = "冷却 4 秒，对 3 格内最近的敌人造成 12 点伤害，并播放自定义火焰特效。"
 cooldown_seconds = 4.0
 steps = Array[ExtResource("skill_step_base")]([SubResource("Resource_skill_step")])

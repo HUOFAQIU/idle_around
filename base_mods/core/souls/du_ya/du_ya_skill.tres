@@ -33,7 +33,6 @@ target_rule = SubResource("Resource_target_rule")
 [resource]
 script = ExtResource("3_skill")
 id = "DuYa"
-description = "冷却 3 秒，对 1 格内最近的目标造成 5 点伤害，并施加相当于伤害 10% 的剧毒（最少 1 点）。"
 cooldown_seconds = 3.0
 steps = Array[ExtResource("skill_step_base")]([SubResource("Resource_skill_step")])
 metadata/_custom_type_script = "uid://ktr72cmavmyy"

@@ -19,6 +19,5 @@ haste_duration = 1.0
 [resource]
 script = ExtResource("2_skill")
 id = "Yu"
-description = "冷却 3 秒，加速随机一个魂灵 1 秒（包括自己）。"
 cooldown_seconds = 3.0
 steps = Array[ExtResource("skill_step_base")]([SubResource("Resource_skill_step")])

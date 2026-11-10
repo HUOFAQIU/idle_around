@@ -39,7 +39,6 @@ projectile_scene = ExtResource("5_8nym0")
 [resource]
 script = ExtResource("6_kxtoe")
 id = "ChangGong"
-description = "冷却 4 秒，对 20 格内最近的 3 个目标各造成 50 点伤害。"
 cooldown_seconds = 4.0
 steps = Array[ExtResource("skill_step_base")]([SubResource("Resource_skill_step")])
 metadata/_custom_type_script = "uid://ktr72cmavmyy"

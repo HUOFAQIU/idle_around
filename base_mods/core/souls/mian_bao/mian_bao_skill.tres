@@ -21,6 +21,5 @@ target_rule = SubResource("Resource_target_rule")
 [resource]
 script = ExtResource("2_skill")
 id = "MianBao"
-description = "冷却 5 秒，生命再生量提高 5。"
 cooldown_seconds = 5.0
 steps = Array[ExtResource("skill_step_base")]([SubResource("Resource_skill_step")])

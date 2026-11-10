@@ -18,7 +18,6 @@ haste_duration = 2.0
 [resource]
 script = ExtResource("2_skill")
 id = "HuaLiuShen"
-description = "冷却 4 秒，加速自身任意一颗魂灵 2 秒（不受位置和部位限制）。"
 cooldown_seconds = 4.0
 steps = Array[ExtResource("skill_step_base")]([SubResource("Resource_skill_step")])
 metadata/_custom_type_script = "uid://ktr72cmavmyy"

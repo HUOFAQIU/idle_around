@@ -131,6 +131,13 @@ func mark_monster_seen(monster: MonsterData) -> void:
 		push_warning("见闻：怪物没有 content_id「%s」" % monster.display_name)
 		return
 	_mark_seen(ContentKind.Kind.MONSTER, id)
+
+
+## 永久解锁目录里的全部条目；返回是否新增了记录。
+## 新增条目照常发 entry_unlocked，SaveManager 会立即写盘。
+func unlock_all() -> bool:
+	var changed := _unlock_kind(ContentKind.Kind.MONSTER, _monsters)
+	return _unlock_kind(ContentKind.Kind.SOUL, _souls) or changed
 #endregion
 
 
@@ -214,6 +221,16 @@ func _warn_duplicate_skill_ids() -> void:
 			])
 			continue
 		skill_sources[skill_id] = source
+
+
+func _unlock_kind(kind: int, catalog: Dictionary) -> bool:
+	var changed := false
+	for id: StringName in catalog:
+		if _seen.get(kind, {}).has(id):
+			continue
+		_mark_seen(kind, id)
+		changed = true
+	return changed
 
 
 func _mark_seen(kind: int, id: StringName) -> void:

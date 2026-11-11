@@ -22,11 +22,14 @@ const FLY_END_MARGIN: float = 24.0
 
 ## 当前分类：ContentKind.Kind
 var _kind: int = ContentKind.Kind.MONSTER
+## 标题栏“全解锁”按钮：永久写入全部见闻
+var _unlock_all_button: Button
 
 
 func _ready() -> void:
 	super()
 	title = "见闻"
+	_build_unlock_all_button()
 	monster_button.pressed.connect(_select_kind.bind(ContentKind.Kind.MONSTER))
 	soul_button.pressed.connect(_select_kind.bind(ContentKind.Kind.SOUL))
 	CollectionDB.entry_unlocked.connect(_on_entry_unlocked)
@@ -42,6 +45,22 @@ func _select_kind(kind: int) -> void:
 	monster_button.button_pressed = kind == ContentKind.Kind.MONSTER
 	soul_button.button_pressed = kind == ContentKind.Kind.SOUL
 	_refresh()
+
+
+## 标题栏按钮：一次性永久解锁全部见闻，不提供还原
+func _build_unlock_all_button() -> void:
+	_unlock_all_button = Button.new()
+	_unlock_all_button.name = "UnlockAllButton"
+	_unlock_all_button.text = "全解锁"
+	_unlock_all_button.tooltip_text = "永久解锁全部见闻并保存"
+	_unlock_all_button.custom_minimum_size = Vector2i(0, PIN_BUTTON_SIZE.y)
+	_unlock_all_button.pressed.connect(_on_unlock_all_pressed)
+	add_title_bar_button(_unlock_all_button)
+
+
+func _on_unlock_all_pressed() -> void:
+	if CollectionDB.unlock_all():
+		_refresh()
 
 
 func _refresh() -> void:

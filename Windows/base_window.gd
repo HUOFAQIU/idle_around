@@ -77,6 +77,18 @@ func is_pinned() -> bool:
 	return _pinned
 
 
+## 子类在 _ready() 的 super() 之后调用：把按钮加进顶部栏，排在置顶按钮左侧。
+## 会自动套用置顶按钮的字号、高度、光标和按下高亮。
+func add_title_bar_button(button: Button) -> void:
+	if _pin_button == null:
+		push_warning("BaseWindow：置顶栏尚未创建，add_title_bar_button 必须在 super() 之后调用")
+		return
+	_style_title_bar_button(button)
+	var bar := _pin_button.get_parent() as HBoxContainer
+	bar.add_child(button)
+	bar.move_child(button, _pin_button.get_index())
+
+
 ## 置顶设置键：优先用显式 window_id，否则用脚本文件名
 func get_pin_key() -> StringName:
 	if not window_id.is_empty():
@@ -122,19 +134,9 @@ func _build_pin_row() -> void:
 	_pin_button.name = "PinButton"
 	_pin_button.text = "T"
 	_pin_button.toggle_mode = true
-	_pin_button.focus_mode = Control.FOCUS_NONE
-	_pin_button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 	_pin_button.tooltip_text = "置顶 / 取消置顶"
 	_pin_button.custom_minimum_size = PIN_BUTTON_SIZE
-	_pin_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	_pin_button.add_theme_font_size_override("font_size", 12)
-	var pressed_style := _pin_button.get_theme_stylebox("pressed").duplicate() as StyleBoxFlat
-	if pressed_style != null:
-		pressed_style.bg_color = GameColors.to_color(GameColors.ACCENT)
-		_pin_button.add_theme_stylebox_override("pressed", pressed_style)
-		_pin_button.add_theme_stylebox_override("hover_pressed", pressed_style)
-		_pin_button.add_theme_color_override("font_pressed_color", GameColors.to_color(GameColors.ACCENT_TEXT))
-		_pin_button.add_theme_color_override("font_hover_pressed_color", GameColors.to_color(GameColors.ACCENT_TEXT))
+	_style_title_bar_button(_pin_button)
 	bar.add_child(_pin_button)
 
 	var right_space := Control.new()
@@ -150,6 +152,22 @@ func _build_pin_row() -> void:
 
 	_pin_button.set_pressed_no_signal(_pinned)
 	_pin_button.toggled.connect(_on_pin_toggled)
+
+
+## 顶部栏按钮的统一外观：字号、手型光标、垂直居中和按下高亮
+func _style_title_bar_button(button: Button) -> void:
+	button.focus_mode = Control.FOCUS_NONE
+	button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+	button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	button.add_theme_font_size_override("font_size", 12)
+	var pressed_style := button.get_theme_stylebox("pressed").duplicate() as StyleBoxFlat
+	if pressed_style == null:
+		return
+	pressed_style.bg_color = GameColors.to_color(GameColors.ACCENT)
+	button.add_theme_stylebox_override("pressed", pressed_style)
+	button.add_theme_stylebox_override("hover_pressed", pressed_style)
+	button.add_theme_color_override("font_pressed_color", GameColors.to_color(GameColors.ACCENT_TEXT))
+	button.add_theme_color_override("font_hover_pressed_color", GameColors.to_color(GameColors.ACCENT_TEXT))
 
 
 ## 把窗口原有内容挪到顶部置顶栏下方，并给窗口补上这一行的高度。

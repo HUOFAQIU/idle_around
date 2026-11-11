@@ -44,6 +44,7 @@ TestAPI.stop_battle()
 | `get_container_items(container) -> Array[String]` | 容器内物品名 |
 | `validate_container_ids() -> Array[String]` | 校验 `ContainerIds` 里的仓库、商店、魂灵格是否都已注册；主场景运行后调用 |
 | `set_unlock_all(enabled) -> void` | 切换见闻全解锁（不写存档） |
+| `unlock_all_collection() -> bool` | 永久解锁全部见闻并触发写档；返回是否新增记录 |
 | `get_seen_ids(kind) -> Array[StringName]` | 真实已解锁 ID |
 | `is_seen(kind, id) -> bool` | 单个条目是否解锁 |
 | `get_soul_ids()` / `get_monster_ids()` | 列出内容条目（core + 第三方 mod） |

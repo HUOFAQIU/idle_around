@@ -188,6 +188,11 @@ static func set_unlock_all(enabled : bool) -> void:
 	CollectionDB.set_unlock_all_for_testing(enabled)
 
 
+## 永久解锁全部见闻并触发写档；返回是否新增了记录
+static func unlock_all_collection() -> bool:
+	return CollectionDB.unlock_all()
+
+
 ## 真实已解锁的 content_id（不受全解锁开关影响）
 static func get_seen_ids(kind : int) -> Array[StringName]:
 	return CollectionDB.get_seen_ids(kind)

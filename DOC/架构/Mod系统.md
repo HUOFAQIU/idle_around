@@ -21,7 +21,7 @@
 - YARD registry 是编辑器烘焙的，运行时只读，无法追加条目；现已删除 `addons/yard/` 和 `game/content/Collection/*_registry.tres`。
 - `CollectionDB` 不再 `preload` registry，完全读取 `ModLoader.get_soul_entries()` / `get_monster_entries()`。
 - 官方内容清单在 `base_mods/core/mod.json`；新增魂灵/怪物/Cue 时改 manifest，不再依赖编辑器扫描。
-- `content_namespace = "global"` 让 core 保留原 ID（如 `xiao_lu_soul`、`fu_monster`）；旧怪物 ID `fu_data` / `snake_data` 由 `CollectionDB` 别名迁移。
+- `content_namespace = "global"` 让 core 保留原 ID（如 `xiao_lu_soul`、`fu_monster`）。
 - 对外 API 不变：`get_soul()`、`get_soul_ids()`、`get_monster()`、`pick_random_monster()` 仍由 `CollectionDB` 提供。
 
 ## 3. 架构
@@ -131,13 +131,12 @@ res://mods/example_souls/content/monsters/fire_wolf_monster.tres
 - 加载顺序：内置 mod 固定在最前；第三方按用户在 Mod 窗口排的基础顺序，存在 `user://mods.cfg` 的 `[order]`。`dependencies` 是硬依赖，缺失/禁用时依赖方不加载；`load_after` 是软顺序。两者都会覆盖用户顺序，冲突时以依赖为准。
 - 路径覆盖：所有 PCK 先挂载，再加载内容；后挂载的 PCK 可以覆盖先挂载的资源。core 内容在 `res://base_mods/core/...`，第三方覆盖这些路径即可，但要在 `overrides` 里声明。
 - 冲突检测：重复内容 ID、重复 cue tag、同一路径被多个 mod 声明覆盖在加载阶段记录；重复 skill id 在 `CollectionDB` 构建目录时补充。都会出现在 `ModLoader.get_errors()`。
-- 旧 override 路径（`res://game/content/Souls|Monster|effects|cues/...`、`res://game/battle/cues/*.tscn`）会报“已迁移到 `res://base_mods/core/...`，请重新打包”，不会静默失效。
 - 内容路径必须落在该 mod 的根目录下：第三方是 `res://mods/<id>/` 或 `user://mods/<id>/`；内置是 `res://base_mods/<id>/` 或 manifest 的 `content_root`。`overrides` 是唯一允许指向其他 `res://` 路径的入口。
 
 ## 7. 存档兼容与缺失内容
 
 - 存档仍然只存字符串 ID，不存资源路径。
-- core 的 ID 保持原值，旧存档不需要迁移；第三方 mod 使用带前缀的 ID。
+- core 的 ID 保持原值；第三方 mod 使用带前缀的 ID。
 - `SoulData` 和 `MonsterData` 新增 `content_id`；`SaveCodec` 编码时直接用它，`item_name` 只做显示和排查。
 - 这样两个 mod 的魂灵即使显示名相同，也不会串档。
 - **缺失内容不能静默丢**：读档时找不到的内容记录写入 `orphaned` 段；写档时原样带回。重新启用 mod 后，下一次读档会尝试放回原容器/仓库。
@@ -145,7 +144,7 @@ res://mods/example_souls/content/monsters/fire_wolf_monster.tres
 
 ## 8. 当前实现范围（Phase 1 + 内置 core）
 
-- 已做：`mod.json` schema、`content_namespace` / `content_root`、`ModLoader`、内置 `res://base_mods` 与 `user://mods` 双来源发现、PCK/loose 挂载、两段式挂载与内容加载、依赖排序、冲突检测、`CollectionDB` 统一目录、`content_id`、`orphaned` 存档保护、core/mod Cue 注册（`ModCueRegistrar`）、`ModWindow` 管理窗口、加载顺序调整、旧 override 路径提示、core manifest 校验。
+- 已做：`mod.json` schema、`content_namespace` / `content_root`、`ModLoader`、内置 `res://base_mods` 与 `user://mods` 双来源发现、PCK/loose 挂载、两段式挂载与内容加载、依赖排序、冲突检测、`CollectionDB` 统一目录、`content_id`、`orphaned` 存档保护、core/mod Cue 注册（`ModCueRegistrar`）、`ModWindow` 管理窗口、加载顺序调整、core manifest 校验。
 - 已删除：`addons/yard/`、`game/content/Collection/soul_registry.tres`、`monster_registry.tres`。
 - 未做：Steam 订阅与发布。
 - 新增功能后按项目约定同步 `Scripts/test_api.gd` 和 `DOC/指南/AI测试接口.md`。
@@ -172,8 +171,8 @@ res://mods/example_souls/content/monsters/fire_wolf_monster.tres
 
 ### 8.4 内置 core
 
-- 清单在 `base_mods/core/mod.json`，当前 `souls` 20 条、`monsters` 2 条、`cues` 5 条；技能、触发器、effects 不单独登记，由资源内部引用。
-- `content_namespace: "global"` 保留旧 ID；内容资源已经物理迁移到 `base_mods/core/` 的 `souls/`、`monsters/`、`effects/`、`cues/`。
+- 清单在 `base_mods/core/mod.json`，当前 `souls` 19 条、`monsters` 2 条、`cues` 5 条；技能、触发器、effects 不单独登记，由资源内部引用。
+- `content_namespace: "global"` 保留原 ID；内容资源位于 `base_mods/core/` 的 `souls/`、`monsters/`、`effects/`、`cues/`。
 - 官方 Cue 场景在 `base_mods/core/cues/`，逻辑脚本仍在 `game/battle/cues/`；`godot_gas/cue_registry.tres` 为空。
 - 导出时 `export_presets.cfg` 的 `include_filter` 必须包含 `base_mods/*/mod.json`；`exclude_filter` 用 `mods/*,modkit/*`，不能写成 `*mods/*`，否则会误伤 `base_mods/`。
 - 改完官方内容后运行 `modkit/validate_core_manifest.gd`（或 `TestAPI.validate_core_manifest()`），检查 manifest 是否漏登记、路径不存在、ID 重复，以及资源是否误设中文 `resource_name`；内容种类、字段名与文件后缀来自 `ContentKindSpec`，校验器不再复制这些常量；技能由 `SkillDefinition.steps` 组成，步骤类型、目标规则与字段是否一致由 ModLoader 在加载期检查；执行器字段（`attribute_name`、数值范围、`burn_effect` 等）也在加载期校验；怪物会校验 `display_name`、`max_health`、`attack_range`、`move_speed` 和 `battle_scene`。

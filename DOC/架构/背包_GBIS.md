@@ -5,12 +5,10 @@
 > 关键词：GBIS 背包 仓库 inventory container 物品大类 category 装备槽 拖拽 Tooltip 存档 分页 Warehouse 商店 Shop
 > 代码：Windows/Inventory/grid_base_inventory_system/、Scripts/warehouse.gd
 > 不覆盖：仓库玩法设计（见 DOC/窗口/仓库.md）
->
-> 旧版架构长文第 7 节。
 
-## 7. 背包 / 仓库系统（GBIS）
+## 1. 背包 / 仓库系统（GBIS）
 
-### 7.1 接入方式
+### 1.1 接入方式
 
 - 框架的 autoload 脚本是 `Windows/Inventory/grid_base_inventory_system/core/grid_base_inventory_system.gd`，全局名必须是 `GBIS`。
 - `GBIS` 在启动时 `new` 出所有 Service，外部不要自己再 `new`：
@@ -21,7 +19,7 @@
 - 容器名常量集中在 `Scripts/container_ids.gd`（`inventory_0`、`shop_0`、`cell_0..3`、部位映射）；场景 `.tscn` 里的 `container_name` 仍是字面量，改名时必须两边一起改。
 - 场景漂移校验：`--headless --script res://modkit/validate_container_ids.gd` 对比场景字面量与常量；运行中的主场景可用 `TestAPI.validate_container_ids()` 检查容器是否都已注册。
 
-### 7.2 分层与主要类
+### 1.2 分层与主要类
 
 ```
 core/
@@ -45,13 +43,13 @@ core/
    └─ item/ItemView                     物品图标 + 魂灵名称 Label + 堆叠数字 + shader 参数 + 魂灵加速/减速/冻结徽章（仅绑定运行期状态时创建）
 ```
 
-未接入的 `StackableData`、`ConsumableData`、`EquipmentData`、`EquipmentSlot*`、`DropAreaView` 见 7.8；商店见 7.7。
+未接入的 `StackableData`、`ConsumableData`、`EquipmentData`、`EquipmentSlot*`、`DropAreaView` 见 1.8；商店见 1.7。
 
 `SoulData.triggers` 在 `soul_data.gd` 基类上，主动/被动魂灵通用；`PassiveSoulData`（`game/content/passive_soul_data.gd`）只额外新增 `passive_effects`。`PassiveTrigger` 位于 `game/content/passive_trigger.gd`。它们属于游戏内容层，不修改 GBIS 框架本身。
 
 `ItemView` 对 `SoulData` 会额外创建 `SoulNameLabel`：铺满图标区域、居中显示 `item_name`，字号随卡面宽度缩放并自动换行。背包、装备槽、拖拽幽灵共用同一个 `ItemView`，三处显示一致；见闻窗口和调试窗口各自已有名字文本，不重复加。
 
-### 7.3 GBIS 信号
+### 1.3 GBIS 信号
 
 | 信号 | 参数 | 用途 |
 |---|---|---|
@@ -69,7 +67,7 @@ core/
 - `EquipmentSlotView`：`sig_slot_refresh` 只置脏。
 - `InventoryWindow`：`sig_item_focused` / `sig_item_focus_lost`，用来显示/隐藏 TooltipWindow 的 `ITEM` 层；`SoulData` 会附带 `SoulTooltip.build()` 生成的正文，其他物品仍只有标题。
 
-### 7.4 数据流
+### 1.4 数据流
 
 **注册容器**
 
@@ -129,7 +127,7 @@ GBIS.add_item(inv_name, item_data)
 - 各 service 只做存储操作，不再自己清拖拽状态；`InventoryView` / `EquipmentSlotView` 收到 `drag_ended` 后清残留高亮。
 - `ItemWindow` 是独立无边框窗口，物品拖出原窗口也不会被画布裁掉。
 
-### 7.5 本项目的扩展：魂灵部位限制
+### 1.5 本项目的扩展：魂灵部位限制
 
 框架原本只有 `category`（物品大类）限制；本项目在三个地方加了“装备部位”：
 
@@ -164,7 +162,7 @@ GBIS.add_item(inv_name, item_data)
 
 仓库页由 `Warehouse` autoload 启动时预注册，未翻到的页也在 `GBIS.inventory_names` 里，因此存档会覆盖全部页。`inventory_0` 仍是第 1 页。
 
-### 7.6 交互键位
+### 1.6 交互键位
 
 | 操作 | 输入 | 代码入口 |
 |---|---|---|
@@ -179,7 +177,7 @@ GBIS.add_item(inv_name, item_data)
 
 框架还支持装备槽的“点物品穿装备”和“右键脱装备”，但当前魂灵窗口用的是 `InventoryView`，不是 `EquipmentSlotView`，所以这套交互暂时没有接入魂灵。
 
-### 7.7 商店
+### 1.7 商店
 
 `ShopWindow`（`Windows/Shop/shop_window.tscn`）内嵌 `ShopView`，容器名 `shop_0`，20 列 × 10 行（32 px 格子，640×320；窗口 640×356）。`ShopView._ready()` 会注册商店容器，并清空后重新加载场景 `goods` 数组里的货物。
 
@@ -188,7 +186,7 @@ GBIS.add_item(inv_name, item_data)
 - Shift + 右键点仓库物品：`InventoryService.quick_sell()` 直接结算并移除原格物品；要求商店和该仓库页都在 `GBIS.opened_containers` 里，否则不生效。
 - 价格、货币、货物配置都还没定义。正式做买卖需要具体的 `ItemData` 子类重写 `can_buy()` / `cost()` / `can_sell()` / `sold()`，货物可填 `ShopView.goods` 或调 `ShopService.load_goods()`。
 
-### 7.8 框架自带、当前未接入的部分
+### 1.8 框架自带、当前未接入的部分
 
 这些代码还在，但当前游戏没有使用：
 

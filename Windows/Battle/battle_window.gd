@@ -24,7 +24,7 @@ const FPS_UPDATE_FRAMES : int = 15
 
 ## 本场会话：创建/销毁 BattleManager、生成单位、稀有队列、复活重开
 var _session : BattleSession
-## 现在这一场；TestAPI 与快照沿用旧入口，实际由会话持有
+## 现在这一场；TestAPI 与快照通过它读取战斗，实际由会话持有
 var _battle : BattleManager:
 	get:
 		return _session.battle if _session != null else null

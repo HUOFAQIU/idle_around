@@ -125,13 +125,8 @@ static func _validate_entry_id(spec: Dictionary, id: String, errors: Array[Strin
 	var suffix := String(spec.get("id_suffix", ""))
 	if suffix.is_empty():
 		return
-	var legacy := String(spec.get("legacy_suffix", ""))
-	var suffix_ok := id.ends_with(suffix) and id.length() > suffix.length()
-	if not suffix_ok and not legacy.is_empty():
-		suffix_ok = id.ends_with(legacy) and id.length() > legacy.length()
-	if not suffix_ok:
-		var expected := suffix if legacy.is_empty() else "%s（旧内容可用 %s）" % [suffix, legacy]
-		errors.append("%s ID 应以 %s 结尾：%s" % [label, expected, id])
+	if not id.ends_with(suffix) or id.length() <= suffix.length():
+		errors.append("%s ID 应以 %s 结尾：%s" % [label, suffix, id])
 
 
 ## core 魂灵技能 ID 必须由 content_id 派生，避免同一个 Skill.<id> 被顶掉或拼写漂移

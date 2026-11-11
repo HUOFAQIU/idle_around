@@ -12,8 +12,6 @@ const LOCAL_ID_PATTERN: String = "^[a-z][a-z0-9_]*$"
 const TAG_PATTERN: String = "^[A-Z][a-zA-Z0-9]*(\\.[A-Z][a-zA-Z0-9]*)*$"
 const SOUL_SUFFIX: String = "_soul"
 const MONSTER_SUFFIX: String = "_monster"
-## 旧版 core 怪物沿用的后缀；只做兼容，新内容不要再用
-const LEGACY_MONSTER_SUFFIX: String = "_data"
 ## 第三方技能 ID 的固定前缀；core 不使用
 const MOD_TAG_PREFIX: String = "Mod."
 
@@ -24,17 +22,6 @@ static func is_valid_local_id(value: String) -> bool:
 
 static func is_valid_tag(value: String) -> bool:
 	return _matches(TAG_PATTERN, value)
-
-
-static func is_soul_local_id(local_id: String) -> bool:
-	return local_id.ends_with(SOUL_SUFFIX) and local_id.length() > SOUL_SUFFIX.length()
-
-
-## 新怪物统一用 _monster；allow_legacy 时额外接受旧版 _data
-static func is_monster_local_id(local_id: String, allow_legacy: bool = false) -> bool:
-	if local_id.ends_with(MONSTER_SUFFIX) and local_id.length() > MONSTER_SUFFIX.length():
-		return true
-	return allow_legacy and local_id.ends_with(LEGACY_MONSTER_SUFFIX) and local_id.length() > LEGACY_MONSTER_SUFFIX.length()
 
 
 ## snake_case → PascalCase；只用于生成 GAS 标签段
@@ -58,7 +45,7 @@ static func local_id_of(content_id: StringName, mod_id: StringName) -> String:
 
 ## 去掉可识别的类型后缀，得到命名主干
 static func strip_kind_suffix(local_id: String) -> String:
-	for suffix in [SOUL_SUFFIX, MONSTER_SUFFIX, LEGACY_MONSTER_SUFFIX]:
+	for suffix in [SOUL_SUFFIX, MONSTER_SUFFIX]:
 		if local_id.ends_with(suffix) and local_id.length() > suffix.length():
 			return local_id.trim_suffix(suffix)
 	return local_id

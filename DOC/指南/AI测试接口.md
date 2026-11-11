@@ -22,7 +22,7 @@ print(state)
 TestAPI.stop_battle()
 ```
 
-魂灵/怪物 ID 用 `TestAPI.get_soul_ids()`、`TestAPI.get_monster_ids()` 查，必须是 `content_id`（core 如 `snake_monster`、`fu_monster`；第三方带 `<mod_id>:` 前缀）。技能标签用 `TestAPI.get_skill_tags()` 查，core 如 `Skill.XiaoLu`，第三方如 `Skill.Mod.ExampleSouls.FireWolf`。旧存档里带 `_2` 后缀的魂灵 ID 和旧怪物 ID（`snake_data` / `fu_data`）由 `CollectionDB` 自动映射到当前 canonical ID。
+魂灵/怪物 ID 用 `TestAPI.get_soul_ids()`、`TestAPI.get_monster_ids()` 查，必须是 `content_id`（core 如 `snake_monster`、`fu_monster`；第三方带 `<mod_id>:` 前缀）。技能标签用 `TestAPI.get_skill_tags()` 查，core 如 `Skill.XiaoLu`，第三方如 `Skill.Mod.ExampleSouls.FireWolf`。
 
 ## 背包 / 见闻
 
@@ -124,7 +124,7 @@ print(TestAPI.get_mod_list())
 print(TestAPI.get_mod_errors())
 print(TestAPI.get_mod_warnings())
 print(TestAPI.is_builtin_mod(&"core"))
-print(TestAPI.get_mod_content_ids(&"core"))  # souls 20 / monsters 2 / cues 5
+print(TestAPI.get_mod_content_ids(&"core"))  # souls 19 / monsters 2 / cues 5
 print(TestAPI.validate_core_manifest())
 print(TestAPI.get_mod_cues())
 print(TestAPI.is_mod_cue_registered(&"Cue.Status.Burn"))
@@ -153,7 +153,7 @@ print(TestAPI.is_window_pinned("CharacterWindow"))
 print(TestAPI.get_window_pin_states())
 ```
 
-窗口置顶状态存在 `user://Settings.cfg` 的 `[window_pins]` 段。键是 `BaseWindow.get_pin_key()`（默认脚本文件名，如 `character_window`）或 `main_window`，与节点名解耦；旧节点名键首次读取时自动迁移。`TooltipWindow` / `ItemWindow` 没有置顶接口，固定 transient 跟随主窗口。
+窗口置顶状态存在 `user://Settings.cfg` 的 `[window_pins]` 段。键是 `BaseWindow.get_pin_key()`（默认脚本文件名，如 `character_window`）或 `main_window`，与节点名解耦。`TooltipWindow` / `ItemWindow` 没有置顶接口，固定 transient 跟随主窗口。
 
 ## 颜色
 

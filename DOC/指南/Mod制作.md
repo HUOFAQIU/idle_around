@@ -85,16 +85,15 @@ user://mods/example_souls/
 |---|---|---|
 | mod id | `^[a-z][a-z0-9_]{2,63}$` | `example_souls` |
 | core 魂灵 ID | `<name>_soul` | `xiao_lu_soul` |
-| core 怪物 ID | `<name>_monster`（旧内容 `_data` 兼容） | `snake_monster` |
+| core 怪物 ID | `<name>_monster` | `snake_monster` |
 | 第三方魂灵/怪物 ID | `<mod_id>:<name>_<kind>` | `example_souls:fire_wolf_soul` |
 | core 技能 ID | 魂灵 ID 去掉 `_soul` 后转 PascalCase | `XiaoLu` → `Skill.XiaoLu` |
 | 第三方技能 ID | `Mod.<PascalModId>.<PascalName>` | `Mod.ExampleSouls.FireWolf` → `Skill.Mod.ExampleSouls.FireWolf` |
 | core Cue | `Cue.<Category>.<Name>` | `Cue.Status.Burn` |
 | 第三方 Cue | `Cue.Mod.<PascalModId>.<Name>` | `Cue.Mod.ExampleSouls.Fire` |
 
-- 魂灵/怪物 ID 是**存档键**：已发布的内容 ID 不要改名；必须改名时在 `CollectionDB` 加旧 ID 别名。
+- 魂灵/怪物 ID 是**存档键**：已发布的内容 ID 不要改名。
 - 技能 `SkillDefinition.id` 存的是 `ability_tag` 的后缀（不含 `Skill.`），所以必须满足 GAS 标签格式。留空时 `ModLoader` 按魂灵的 `content_id` 自动派生；core 技能 ID 由 `CoreContentValidator` 强制与魂灵 ID 对应。
-- core 的旧怪物 ID `fu_data`、`snake_data` 已迁移为 `fu_monster`、`snake_monster`；`_data` 后缀仅作旧 mod 存档兼容，新内容不要再用。
 - Cue 场景根节点必须继承 `GameplayCueNotify`；注册发生在启动时，运行期不能新增或替换 Cue。
 - Cue 标签不要求登记到游戏的 `godot_gas/tag_registry.tres`，运行时按字符串匹配；modkit 的标签选择器只列本机 registry，可以直接编辑 `.tres` 文本，或在 modkit 的 registry 里临时加同名标签。
 - `path` 可以写相对路径（相对于 mod 根目录），也可以写 `res://mods/<mod_id>/...`；loose 模式会自动映射到 `user://mods/<mod_id>/...`。
@@ -138,8 +137,7 @@ user://mods/example_souls/
 - 在 modkit 里直接修改原路径的资源，例如 `res://base_mods/core/effects/burn_tick.tres`。
 - 在 `mod.json` 的 `overrides` 里声明这些路径。
 - 所有 PCK 先挂载、再加载内容，所以后加载的 mod 能覆盖先加载的资源；同一路径被多个 mod 声明覆盖会出现在 `ModLoader.get_errors()`。
-- 官方 Cue 场景在 `res://base_mods/core/cues/`；仍按旧路径（`game/content/Souls|Monster|effects|cues/` 或 `game/battle/cues/*.tscn`）打包的 mod 需要更新。
-- `ModLoader` 会对旧 override 路径给出“已迁移到 …，请重新打包”的错误，不会静默失效。
+- 官方资源路径以 `res://base_mods/core/` 为准；override 目标不存在时 `ModLoader` 会报错，不会静默失效。
 - 不允许覆盖 `project.godot`、`.godot/`、`base_mods/*/mod.json` 和 `Scripts/mod/`；这些路径会被拒绝。
 
 ## 6. 加载顺序
@@ -176,11 +174,11 @@ user://mods/example_souls/
 ## 9. 官方内置内容（core）
 
 - 清单：`base_mods/core/mod.json`；内容资源已经物理迁移到 `base_mods/core/` 的 `souls/`、`monsters/`、`effects/`、`cues/`，manifest 不再填写 `content_root`。
-- 当前条目：`souls` 20 条、`monsters` 2 条、`cues` 5 条。技能、触发器、effects 不单独登记，由魂灵/技能资源内部引用。
+- 当前条目：`souls` 19 条、`monsters` 2 条、`cues` 5 条。技能、触发器、effects 不单独登记，由魂灵/技能资源内部引用。
 - 新增官方魂灵：把 `.tres` 放到 `base_mods/core/souls/<name>/`，在 `content.souls` 加 `{ "id": "<id>", "path": "souls/<name>/<file>.tres" }`。
 - 新增官方怪物：数据放 `base_mods/core/monsters/<name>/`，在 `content.monsters` 加 `{ "id": "<id>", "path": "monsters/<name>/<file>.tres" }`；`display_name` / `max_health` / `attack_range` / `move_speed` / `icon` / `battle_scene` 都配在 `MonsterData`，战斗场景不再写这些字段。
 - 新增官方 Cue：场景放 `base_mods/core/cues/`，逻辑脚本可放 `game/battle/cues/`，在 `content.cues` 加 `{ "tag": "...", "scene": "cues/<file>.tscn" }`。
-- 官方 ID 保持原值，不要加 `core:` 前缀；旧存档依赖这些 ID。
+- 官方 ID 保持原值，不要加 `core:` 前缀；存档以这些 ID 为键。
 - 内置 mod 只能 loose，不能把 `content.pck` 放进 `base_mods/`。
 - 导出：`include_filter` 必须包含 `base_mods/*/mod.json`；`exclude_filter` 用 `mods/*,modkit/*`，不要用 `*mods/*`。
 - 改完官方内容后跑 `modkit/validate_core_manifest.gd`，或调用 `TestAPI.validate_core_manifest()`，检查 manifest 是否漏登记、路径不存在和中文 `resource_name`。

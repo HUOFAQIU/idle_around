@@ -5,10 +5,8 @@
 > 关键词：GAS GameplayAbility AttributeSet Tag Cue godot_gas
 > 代码：godot_gas/、base_mods/core/mod.json
 > 相关：`特效/effects.md`、`架构/调试与遥测.md`
->
-> 旧版架构长文第 6 节。
 
-## 6. GAS 适配层 `godot_gas/`
+## 1. GAS 适配层 `godot_gas/`
 
 | 文件 | 内容 |
 |---|---|

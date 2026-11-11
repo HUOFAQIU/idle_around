@@ -580,13 +580,8 @@ func _validate_content_id(mod: ModInfo, spec: Dictionary, raw_id: String) -> boo
 	var suffix := String(spec.get("id_suffix", ""))
 	if suffix.is_empty():
 		return true
-	var legacy := String(spec.get("legacy_suffix", ""))
-	var suffix_ok := local_id.ends_with(suffix) and local_id.length() > suffix.length()
-	if not suffix_ok and global_namespace and not legacy.is_empty():
-		suffix_ok = local_id.ends_with(legacy) and local_id.length() > legacy.length()
-	if not suffix_ok:
-		var expected := suffix if legacy.is_empty() else "%s（旧内容可用 %s）" % [suffix, legacy]
-		_mod_error(mod, "%s ID 应以 %s 结尾：%s" % [String(spec.get("label", "内容")), expected, raw_id])
+	if not local_id.ends_with(suffix) or local_id.length() <= suffix.length():
+		_mod_error(mod, "%s ID 应以 %s 结尾：%s" % [String(spec.get("label", "内容")), suffix, raw_id])
 		return false
 	return true
 
@@ -835,10 +830,6 @@ func _validate_overrides(mod: ModInfo) -> void:
 		if not path.begins_with("res://"):
 			_mod_error(mod, "override 必须是 res:// 路径：%s" % raw_path)
 			continue
-		var migrated := _migrated_override_path(path)
-		if not migrated.is_empty():
-			_mod_error(mod, "override 路径已迁移到 %s，请重新打包：%s" % [migrated, path])
-			continue
 		if _is_protected_override(path):
 			_mod_error(mod, "不允许覆盖受保护路径：%s" % path)
 			continue
@@ -860,21 +851,6 @@ func _is_protected_override(path: String) -> bool:
 	if path.begins_with("res://base_mods/") and path.ends_with("/mod.json"):
 		return true
 	return false
-
-
-## 官方内容物理迁移前的旧路径；返回对应的新路径，没有迁移时返回空串
-func _migrated_override_path(path: String) -> String:
-	if path.begins_with("res://game/content/Souls/"):
-		return "res://base_mods/core/souls/" + path.trim_prefix("res://game/content/Souls/")
-	if path.begins_with("res://game/content/Monster/"):
-		return "res://base_mods/core/monsters/" + path.trim_prefix("res://game/content/Monster/")
-	if path.begins_with("res://game/content/effects/"):
-		return "res://base_mods/core/effects/" + path.trim_prefix("res://game/content/effects/")
-	if path.begins_with("res://game/content/cues/"):
-		return "res://base_mods/core/cues/" + path.trim_prefix("res://game/content/cues/")
-	if path.begins_with("res://game/battle/cues/") and path.ends_with(".tscn"):
-		return "res://base_mods/core/cues/" + path.trim_prefix("res://game/battle/cues/")
-	return ""
 
 
 ## Cue 标签命名空间：mod id（snake_case）转 PascalCase，例如 example_souls → Cue.Mod.ExampleSouls.

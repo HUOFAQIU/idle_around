@@ -40,7 +40,7 @@ const SUPPRESS_STATE_LOG_TAG : StringName = &"Data.SuppressStateLog"
 ## 攻击范围（像素，圆心到圆心）。怪物只有在这个距离内才会开始给魂灵充能。
 ## 约等于一格（地图格宽 32px），和 TargetRule 的 max_range 口径保持一致。
 @export var attack_range: float = 30.0
-## 移动速度（像素/秒）。默认约等于旧版“3 秒走一格”。
+## 移动速度（像素/秒）。默认约等于 3 秒走一格。
 @export var move_speed: float = 11.0
 
 var battle: BattleManager

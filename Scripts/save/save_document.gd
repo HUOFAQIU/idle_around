@@ -38,9 +38,7 @@ static func version_of(document: Dictionary) -> int:
 	return int(document.get(KEY_VERSION, 0))
 
 
-## 旧版本逐级迁移；目前只有 v1
-static func migrate(document: Dictionary, from_version: int) -> Dictionary:
-	if from_version <= 0:
-		push_warning("存档：旧格式没有版本号，按当前版本读取")
+## 版本迁移入口：结构变化时按 from_version 逐级转换；当前只有 v1
+static func migrate(document: Dictionary, _from_version: int) -> Dictionary:
 	document[KEY_VERSION] = VERSION
 	return document

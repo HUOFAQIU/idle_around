@@ -40,7 +40,7 @@ var spatial: UnitSpatialIndex = UnitSpatialIndex.new()
 var grid: BattleGrid
 var spawner: EnemySpawner
 
-## 单位名册与单元格尺寸的只读视图；外部代码沿用旧接口
+## 单位名册与单元格尺寸的只读视图；供外部代码查询
 var units: Array[BattleUnit]:
 	get:
 		return registry.units

@@ -12,18 +12,6 @@ signal entry_unlocked(kind: int, id: StringName)
 ## 读档整体替换“已遇见”状态后发出；图鉴窗口用它整体刷新
 signal state_reloaded
 
-## 旧版独立存档：只读迁移用；新存档由 SaveManager 统一管理
-const LEGACY_SAVE_PATH: String = "user://collection.cfg"
-## 旧版内容 ID 兼容：读取时统一映射到当前 canonical ID，写回时只写 canonical ID。
-const LEGACY_SOUL_ID_ALIASES := {
-	&"du_ya_soul_2": &"du_ya_soul",
-	&"hua_liu_shen_soul_2": &"hua_liu_shen_soul",
-}
-## 怪物 ID 从 _data 后缀迁移到 _monster；旧存档/旧 mod 仍可读
-const LEGACY_MONSTER_ID_ALIASES := {
-	&"fu_data": &"fu_monster",
-	&"snake_data": &"snake_monster",
-}
 ## 测试开关：见闻条目是否全部按已解锁显示；默认关闭。
 ## 只影响显示，不写存档；调试窗口/TestAPI 可以临时切换。
 var unlock_all_for_testing: bool = false
@@ -57,18 +45,18 @@ func get_monster_ids() -> Array[StringName]:
 
 
 func get_soul(id: StringName) -> SoulData:
-	return _souls.get(_canonical_soul_id(id))
+	return _souls.get(id)
 
 
 func get_monster(id: StringName) -> MonsterData:
-	return _monsters.get(_canonical_monster_id(id))
+	return _monsters.get(id)
 
 
 func is_seen(kind: int, id: StringName) -> bool:
 	if unlock_all_for_testing:
 		return true
 	var seen: Dictionary = _seen.get(kind, {})
-	return seen.has(_canonical_id(kind, id))
+	return seen.has(id)
 
 
 ## 测试接口：临时切换“全部已解锁”，不改存档
@@ -161,26 +149,12 @@ func apply_save_data(data: Dictionary) -> void:
 	var monsters: Variant = data.get("monsters", [])
 	if monsters is Array:
 		for id in monsters:
-			_seen[ContentKind.Kind.MONSTER][_canonical_monster_id(StringName(String(id)))] = true
+			_seen[ContentKind.Kind.MONSTER][StringName(String(id))] = true
 	var souls: Variant = data.get("souls", [])
 	if souls is Array:
 		for id in souls:
-			_seen[ContentKind.Kind.SOUL][_canonical_soul_id(StringName(String(id)))] = true
+			_seen[ContentKind.Kind.SOUL][StringName(String(id))] = true
 	state_reloaded.emit()
-
-
-## 读取旧版 user://collection.cfg；成功返回 true（只读，不删除旧文件）
-func load_legacy_state() -> bool:
-	_reset_seen()
-	var config := ConfigFile.new()
-	if config.load(LEGACY_SAVE_PATH) != OK:
-		return false
-	for id in config.get_value("collection", "monsters", PackedStringArray()):
-		_seen[ContentKind.Kind.MONSTER][_canonical_monster_id(StringName(id))] = true
-	for id in config.get_value("collection", "souls", PackedStringArray()):
-		_seen[ContentKind.Kind.SOUL][_canonical_soul_id(StringName(id))] = true
-	state_reloaded.emit()
-	return true
 #endregion
 
 
@@ -280,16 +254,4 @@ func _seen_ids(kind: int) -> Array[String]:
 		ids.append(String(id))
 	ids.sort()
 	return ids
-
-
-func _canonical_id(kind: int, id: StringName) -> StringName:
-	return _canonical_soul_id(id) if kind == ContentKind.Kind.SOUL else _canonical_monster_id(id)
-
-
-func _canonical_soul_id(id: StringName) -> StringName:
-	return LEGACY_SOUL_ID_ALIASES.get(id, id)
-
-
-func _canonical_monster_id(id: StringName) -> StringName:
-	return LEGACY_MONSTER_ID_ALIASES.get(id, id)
 #endregion

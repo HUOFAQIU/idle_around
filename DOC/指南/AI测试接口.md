@@ -33,6 +33,8 @@ TestAPI.stop_battle()
 | `show_shop() -> bool` | 显示商店窗口；找不到窗口返回 `false` |
 | `shop_add_soul(id) -> bool` | 按 content_id 往 `shop_0` 追加一颗魂灵；清空用 `clear_container("shop_0")` |
 | `pick_up_item(container, grid_id) -> bool` | 模拟左键从格子拿起物品，进入拖拽状态 |
+| `drop_moving_item(container, grid_id) -> bool` | 把正在拖拽的物品放到指定格子；`grid_id` 是鼠标点击格，物品左上角 = `grid_id` - 抓取偏移 |
+| `sell_moving_item() -> bool` | 在商店出售正在拖拽的物品 |
 | `cancel_moving_item() -> bool` | 模拟右键取消拿起；优先放回原格 |
 | `quick_sell(container, grid_id) -> bool` | 直接出售格子里的物品；商店和该容器都打开才生效 |
 | `set_warehouse_page(page) -> bool` | 切换仓库窗口到指定页（0 起）；窗口不存在返回 `false` |
@@ -67,6 +69,9 @@ TestAPI.clear_container("inventory_0")
 TestAPI.add_soul(&"xiao_lu_soul")          # 落在 (0, 0)
 TestAPI.pick_up_item("inventory_0", Vector2i.ZERO)
 TestAPI.cancel_moving_item()               # 物品回到 (0, 0)
+
+TestAPI.pick_up_item("inventory_0", Vector2i.ZERO)
+TestAPI.drop_moving_item("inventory_0", Vector2i(5, 0))  # 放到指定格
 ```
 
 ## 存档

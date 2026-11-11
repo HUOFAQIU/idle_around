@@ -26,41 +26,42 @@ func add_item(inv_name: String, item_data: ItemData) -> bool:
 		return true
 	return false
 
-## 尝试把正在移动的物品堆叠到这个格子上
-func stack_moving_item(inv_name: String, grid_id: Vector2i) -> void:
-	if not GBIS.moving_item_service.moving_item:
-		return
-	var item_data = find_item_data_by_grid(inv_name, grid_id)
-	if not item_data is StackableData:
-		return
-	if item_data.item_name == GBIS.moving_item_service.moving_item.item_name:
-		var amount_left = item_data.add_amount(GBIS.moving_item_service.moving_item.current_amount)
-		if amount_left > 0:
-			GBIS.moving_item_service.moving_item.current_amount = amount_left
-		else:
-			GBIS.moving_item_service.clear_moving_item()
-		GBIS.sig_inv_item_updated.emit(inv_name, grid_id)
+## 拖放预览与实际放置共用的判定
+func drop_state_at(container_name: String, item_data: ItemData, hovered_grid: Vector2i, grab_offset: Vector2i) -> ContainerData.DropState:
+	var container := _container_repository.get_container(container_name)
+	if container == null:
+		return ContainerData.DropState.BLOCKED
+	return container.drop_state_at(item_data, hovered_grid, grab_offset)
 
-## 尝试放置正在移动的物品到这个格子
-func place_moving_item(inv_name: String, grid_id: Vector2i) -> bool:
-	if place_to(inv_name, GBIS.moving_item_service.moving_item, grid_id):
-		GBIS.moving_item_service.clear_moving_item()
-		return true
-	return false
 
-## 取消拿起：优先放回原格，原格被占用时放同容器第一个空位
-func cancel_moving_item() -> bool:
+## 尝试把正在移动的物品堆叠到指定格；完全合并返回 true，部分合并且手里还有剩余返回 false
+func stack_moving_item(inv_name: String, anchor_grid: Vector2i) -> bool:
 	var moving := GBIS.moving_item_service.moving_item
 	if moving == null:
 		return false
-	var container_name := GBIS.moving_item_service.origin_container
-	if container_name.is_empty():
+	var stackable := find_item_data_by_grid(inv_name, anchor_grid) as StackableData
+	if stackable == null or stackable.item_name != moving.item_name:
 		return false
+	var amount_left := stackable.add_amount(moving.current_amount)
+	if amount_left > 0:
+		moving.current_amount = amount_left
+		moving.sig_refresh.emit()
+	GBIS.sig_inv_item_updated.emit(inv_name, anchor_grid)
+	return amount_left <= 0
+
+
+## 尝试放置正在移动的物品到这个格子
+func place_moving_item(inv_name: String, grid_id: Vector2i) -> bool:
+	return place_to(inv_name, GBIS.moving_item_service.moving_item, grid_id)
+
+
+## 取消拖拽：优先放回原格，原格被占用时放同容器第一个空位
+func restore_to_grid(container_name: String, grid: Vector2i, moving: ItemData) -> bool:
 	var container := _container_repository.get_container(container_name)
 	if container == null:
 		return false
 
-	var grids := container.try_add_to_grid(moving, GBIS.moving_item_service.origin_grid)
+	var grids := container.try_add_to_grid(moving, grid)
 	if grids.is_empty():
 		grids = container.add_item(moving)
 	if grids.is_empty():
@@ -68,7 +69,6 @@ func cancel_moving_item() -> bool:
 		return false
 
 	GBIS.sig_inv_item_added.emit(container_name, moving, grids)
-	GBIS.moving_item_service.clear_moving_item()
 	return true
 
 ## 使用物品（默认：鼠标右键点击格子）
@@ -102,7 +102,7 @@ func split_item(inv_name: String, grid_id: Vector2i, offset: Vector2i, base_size
 			
 			var new_item = item.duplicate()
 			new_item.current_amount = new_amount_2
-			GBIS.moving_item_service.move_item_by_data(new_item, offset, base_size)
+			GBIS.moving_item_service.begin_detached(new_item, offset, base_size)
 			return new_item
 	return null
 

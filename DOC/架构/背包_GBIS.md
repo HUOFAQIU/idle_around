@@ -107,21 +107,27 @@ GBIS.add_item(inv_name, item_data)
 
 ```
 左键点在有物品的格子
-  → MovingItemService.move_item_by_grid()
-      → 从 ContainerData 移除（发 sig_inv_item_removed）
-      → ItemWindow.hold(ItemView, 抓取偏移)
+  → InventoryGridView._gui_input()
+  → InventoryView.handle_grid_click()
+      → MovingItemService.pick_from_grid()
+          → 从 ContainerData 移除（发 sig_inv_item_removed）
+          → DragPresenter 创建幽灵 ItemView，ItemWindow.hold(抓取偏移)
   → ItemWindow._process() 每帧跟随鼠标
 
 左键点在目标格子
-  → InventoryService.place_moving_item()
-      → ContainerData.try_add_to_grid()
-      → sig_inv_item_added
+  → InventoryView.handle_grid_click()
+      → MovingItemService.drop_on_grid()
+          → ContainerData.drop_state_at() 判定空格 / 堆叠 / 禁止
+          → InventoryService.place_moving_item() 或 stack_moving_item()
+          → 成功后 finish() 清状态并发 drag_ended
 ```
 
-- `MovingItemService` 里保存 `moving_item`、`moving_item_view`、`moving_item_offset`，以及左键拿起的来源 `origin_container` / `origin_grid`（分割、商店等没有原格，来源为空）；
-- 右键取消时 `cancel_moving_item()` 优先按原格放回，原格被占用则放同容器第一个空位，容器满则物品留在手上并 warning；
-- `ItemWindow` 是独立无边框窗口，物品拖出原窗口也不会被画布裁掉；
-- 取消/放下时 `MovingItemService.clear_moving_item()` 会清掉 `ItemWindow`，并发出 `moving_item_cleared`；各 `InventoryView` 收到后把拖动残留的可用/冲突高亮恢复成空/占用。
+- `MovingItemService` 是拖拽状态的唯一入口：`pick_from_grid / pick_from_slot / begin_detached` 开始，`drop_on_grid / drop_on_slot / sell_dragged / drop_to_world / cancel` 结束；只有 `finish()` 清状态并发出 `drag_ended`。
+- `DragOrigin` 记录来源（GRID / SLOT / NONE）。右键取消时 GRID 放回原格，SLOT 放回原槽，NONE（分割等）保持原样；原格被占用则放同容器第一个空位，容器满则留在手上并 warning。
+- 能否放下由 `ContainerData.drop_state_at()`（BLOCKED / PLACE / STACK）和 `EquipmentSlotData.can_accept()` 判定，高亮预览、实际放置和装备共用同一套规则。
+- `DragPresenter` 只管幽灵视图、`ItemWindow` 和 `DropAreaView` 显隐；`MovingItemService` 不再直接碰这些视图。
+- 各 service 只做存储操作，不再自己清拖拽状态；`InventoryView` / `EquipmentSlotView` 收到 `drag_ended` 后清残留高亮。
+- `ItemWindow` 是独立无边框窗口，物品拖出原窗口也不会被画布裁掉。
 
 ### 7.5 本项目的扩展：魂灵部位限制
 
@@ -162,10 +168,10 @@ GBIS.add_item(inv_name, item_data)
 
 | 操作 | 输入 | 代码入口 |
 |---|---|---|
-| 拿起物品 | 左键点有物品的格子 | `InventoryGridView._gui_input()` |
-| 取消拿起 | 手上有物品时按右键 | `InventoryView._input()` → `InventoryService.cancel_moving_item()` |
-| 放下物品 | 左键点空/可放置格子 | `InventoryService.place_moving_item()` |
-| 堆叠 | 左键点同类型可堆叠物品 | `InventoryService.stack_moving_item()` |
+| 拿起物品 | 左键点有物品的格子 | `InventoryGridView._gui_input()` → `InventoryView.handle_grid_click()` → `MovingItemService.pick_from_grid()` |
+| 取消拿起 | 手上有物品时按右键 | `InventoryView._input()` → `MovingItemService.cancel()` |
+| 放下物品 | 左键点空/可放置格子 | `MovingItemService.drop_on_grid()` → `InventoryService.place_moving_item()` |
+| 堆叠 | 左键点同类型可堆叠物品 | `MovingItemService.drop_on_grid()` → `InventoryService.stack_moving_item()` |
 | 快速移动 | Shift + 左键 | `InventoryService.quick_move()` |
 | 快速出售 | Shift + 右键 | `InventoryService.quick_sell()`（商店和该仓库页都打开时） |
 | 使用 | 右键 | `InventoryService.use_item()` |
@@ -178,7 +184,7 @@ GBIS.add_item(inv_name, item_data)
 `ShopWindow`（`Windows/Shop/shop_window.tscn`）内嵌 `ShopView`，容器名 `shop_0`，20 列 × 10 行（32 px 格子，640×320；窗口 640×356）。`ShopView._ready()` 会注册商店容器，并清空后重新加载场景 `goods` 数组里的货物。
 
 - 点击货物：`ShopService.buy()` 检查 `ItemData.can_buy()`，把物品复制进第一个有空位的背包，再调 `cost()`；默认 `can_buy()` 恒为 `true`，`cost()` 只打警告。购买链路只在服务层，模型不再反向调用 `inventory_service`。
-- 拖着物品点商店格子：`ShopService.sell()` → `ItemData.can_sell()` / `sold()`；默认 `can_sell()` 为 `true`，`sold()` 只打警告，物品从手上消失。
+- 拖着物品点商店格子：`MovingItemService.sell_dragged()` → `ShopService.sell_item()` → `ItemData.can_sell()` / `sold()`；默认 `can_sell()` 为 `true`，`sold()` 只打警告，物品从手上消失，拖拽由 `finish()` 统一结束。
 - Shift + 右键点仓库物品：`InventoryService.quick_sell()` 直接结算并移除原格物品；要求商店和该仓库页都在 `GBIS.opened_containers` 里，否则不生效。
 - 价格、货币、货物配置都还没定义。正式做买卖需要具体的 `ItemData` 子类重写 `can_buy()` / `cost()` / `can_sell()` / `sold()`，货物可填 `ShopView.goods` 或调 `ShopService.load_goods()`。
 

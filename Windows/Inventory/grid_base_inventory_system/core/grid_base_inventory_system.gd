@@ -119,7 +119,7 @@ func remove_quick_move_relation(inv_name: String, target_inv_name: String) -> vo
 
 ## 是否有正在移动的物品
 func has_moving_item() -> bool:
-	return moving_item_service.moving_item != null
+	return moving_item_service.is_dragging()
 
 ## 是否有商店打开
 func has_opened_shop() -> bool:

@@ -7,22 +7,26 @@ class_name ShopView
 
 ## 格子高亮
 func grid_hover(grid_id: Vector2i) -> void:
-	if not GBIS.moving_item_service.moving_item:
+	if not GBIS.moving_item_service.is_dragging():
 		var data: ItemData = GBIS.inventory_service.find_item_data_by_grid(container_name, grid_id)
 		if data:
 			GBIS.item_focus_service.focus_item(data, container_name)
 		return
-	
-	var moving_item_view = GBIS.moving_item_service.moving_item_view
-	moving_item_view.base_size = base_size
-	moving_item_view.stack_num_color = stack_num_color
-	moving_item_view.stack_num_font = stack_num_font
-	moving_item_view.stack_num_font_size = stack_num_font_size
-	moving_item_view.stack_num_margin = stack_num_margin
+
+	_apply_drag_ghost_style()
 
 ## 格子失去高亮
-func grid_lose_hover(grid_id: Vector2i) -> void:
+func grid_lose_hover(_grid_id: Vector2i) -> void:
 	GBIS.item_focus_service.item_lose_focus()
+
+
+## 商店左键：拖拽中出售手中物品，否则购买该格货物
+func handle_grid_click(grid_id: Vector2i, _offset: Vector2i, _base_size: int) -> void:
+	if GBIS.moving_item_service.is_dragging():
+		GBIS.moving_item_service.sell_dragged()
+		return
+	var item := GBIS.shop_service.find_item_data_by_grid(container_name, grid_id)
+	GBIS.shop_service.buy(container_name, item)
 
 ## 初始化
 func _ready() -> void:

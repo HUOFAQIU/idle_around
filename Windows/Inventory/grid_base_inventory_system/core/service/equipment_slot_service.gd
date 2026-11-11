@@ -44,14 +44,14 @@ func try_equip(item_data: ItemData) -> bool:
 
 ## 尝试装备正在移动的物品，返回是否成功
 func equip_moving_item(slot_name: String) -> bool:
-	if equip_to(slot_name, GBIS.moving_item_service.moving_item):
-		GBIS.moving_item_service.clear_moving_item()
-		return true
-	return false
+	return equip_to(slot_name, GBIS.moving_item_service.moving_item)
 
 ## 装备物品到指定的装备槽，成功后发射信号 sig_slot_item_equipped
-func equip_to(slot_name, item_data: ItemData) -> bool:
-	if _equipment_slot_repository.get_slot(slot_name).equip(item_data):
+func equip_to(slot_name: String, item_data: ItemData) -> bool:
+	var slot := _equipment_slot_repository.get_slot(slot_name)
+	if slot == null or item_data == null:
+		return false
+	if slot.equip(item_data):
 		GBIS.sig_slot_item_equipped.emit(slot_name, item_data)
 		return true
 	return false
@@ -70,13 +70,17 @@ func unequip(slot_name) -> ItemData:
 			return item_data
 	return null
 
-## 移动正在装备的物品，成功后发射信号 sig_slot_item_unequipped
-func move_item(slot_name: String, base_size: int) -> void:
-	if GBIS.moving_item_service.moving_item:
-		push_error("Already had moving item.")
-		return
-	var item_data = get_slot(slot_name).equipped_item
-	if item_data:
-		if _equipment_slot_repository.get_slot(slot_name).unequip():
-			GBIS.moving_item_service.move_item_by_data(item_data, Vector2i.ZERO, base_size)
-			GBIS.sig_slot_item_unequipped.emit(slot_name, item_data)
+## 从装备槽拿起供拖拽；成功后发射信号 sig_slot_item_unequipped
+func take_from_slot(slot_name: String) -> ItemData:
+	var slot := _equipment_slot_repository.get_slot(slot_name)
+	if slot == null:
+		return null
+	var item_data := slot.unequip()
+	if item_data != null:
+		GBIS.sig_slot_item_unequipped.emit(slot_name, item_data)
+	return item_data
+
+
+## 取消拖拽时放回原槽，成功后发射信号 sig_slot_item_equipped
+func restore_to_slot(slot_name: String, item_data: ItemData) -> bool:
+	return equip_to(slot_name, item_data)

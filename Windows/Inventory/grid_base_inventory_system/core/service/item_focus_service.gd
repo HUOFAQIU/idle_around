@@ -12,7 +12,7 @@ var _lost_pending: bool = false
 ## 焦点物品
 func focus_item(item_data: ItemData, container_name: String) -> void:
 	# 如果当前有移动物品，则不允许焦点切换
-	if GBIS.moving_item_service.moving_item:
+	if GBIS.moving_item_service.is_dragging():
 		return
 
 	# 如果焦点没有变化，直接返回

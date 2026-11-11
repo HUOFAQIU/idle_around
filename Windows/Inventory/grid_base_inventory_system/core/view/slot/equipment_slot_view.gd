@@ -86,6 +86,7 @@ func _ready() -> void:
 	GBIS.sig_slot_item_equipped.connect(_on_item_equipped)
 	GBIS.sig_slot_item_unequipped.connect(_on_item_unequipped)
 	GBIS.sig_slot_refresh.connect(mark_dirty)
+	GBIS.moving_item_service.drag_ended.connect(_on_drag_ended)
 	mouse_entered.connect(_on_slot_hover)
 	mouse_exited.connect(_on_slot_lose_hover)
 
@@ -103,17 +104,25 @@ func _on_visible_changed() -> void:
 
 ## 高亮
 func _on_slot_hover() -> void:
-	if not GBIS.moving_item_service.moving_item:
+	var moving := GBIS.moving_item_service
+	if not moving.is_dragging():
 		var item_data = GBIS.equipment_slot_service.get_slot(slot_name).equipped_item
 		if item_data:
 			GBIS.item_focus_service.focus_item(item_data, slot_name)
 		return
-	if GBIS.moving_item_service.moving_item is EquipmentData:
-		GBIS.moving_item_service.moving_item_view.base_size = base_size
-		var is_avilable = GBIS.equipment_slot_service.get_slot(slot_name).is_item_avilable(GBIS.moving_item_service.moving_item)
-		_state = State.AVILABLE if is_avilable and is_empty() else State.INVILABLE
+
+	moving.set_drag_base_size(base_size)
+	var slot := GBIS.equipment_slot_service.get_slot(slot_name)
+	if moving.moving_item is EquipmentData and slot.can_accept(moving.moving_item):
+		_state = State.AVILABLE
 	else:
 		_state = State.INVILABLE
+	queue_redraw()
+
+
+## 拖拽结束：清掉悬停高亮
+func _on_drag_ended() -> void:
+	_state = State.NORMAL
 	queue_redraw()
 
 ## 失去高亮
@@ -182,12 +191,14 @@ func _gui_input(event: InputEvent) -> void:
 	# 点击动作处理
 	if event.is_action_pressed(GBIS.input_click):
 		GBIS.item_focus_service.item_lose_focus()
-		if GBIS.moving_item_service.moving_item and is_empty():
-			GBIS.equipment_slot_service.equip_moving_item(slot_name)
-		elif not GBIS.moving_item_service.moving_item and not is_empty():
-			GBIS.equipment_slot_service.move_item(slot_name, base_size)
-			_on_slot_hover()
-	
+		var moving := GBIS.moving_item_service
+		if moving.is_dragging():
+			if is_empty():
+				moving.drop_on_slot(slot_name)
+		elif not is_empty():
+			moving.pick_from_slot(slot_name, base_size)
+		_on_slot_hover()
+
 	# 使用动作处理
 	elif event.is_action_pressed(GBIS.input_use) and not is_empty():
 		GBIS.equipment_slot_service.unequip(slot_name)

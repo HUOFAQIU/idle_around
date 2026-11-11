@@ -94,10 +94,8 @@ var _grid_item_map: Dictionary[Vector2i, ItemView]
 func refresh() -> void:
 	super()
 	_clear_inv()
-	var container_data = GBIS.inventory_service.get_container(container_name)
-	if not container_data:
-		container_data = GBIS.shop_service.get_container(container_name)
-	
+	var container_data := _container_data()
+
 	var handled_item: Dictionary[ItemData, ItemView]
 	for grid in _grid_map.keys():
 		var item_data = container_data.grid_item_map[grid]
@@ -119,6 +117,26 @@ func refresh() -> void:
 ## 通过格子ID获取物品视图
 func find_item_view_by_grid(grid_id: Vector2i) -> ItemView:
 	return _grid_item_map.get(grid_id)
+
+
+## 格子左键：子类按容器语义处理拿起/放下/购买/出售
+func handle_grid_click(_grid_id: Vector2i, _offset: Vector2i, _base_size: int) -> void:
+	pass
+
+
+## 当前容器数据；背包和商店都走这里
+func _container_data() -> ContainerData:
+	var container_data = GBIS.inventory_service.get_container(container_name)
+	if container_data:
+		return container_data
+	return GBIS.shop_service.get_container(container_name)
+
+
+## 把本容器的格子/堆叠样式同步给拖拽幽灵，避免跨容器悬停时尺寸跳变
+func _apply_drag_ghost_style() -> void:
+	GBIS.moving_item_service.apply_stack_style(
+		base_size, stack_num_font, stack_num_font_size, stack_num_margin, stack_num_color
+	)
 
 ## 显示但不重建时调用；把现有 ItemView 按显示后的格子坐标重新摆放。
 ## 隐藏阶段布局还没结算，ItemView 位置可能停在容器原点。

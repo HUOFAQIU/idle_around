@@ -2,6 +2,13 @@ extends Resource
 ## 库存数据类，管理物品在网格中的存储和操作
 class_name ContainerData
 
+## 拖放预览结果：不能放、放到空格、合并到已有堆叠
+enum DropState {
+	BLOCKED,
+	PLACE,
+	STACK,
+}
+
 ## 库存列数
 @export_storage var columns: int = 2
 ## 库存行数
@@ -83,6 +90,42 @@ func is_item_avilable(item_data: ItemData) -> bool:
 		return soul.equip_part == "ANY" or soul.equip_part == equip_part
 	return true
 
+
+## 从 grab_offset 抓起物品、悬停在 hovered_grid 时的拖放结果；
+## 高亮预览和实际放置共用，避免两边规则漂移。
+func drop_state_at(item_data: ItemData, hovered_grid: Vector2i, grab_offset: Vector2i) -> DropState:
+	if not is_item_avilable(item_data):
+		return DropState.BLOCKED
+	var start := hovered_grid - grab_offset
+	var shape := item_data.get_shape()
+	var occupant: ItemData = null
+	var covered := 0
+	var occupied := 0
+	for row in shape.y:
+		for col in shape.x:
+			var grid := Vector2i(start.x + col, start.y + row)
+			if not grid_item_map.has(grid):
+				return DropState.BLOCKED
+			covered += 1
+			var cell_item: ItemData = grid_item_map[grid]
+			if cell_item == null:
+				continue
+			occupied += 1
+			if occupant == null:
+				occupant = cell_item
+			elif occupant != cell_item:
+				return DropState.BLOCKED
+	if occupant == null:
+		return DropState.PLACE
+	# 堆叠要求同名、未满，且移动形状被同一颗物品完整覆盖（不能有空格）
+	if occupied != covered:
+		return DropState.BLOCKED
+	if item_data is StackableData and occupant is StackableData and item_data.item_name == occupant.item_name:
+		var occupant_grids: Array = item_grids_map.get(occupant, [])
+		if not occupant.is_full() and occupant_grids.size() == covered:
+			return DropState.STACK
+	return DropState.BLOCKED
+
 ## 根据物品数据查找其占用的网格坐标列表
 func find_grids_by_item_data(item_data: ItemData) -> Array[Vector2i]:
 	return item_grids_map.get(item_data, [] as Array[Vector2i])
@@ -97,7 +140,7 @@ func find_item_data_by_grid(grid_id: Vector2i) -> ItemData:
 
 ## 尝试将物品添加到指定网格位置，返回实际占用的网格坐标列表
 func try_add_to_grid(item_data: ItemData, grid_id: Vector2i) -> Array[Vector2i]:
-	if not is_item_avilable(item_data):
+	if drop_state_at(item_data, grid_id, Vector2i.ZERO) != DropState.PLACE:
 		return []
 	var grids = _try_get_empty_grids_by_shape(grid_id, item_data.get_shape())
 	_add_item_to_grids(item_data, grids)

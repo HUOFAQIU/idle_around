@@ -17,17 +17,10 @@ func buy(_shop_name: String, item: ItemData) -> bool:
 			return true
 	return false
 
-## 出售物品（只结算，不负责从容器移除）
+## 出售物品（只结算，不负责从容器移除，也不结束拖拽）
 func sell_item(item: ItemData) -> bool:
 	if item and item.can_sell():
 		item.sold()
-		return true
-	return false
-
-## 出售正在拖拽的物品
-func sell(item: ItemData) -> bool:
-	if sell_item(item):
-		GBIS.moving_item_service.clear_moving_item()
 		return true
 	return false
 

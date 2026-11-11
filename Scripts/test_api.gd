@@ -92,13 +92,22 @@ static func pick_up_item(container : String, grid_id : Vector2i) -> bool:
 	var origin_grids := data.find_grids_by_item_data(item)
 	if origin_grids.is_empty():
 		return false
-	GBIS.moving_item_service.move_item_by_grid(container, grid_id, grid_id - origin_grids[0], 32)
-	return GBIS.has_moving_item()
+	return GBIS.moving_item_service.pick_from_grid(container, grid_id, grid_id - origin_grids[0], 32)
 
 
 ## 模拟右键取消拿起：优先放回原格；来源未知时返回 false
 static func cancel_moving_item() -> bool:
-	return GBIS.inventory_service.cancel_moving_item()
+	return GBIS.moving_item_service.cancel()
+
+
+## 把正在拖拽的物品放到指定格子；grid_id 是鼠标点击格，物品左上角 = grid_id - 抓取偏移
+static func drop_moving_item(container : String, grid_id : Vector2i) -> bool:
+	return GBIS.moving_item_service.drop_on_grid(container, grid_id)
+
+
+## 在商店出售正在拖拽的物品；返回是否成功
+static func sell_moving_item() -> bool:
+	return GBIS.moving_item_service.sell_dragged()
 
 
 ## 快速出售指定格子里的物品；商店和该容器都打开才生效

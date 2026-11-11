@@ -11,11 +11,10 @@ class_name EquipmentSlotData
 
 ## 装备物品
 func equip(item_data: ItemData) -> bool:
-	if not equipped_item:
-		if is_item_avilable(item_data):
-			equipped_item = item_data
-			equipped_item.equipped(slot_name)
-			return true
+	if can_accept(item_data):
+		equipped_item = item_data
+		equipped_item.equipped(slot_name)
+		return true
 	return false
 
 ## 脱掉装备，返回被脱掉的物品
@@ -32,6 +31,11 @@ func is_item_avilable(item_data: ItemData) -> bool:
 	if avilable_types.has("ANY") or avilable_types.has(item_data.category):
 		return item_data.test_need(slot_name)
 	return false
+
+
+## 当前槽位能否接收这个物品：空槽且类型允许；高亮和实际装备共用
+func can_accept(item_data: ItemData) -> bool:
+	return equipped_item == null and is_item_avilable(item_data)
 
 ## 构造函数
 @warning_ignore("shadowed_variable")

@@ -10,14 +10,7 @@ func _gui_input(event: InputEvent) -> void:
 	
 	# 处理点击动作
 	if event.is_action_pressed(GBIS.input_click):
-		if has_taken:
-			if not GBIS.moving_item_service.moving_item:
-				GBIS.moving_item_service.move_item_by_grid(_container_view.container_name, grid_id, offset, _size)
-			elif GBIS.moving_item_service.moving_item is StackableData:
-				GBIS.inventory_service.stack_moving_item(_container_view.container_name, grid_id)
-			_container_view.grid_hover(grid_id)  # 点击时手动调用高亮
-		else:
-			GBIS.inventory_service.place_moving_item(_container_view.container_name, grid_id)
+		_container_view.handle_grid_click(grid_id, offset, _size)
 		return
 	
 	# 如果不是点击动作且格子没有物品，直接返回
@@ -30,5 +23,5 @@ func _gui_input(event: InputEvent) -> void:
 		GBIS.inventory_service.quick_sell(_container_view.container_name, grid_id)
 	elif event.is_action_pressed(GBIS.input_use):
 		GBIS.inventory_service.use_item(_container_view.container_name, grid_id)
-	elif event.is_action_pressed(GBIS.input_split) and not GBIS.moving_item_service.moving_item:
+	elif event.is_action_pressed(GBIS.input_split) and not GBIS.moving_item_service.is_dragging():
 		GBIS.inventory_service.split_item(_container_view.container_name, grid_id, offset, _size)

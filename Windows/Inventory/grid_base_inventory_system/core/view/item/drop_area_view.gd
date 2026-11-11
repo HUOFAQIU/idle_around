@@ -6,7 +6,7 @@ class_name DropAreaView
 ## 初始化
 func _ready() -> void:
 	if not Engine.is_editor_hint():
-		GBIS.moving_item_service.drop_area_view = self
+		GBIS.moving_item_service.register_drop_area(self)
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	call_deferred("resize")
 	hide()
@@ -20,6 +20,4 @@ func resize() -> void:
 ## 输入控制
 func _gui_input(event: InputEvent) -> void:
 	if event.is_action_pressed(GBIS.input_click):
-		if GBIS.has_moving_item() and GBIS.moving_item_service.moving_item.can_drop():
-			GBIS.moving_item_service.moving_item.drop()
-			GBIS.moving_item_service.clear_moving_item()
+		GBIS.moving_item_service.drop_to_world()

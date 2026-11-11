@@ -1,5 +1,6 @@
 class_name NetStatusTickExecution extends PeriodicStatusTickExecution
 ## 剧毒/再生这类“净值 × 每点数值”的周期结算基类。
+## 每跳总量向下取整后落地；不足 1 点不结算。
 
 
 ## 与对立状态相减后的净值；<= 0 时不结算
@@ -16,5 +17,7 @@ func execute(_spec: GameplayEffectSpec, target_asc: AbilitySystemComponent) -> D
 	var net := net_stacks(target_asc)
 	if net <= 0.0:
 		return {}
-	var amount := net * stack_amount()
+	var amount := floorf(net * stack_amount())
+	if amount <= 0.0:
+		return {}
 	return {"health": amount if is_heal() else -amount}

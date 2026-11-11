@@ -15,19 +15,16 @@ var poison: AttributeData = AttributeData.new(0.0)
 var regen: AttributeData = AttributeData.new(0.0)
 
 
-## The safety pipeline: Clamps stats before they are officially changed.
+## The safety pipeline: floors integer stats and clamps them before they are officially changed.
+## 计算层允许小数；所有战斗属性写入前在这里统一向下取整，作为最后一道兜底。
 func pre_attribute_change(attribute_name: String, proposed_value: float) -> float:
 	match attribute_name:
 		"health":
-			return clamp(proposed_value, 0.0, max_health.current_value)
-		"burn":
-			return maxf(proposed_value, 0.0)
-		"shield":
-			return maxf(proposed_value, 0.0)
-		"poison":
-			return maxf(proposed_value, 0.0)
-		"regen":
-			return maxf(proposed_value, 0.0)
+			return floorf(clampf(proposed_value, 0.0, max_health.current_value))
+		"max_health", "damage_bonus":
+			return floorf(proposed_value)
+		"burn", "shield", "poison", "regen":
+			return maxf(floorf(proposed_value), 0.0)
 
 	return proposed_value
 

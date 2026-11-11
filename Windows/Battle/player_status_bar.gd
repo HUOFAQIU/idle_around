@@ -49,5 +49,5 @@ func _refresh() -> void:
 	var value := maxf(_attribute.current_value, 0.0)
 	visible = value > 0.0
 	if _value_label != null:
-		_value_label.text = "%d" % roundi(value)
+		_value_label.text = "%d" % floori(value)
 	queue_redraw()

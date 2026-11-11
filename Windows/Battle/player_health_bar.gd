@@ -44,5 +44,5 @@ func _refresh() -> void:
 		return
 	_ratio = clampf(_health.current_value / maxf(_max_health.current_value, 0.001), 0.0, 1.0)
 	if _value_label != null:
-		_value_label.text = "%d/%d" % [roundi(_health.current_value), roundi(_max_health.current_value)]
+		_value_label.text = "%d/%d" % [floori(_health.current_value), floori(_max_health.current_value)]
 	queue_redraw()

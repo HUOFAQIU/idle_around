@@ -176,7 +176,7 @@ print(TestAPI.get_window_pin_states())
 | `apply_soul_freeze(soul_name, seconds := 1.0, target := "player") -> bool` | 对已装备的指定魂灵施加魂灵级冻结（测试冰霜 shader 与徽章） |
 | `simulate_soul_used(soul_name, target := "player") -> bool` | 模拟“魂灵被使用”（不动冷却），确定性验证 `Event.Combat.SoulUsed` 触发器；触发充能满时会走同帧待释放队列，调用后等一帧再读状态 |
 | `charge_soul(soul_name, seconds, target := "player") -> bool` | 给已装备魂灵直接充能，用于快速触发主动技能；不经过触发器队列 |
-| `damage_unit(target := "player", amount := 1.0) -> bool` | 对单位造成伤害，用于把生命值打到阈值以下（测半血触发） |
+| `damage_unit(target := "player", amount := 1.0) -> bool` | 对单位造成伤害，用于把生命值打到阈值以下（测半血触发）；`amount` 先向下取整，不足 1 点不生效 |
 | `has_status(tag, target := "player") -> bool` | 单位是否拥有某个状态标签 |
 | `get_battle_state() -> Dictionary` | 战斗快照；含刷怪进度 `normal_kills` / `pending_rare_spawns` |
 | `get_enemy_count() -> int` | 当前存活敌人数 |

@@ -39,6 +39,7 @@
 | 改见闻/图鉴/解锁 | `窗口/见闻.md` | `Scripts/collection_db.gd`、`Windows/Collection/` |
 | 改仓库窗口/背包理念/仓库分页 | `窗口/仓库.md` | `Windows/Inventory/`、`Scripts/warehouse.gd` |
 | 改人物属性 | `属性/人物属性.md` | `godot_gas/attributes/player_stats_attribute_set.gd` |
+| 查/改数值落地、取整口径 | `架构/现状与注意.md` §54、`架构/战斗运行时_伤害与流程.md` §1.1 | `game/battle/damage_resolver.gd`、`godot_gas/attributes/` |
 | 确认战斗需求（设计） | `战斗/战斗逻辑.md` | `Windows/Battle/` |
 | 补世界观 | `背景故事/背景故事.md` | — |
 | 商业化脑洞（归档） | `archive/给AI玩的游戏.md` | — |
@@ -49,7 +50,7 @@
 | 文档 | 类型 | 状态 | 最后核对/整理 |
 |---|---|---|---|
 | `战斗/战斗逻辑.md` | 设计 | 有效 | 2026-11-07 |
-| `属性/人物属性.md` | 设计 | 设计 | 2026-11-01 |
+| `属性/人物属性.md` | 设计 | 设计 | 2026-11-11 |
 | `怪物/怪物.md` | 设计 | 部分实现 | 2026-11-10 |
 | `窗口/仓库.md` | 设计 | 部分实现 | 2026-11-05 |
 | `窗口/见闻.md` | 实现 | 已实现 | 2026-11-11 |

@@ -109,8 +109,10 @@ func setup_from_scene(
 	_connect_asc()
 
 
-## ASC 入树之后写初始属性：先设上限，血量的钳制依赖它
+## ASC 入树之后写初始属性：先设上限，血量的钳制依赖它。
+## 场景/怪物数据允许填 float，但属性落地统一为整数。
 func _init_attributes() -> void:
+	max_health = floorf(max_health)
 	asc.get_attribute("max_health").base_value = max_health
 	asc.get_attribute("health").base_value = max_health
 
@@ -136,7 +138,7 @@ func _apply_passive_effects(effects: Array[GameplayEffect]) -> void:
 	if not is_equal_approx(max_before, max_health_attr.current_value):
 		# 用瞬时 GameplayEffect 同步当前生命，仍然走 GAS 的钳制和重算。
 		# 此时还未连接日志/血条，不会产生开场飘字。
-		var target_health := max_health_attr.current_value * health_ratio
+		var target_health := floorf(max_health_attr.current_value * health_ratio)
 		var health_delta := target_health - health_attr.current_value
 		_apply_health_delta_effect(health_delta)
 

@@ -707,6 +707,7 @@ static func charge_soul(soul_name : String, seconds : float, target : String = "
 ## 对单位造成伤害（用于把生命值打到阈值以下，测试半血触发）
 static func damage_unit(target : String = "player", amount : float = 1.0) -> bool:
 	var unit := _find_unit(target)
+	amount = floorf(amount)
 	if unit == null or unit.asc == null or amount <= 0.0:
 		return false
 	var effect := GameplayEffect.new()

@@ -5,7 +5,7 @@
 ## 每层每跳的伤害由 damage_per_stack 控制，默认 1。
 ##
 ## 异常状态的暴击只在施加时判定；施加后的每跳都不再暴击。
-## 伤害交给 DamageResolver 分流：灼烧对护盾减半并向下取整。
+## 伤害交给 DamageResolver 分流：总伤害在入口向下取整，灼烧对护盾再减半并向下取整。
 class_name BurnTickExecution extends PeriodicStatusTickExecution
 
 ## 每层灼烧每跳的伤害
@@ -31,12 +31,12 @@ func execute(_spec: GameplayEffectSpec, target_asc: AbilitySystemComponent) -> D
 	if burn_attr == null:
 		return {}
 
-	var stacks := int(floor(maxf(burn_attr.current_value, 0.0)))
+	var stacks := floori(maxf(burn_attr.current_value, 0.0))
 	if stacks <= 0:
 		return {}
 
 	var damage := stacks * damage_per_stack
-	var next_stacks := int(floor(float(stacks) * (1.0 - decay_rate)))
+	var next_stacks := floori(float(stacks) * (1.0 - decay_rate))
 
 	var result := DamageResolver.split_damage(target_asc, damage, 0.5)
 	result["burn"] = float(next_stacks - stacks)

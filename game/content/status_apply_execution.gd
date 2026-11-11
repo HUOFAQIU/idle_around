@@ -35,7 +35,7 @@ func resolve_amount(spec: GameplayEffectSpec) -> float:
 			amount = trigger_amount
 		multiplier = CritResolution.multiplier(spec)
 
-	return floor(amount * multiplier)
+	return floorf(amount * multiplier)
 
 
 ## 状态的显示名；未知属性回退到属性名。

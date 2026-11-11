@@ -42,10 +42,11 @@
 
 GAS 属性：
 
-- 两个 `AttributeSet` 的默认生命值都是 500，但 `BattleUnit._init_attributes()` 会用场景根节点的 `max_health` 覆盖 `max_health` 和 `health` 的 `base_value`。
+- 两个 `AttributeSet` 的默认生命值都是 500，但 `BattleUnit._init_attributes()` 会先把场景根节点的 `max_health` 向下取整，再用它覆盖 `max_health` 和 `health` 的 `base_value`。
+- 所有战斗属性落地值都是整数：计算层（暴击、比例、百分比加成等）允许小数，写入属性前统一向下取整。`max_health` 受百分比加成影响时也按最终值取整。
 - `damage_bonus` 是己方魂灵直接伤害加成；`burn` 是当前灼烧层数，按整数层数结算；`shield` 是当前护盾值，无上限；`poison` 是当前剧毒值，按整数结算，每秒且不衰减；`regen` 是当前生命再生值，按整数结算，每秒恢复等量生命且不衰减。剧毒与再生属性各自保留原值，结算时直接相减，数值大的一方生效。
 - ASC 在 `_ready()` 时会深拷贝 `attribute_sets`，所以 `BattleUnit` 必须等节点入树后再取 `get_attribute()` 的引用。
-- `pre_attribute_change()` 负责下限/上限钳制，`post_attribute_change()` 负责 `max_health` 变化时同步 `health`。
-- `BattleUnit._apply_passive_effects()` 在被动最大生命变化后，用运行时 `INSTANT GameplayEffect`（health `ADD health_delta`）同步当前生命，不再直接调用 ASC 内部改属性方法；此时还没连接日志/血条，所以不会产生开场飘字。
+- `pre_attribute_change()` 负责向下取整（`health` 先 clamp 再 floor）与下限/上限钳制；`post_attribute_change()` 负责 `max_health` 变化时同步 `health`。
+- `BattleUnit._apply_passive_effects()` 在被动最大生命变化后，用运行时 `INSTANT GameplayEffect`（health `ADD health_delta`）同步当前生命；同步目标生命同样向下取整。此时还没连接日志/血条，所以不会产生开场飘字。
 
 调试接入：`BattleUnit` 在 ASC 就绪时发 `BattleEventBus.unit_asc_ready`，`CombatTelemetryAdapter` 收到后调用 `CombatTelemetry.bind_unit()` 监听 ASC 的属性/标签/效果/能力/GameplayEvent 信号；项目侧创建的 spec 使用 `SoulEffectContext`（`GameplayEffectContext` 子类）携带 `CombatTrace`，调试窗口据此还原因果链。详见 `架构/调试与遥测.md`。

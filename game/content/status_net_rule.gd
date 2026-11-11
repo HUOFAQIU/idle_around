@@ -21,4 +21,4 @@ static func _stacks(asc: AbilitySystemComponent, attribute_name: String) -> int:
 	var attr := asc.get_attribute(attribute_name)
 	if attr == null:
 		return 0
-	return int(floor(maxf(attr.current_value, 0.0)))
+	return floori(maxf(attr.current_value, 0.0))

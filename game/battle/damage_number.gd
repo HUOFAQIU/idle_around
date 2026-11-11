@@ -33,7 +33,7 @@ func setup(
 	regen: bool = false,
 	anchor: Vector2 = Vector2.ZERO
 ) -> void:
-	var text_value := ("+%d" % roundi(amount)) if heal else ("-%d" % roundi(amount))
+	var text_value := ("+%d" % floori(amount)) if heal else ("-%d" % floori(amount))
 	if critical:
 		text_value += "!"
 	text = text_value

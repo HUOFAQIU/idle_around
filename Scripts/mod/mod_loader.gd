@@ -684,6 +684,11 @@ func _validate_monster_config(mod: ModInfo, monster: MonsterData) -> void:
 		_mod_error(mod, "怪物 %s 的 attack_range 不能为负：%s" % [monster.content_id, monster.attack_range])
 	if monster.move_speed < 0.0:
 		_mod_error(mod, "怪物 %s 的 move_speed 不能为负：%s" % [monster.content_id, monster.move_speed])
+	if monster.spawn_distances.is_empty():
+		_mod_error(mod, "怪物 %s 的 spawn_distances 不能为空" % monster.content_id)
+	for distance in monster.spawn_distances:
+		if distance < 1:
+			_mod_error(mod, "怪物 %s 的刷新距离必须 >= 1：%d" % [monster.content_id, distance])
 	if monster.battle_scene == null:
 		_mod_error(mod, "怪物 %s 缺少 battle_scene" % monster.content_id)
 	if not monster.is_rare:

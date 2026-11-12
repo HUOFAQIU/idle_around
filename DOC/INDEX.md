@@ -33,10 +33,10 @@
 | 改魂灵冷却/充能/冻结/主动效果 | `魂灵/主动魂灵.md` | `base_mods/core/souls/`、`game/content/`、`game/battle/charged_ability.gd` |
 | 改被动魂灵/触发效果 | `魂灵/被动魂灵.md` | `base_mods/core/souls/`、`game/content/passive_soul_data.gd`、`passive_effect.gd`、`passive_trigger.gd` |
 | 确认魂灵尺寸/魂器/角色魂器槽 | `魂灵/魂灵.md`、`魂灵/魂器.md` | `game/content/`、`Windows/Vessel/`、`Windows/Character/` |
-| 改怪物魂灵/掉落设计 | `怪物/怪物.md` | `base_mods/core/monsters/`、`game/content/monster_data.gd`、`game/content/monster_soul_entry.gd` |
+| 改怪物魂灵/掉落/刷新距离 | `怪物/怪物.md` | `base_mods/core/monsters/`、`game/content/monster_data.gd`、`game/content/monster_soul_entry.gd` |
 | 改魂灵/魂器 tooltip 内容/格式 | `魂灵/魂灵.md`、`魂灵/魂器.md`、`架构/窗口与场景.md` | `Windows/Tooltip/` |
 | 改颜色/色板（战斗状态/UI/场景/特效） | `架构/颜色与主题.md` | `Scripts/game_colors.gd` |
-| 改见闻/图鉴/解锁 | `窗口/见闻.md` | `Scripts/collection_db.gd`、`Windows/Collection/` |
+| 改见闻/图鉴/解锁（怪物/魂灵/魂器） | `窗口/见闻.md` | `Scripts/collection_db.gd`、`Windows/Collection/` |
 | 改仓库窗口/背包理念/仓库分页 | `窗口/仓库.md` | `Windows/Inventory/`、`Scripts/warehouse.gd` |
 | 改人物属性 | `属性/人物属性.md` | `godot_gas/attributes/player_stats_attribute_set.gd` |
 | 查/改数值落地、取整口径 | `架构/现状与注意.md` §54、`架构/战斗运行时_伤害与流程.md` §1.1 | `game/battle/damage_resolver.gd`、`godot_gas/attributes/` |
@@ -49,11 +49,11 @@
 
 | 文档 | 类型 | 状态 | 最后核对/整理 |
 |---|---|---|---|
-| `战斗/战斗逻辑.md` | 设计 | 有效 | 2026-11-07 |
+| `战斗/战斗逻辑.md` | 设计 | 有效 | 2026-11-12 |
 | `属性/人物属性.md` | 设计 | 设计 | 2026-11-11 |
 | `怪物/怪物.md` | 设计 | 部分实现 | 2026-11-12 |
 | `窗口/仓库.md` | 设计 | 部分实现 | 2026-11-05 |
-| `窗口/见闻.md` | 实现 | 已实现 | 2026-11-11 |
+| `窗口/见闻.md` | 实现 | 已实现 | 2026-11-12 |
 | `魂灵/魂灵.md` | 设计 | 部分实现 | 2026-11-12 |
 | `魂灵/魂器.md` | 设计 | 已实现 | 2026-11-12 |
 | `魂灵/主动魂灵.md` | 设计 | 部分实现 | 2026-11-07 |

@@ -41,6 +41,8 @@ var _test_monster_id: StringName = &""
 var _normal_kills: int = 0
 ## 已排队、等下一拍刷出的稀有怪数量
 var _pending_rare_spawns: int = 0
+## 距离 → 该环的已使用格子；开战时按玩家所在格缓存一次
+var _spawn_cells_by_distance: Dictionary = {}
 
 
 ## ▶ / 重开：清掉上一场，按给定槽位重新开一场。
@@ -69,6 +71,7 @@ func start(p_slots: Array[SoulSlot], test_monster_id: StringName = &"") -> void:
 	CombatTelemetry.begin_run(run_id, battle, battle.player.loadout)
 	CombatTelemetry.watch_unit(battle.player)
 	battle.start_battle()
+	_rebuild_spawn_cells()
 	battle.log_line("========== 战斗开始 ==========", "yellow")
 	for unit in battle.units:
 		battle.log_line("%s  HP %.0f" % [unit.unit_name, unit.health_attr.current_value], "white")
@@ -183,11 +186,15 @@ func _spawn_player() -> BattleUnit:
 	return unit
 
 
-## 怪物：场景只负责战斗表现，选哪只怪由刷怪规则决定
-func _spawn_enemy(cell: Vector2i) -> void:
+## 怪物：场景只负责战斗表现；先选怪，再按这只怪的 spawn_distances 选格
+func _spawn_enemy() -> void:
 	var monster := _pick_monster_for_spawn()
 	if monster == null:
 		return
+	var cells := _pick_spawn_cell(monster)
+	if cells.is_empty():
+		return
+	var cell: Vector2i = cells[0]
 	var unit := monster.battle_scene.instantiate() as BattleUnit
 	if unit == null:
 		push_warning("见闻：怪物场景根节点不是 BattleUnit")
@@ -210,6 +217,51 @@ func _spawn_enemy(cell: Vector2i) -> void:
 	battle.add_unit(unit)
 	unit.died.connect(_on_enemy_died.bind(monster))
 	CollectionDB.mark_monster_seen(monster)
+
+
+## 开战时按玩家所在格把地图格子按距离分环，之后每次刷怪直接查表
+func _rebuild_spawn_cells() -> void:
+	_spawn_cells_by_distance.clear()
+	if battle == null or battle.grid == null or battle.player == null:
+		return
+	_spawn_cells_by_distance = battle.grid.cells_by_distance(battle.player_cell())
+
+
+## 按怪物的 spawn_distances 随机选距离，再在该环里随机选一格。
+## 请求的距离都没有格子时，退到离任意请求距离最近的有格环；整张图没格子才放弃。
+func _pick_spawn_cell(monster: MonsterData) -> Array[Vector2i]:
+	var wanted: Array[int] = monster.spawn_distances.duplicate()
+	if wanted.is_empty():
+		wanted.append(3)
+	var candidates: Array[Vector2i] = []
+	for distance in wanted:
+		if _spawn_cells_by_distance.has(distance):
+			candidates.append_array(_spawn_cells_by_distance[distance])
+	if candidates.is_empty():
+		candidates = _nearest_spawn_cells(wanted)
+	if candidates.is_empty():
+		return []
+	var picked: Array[Vector2i] = []
+	picked.append(candidates[battle.rng.randi_range(0, candidates.size() - 1)])
+	return picked
+
+
+## 找离请求距离最近的有格环
+func _nearest_spawn_cells(wanted: Array[int]) -> Array[Vector2i]:
+	var best_distance := -1
+	var best_delta := 1 << 30
+	for key in _spawn_cells_by_distance.keys():
+		var available := int(key)
+		for requested in wanted:
+			var delta := absi(available - requested)
+			if delta < best_delta:
+				best_delta = delta
+				best_distance = available
+	if best_distance < 0:
+		return []
+	var result: Array[Vector2i] = []
+	result.append_array(_spawn_cells_by_distance[best_distance])
+	return result
 
 
 ## 选怪优先级：测试强制 ID > 已排队的稀有怪 > 常规随机池

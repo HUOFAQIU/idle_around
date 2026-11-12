@@ -66,7 +66,7 @@ var _trigger_listeners: Dictionary = {}
 func setup() -> void:
 	_start_msec = Time.get_ticks_msec()
 	grid = BattleGrid.new(map)
-	spawner = EnemySpawner.new(rng)
+	spawner = EnemySpawner.new()
 	spawner.spawn_enemy = spawn_enemy
 	_loot = LootRoller.new(events, loot_sink)
 
@@ -121,7 +121,6 @@ func trigger_listeners(event_tag: StringName) -> Array[BattleUnit]:
 func start_battle() -> void:
 	is_running = true
 	_start_msec = Time.get_ticks_msec()
-	spawner.rebuild(grid, player_cell())
 
 	# 开局：所有能力从 0 开始充能
 	for unit in units:

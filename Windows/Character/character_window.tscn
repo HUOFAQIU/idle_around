@@ -1,17 +1,16 @@
-[gd_scene load_steps=3 format=3 uid="uid://da2scdocynbkk"]
+[gd_scene format=3 uid="uid://da2scdocynbkk"]
 
 [ext_resource type="Script" uid="uid://7siqbpean10a" path="res://Windows/Character/character_window.gd" id="1_vc8vg"]
 [ext_resource type="Script" uid="uid://b3x4mwtjmm4tp" path="res://Windows/Inventory/grid_base_inventory_system/core/view/container/inventory/inventory_view.gd" id="2_view"]
 
-[node name="CharacterWindow" type="Window"]
+[node name="CharacterWindow" type="Window" unique_id=1910727813]
 oversampling_override = 1.0
 position = Vector2i(0, 36)
 size = Vector2i(360, 240)
 script = ExtResource("1_vc8vg")
 open_position = Vector2i(1310, 160)
 
-[node name="VBox" type="VBoxContainer" parent="."]
-layout_mode = 3
+[node name="VBox" type="VBoxContainer" parent="." unique_id=369359917]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -19,17 +18,17 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 8
 
-[node name="InfoLabel" type="RichTextLabel" parent="VBox"]
+[node name="InfoLabel" type="RichTextLabel" parent="VBox" unique_id=1037626567]
 layout_mode = 2
 bbcode_enabled = true
 fit_content = true
 scroll_active = false
 
-[node name="SlotRow" type="HBoxContainer" parent="VBox"]
+[node name="SlotRow" type="HBoxContainer" parent="VBox" unique_id=818752741]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="Slot0" type="Control" parent="VBox/SlotRow"]
+[node name="Slot0" type="Control" parent="VBox/SlotRow" unique_id=265022701]
 custom_minimum_size = Vector2(96, 96)
 layout_mode = 2
 script = ExtResource("2_view")
@@ -39,8 +38,14 @@ max_items = 1
 container_name = "vessel_cell_0"
 container_columns = 3
 container_rows = 3
+grid_border_color = Color(0.5019608, 0.5019608, 0.5019608, 1)
+gird_background_color_empty = Color(0.18431373, 0.30980393, 0.30980393, 1)
+gird_background_color_taken = Color(0.46666667, 0.53333336, 0.6, 1)
+gird_background_color_conflict = Color(0.8039216, 0.36078432, 0.36078432, 1)
+grid_background_color_avilable = Color(0.27450982, 0.50980395, 0.7058824, 1)
+stack_num_color = Color(1, 1, 1, 1)
 
-[node name="Slot1" type="Control" parent="VBox/SlotRow"]
+[node name="Slot1" type="Control" parent="VBox/SlotRow" unique_id=1852970354]
 custom_minimum_size = Vector2(96, 96)
 layout_mode = 2
 script = ExtResource("2_view")
@@ -50,8 +55,14 @@ max_items = 1
 container_name = "vessel_cell_1"
 container_columns = 3
 container_rows = 3
+grid_border_color = Color(0.5019608, 0.5019608, 0.5019608, 1)
+gird_background_color_empty = Color(0.18431373, 0.30980393, 0.30980393, 1)
+gird_background_color_taken = Color(0.46666667, 0.53333336, 0.6, 1)
+gird_background_color_conflict = Color(0.8039216, 0.36078432, 0.36078432, 1)
+grid_background_color_avilable = Color(0.27450982, 0.50980395, 0.7058824, 1)
+stack_num_color = Color(1, 1, 1, 1)
 
-[node name="Slot2" type="Control" parent="VBox/SlotRow"]
+[node name="Slot2" type="Control" parent="VBox/SlotRow" unique_id=1311411903]
 custom_minimum_size = Vector2(96, 96)
 layout_mode = 2
 script = ExtResource("2_view")
@@ -61,3 +72,9 @@ max_items = 1
 container_name = "vessel_cell_2"
 container_columns = 3
 container_rows = 3
+grid_border_color = Color(0.5019608, 0.5019608, 0.5019608, 1)
+gird_background_color_empty = Color(0.18431373, 0.30980393, 0.30980393, 1)
+gird_background_color_taken = Color(0.46666667, 0.53333336, 0.6, 1)
+gird_background_color_conflict = Color(0.8039216, 0.36078432, 0.36078432, 1)
+grid_background_color_avilable = Color(0.27450982, 0.50980395, 0.7058824, 1)
+stack_num_color = Color(1, 1, 1, 1)

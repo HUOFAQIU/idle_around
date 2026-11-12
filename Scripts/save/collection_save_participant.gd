@@ -1,4 +1,4 @@
-## 见闻的存档域：已遇见的怪物/魂灵。
+## 见闻的存档域：已遇见的怪物/魂灵/魂器。
 ##
 ## 存档里没有 collection 段（新档/缺段）时按空状态处理。
 class_name CollectionSaveParticipant extends SaveParticipant

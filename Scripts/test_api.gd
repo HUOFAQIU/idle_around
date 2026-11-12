@@ -431,6 +431,15 @@ static func get_monster_ids() -> Array[StringName]:
 	return CollectionDB.get_monster_ids()
 
 
+## 怪物的可选刷新距离（格）；每次刷怪从数组里随机取一个
+static func get_monster_spawn_distances(id : StringName) -> Array[int]:
+	var monster := CollectionDB.get_monster(id)
+	if monster == null:
+		push_warning("TestAPI：怪物不存在 %s" % id)
+		return []
+	return monster.spawn_distances.duplicate()
+
+
 ## 标记为稀有的怪物 content_id
 static func get_rare_monster_ids() -> Array[StringName]:
 	return CollectionDB.get_rare_monster_ids()

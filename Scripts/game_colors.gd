@@ -53,6 +53,8 @@ const LOCKED_MODULATE : String = TEXT_DISABLED
 #region 面板 / 提示
 const TOOLTIP_BG : String = "#11120d"
 const TOOLTIP_BORDER : String = "#b1adac"
+## 默认窗口灰底上的分隔线；tooltip 黑底仍用 TooltipText.SEPARATOR_COLOR 的暗色
+const PANEL_SEPARATOR : String = "#7d838c"
 #endregion
 
 

@@ -2,7 +2,7 @@ extends Node
 ## 见闻图鉴服务（Autoload 名称：CollectionDB）。
 ##
 ## 全量清单来自 ModLoader：内置 core mod + 第三方 mod，统一按 manifest 注册。
-## 本节点只负责运行时索引、“已遇见”状态和存档。
+## 本节点只负责运行时索引（魂灵/怪物/魂器）、“已遇见”状态和存档。
 ##
 ## 已遇见状态以 manifest 的 content_id（例如 &"xiao_lu_soul"）为键，
 ## 资源改名/移动不会丢记录；解锁后由 SaveManager 统一写入存档。
@@ -133,6 +133,17 @@ func mark_soul_seen(soul: SoulData) -> void:
 	_mark_seen(ContentKind.Kind.SOUL, id)
 
 
+## 魂器“首次进入任意容器”即记录；内部魂灵由 _scan_owned_item() 一并解锁
+func mark_vessel_seen(vessel: SoulVesselData) -> void:
+	if vessel == null:
+		return
+	var id: StringName = vessel.content_id
+	if id.is_empty():
+		push_warning("见闻：魂器没有 content_id「%s」" % vessel.item_name)
+		return
+	_mark_seen(ContentKind.Kind.VESSEL, id)
+
+
 ## 怪物“首次刷出”即记录；所有内容都由 ModLoader 写入 content_id
 func mark_monster_seen(monster: MonsterData) -> void:
 	if monster == null:
@@ -148,7 +159,8 @@ func mark_monster_seen(monster: MonsterData) -> void:
 ## 新增条目照常发 entry_unlocked，SaveManager 会立即写盘。
 func unlock_all() -> bool:
 	var changed := _unlock_kind(ContentKind.Kind.MONSTER, _monsters)
-	return _unlock_kind(ContentKind.Kind.SOUL, _souls) or changed
+	changed = _unlock_kind(ContentKind.Kind.SOUL, _souls) or changed
+	return _unlock_kind(ContentKind.Kind.VESSEL, _vessels) or changed
 #endregion
 
 
@@ -158,6 +170,7 @@ func to_save_data() -> Dictionary:
 	return {
 		"monsters": _seen_ids(ContentKind.Kind.MONSTER),
 		"souls": _seen_ids(ContentKind.Kind.SOUL),
+		"vessels": _seen_ids(ContentKind.Kind.VESSEL),
 	}
 
 
@@ -172,16 +185,21 @@ func apply_save_data(data: Dictionary) -> void:
 	if souls is Array:
 		for id in souls:
 			_seen[ContentKind.Kind.SOUL][StringName(String(id))] = true
+	var vessels: Variant = data.get("vessels", [])
+	if vessels is Array:
+		for id in vessels:
+			_seen[ContentKind.Kind.VESSEL][StringName(String(id))] = true
 	state_reloaded.emit()
 #endregion
 
 
 #region 内部
-## 建立两个种类的空桶；必须在连接物品信号前调用。
+## 建立三个种类的空桶；必须在连接物品信号前调用。
 func _reset_seen() -> void:
 	_seen = {
 		ContentKind.Kind.MONSTER: {},
 		ContentKind.Kind.SOUL: {},
+		ContentKind.Kind.VESSEL: {},
 	}
 
 
@@ -281,12 +299,13 @@ func _scan_owned_souls() -> void:
 			_scan_owned_item(item)
 
 
-## 魂灵本身和魂器内部的魂灵都算“已拥有”；魂器可能还没打开过窗口
+## 魂灵本身、魂器本身和魂器内部的魂灵都算“已拥有”；魂器可能还没打开过窗口
 func _scan_owned_item(item: ItemData) -> void:
 	if item is SoulData:
 		mark_soul_seen(item as SoulData)
 	elif item is SoulVesselData:
 		var vessel := item as SoulVesselData
+		mark_vessel_seen(vessel)
 		for inner in vessel.ensure_contents().items:
 			_scan_owned_item(inner)
 

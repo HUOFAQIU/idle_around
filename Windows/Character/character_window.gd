@@ -16,7 +16,8 @@ func _ready() -> void:
 	_render_profile()
 
 
-## 角色名 + 生命值，排版沿用 Tooltip 的标题/正文字号与分隔线
+## 角色名 + 生命值，排版沿用 Tooltip 的标题/正文字号与分隔线；
+## 窗口底色是默认灰，分隔线用亮一档的 PANEL_SEPARATOR，tooltip 的暗色在这里几乎看不见
 func _render_profile() -> void:
 	var max_health := int(floorf(PLAYER_PROFILE.max_health))
 	info_label.text = "\n".join(PackedStringArray([
@@ -25,5 +26,5 @@ func _render_profile() -> void:
 		"[font_size=%d]生命值：%d / %d[/font_size]" % [
 			TooltipWindow.BODY_FONT_SIZE, max_health, max_health,
 		],
-		"[color=%s]%s[/color]" % [TooltipText.SEPARATOR_COLOR, TooltipText.SEPARATOR],
+		"[color=%s]%s[/color]" % [GameColors.PANEL_SEPARATOR, TooltipText.SEPARATOR],
 	]))

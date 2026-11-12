@@ -55,6 +55,7 @@ TestAPI.stop_battle()
 | `is_seen(kind, id) -> bool` | 单个条目是否解锁 |
 | `get_soul_ids()` / `get_monster_ids()` | 列出内容条目（core + 第三方 mod） |
 | `get_rare_monster_ids() -> Array[StringName]` | 标记为 `is_rare` 的怪物 content_id |
+| `get_monster_spawn_distances(id) -> Array[int]` | 怪物的可选刷新距离（格），默认 `[3]` |
 | `get_soul_types(id) -> Array[StringName]` | 魂灵类型，如 `Soul.types.Wolf`、`Soul.types.Animal` |
 | `get_soul_tags(id) -> Array[StringName]` | 魂灵见闻标签，如 `Soul.tags.Small`、`Soul.tags.Burn` |
 | `get_soul_size_tag(id) -> StringName` | 魂灵尺寸标签，如 `Soul.tags.Medium` |
@@ -65,10 +66,15 @@ TestAPI.stop_battle()
 | `get_soul_cast_times(id) -> int` | 魂灵技能的多重触发次数；未知魂灵或无技能返回 `0` |
 | `get_soul_tooltip_text(id) -> String` | 魂灵 tooltip 完整纯文本；第一行是标题，后面是正文（格式见 `魂灵/魂灵.md`） |
 | `get_soul_tooltip_bbcode(id) -> String` | 魂灵 tooltip 的 BBCode 文本；正文状态词带颜色标签，用于验证上色 |
-| `get_vessel_tooltip_text(id)` / `get_vessel_tooltip_bbcode(id)` | 魂器模板的 tooltip；网格为空，因为模板不带运行时内容 |
+| `get_vessel_tooltip_text(id)` / `get_vessel_tooltip_bbcode(id)` | 魂器模板的 tooltip；模板不带运行时内容，网格为满格 `*` |
 | `get_equipped_vessel_tooltip_text(slot := 0)` / `get_equipped_vessel_tooltip_bbcode(slot := 0)` | 已装备魂器的 tooltip；网格反映内部魂灵 |
 
-`kind` 用 `ContentKind.Kind.SOUL` / `ContentKind.Kind.MONSTER`。见闻窗口的魂灵条目悬停使用与仓库相同的 tooltip（标题是 `item_name`，正文由 `SoulTooltip.build(soul, true)` 生成）；右键已遇见魂灵等价于 `add_soul_to_warehouse(id)`。
+`kind` 用 `ContentKind.Kind.SOUL` / `ContentKind.Kind.MONSTER` / `ContentKind.Kind.VESSEL`。见闻窗口的魂灵/魂器条目悬停使用与仓库相同的 tooltip（魂灵 `SoulTooltip.build()`，魂器 `VesselTooltip.build()`）；右键已遇见魂灵等价于 `add_soul_to_warehouse(id)`，右键已遇见魂器等价于 `add_vessel(id)`。魂器首次进入任意容器即解锁：
+
+```gdscript
+TestAPI.add_vessel(&"mei_you_deng_vessel")
+print(TestAPI.is_seen(ContentKind.Kind.VESSEL, &"mei_you_deng_vessel"))  # true
+```
 
 仓库有 10 页（`inventory_0..inventory_9`）。测试时用 `add_soul_to_warehouse()` 自动入页，或 `set_warehouse_page()` 切到指定页观察显示；页码从 0 开始。
 

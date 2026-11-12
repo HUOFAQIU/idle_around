@@ -31,7 +31,6 @@ static func build(vessel: SoulVesselData, colored: bool = false) -> String:
 	lines.append("")
 	lines.append(GRID_SEPARATOR_FORMAT % [vessel.container_columns, vessel.container_rows])
 	lines.append_array(_grid_lines(vessel))
-	lines.append("")
 	lines.append(TooltipText.SEPARATOR)
 	var body := "\n".join(lines)
 	return TooltipText.colorize(body) if colored else body

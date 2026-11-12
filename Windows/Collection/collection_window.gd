@@ -1,10 +1,10 @@
 class_name CollectionWindow
 extends BaseWindow
-## 见闻：已遇见的怪物与魂灵。
+## 见闻：已遇见的怪物、魂灵与魂器。
 ##
 ## 全量条目来自 CollectionDB（底层是 ModLoader 的 core + 第三方 mod 条目）；
 ## 未遇见的条目也占位显示，只是不暴露名字和图标。
-## 魂灵页的已遇见条目：悬停显示 tooltip，右键放入仓库并播放抛物线飞入动画。
+## 魂灵/魂器页的已遇见条目：悬停显示 tooltip，右键放入仓库并播放抛物线飞入动画。
 
 const LOCKED_NAME: String = "？？？"
 ## 右键入包成功后的抛物线动画：时长、弧高、图标大小、终点距右边缘的留白
@@ -15,6 +15,7 @@ const FLY_END_MARGIN: float = 24.0
 
 @onready var monster_button: Button = $Root/VBox/KindRow/MonsterButton
 @onready var soul_button: Button = $Root/VBox/KindRow/SoulButton
+@onready var vessel_button: Button = $Root/VBox/KindRow/VesselButton
 @onready var entry_grid: GridContainer = $Root/VBox/Body/Scroll/EntryGrid
 @onready var hint_label: Label = $Root/VBox/HintLabel
 ## 飞入动画层；必须在 BaseWindow 把 Root 挪进内容区之前解析，之后按绝对路径会找不到
@@ -32,6 +33,7 @@ func _ready() -> void:
 	_build_unlock_all_button()
 	monster_button.pressed.connect(_select_kind.bind(ContentKind.Kind.MONSTER))
 	soul_button.pressed.connect(_select_kind.bind(ContentKind.Kind.SOUL))
+	vessel_button.pressed.connect(_select_kind.bind(ContentKind.Kind.VESSEL))
 	CollectionDB.entry_unlocked.connect(_on_entry_unlocked)
 	CollectionDB.state_reloaded.connect(_on_state_reloaded)
 	visibility_changed.connect(_on_visibility_changed)
@@ -39,12 +41,25 @@ func _ready() -> void:
 	_select_kind(ContentKind.Kind.MONSTER)
 
 
-## 切换怪物 / 魂灵页签
+## 切换怪物 / 魂灵 / 魂器页签
 func _select_kind(kind: int) -> void:
 	_kind = kind
 	monster_button.button_pressed = kind == ContentKind.Kind.MONSTER
 	soul_button.button_pressed = kind == ContentKind.Kind.SOUL
+	vessel_button.button_pressed = kind == ContentKind.Kind.VESSEL
+	_update_hint()
 	_refresh()
+
+
+## 底部提示跟着页签走
+func _update_hint() -> void:
+	match _kind:
+		ContentKind.Kind.MONSTER:
+			hint_label.text = "怪物：首次刷出即解锁"
+		ContentKind.Kind.SOUL:
+			hint_label.text = "右键已遇见魂灵：放入仓库"
+		ContentKind.Kind.VESSEL:
+			hint_label.text = "右键已遇见魂器：放入仓库"
 
 
 ## 标题栏按钮：一次性永久解锁全部见闻，不提供还原
@@ -75,29 +90,44 @@ func _refresh() -> void:
 
 func _sorted_ids() -> Array[StringName]:
 	var ids: Array[StringName] = []
-	if _kind == ContentKind.Kind.MONSTER:
-		ids.assign(CollectionDB.get_monster_ids())
-	else:
-		ids.assign(CollectionDB.get_soul_ids())
+	match _kind:
+		ContentKind.Kind.MONSTER:
+			ids.assign(CollectionDB.get_monster_ids())
+		ContentKind.Kind.SOUL:
+			ids.assign(CollectionDB.get_soul_ids())
+		ContentKind.Kind.VESSEL:
+			ids.assign(CollectionDB.get_vessel_ids())
 	ids.sort_custom(func(a, b): return _entry_name(a) < _entry_name(b))
 	return ids
 
 
-## 排序和条目显示都用它：怪物取 display_name，魂灵取 item_name
+## 排序和条目显示都用它：怪物取 display_name，魂灵/魂器取 item_name
 func _entry_name(id: StringName) -> String:
-	if _kind == ContentKind.Kind.MONSTER:
-		var monster := CollectionDB.get_monster(id)
-		return monster.display_name if monster != null else String(id)
-	var soul := CollectionDB.get_soul(id)
-	return soul.item_name if soul != null else String(id)
+	match _kind:
+		ContentKind.Kind.MONSTER:
+			var monster := CollectionDB.get_monster(id)
+			return monster.display_name if monster != null else String(id)
+		ContentKind.Kind.SOUL:
+			var soul := CollectionDB.get_soul(id)
+			return soul.item_name if soul != null else String(id)
+		ContentKind.Kind.VESSEL:
+			var vessel := CollectionDB.get_vessel(id)
+			return vessel.item_name if vessel != null else String(id)
+	return String(id)
 
 
 func _entry_icon(id: StringName) -> Texture2D:
-	if _kind == ContentKind.Kind.MONSTER:
-		var monster := CollectionDB.get_monster(id)
-		return monster.icon if monster != null else null
-	var soul := CollectionDB.get_soul(id)
-	return soul.icon if soul != null else null
+	match _kind:
+		ContentKind.Kind.MONSTER:
+			var monster := CollectionDB.get_monster(id)
+			return monster.icon if monster != null else null
+		ContentKind.Kind.SOUL:
+			var soul := CollectionDB.get_soul(id)
+			return soul.icon if soul != null else null
+		ContentKind.Kind.VESSEL:
+			var vessel := CollectionDB.get_vessel(id)
+			return vessel.icon if vessel != null else null
+	return null
 
 
 func _make_entry_cell(id: StringName) -> Control:
@@ -111,8 +141,8 @@ func _make_entry_cell(id: StringName) -> Control:
 	button.expand_icon = true
 	if not seen:
 		button.modulate = GameColors.to_color(GameColors.LOCKED_MODULATE)
-	elif _kind == ContentKind.Kind.SOUL:
-		button.mouse_entered.connect(_show_soul_tooltip.bind(id))
+	elif _kind == ContentKind.Kind.SOUL or _kind == ContentKind.Kind.VESSEL:
+		button.mouse_entered.connect(_show_entry_tooltip.bind(id))
 		button.mouse_exited.connect(_hide_tooltip)
 		button.gui_input.connect(_on_entry_gui_input.bind(id, button))
 	cell.add_child(button)
@@ -126,15 +156,23 @@ func _make_entry_cell(id: StringName) -> Control:
 	return cell
 
 
-## 魂灵页已遇见条目：悬停显示与仓库一致的 tooltip
-func _show_soul_tooltip(id: StringName) -> void:
+## 魂灵/魂器页已遇见条目：悬停显示与仓库一致的 tooltip
+func _show_entry_tooltip(id: StringName) -> void:
 	var tip := TooltipWindow.instance
-	if _kind != ContentKind.Kind.SOUL or not is_instance_valid(tip):
+	if not is_instance_valid(tip) or not CollectionDB.is_seen(_kind, id):
 		return
-	var soul := CollectionDB.get_soul(id)
-	if soul == null or not CollectionDB.is_seen(_kind, id):
-		return
-	tip.show_tip(self, TooltipWindow.Layer.ITEM, soul.item_name, SoulTooltip.build(soul, true))
+	match _kind:
+		ContentKind.Kind.SOUL:
+			var soul := CollectionDB.get_soul(id)
+			if soul == null:
+				return
+			tip.show_tip(self, TooltipWindow.Layer.ITEM, soul.item_name, SoulTooltip.build(soul, true))
+		ContentKind.Kind.VESSEL:
+			var vessel := CollectionDB.get_vessel(id)
+			if vessel == null:
+				return
+			# 见闻展示的是模板，没有运行时 contents，网格会显示满格 *
+			tip.show_tip(self, TooltipWindow.Layer.ITEM, vessel.item_name, VesselTooltip.build(vessel, true))
 
 
 func _hide_tooltip() -> void:
@@ -142,22 +180,31 @@ func _hide_tooltip() -> void:
 		TooltipWindow.instance.hide_tip(self)
 
 
-## 右键已遇见魂灵：放入仓库；怪物条目和未遇见条目不响应
+## 右键已遇见魂灵/魂器：放入仓库；怪物条目和未遇见条目不响应
 func _on_entry_gui_input(event: InputEvent, id: StringName, button: Button) -> void:
 	if not (event is InputEventMouseButton):
 		return
 	var mouse_event := event as InputEventMouseButton
 	if mouse_event.button_index != MOUSE_BUTTON_RIGHT or not mouse_event.pressed:
 		return
-	if _kind != ContentKind.Kind.SOUL or not CollectionDB.is_seen(_kind, id):
+	if not CollectionDB.is_seen(_kind, id):
 		return
-	var soul := CollectionDB.get_soul(id)
-	if soul == null:
+	var item: ItemData = null
+	match _kind:
+		ContentKind.Kind.SOUL:
+			item = CollectionDB.get_soul(id)
+		ContentKind.Kind.VESSEL:
+			item = CollectionDB.get_vessel(id)
+		_:
+			return
+	if item == null:
 		return
-	if not Warehouse.add_item(soul):
-		push_warning("见闻：魂灵放入仓库失败「%s」" % soul.item_name)
+	if not Warehouse.add_item(item):
+		push_warning("见闻：%s放入仓库失败「%s」" % [
+			"魂灵" if _kind == ContentKind.Kind.SOUL else "魂器", item.item_name,
+		])
 		return
-	_play_add_fly_animation(button, soul.icon)
+	_play_add_fly_animation(button, item.icon)
 
 
 ## 从被点条目的图标生成一个临时残影，向右飞出一条抛物线后淡出

@@ -3,6 +3,7 @@
 [ext_resource type="PackedScene" uid="uid://sk7b3fq1l7t" path="res://base_mods/core/monsters/fu/fu.tscn" id="1_scene"]
 [ext_resource type="Texture2D" uid="uid://deaj7ddfwbqwh" path="res://Assets/tokens.png" id="2_icon"]
 [ext_resource type="Script" uid="uid://c2igyvamknn3f" path="res://game/content/monster_data.gd" id="3_data"]
+[ext_resource type="Script" uid="uid://bl81pxa0sjvj1" path="res://game/content/monster_soul_entry.gd" id="4_mqurn"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_fu"]
 atlas = ExtResource("2_icon")

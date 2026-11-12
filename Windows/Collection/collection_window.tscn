@@ -38,6 +38,11 @@ layout_mode = 2
 toggle_mode = true
 text = "魂灵"
 
+[node name="VesselButton" type="Button" parent="Root/VBox/KindRow" unique_id=584031569]
+layout_mode = 2
+toggle_mode = true
+text = "魂器"
+
 [node name="Body" type="HBoxContainer" parent="Root/VBox" unique_id=631710448]
 layout_mode = 2
 size_flags_vertical = 3

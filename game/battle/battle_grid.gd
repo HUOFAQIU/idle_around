@@ -30,14 +30,17 @@ func used_cells() -> Array[Vector2i]:
 	return map.get_used_cells()
 
 
-## 距离 anchor 至少 min_distance 格的所有已使用格子（六边形距离）
-func cells_at_least(anchor: Vector2i, min_distance: int) -> Array[Vector2i]:
-	var result: Array[Vector2i] = []
+## 以 anchor 为中心，按六边形距离给已使用格子分环：距离 → 该环的格子数组。
+## 刷怪按 MonsterData.spawn_distances 选距离时直接用这张表。
+func cells_by_distance(anchor: Vector2i) -> Dictionary:
+	var result: Dictionary = {}
 	if map == null:
 		return result
 	for cell in map.get_used_cells():
-		if Hex.distance(cell, anchor) >= min_distance:
-			result.append(cell)
+		var distance := Hex.distance(cell, anchor)
+		if not result.has(distance):
+			result[distance] = [] as Array[Vector2i]
+		result[distance].append(cell)
 	return result
 
 

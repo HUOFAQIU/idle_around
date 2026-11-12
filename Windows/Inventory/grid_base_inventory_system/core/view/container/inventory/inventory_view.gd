@@ -4,9 +4,14 @@ extends BaseContainerView
 class_name InventoryView
 
 ## 允许存放的物品大类，如果背包名字重复，可存放的物品大类需要一样
-@export_enum("ANY", "SOUL") var avilable_types: Array[String] = ["ANY"]
-## 装备部位限制（NONE = 普通背包，不限制）
-@export_enum("NONE", "HEADSOUL", "TORSOSOUL", "ARMSSOUL", "LEGSSOUL") var equip_part: String = "NONE"
+@export_enum("ANY", "SOUL", "VESSEL") var avilable_types: Array[String] = ["ANY"]
+## 魂器类型限制（NONE = 不限制；角色魂器槽用 COMBAT）
+@export_enum("NONE", "COMBAT", "TOOL") var vessel_kind: String = "NONE"
+## 最多物品件数；0 = 不限制（角色魂器槽用 1）
+@export var max_items: int = 0
+## 是否在 _ready 时注册容器。魂器窗口这种运行时才绑定数据源的视图设为 false，
+## 避免在仓库/商店里留下一个看不见的占位容器。
+@export var auto_register: bool = true
 
 func grid_hover(grid_id: Vector2i) -> void:
 	_handle_grid_hover(grid_id, true)
@@ -15,6 +20,9 @@ func grid_lose_hover(grid_id: Vector2i) -> void:
 	_handle_grid_hover(grid_id, false)
  
 func _handle_grid_hover(grid_id: Vector2i, is_hover: bool) -> void:
+	# auto_register=false 的视图（魂器窗口）在绑定数据源前没有容器
+	if _container_data() == null:
+		return
 	if not GBIS.moving_item_service.is_dragging():
 		var data: ItemData = GBIS.inventory_service.find_item_data_by_grid(container_name, grid_id)
 		if data:
@@ -62,7 +70,8 @@ func change_data_source(new_container_name: String) -> void:
 	GBIS.item_focus_service.item_lose_focus()
 
 	var ret = GBIS.inventory_service.regist(new_container_name, container_columns, container_rows, false, avilable_types)
-	ret.equip_part = "" if equip_part == "NONE" else equip_part
+	ret.vessel_kind = "" if vessel_kind == "NONE" else vessel_kind
+	ret.max_items = max_items
 	var shape_changed: bool = ret.columns != container_columns or ret.rows != container_rows
 	container_name = new_container_name
 	avilable_types = ret.avilable_types
@@ -98,21 +107,23 @@ func _ready() -> void:
 	if not container_name:
 		push_error("Inventory must have a name.")
 		return
-	
-	var ret = GBIS.inventory_service.regist(container_name, container_columns, container_rows, false, avilable_types)
-	ret.equip_part = "" if equip_part == "NONE" else equip_part
 
-	if is_visible_in_tree() and not GBIS.opened_containers.has(container_name):
-		GBIS.opened_containers.append(container_name)
-	
-	if not GBIS.inventory_names.has(container_name):
-		GBIS.inventory_names.append(container_name)
-	
-	# 使用已注册的信息覆盖View设置
-	avilable_types = ret.avilable_types
-	container_columns = ret.columns
-	container_rows = ret.rows
-	
+	if auto_register:
+		var ret = GBIS.inventory_service.regist(container_name, container_columns, container_rows, false, avilable_types)
+		ret.vessel_kind = "" if vessel_kind == "NONE" else vessel_kind
+		ret.max_items = max_items
+
+		if is_visible_in_tree() and not GBIS.opened_containers.has(container_name):
+			GBIS.opened_containers.append(container_name)
+
+		if not GBIS.inventory_names.has(container_name):
+			GBIS.inventory_names.append(container_name)
+
+		# 使用已注册的信息覆盖View设置
+		avilable_types = ret.avilable_types
+		container_columns = ret.columns
+		container_rows = ret.rows
+
 	mouse_filter = Control.MOUSE_FILTER_PASS
 	_init_grid_container()
 	_init_item_container()

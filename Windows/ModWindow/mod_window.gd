@@ -277,9 +277,10 @@ func _add_mod_row(mod: Dictionary) -> void:
 	top.add_child(status)
 
 	var content := Label.new()
-	content.text = "魂灵 %d · 怪物 %d · Cue %d" % [
+	content.text = "魂灵 %d · 怪物 %d · 魂器 %d · Cue %d" % [
 		int(mod.get("souls", 0)),
 		int(mod.get("monsters", 0)),
+		int(mod.get("vessels", 0)),
 		int(mod.get("cues", 0)),
 	]
 	var load_index := int(mod.get("load_index", -1))

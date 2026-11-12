@@ -131,24 +131,92 @@ static func get_warehouse_page() -> int:
 	return window.get_page() if window != null else -1
 
 
-## 装备一颗魂灵。part 为空时按魂灵自身部位；ANY 魂灵依次尝试四个部位。
-static func equip_soul(id : StringName, part : String = "") -> bool:
-	var soul := CollectionDB.get_soul(id)
+## 按 content_id 把魂器放进指定容器（默认仓库第 1 页）
+static func add_vessel(id : StringName, container : String = "") -> bool:
+	if container.is_empty():
+		container = CONTAINER_IDS.MAIN_INVENTORY
+	var vessel := CollectionDB.get_vessel(id)
+	if vessel == null:
+		push_warning("TestAPI：魂器不存在 %s" % id)
+		return false
+	return GBIS.add_item(container, vessel)
+
+
+## 把战斗魂器装备到第一个空的角色魂器槽
+static func equip_vessel(id : StringName) -> bool:
+	var vessel := CollectionDB.get_vessel(id)
+	if vessel == null:
+		push_warning("TestAPI：魂器不存在 %s" % id)
+		return false
+	for cell_name in CONTAINER_IDS.vessel_cells():
+		if GBIS.add_item(cell_name, vessel):
+			return true
+	return false
+
+
+## 往指定槽位的魂器里放一颗魂灵；魂器内部容器只收 SOUL
+static func vessel_add_soul(soul_id : StringName, vessel_slot : int = 0) -> bool:
+	var soul := CollectionDB.get_soul(soul_id)
 	if soul == null:
-		push_warning("TestAPI：魂灵不存在 %s" % id)
+		push_warning("TestAPI：魂灵不存在 %s" % soul_id)
 		return false
-	if part.is_empty():
-		if soul.equip_part == "ANY":
-			for cell_name in CONTAINER_IDS.soul_cells():
-				if GBIS.add_item(cell_name, soul):
-					return true
-			return false
-		part = soul.equip_part
-	var cell : String = CONTAINER_IDS.soul_cell_for_part(part)
-	if cell.is_empty():
-		push_warning("TestAPI：未知部位 %s" % part)
+	var vessel := _equipped_vessel(vessel_slot)
+	if vessel == null:
+		push_warning("TestAPI：槽位 %d 没有魂器" % vessel_slot)
 		return false
-	return GBIS.add_item(cell, soul)
+	var contents := vessel.ensure_contents()
+	var item := soul.make_instance()
+	var grids := contents.add_item(item)
+	if grids.is_empty():
+		return false
+	GBIS.sig_inv_item_added.emit(contents.container_name, item, grids)
+	return true
+
+
+## 指定槽位魂器里的魂灵名；没装备魂器时返回空数组
+static func get_vessel_contents(vessel_slot : int = 0) -> Array[String]:
+	var names : Array[String] = []
+	var vessel := _equipped_vessel(vessel_slot)
+	if vessel == null:
+		return names
+	for item in vessel.ensure_contents().items:
+		if item != null:
+			names.append(item.item_name)
+	return names
+
+
+## 已加载的魂器 content_id
+static func get_vessel_ids() -> Array[StringName]:
+	return CollectionDB.get_vessel_ids()
+
+
+## 指定槽位魂器的 tooltip 正文（含内部魂灵网格）
+static func get_equipped_vessel_tooltip_text(vessel_slot : int = 0) -> String:
+	var vessel := _equipped_vessel(vessel_slot)
+	if vessel == null:
+		return ""
+	return "%s\n%s" % [vessel.item_name, VesselTooltip.build(vessel)]
+
+
+## 指定槽位魂器的 tooltip 正文（BBCode）
+static func get_equipped_vessel_tooltip_bbcode(vessel_slot : int = 0) -> String:
+	var vessel := _equipped_vessel(vessel_slot)
+	if vessel == null:
+		return ""
+	return "%s\n%s" % [vessel.item_name, VesselTooltip.build(vessel, true)]
+
+
+static func _equipped_vessel(vessel_slot : int) -> SoulVesselData:
+	var cells: Array[String] = CONTAINER_IDS.vessel_cells()
+	if vessel_slot < 0 or vessel_slot >= cells.size():
+		return null
+	var container := ContainerRepository.instance.get_container(cells[vessel_slot])
+	if container == null:
+		return null
+	for item in container.items:
+		if item is SoulVesselData:
+			return item as SoulVesselData
+	return null
 
 
 ## 清空容器并刷新视图
@@ -176,7 +244,7 @@ static func get_container_items(container : String) -> Array[String]:
 static func validate_container_ids() -> Array[String]:
 	var errors: Array[String] = []
 	var expected: Array[String] = [CONTAINER_IDS.MAIN_INVENTORY, CONTAINER_IDS.SHOP]
-	expected.append_array(CONTAINER_IDS.soul_cells())
+	expected.append_array(CONTAINER_IDS.vessel_cells())
 	for container_name in expected:
 		if ContainerRepository.instance.get_container(container_name) == null:
 			errors.append("容器未注册：%s" % container_name)
@@ -220,6 +288,30 @@ static func get_soul_tags(id : StringName) -> Array[StringName]:
 	if soul == null:
 		return []
 	return soul.tags.duplicate()
+
+
+## 魂灵尺寸标签，例如 &"Soul.tags.Medium"
+static func get_soul_size_tag(id : StringName) -> StringName:
+	var soul := CollectionDB.get_soul(id)
+	return soul.size_tag() if soul != null else &""
+
+
+## 魂器 tooltip 正文（不含魂器名）
+static func get_vessel_tooltip_text(id : StringName) -> String:
+	var vessel := CollectionDB.get_vessel(id)
+	if vessel == null:
+		push_warning("TestAPI：魂器不存在 %s" % id)
+		return ""
+	return "%s\n%s" % [vessel.item_name, VesselTooltip.build(vessel)]
+
+
+## 魂器 tooltip 正文（BBCode）
+static func get_vessel_tooltip_bbcode(id : StringName) -> String:
+	var vessel := CollectionDB.get_vessel(id)
+	if vessel == null:
+		push_warning("TestAPI：魂器不存在 %s" % id)
+		return ""
+	return "%s\n%s" % [vessel.item_name, VesselTooltip.build(vessel, true)]
 
 
 ## 所有魂灵的 content_id、技能 ID 和 ability_tag；用于验证技能命名规范化
@@ -434,7 +526,7 @@ static func is_builtin_mod(mod_id : StringName) -> bool:
 	return mod != null and mod.is_builtin()
 
 
-## 某个 mod 注册的内容 ID：souls / monsters / cues
+## 某个 mod 注册的内容 ID：souls / monsters / vessels / cues
 static func get_mod_content_ids(mod_id : StringName) -> Dictionary:
 	var souls: Array[String] = []
 	for entry in ModLoader.get_soul_entries():
@@ -444,6 +536,10 @@ static func get_mod_content_ids(mod_id : StringName) -> Dictionary:
 	for entry in ModLoader.get_monster_entries():
 		if entry.mod_id == mod_id:
 			monsters.append(String(entry.content_id))
+	var vessels: Array[String] = []
+	for entry in ModLoader.get_vessel_entries():
+		if entry.mod_id == mod_id:
+			vessels.append(String(entry.content_id))
 	var cues: Array[String] = []
 	for entry in ModLoader.get_cue_entries():
 		if entry.mod_id == mod_id:
@@ -451,6 +547,7 @@ static func get_mod_content_ids(mod_id : StringName) -> Dictionary:
 	return {
 		"souls": souls,
 		"monsters": monsters,
+		"vessels": vessels,
 		"cues": cues,
 	}
 

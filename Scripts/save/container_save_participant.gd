@@ -1,5 +1,6 @@
-## 容器的存档域：仓库各页 + 四个魂灵格，以及放不进世界的孤儿记录。
+## 容器的存档域：仓库各页 + 角色魂器槽，以及放不进世界的孤儿记录。
 ##
+## 魂器内部容器不在这里单独保存：它随魂器物品记录一起嵌套在容器记录里。
 ## 容器未注册时不读不写（由 SaveManager 检查 missing_containers）；
 ## 未知容器的原始记录原样保留，避免后续写档丢物品。
 class_name ContainerSaveParticipant extends SaveParticipant
@@ -10,12 +11,12 @@ var _restore_count: int = 0
 var _orphaned_records: Array[Dictionary] = []
 
 
-## 存档必须覆盖的容器：仓库各页 + 四个魂灵格
+## 存档必须覆盖的容器：仓库各页 + 角色魂器槽
 func expected_containers() -> Array[String]:
 	var names: Array[String] = []
 	for page in Warehouse.PAGE_COUNT:
 		names.append(Warehouse.page_name(page))
-	names.append_array(ContainerIds.soul_cells())
+	names.append_array(ContainerIds.vessel_cells())
 	return names
 
 
@@ -88,12 +89,16 @@ func finish_load() -> bool:
 			remaining.append(entry)
 			continue
 		var record_data := record as Dictionary
-		var item := SaveCodec.decode_item(record_data)
+		var missing: Array = []
+		var item := SaveCodec.decode_item(record_data, missing)
 		if item == null:
 			remaining.append(entry)
 			continue
 		var container_name := String(entry.get("container", ""))
 		if _try_restore_item(item, record_data, container_name):
+			# 魂器本体放进世界后，内部缺失记录才单独保留；本体没放进去时
+			# 原始 record 已包含全部 contents，不能再拆一份，避免下次读档重复。
+			_append_missing(missing, remaining)
 			continue
 		remaining.append(entry)
 	_orphaned_records = remaining
@@ -131,13 +136,16 @@ func _apply_containers(data: Dictionary) -> void:
 			if not record is Dictionary:
 				continue
 			var record_data := record as Dictionary
-			var item := SaveCodec.decode_item(record_data)
+			var missing: Array = []
+			var item := SaveCodec.decode_item(record_data, missing)
 			if item == null:
 				_orphaned_records.append(_make_orphaned_entry("", record_data))
 				continue
 			if not Warehouse.add_item(item):
 				_orphaned_records.append(_make_orphaned_entry("", record_data))
 				push_warning("存档：拖拽中的物品无法放回仓库，已保留到 orphaned")
+			else:
+				_append_missing(missing, _orphaned_records)
 
 
 ## 未知容器的原始记录原样保留，避免之后写档时丢失
@@ -151,34 +159,48 @@ func _preserve_unknown_container(container_name: String, records: Array) -> int:
 
 
 func _apply_container(container: ContainerData, records: Array) -> void:
-	records.sort_custom(SaveCodec.sort_records)
+	var valid: Array = []
 	for record in records:
-		if not record is Dictionary:
-			continue
+		if record is Dictionary:
+			valid.append(record)
+	valid.sort_custom(SaveCodec.sort_records)
+	for record in valid:
 		var record_data := record as Dictionary
-		var item := SaveCodec.decode_item(record_data)
+		var missing: Array = []
+		var item := SaveCodec.decode_item(record_data, missing)
 		if item == null:
 			_orphaned_records.append(_make_orphaned_entry(container.container_name, record_data))
 			continue
 		var anchor := SaveCodec.anchor_from_record(record_data)
 		if not container.try_add_to_grid(item, anchor).is_empty():
+			_append_missing(missing, _orphaned_records)
 			continue
 		if not container.add_item(item).is_empty():
+			_append_missing(missing, _orphaned_records)
 			push_warning("存档：%s 的「%s」无法放回原格 %s，已放到第一个空位" % [container.container_name, item.item_name, anchor])
 			continue
 		if Warehouse.add_item(item):
+			_append_missing(missing, _orphaned_records)
 			push_warning("存档：%s 的「%s」放不下，已转入仓库" % [container.container_name, item.item_name])
 			continue
+		# 本体没放进去：原始 record 已包含 contents，不能再拆出缺失魂灵，避免重复
 		_orphaned_records.append(_make_orphaned_entry(container.container_name, record_data))
 		push_warning("存档：物品无处安放，已保留到 orphaned：%s" % item.item_name)
 
 
-## 构造一条保留记录；container 为空表示原本在鼠标上
+## 构造一条保留记录；container 为空表示原本在鼠标上或魂器内部
 func _make_orphaned_entry(container_name: String, record: Dictionary) -> Dictionary:
 	return {
 		"container": container_name,
 		"record": record.duplicate(true),
 	}
+
+
+## 魂器内部还原失败的魂灵记录：没有原容器可回，统一进孤儿记录
+func _append_missing(missing: Array, target: Array[Dictionary]) -> void:
+	for record in missing:
+		if record is Dictionary:
+			target.append(_make_orphaned_entry("", record as Dictionary))
 
 
 func _read_orphaned_records(data: Dictionary) -> Array[Dictionary]:

@@ -4,8 +4,13 @@ extends RefCounted
 ##
 ## 只存 content_id（core / mod manifest ID）和格子锚点；
 ## 静态数据从资源重建。新增物品类型时在这里加 kind 分支，并保证能按 ID 找回原资源。
+##
+## 魂器额外保存内部魂灵：contents 数组里的记录和容器记录格式相同，
+## 但锚点是相对魂器内部容器的坐标。读档时按锚点放回；找不到的魂灵记录
+## 交给调用方保留到 orphaned，避免读档丢物品。
 
 const KIND_SOUL: String = "soul"
+const KIND_VESSEL: String = "vessel"
 
 
 ## 物品 -> 存档记录；不认识的类型返回空字典
@@ -24,22 +29,43 @@ static func encode_item(item: ItemData) -> Dictionary:
 			"id": String(id),
 			"name": soul.item_name,
 		}
+	if item is SoulVesselData:
+		var vessel := item as SoulVesselData
+		var vessel_id: StringName = vessel.content_id
+		if vessel_id.is_empty():
+			push_warning("存档：魂器没有 content_id「%s」" % vessel.item_name)
+			return {}
+		return {
+			"kind": KIND_VESSEL,
+			"id": String(vessel_id),
+			"name": vessel.item_name,
+			"contents": _encode_contents(vessel),
+		}
 	push_warning("存档：未知物品类型「%s」" % item.item_name)
 	return {}
 
 
-## 存档记录 -> 新的物品实例；找不到资源时返回 null
-static func decode_item(record: Dictionary) -> ItemData:
+## 存档记录 -> 新的物品实例；找不到资源时返回 null。
+## orphans 非空时，魂器内部无法还原的魂灵记录会以原始 Dictionary 追加进去。
+static func decode_item(record: Dictionary, orphans: Array = []) -> ItemData:
 	var kind := String(record.get("kind", ""))
-	if kind != KIND_SOUL:
-		push_warning("存档：未知物品 kind「%s」" % kind)
-		return null
 	var id := StringName(String(record.get("id", "")))
-	var soul := CollectionDB.get_soul(id)
-	if soul == null:
-		push_warning("存档：找不到魂灵「%s」" % id)
-		return null
-	return soul.duplicate() as ItemData
+	if kind == KIND_SOUL:
+		var soul := CollectionDB.get_soul(id)
+		if soul == null:
+			push_warning("存档：找不到魂灵「%s」" % id)
+			return null
+		return soul.make_instance()
+	if kind == KIND_VESSEL:
+		var vessel := CollectionDB.get_vessel(id)
+		if vessel == null:
+			push_warning("存档：找不到魂器「%s」" % id)
+			return null
+		var instance := vessel.make_instance() as SoulVesselData
+		_decode_contents(instance, record.get("contents", []), orphans)
+		return instance
+	push_warning("存档：未知物品 kind「%s」" % kind)
+	return null
 
 
 ## 整个容器 -> 按锚点排序的记录数组
@@ -59,13 +85,54 @@ static func encode_container(container: ContainerData) -> Array:
 	return records
 
 
-## 一组占用格 -> 左上角锚点
+## 魂器内部容器 -> 记录数组；锚点相对内部容器
+static func _encode_contents(vessel: SoulVesselData) -> Array:
+	var records: Array = []
+	var contents := vessel.ensure_contents()
+	for item in contents.items:
+		var record := encode_item(item)
+		if record.is_empty():
+			continue
+		var grids := contents.find_grids_by_item_data(item)
+		if grids.is_empty():
+			continue
+		var anchor := anchor_of(grids)
+		record["at"] = [anchor.x, anchor.y]
+		records.append(record)
+	records.sort_custom(sort_records)
+	return records
+
+
+## 把存档里的内部魂灵放回魂器；放不下的原始记录交给调用方保留
+static func _decode_contents(vessel: SoulVesselData, raw_records: Variant, orphans: Array) -> void:
+	if not raw_records is Array:
+		return
+	var records: Array = []
+	for record in raw_records as Array:
+		if record is Dictionary:
+			records.append(record)
+	records.sort_custom(sort_records)
+	var contents := vessel.ensure_contents()
+	for record in records:
+		var record_data := record as Dictionary
+		var item := decode_item(record_data, orphans)
+		if item == null:
+			_append_orphan(orphans, record_data)
+			continue
+		if not contents.try_add_to_grid(item, anchor_from_record(record_data)).is_empty():
+			continue
+		if not contents.add_item(item).is_empty():
+			continue
+		_append_orphan(orphans, record_data)
+
+
+static func _append_orphan(orphans: Array, record: Dictionary) -> void:
+	orphans.append(record.duplicate(true))
+
+
+## 一组占用格 -> 左上角锚点；实际算法在 ContainerData，存档层只做转发
 static func anchor_of(grids: Array[Vector2i]) -> Vector2i:
-	var anchor := grids[0]
-	for grid in grids:
-		anchor.x = mini(anchor.x, grid.x)
-		anchor.y = mini(anchor.y, grid.y)
-	return anchor
+	return ContainerData.anchor_of(grids)
 
 
 ## 存档记录 -> 锚点；格式不对时返回 (-1, -1)，让调用方走第一个空位兜底

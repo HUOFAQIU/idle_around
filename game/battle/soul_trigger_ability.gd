@@ -90,7 +90,8 @@ func _activate_ability() -> bool:
 				definition.magnitude,
 				suppress_state_logs,
 				trace,
-				label
+				label,
+				runtime
 			)
 			if effect != null and effect.granted_tags.has(GameplayTags.State_Frozen) and runtime != null:
 				runtime.add_counter("freezes_applied")

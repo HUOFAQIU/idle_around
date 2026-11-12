@@ -4,7 +4,7 @@
   "name": "Core Content",
   "version": "0.1.0",
   "author": "official",
-  "description": "官方基础内容：魂灵、怪物和战斗 Cue。",
+  "description": "官方基础内容：魂灵、怪物、魂器和战斗 Cue。",
   "content_namespace": "global",
   "game_version": {
 	"min": "0.1.0"
@@ -96,6 +96,12 @@
 	  {
 		"id": "snake_monster",
 		"path": "monsters/snake/snake_monster.tres"
+	  }
+	],
+	"vessels": [
+	  {
+		"id": "mei_you_deng_vessel",
+		"path": "vessels/mei_you_deng/mei_you_deng_vessel.tres"
 	  }
 	],
 	"cues": [

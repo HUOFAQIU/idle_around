@@ -34,6 +34,7 @@ var loaded: bool = false
 var mounted: bool = false
 var soul_count: int = 0
 var monster_count: int = 0
+var vessel_count: int = 0
 var cue_count: int = 0
 var errors: Array[String] = []
 ## 不阻止加载的诊断（例如未知 manifest 字段）

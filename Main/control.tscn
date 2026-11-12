@@ -4,7 +4,7 @@
 [ext_resource type="Script" uid="uid://kbyb5a2qap8m" path="res://Scripts/setting.gd" id="2_n2hic"]
 [ext_resource type="Script" uid="uid://cj0t5upbe5p2n" path="res://Main/status_bar_container.gd" id="3_nu5lx"]
 [ext_resource type="PackedScene" uid="uid://da2scdocynbkk" path="res://Windows/Character/character_window.tscn" id="4_pa2rv"]
-[ext_resource type="PackedScene" uid="uid://b301mgy8od7cj" path="res://Windows/Equipment/equipment_window.tscn" id="5_70kn5"]
+[ext_resource type="PackedScene" path="res://Windows/Vessel/vessel_window.tscn" id="5_vessel"]
 [ext_resource type="PackedScene" uid="uid://f6jom4nfishp" path="res://Windows/Inventory/inventory_window.tscn" id="6_2mfgw"]
 [ext_resource type="PackedScene" uid="uid://bqug1f88ap7hb" path="res://Windows/Battle/battle_window.tscn" id="7_e8vwd"]
 [ext_resource type="PackedScene" uid="uid://byuffsddecjhf" path="res://Windows/Shop/shop_window.tscn" id="8_mkciv"]
@@ -83,11 +83,6 @@ custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 text = "人物"
 
-[node name="Button2" type="Button" parent="GridContainer" unique_id=883709736]
-custom_minimum_size = Vector2(80, 80)
-layout_mode = 2
-text = "魂灵"
-
 [node name="Button3" type="Button" parent="GridContainer" unique_id=1363769282]
 custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
@@ -125,10 +120,6 @@ text = "Mod"
 [node name="CharacterWindow" parent="." unique_id=1235136498 instance=ExtResource("4_pa2rv")]
 visible = false
 
-[node name="EquipmentWindow" parent="." unique_id=1234613472 instance=ExtResource("5_70kn5")]
-visible = false
-open_position = Vector2i(1266, 150)
-
 [node name="InventoryWindow" parent="." unique_id=111619256 instance=ExtResource("6_2mfgw")]
 visible = false
 open_position = Vector2i(1683, 291)
@@ -151,6 +142,9 @@ script = ExtResource("9_70kn5")
 open_position = Vector2i(0, 36)
 
 [node name="CollectionWindow" parent="." unique_id=1694343200 instance=ExtResource("9_nu5lx")]
+visible = false
+
+[node name="VesselWindow" parent="." instance=ExtResource("5_vessel")]
 visible = false
 
 [node name="TooltipWindow" parent="." unique_id=143098148 instance=ExtResource("9_c4peb")]

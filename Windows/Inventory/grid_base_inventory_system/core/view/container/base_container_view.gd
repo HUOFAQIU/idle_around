@@ -95,6 +95,9 @@ func refresh() -> void:
 	super()
 	_clear_inv()
 	var container_data := _container_data()
+	# auto_register=false 的视图在绑定数据源前没有容器；显示时先留空
+	if container_data == null:
+		return
 
 	var handled_item: Dictionary[ItemData, ItemView]
 	for grid in _grid_map.keys():

@@ -4,7 +4,7 @@ class_name ShopService
 ## 加载货物
 func load_goods(shop_name: String, goods: Array[ItemData]) -> void:
 	for good in goods:
-		_container_repository.get_container(shop_name).add_item(good.duplicate())
+		_container_repository.get_container(shop_name).add_item(good.make_instance())
 
 ## 购买物品：检查购买条件，放进第一个有空位的背包，再扣费。
 ## 购买链路由服务层负责，ItemData 只保留 can_buy() / cost() 钩子。

@@ -16,8 +16,6 @@ radius = 14.0
 [node name="Player" type="CharacterBody2D" unique_id=1410800408]
 motion_mode = 1
 script = ExtResource("1_unit")
-unit_name = "角色"
-max_health = 500.0
 
 [node name="AbilitySystemComponent" type="Node" parent="." unique_id=1590496847]
 script = ExtResource("2_asc")

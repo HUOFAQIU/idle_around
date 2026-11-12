@@ -69,9 +69,10 @@ func _init(data: ItemData, base_size: int, stack_num_font: Font = null, stack_nu
 
 ## 入树后创建名称标签，并尝试绑定战斗运行期状态；徽章等真有运行期状态再建
 func _ready() -> void:
-	if data is SoulData:
+	if _shows_name_label():
 		_soul_name_label = _make_soul_name_label()
 		_refresh_soul_name_label()
+	if data is SoulData:
 		SoulRuntimeDB.runtime_registered.connect(_on_runtime_registered)
 		SoulRuntimeDB.runtime_unregistered.connect(_on_runtime_unregistered)
 		_bind_runtime(SoulRuntimeDB.get_runtime(data as SoulData))
@@ -167,7 +168,12 @@ func _apply_freeze_shader() -> void:
 	(material as ShaderMaterial).set_shader_parameter("freeze", 1.0 if frozen else 0.0)
 
 
-## 创建盖在卡面图标上的魂灵名称标签；父节点就是卡面，铺满即可
+## 魂灵和魂器都显示卡面名称；状态徽章仍然只属于魂灵
+func _shows_name_label() -> bool:
+	return data is SoulData or data is SoulVesselData
+
+
+## 创建盖在卡面图标上的名称标签；父节点就是卡面，铺满即可
 func _make_soul_name_label() -> Label:
 	var label := Label.new()
 	label.name = "SoulNameLabel"

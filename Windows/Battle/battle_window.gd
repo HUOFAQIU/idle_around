@@ -165,33 +165,39 @@ func _end_battle() -> void:
 	_session.stop()
 
 
-## 装备着的魂灵：魂灵窗口里那四个格子，每个其实是一个只收 SOUL 的小背包。
-## 返回按“部位行从上到下、行内从左到右”排好的位置信息。
+## 装备着的魂灵：角色窗口的三个魂器槽，每个槽一件战斗魂器。
+## 返回按“槽位从上到下、魂器内部从左到右”排好的位置信息。
 func _equipped_souls() -> Array[SoulSlot]:
 	var slots : Array[SoulSlot] = []
-	for slot_name in CONTAINER_IDS.soul_cells():
+	for slot_name in CONTAINER_IDS.vessel_cells():
 		var container := ContainerRepository.instance.get_container(slot_name)
 		if container == null:
 			continue
-		var row_slots : Array[SoulSlot] = []
 		for item in container.items:
-			if not item is SoulData:
+			if not item is SoulVesselData:
 				continue
-			var grids := container.find_grids_by_item_data(item)
-			if grids.is_empty():
+			var vessel := item as SoulVesselData
+			if vessel.vessel_kind != "COMBAT":
 				continue
-			var column := grids[0].x
-			for grid in grids:
-				column = mini(column, grid.x)
-			var soul := item as SoulData
-			var slot := SoulSlot.new()
-			slot.soul = soul
-			slot.container_name = slot_name
-			slot.column = column
-			slot.width = maxi(soul.columns, 1)
-			row_slots.append(slot)
-		row_slots.sort_custom(func (a: SoulSlot, b: SoulSlot) -> bool: return a.column < b.column)
-		slots.append_array(row_slots)
+			var contents := vessel.ensure_contents()
+			var row_slots : Array[SoulSlot] = []
+			for soul_item in contents.items:
+				if not soul_item is SoulData:
+					continue
+				var soul := soul_item as SoulData
+				var grids := contents.find_grids_by_item_data(soul)
+				if grids.is_empty():
+					continue
+				var column := ContainerData.anchor_of(grids).x
+				var slot := SoulSlot.new()
+				slot.soul = soul
+				slot.vessel = vessel
+				slot.container_name = contents.container_name
+				slot.column = column
+				slot.width = maxi(soul.get_shape().x, 1)
+				row_slots.append(slot)
+			row_slots.sort_custom(func (a: SoulSlot, b: SoulSlot) -> bool: return a.column < b.column)
+			slots.append_array(row_slots)
 	return slots
 
 
@@ -253,15 +259,15 @@ func _update_coord_tooltip() -> void:
 	if tip == null:
 		return
 
-	# 只有战斗窗口自己拥有焦点时才显示坐标。魂灵窗口盖在上面时，
-	# 它的物品 tooltip 优先级更高，这里不能再抢。
+	# 只有战斗窗口自己拥有焦点时才显示坐标。仓库/魂器窗口盖在上面时，
+	# 它们的物品 tooltip 优先级更高，这里不能再抢。
 	if not has_focus():
 		_mouse_was_inside = false
 		tip.hide_tip(self)
 		return
 
 	# 鼠标不在这个窗口里就彻底撒手：tooltip 是全游戏共用一个，
-	# 魂灵窗口 hover 物品时正用着它，这里每帧无条件 show/hide 会把人家盖掉。
+	# 其他窗口 hover 物品时正用着它，这里每帧无条件 show/hide 会把人家盖掉。
 	# 只在"刚离开"那一帧收一次，之后就什么都不做
 	if not _is_mouse_inside():
 		if _mouse_was_inside:

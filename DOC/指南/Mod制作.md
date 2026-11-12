@@ -2,7 +2,8 @@
 
 > 类型：指南 | 状态：部分实现（内置 core 已接入）
 > 何时读：制作、打包、调试 idle_around 的 mod，或新增官方内容
-> 关键词：mod.json content.pck modkit 示例 mod pack_example patch 导出 覆盖 加载顺序 内置 core content_root content_namespace validate_core_manifest manifest 校验 内容 ID 技能 ID 命名 PascalCase content_id
+> 关键词：mod.json content.pck modkit 示例 mod pack_example patch 导出 覆盖 加载顺序 内置 core content_root content_namespace validate_core_manifest manifest 校验 内容 ID 技能 ID 命名 PascalCase content_id 魂器 vessels
+> 核对：2026-11-12
 > 代码：`Scripts/mod/`、`Scripts/collection_db.gd`、`base_mods/core/mod.json`
 > 相关：`架构/Mod系统.md`
 > 核对：2026-11-11
@@ -70,6 +71,7 @@ user://mods/example_souls/
 | `content_root` | 否 | 只允许内置 mod；指向 `res://` 下的内容根目录，空则用 `res://base_mods/<id>/` |
 | `content.souls` | 否 | 魂灵条目：`id` + `path` |
 | `content.monsters` | 否 | 怪物条目：`id` + `path` |
+| `content.vessels` | 否 | 魂器条目：`id` + `path`（`SoulVesselData`） |
 | `content.cues` | 否 | Cue 条目：`tag` + `scene`；启动时由 `ModCueRegistrar` 注册到 `GameplayCueManager` |
 | `overrides` | 否 | 覆盖的原版 `res://` 路径，必须存在 |
 
@@ -86,7 +88,8 @@ user://mods/example_souls/
 | mod id | `^[a-z][a-z0-9_]{2,63}$` | `example_souls` |
 | core 魂灵 ID | `<name>_soul` | `xiao_lu_soul` |
 | core 怪物 ID | `<name>_monster` | `snake_monster` |
-| 第三方魂灵/怪物 ID | `<mod_id>:<name>_<kind>` | `example_souls:fire_wolf_soul` |
+| core 魂器 ID | `<name>_vessel` | `mei_you_deng_vessel` |
+| 第三方魂灵/怪物/魂器 ID | `<mod_id>:<name>_<kind>` | `example_souls:fire_wolf_soul` |
 | core 技能 ID | 魂灵 ID 去掉 `_soul` 后转 PascalCase | `XiaoLu` → `Skill.XiaoLu` |
 | 第三方技能 ID | `Mod.<PascalModId>.<PascalName>` | `Mod.ExampleSouls.FireWolf` → `Skill.Mod.ExampleSouls.FireWolf` |
 | core Cue | `Cue.<Category>.<Name>` | `Cue.Status.Burn` |
@@ -153,14 +156,14 @@ user://mods/example_souls/
 - `TestAPI.get_mod_list()`：mod 概况（含 `source` / `builtin` / `locked`）、是否加载、内容数量、错误。
 - `TestAPI.get_mod_errors()`：加载器、内容合并和 Cue 注册诊断汇总。
 - `TestAPI.is_builtin_mod(id)`：是否为内置 mod。
-- `TestAPI.get_mod_content_ids(id)`：该 mod 注册的 souls / monsters / cues ID 列表。
+- `TestAPI.get_mod_content_ids(id)`：该 mod 注册的 souls / monsters / vessels / cues ID 列表。
 - `TestAPI.get_skill_tags()`：所有魂灵的 `content_id`、技能 ID 和 `ability_tag`，用于核对技能命名。
 - `TestAPI.validate_core_manifest()`：校验 `base_mods/core/mod.json` 与内容文件是否一致，并检查资源是否误设中文 `resource_name`；返回错误列表。
 - `TestAPI.get_mod_cues()`：mod Cue 的标签、来源、路径、是否注册成功。
 - `TestAPI.is_mod_cue_registered(tag)`：单个 mod Cue 是否已注册。
 - `TestAPI.set_mod_enabled(id, enabled)`：写启用状态；重启后生效。
 - `TestAPI.get_orphaned_records()`：当前存档里因缺失 mod 内容而保留的记录。
-- 主界面第 9 个按钮“Mod”打开管理窗口，可查看状态/错误、启用/禁用（重启生效）、调整加载顺序、打开 mod 目录。
+- 主界面“Mod”按钮打开管理窗口，可查看状态/错误、启用/禁用（重启生效）、调整加载顺序、打开 mod 目录。
 - `TestAPI.get_mod_order()` / `TestAPI.get_mod_load_order()` / `TestAPI.set_mod_order()`：分别查看用户顺序、实际加载顺序、写入顺序。
 - 日志前缀：`ModLoader:`。
 
@@ -174,9 +177,10 @@ user://mods/example_souls/
 ## 9. 官方内置内容（core）
 
 - 清单：`base_mods/core/mod.json`；内容资源已经物理迁移到 `base_mods/core/` 的 `souls/`、`monsters/`、`effects/`、`cues/`，manifest 不再填写 `content_root`。
-- 当前条目：`souls` 19 条、`monsters` 2 条、`cues` 5 条。技能、触发器、effects 不单独登记，由魂灵/技能资源内部引用。
+- 当前条目：`souls` 19 条、`monsters` 2 条、`vessels` 1 条、`cues` 5 条。技能、触发器、effects 不单独登记，由魂灵/技能资源内部引用。
 - 新增官方魂灵：把 `.tres` 放到 `base_mods/core/souls/<name>/`，在 `content.souls` 加 `{ "id": "<id>", "path": "souls/<name>/<file>.tres" }`。
 - 新增官方怪物：数据放 `base_mods/core/monsters/<name>/`，在 `content.monsters` 加 `{ "id": "<id>", "path": "monsters/<name>/<file>.tres" }`；`display_name` / `max_health` / `attack_range` / `move_speed` / `icon` / `battle_scene` 都配在 `MonsterData`，战斗场景不再写这些字段。
+- 新增官方魂器：数据放 `base_mods/core/vessels/<name>/`，在 `content.vessels` 加 `{ "id": "<id>", "path": "vessels/<name>/<file>.tres" }`；字段见 `魂灵/魂器.md`，`item_name` / `category = "VESSEL"` / `vessel_kind` / 内部容器尺寸 / 效果都配在 `SoulVesselData`。
 - 新增官方 Cue：场景放 `base_mods/core/cues/`，逻辑脚本可放 `game/battle/cues/`，在 `content.cues` 加 `{ "tag": "...", "scene": "cues/<file>.tscn" }`。
 - 官方 ID 保持原值，不要加 `core:` 前缀；存档以这些 ID 为键。
 - 内置 mod 只能 loose，不能把 `content.pck` 放进 `base_mods/`。

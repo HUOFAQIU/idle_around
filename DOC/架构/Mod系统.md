@@ -2,7 +2,8 @@
 
 > 类型：设计 | 状态：部分实现（内置 core mod 已接入；Steam 后置）
 > 何时读：改 mod 加载、内容注册、存档兼容，或准备接 Steam 创意工坊
-> 关键词：mod ModLoader manifest PCK 创意工坊 Workshop content_id orphaned 加载顺序 内置 core content_namespace content_root validate_core_manifest manifest 校验 技能 ID 命名 PascalCase 常见排查 排障 症状 未生效 未注册 顺序不生效
+> 关键词：mod ModLoader manifest PCK 创意工坊 Workshop content_id orphaned 加载顺序 内置 core content_namespace content_root validate_core_manifest manifest 校验 技能 ID 命名 PascalCase 魂器 vessels 常见排查 排障 症状 未生效 未注册 顺序不生效
+> 核对：2026-11-12
 > 代码：`Scripts/mod/`、`Scripts/collection_db.gd`、`Scripts/save/`、`project.godot`、`base_mods/core/mod.json`
 > 相关：`架构/存档.md`、`架构/扩展点.md`、`指南/Mod制作.md`
 > 不覆盖：Steamworks 后台配置、GodotSteam 完整 API
@@ -20,7 +21,7 @@
 - 官方内容和第三方 mod 走同一条发现、校验、加载、注册管线，避免“原版一套、mod 一套”。
 - YARD registry 是编辑器烘焙的，运行时只读，无法追加条目；现已删除 `addons/yard/` 和 `game/content/Collection/*_registry.tres`。
 - `CollectionDB` 不再 `preload` registry，完全读取 `ModLoader.get_soul_entries()` / `get_monster_entries()`。
-- 官方内容清单在 `base_mods/core/mod.json`；新增魂灵/怪物/Cue 时改 manifest，不再依赖编辑器扫描。
+- 官方内容清单在 `base_mods/core/mod.json`；新增魂灵/怪物/魂器/Cue 时改 manifest，不再依赖编辑器扫描。
 - `content_namespace = "global"` 让 core 保留原 ID（如 `xiao_lu_soul`、`fu_monster`）。
 - 对外 API 不变：`get_soul()`、`get_soul_ids()`、`get_monster()`、`pick_random_monster()` 仍由 `CollectionDB` 提供。
 
@@ -32,7 +33,7 @@ ModLoader（autoload，最先）
   发现 user://mods/<id>/mod.json（第三方）
   → 校验 / 依赖排序 / 冲突检测
   → 先挂载全部 PCK，再统一加载内容资源
-  → 产出 souls / monsters / cues 条目
+  → 产出 souls / monsters / vessels / cues 条目
         │
         ├─ cues ──▶ GameplayCueManager（GodotGAS）+ ModCueRegistrar（mod Cue 注册）
         │              → 注册 core + 第三方 mod Cue
@@ -58,7 +59,7 @@ SaveManager
 1. `ModLoader._init()`：加载 `user://mods.cfg`（启用状态和 `[order]`），先扫描 `res://base_mods/*/mod.json`，再扫描 `user://mods/*/mod.json`；校验、依赖排序后先挂载全部 PCK，再统一加载 manifest 列出的内容资源。
 2. `GameGlobal`、`GBIS` 等原有 autoload 按原顺序启动。
 3. `GameplayCueManager._ready()`（GodotGAS）：加载内置 `cue_registry`（当前为空）；随后 `ModCueRegistrar._ready()` 注册 `ModLoader` 校验通过的 core 和第三方 mod Cue。
-4. `CollectionDB._ready()`：从 `ModLoader` 的 souls/monsters 条目构建目录，写 `content_id`。
+4. `CollectionDB._ready()`：从 `ModLoader` 的 souls/monsters/vessels 条目构建目录，写 `content_id`。
 5. `SaveManager` 等一帧后读档；找不到的内容进 `orphaned`。
 6. 主场景启动。
 
@@ -74,8 +75,8 @@ SaveManager
 
 ### 4.1 内容种类与校验规格
 
-- `ContentKind.Kind` 是唯一的内容种类枚举（`SOUL / MONSTER / CUE`），`ModContentEntry`、`CollectionDB`、见闻窗口共用，不再各自定义裸 int。
-- `ContentKindSpec.all()` 是 manifest 内容段的单一规格表：`key`（souls/monsters/cues）、`id_field` / `path_field`（id/path 或 tag/scene）、ID 后缀、是否标签、core 目录与 core 文件后缀。
+- `ContentKind.Kind` 是唯一的内容种类枚举（`SOUL / MONSTER / CUE / VESSEL`），`ModContentEntry`、`CollectionDB`、见闻窗口共用，不再各自定义裸 int。
+- `ContentKindSpec.all()` 是 manifest 内容段的单一规格表：`key`（souls/monsters/vessels/cues）、`id_field` / `path_field`（id/path 或 tag/scene）、ID 后缀、是否标签、core 目录与 core 文件后缀。
 - `ModLoader` 与 `CoreContentValidator` 都按这张表遍历；新增一种内容只需改规格表 + `ModLoader` 的类型注册分支。
 - 同一资源路径登记到两个内容 ID 会报错，避免共享资源被后一个 ID 改写 `content_id`。
 - 语义校验失败（魂灵词表/标签、技能步骤、怪物配置、executor 字段等）的条目不会注册：不写入 ID 表、不进入 `CollectionDB`/刷怪池，mod 的内容计数也不增加。
@@ -96,6 +97,7 @@ res://base_mods/core/
   mod.json
   souls/
   monsters/
+  vessels/
   effects/
   cues/
 ```
@@ -151,7 +153,7 @@ res://mods/example_souls/content/monsters/fire_wolf_monster.tres
 
 ### 8.1 Mod 管理窗口
 
-- 主界面第 9 个按钮打开；`Windows/ModWindow/mod_window.gd` 用代码搭建界面，不依赖场景布局。
+- 主界面“Mod”按钮打开；`Windows/ModWindow/mod_window.gd` 用代码搭建界面，不依赖场景布局。
 - “Mod 列表”标签页显示名称、id、来源（内置/本地）、版本、作者、描述、加载状态、内容数量、运行时顺序和逐条错误。
 - 内置 core 行禁用启用勾选框，显示“内置”；第三方 mod 勾选启用状态调用 `ModLoader.set_mod_enabled()` 写 `user://mods.cfg`；运行期不重载，重启后生效。窗口会标出未生效的改动。
 - “打开 mod 目录”用 `OS.shell_open()` 打开 `user://mods`，方便放 loose mod；内置 core 在游戏包内。
@@ -171,8 +173,8 @@ res://mods/example_souls/content/monsters/fire_wolf_monster.tres
 
 ### 8.4 内置 core
 
-- 清单在 `base_mods/core/mod.json`，当前 `souls` 19 条、`monsters` 2 条、`cues` 5 条；技能、触发器、effects 不单独登记，由资源内部引用。
-- `content_namespace: "global"` 保留原 ID；内容资源位于 `base_mods/core/` 的 `souls/`、`monsters/`、`effects/`、`cues/`。
+- 清单在 `base_mods/core/mod.json`，当前 `souls` 19 条、`monsters` 2 条、`vessels` 1 条、`cues` 5 条；技能、触发器、effects 不单独登记，由资源内部引用。
+- `content_namespace: "global"` 保留原 ID；内容资源位于 `base_mods/core/` 的 `souls/`、`monsters/`、`vessels/`、`effects/`、`cues/`。
 - 官方 Cue 场景在 `base_mods/core/cues/`，逻辑脚本仍在 `game/battle/cues/`；`godot_gas/cue_registry.tres` 为空。
 - 导出时 `export_presets.cfg` 的 `include_filter` 必须包含 `base_mods/*/mod.json`；`exclude_filter` 用 `mods/*,modkit/*`，不能写成 `*mods/*`，否则会误伤 `base_mods/`。
 - 改完官方内容后运行 `modkit/validate_core_manifest.gd`（或 `TestAPI.validate_core_manifest()`），检查 manifest 是否漏登记、路径不存在、ID 重复，以及资源是否误设中文 `resource_name`；内容种类、字段名与文件后缀来自 `ContentKindSpec`，校验器不再复制这些常量；技能由 `SkillDefinition.steps` 组成，步骤类型、目标规则与字段是否一致由 ModLoader 在加载期检查；执行器字段（`attribute_name`、数值范围、`burn_effect` 等）也在加载期校验；怪物会校验 `display_name`、`max_health`、`attack_range`、`move_speed` 和 `battle_scene`。

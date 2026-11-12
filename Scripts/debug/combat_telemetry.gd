@@ -65,7 +65,11 @@ func begin_run(run_id: int, battle: BattleManager, loadout: Array = []) -> void:
 		if entry != null:
 			souls.append({
 				"name": entry.soul.item_name if entry.soul != null else "?",
-				"part": entry.slot.container_name if entry.slot != null else "",
+				"vessel": (
+					entry.slot.vessel.item_name
+					if entry.slot != null and entry.slot.vessel != null
+					else (entry.slot.container_name if entry.slot != null else "")
+				),
 				"column": entry.slot.column if entry.slot != null else -1,
 			})
 	record(CombatEvent.BATTLE, "start", {"souls": souls, "enemy_count": battle.enemy_count()})

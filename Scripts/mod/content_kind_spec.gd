@@ -33,6 +33,17 @@ static func all() -> Array[Dictionary]:
 			"core_suffixes": ["_monster.tres"],
 		},
 		{
+			"kind": CONTENT_KIND.Kind.VESSEL,
+			"key": "vessels",
+			"label": "魂器",
+			"id_field": "id",
+			"path_field": "path",
+			"id_suffix": "_vessel",
+			"is_tag": false,
+			"core_dir": "vessels",
+			"core_suffixes": ["_vessel.tres"],
+		},
+		{
 			"kind": CONTENT_KIND.Kind.CUE,
 			"key": "cues",
 			"label": "Cue",

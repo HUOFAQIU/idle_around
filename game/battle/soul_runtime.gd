@@ -23,6 +23,8 @@ var scanline_progress: float = 0.0
 var haste_seconds: float = 0.0
 var slow_seconds: float = 0.0
 var freeze_seconds: float = 0.0
+## 所在魂器提供的直接伤害加成；只作用于这颗魂灵
+var vessel_damage_bonus: float = 0.0
 
 ## 本场统计；报告/调试用，键名见 _COUNTER_DEFAULTS
 var counters: Dictionary = {
@@ -50,15 +52,20 @@ func _init(
 	slot = p_slot
 	ability = p_ability
 	owner_unit = p_owner
+	if slot != null and slot.vessel != null:
+		vessel_damage_bonus = slot.vessel.soul_damage_bonus()
 
 
 func display_name() -> String:
 	return soul.item_name if soul != null else "未知魂灵"
 
 
-func part_name() -> String:
+## 来源魂器名；怪物魂灵没有魂器时退回虚拟容器名
+func vessel_name() -> String:
 	if slot == null:
 		return ""
+	if slot.vessel != null:
+		return slot.vessel.item_name
 	return slot.container_name
 
 
@@ -134,7 +141,8 @@ func to_dict() -> Dictionary:
 	return {
 		"id": id,
 		"name": display_name(),
-		"part": part_name(),
+		"vessel": vessel_name(),
+		"vessel_damage_bonus": vessel_damage_bonus,
 		"column": slot.column if slot != null else -1,
 		"width": slot.width if slot != null else 1,
 		"cooldown": ability.cooldown if ability != null else 0.0,

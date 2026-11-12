@@ -242,11 +242,13 @@ func apply_trigger_effect(
 	magnitude: float,
 	suppress_state_log: bool = false,
 	trace: CombatTrace = null,
-	display_name: String = ""
+	display_name: String = "",
+	soul_runtime: SoulRuntime = null
 ) -> void:
 	if effect == null or asc == null or target == null or target.asc == null:
 		return
 	var context := SoulEffectContext.new(self, self, trace)
+	context.soul_runtime = soul_runtime
 	context.target_data.append_node(target)
 	var spec := GameplayEffectSpec.new(effect, context, 1.0)
 	if not display_name.is_empty():

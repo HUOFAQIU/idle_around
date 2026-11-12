@@ -28,7 +28,8 @@ func execute(spec: GameplayEffectSpec, target_asc: AbilitySystemComponent) -> Di
 	var crit_multiplier := CritResolution.multiplier(spec)
 
 	var soul_bonus := _matching_soul_bonus(source_asc)
-	var damage := maxf(base_damage + damage_bonus + soul_bonus, 0.0) * crit_multiplier
+	var vessel_bonus := _vessel_damage_bonus(spec)
+	var damage := maxf(base_damage + damage_bonus + soul_bonus + vessel_bonus, 0.0) * crit_multiplier
 	if damage <= 0.0:
 		return {}
 	CritResolution.inject_if_critical(spec, crit_multiplier)
@@ -53,6 +54,19 @@ func _matching_soul_bonus(source_asc: AbilitySystemComponent) -> float:
 				count += 1
 				break
 	return float(count) * bonus_per_matching_soul
+
+
+## 来源魂灵所在魂器提供的直接伤害加成；没有来源魂灵时为 0。
+## 用动态属性读取而不是静态引用 SoulRuntime：modkit 的 --script 校验会在
+## 没有 autoload 的环境里加载技能资源，静态依赖会让整个执行器编译失败。
+func _vessel_damage_bonus(spec: GameplayEffectSpec) -> float:
+	if spec == null or spec.context == null:
+		return 0.0
+	var runtime: Variant = spec.context.get("soul_runtime")
+	if not runtime is Object:
+		return 0.0
+	var bonus: Variant = runtime.get("vessel_damage_bonus")
+	return maxf(float(bonus) if bonus != null else 0.0, 0.0)
 
 
 ## 施法者的 ASC；context.instigator 通常是 BattleUnit。

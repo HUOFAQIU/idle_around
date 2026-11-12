@@ -17,8 +17,10 @@ enum DropState {
 @export_storage var container_name: String
 ## 允许存放的物品大类列表
 @export_storage var avilable_types: Array[String]
-## 装备部位限制（空 = 普通容器，不限制）
-@export_storage var equip_part: String = ""
+## 魂器类型限制（空 = 不限制；COMBAT / TOOL）
+@export_storage var vessel_kind: String = ""
+## 最多容纳物品件数；0 = 不限制（角色魂器槽用 1）
+@export_storage var max_items: int = 0
 
 ## 当前存放的物品数据列表
 @export_storage var items: Array[ItemData] = []
@@ -51,9 +53,10 @@ func clear() -> void:
 ## 深度复制当前库存数据
 func deep_duplicate() -> ContainerData:
 	var ret = ContainerData.new(container_name, columns, rows, avilable_types)
-	ret.equip_part = equip_part
+	ret.vessel_kind = vessel_kind
+	ret.max_items = max_items
 	for item_data in item_grids_map.keys():
-		ret.item_grids_map[item_data.duplicate()] = item_grids_map[item_data].duplicate(true)
+		ret.item_grids_map[item_data.make_instance()] = item_grids_map[item_data].duplicate(true)
 	ret.items.append_array(ret.item_grids_map.keys())
 	for item in ret.items:
 		var grids = ret.item_grids_map[item]
@@ -84,10 +87,11 @@ func remove_item(item: ItemData) -> bool:
 func is_item_avilable(item_data: ItemData) -> bool:
 	if not (avilable_types.has("ANY") or avilable_types.has(item_data.category)):
 		return false
-	# 装备部位容器：魂灵只能进对应部位；ANY 的魂灵不限制
-	if equip_part != "" and item_data is SoulData:
-		var soul := item_data as SoulData
-		return soul.equip_part == "ANY" or soul.equip_part == equip_part
+	# 角色魂器槽只收指定类型；槽位本身的单件限制由 max_items 控制
+	if max_items > 0 and items.size() >= max_items and not items.has(item_data):
+		return false
+	if vessel_kind != "" and item_data.container_kind_tag() != vessel_kind:
+		return false
 	return true
 
 
@@ -129,6 +133,15 @@ func drop_state_at(item_data: ItemData, hovered_grid: Vector2i, grab_offset: Vec
 ## 根据物品数据查找其占用的网格坐标列表
 func find_grids_by_item_data(item_data: ItemData) -> Array[Vector2i]:
 	return item_grids_map.get(item_data, [] as Array[Vector2i])
+
+
+## 一组占用格 -> 左上角锚点
+static func anchor_of(grids: Array[Vector2i]) -> Vector2i:
+	var anchor: Vector2i = grids[0]
+	for grid in grids:
+		anchor.x = mini(anchor.x, grid.x)
+		anchor.y = mini(anchor.y, grid.y)
+	return anchor
 
 ## 检查库存中是否包含指定物品
 func has_item(item: ItemData) -> bool:

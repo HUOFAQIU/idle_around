@@ -392,6 +392,7 @@ func _apply_effect_to_target(
 	if caster == null:
 		return
 	var context := SoulEffectContext.new(caster, caster, trace)
+	context.soul_runtime = soul_runtime
 	var target_data := GameplayAbilityTargetData.new()
 	target_data.append_node(target)
 	context.target_data = target_data

@@ -24,7 +24,7 @@ class_name MonsterData extends Resource
 ## 稀有标记：不参与常规随机池，由 BattleWindow 每击杀 N 只常规怪后替换刷出。
 ## 稀有怪应同时把 spawn_weight 设为 0；死亡也不计入常规击杀数。
 @export var is_rare: bool = false
-## 携带的魂灵与各自的掉落几率；部位由魂灵自身的 equip_part 决定
+## 携带的魂灵与各自的掉落几率；战斗时按列表顺序生成虚拟魂灵栏
 @export var soul_entries: Array[MonsterSoulEntry] = []
 ## 战斗时实例化的场景
 @export var battle_scene: PackedScene

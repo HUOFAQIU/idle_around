@@ -6,11 +6,15 @@ class_name ItemData
 ## 场景：比如，强化装备后，修改了 shader 参数，但是不想重绘整个 Inventory，可以 emit 这个信号
 signal sig_refresh
 
+## 运行期稳定 ID：由 ModLoader 从 manifest 写入（core 沿用原 ID）。
+## 由 CollectionDB / ModLoader 写入；不要在资源里手填，也不要拿来显示。
+@export_storage var content_id: StringName = &""
+
 @export_group("Common Settings")
 ## 物品显示名；只用于 UI/日志，不参与 ID、存档查找或唯一性约束
 @export var item_name: String = "Item Name"
 ## 物品大类，值为“ANY”表示所有大类
-@export_enum("ANY", "SOUL") var category: String = "ANY"
+@export_enum("ANY", "SOUL", "VESSEL") var category: String = "ANY"
 @export_group("Display Settings")
 ## 物品图标
 @export var icon: Texture2D
@@ -26,6 +30,24 @@ signal sig_refresh
 ## 获取货品形状
 func get_shape() -> Vector2i:
 	return Vector2i(columns, rows)
+
+
+## 复制一份可进入容器的物品实例。
+## 普通物品等价于 duplicate()；魂器会覆盖此方法，连同内部魂灵一起复制。
+func make_instance() -> ItemData:
+	return duplicate() as ItemData
+
+
+## 右键激活（例如打开魂器窗口）。返回 true 表示这次激活已被处理。
+## 只做纯数据判断；真正打开哪个窗口由 UI 层监听 sig_item_activated 决定。
+func activate() -> bool:
+	return false
+
+
+## 容器类型标签：普通物品为空；魂器返回 COMBAT / TOOL。
+## ContainerData 用它做类型过滤，避免容器层直接依赖具体物品类。
+func container_kind_tag() -> String:
+	return ""
 
 ## 改一个 shader 参数的值，并让用到它的 view 重绘
 ## （sig_refresh 就是为这种情况留的：只重画这一件，不用刷新整个背包）

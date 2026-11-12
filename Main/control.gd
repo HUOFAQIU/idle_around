@@ -1,7 +1,6 @@
 extends Control
 
 @onready var button: Button = $GridContainer/Button
-@onready var button_2: Button = $GridContainer/Button2
 @onready var button_3: Button = $GridContainer/Button3
 @onready var button_4: Button = $GridContainer/Button4
 @onready var button_5: Button = $GridContainer/Button5
@@ -11,7 +10,6 @@ extends Control
 @onready var button_9: Button = $GridContainer/Button9
 
 @onready var character_window: CharacterWindow = $CharacterWindow
-@onready var equipment_window: Window = $EquipmentWindow
 @onready var inventory_window: Window = $InventoryWindow
 @onready var battle_window: BattleWindow = $BattleWindow
 @onready var shop_window: BaseWindow = $ShopWindow
@@ -24,10 +22,6 @@ func _ready() -> void:
 	button.pressed.connect(
 		func ():
 			popup_window(character_window)
-	)
-	button_2.pressed.connect(
-		func ():
-			popup_window(equipment_window)
 	)
 	button_3.pressed.connect(
 		func ():

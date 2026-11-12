@@ -1,0 +1,29 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://Windows/Vessel/vessel_window.gd" id="1_window"]
+[ext_resource type="Script" uid="uid://b3x4mwtjmm4tp" path="res://Windows/Inventory/grid_base_inventory_system/core/view/container/inventory/inventory_view.gd" id="2_view"]
+
+[node name="VesselWindow" type="Window"]
+oversampling_override = 1.0
+size = Vector2i(224, 112)
+script = ExtResource("1_window")
+open_position = Vector2i(1266, 150)
+
+[node name="VBox" type="VBoxContainer" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Contents" type="Control" parent="VBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource("2_view")
+avilable_types = Array[String](["SOUL"])
+auto_register = false
+container_name = "vessel_view"
+container_columns = 6
+container_rows = 2

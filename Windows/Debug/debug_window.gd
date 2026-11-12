@@ -11,7 +11,6 @@ const UNITS_MAX_ROWS: int = 100
 const PENDING_MAX: int = 2000
 const LOG_MAX_LINES: int = 1200
 const SOUL_STATUS_ROW := preload("res://Windows/Debug/soul_status_row.gd")
-const CONTAINER_IDS := preload("res://Scripts/container_ids.gd")
 
 const CATEGORY_NAMES := {
 	CombatEvent.BATTLE: "战斗",
@@ -298,7 +297,7 @@ func _build_souls_tab() -> void:
 	tab.name = "魂灵"
 	tab.split_offset = 220
 	_tabs.add_child(tab)
-	_soul_tree = _make_tree(tab, "Tree", ["魂灵", "部位", "槽位", "冷却", "充能", "状态", "统计"])
+	_soul_tree = _make_tree(tab, "Tree", ["魂灵", "魂器", "槽位", "冷却", "充能", "状态", "统计"])
 	_soul_detail = _make_rich(tab, "Detail", 220)
 	_soul_detail.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_soul_tree.item_selected.connect(_on_soul_selected)
@@ -1142,7 +1141,7 @@ func _format_unit_detail(data: Dictionary) -> String:
 	for runtime in loadout:
 		lines.append("  %s  %s  充能 %.0f%%" % [
 			String(runtime.get("name", "")),
-			String(runtime.get("part", "")),
+			String(runtime.get("vessel", "")),
 			float(runtime.get("charge_ratio", 0.0)) * 100.0,
 		])
 	return "\n".join(lines)
@@ -1338,8 +1337,7 @@ func _selected_runtime_id(tree: Tree) -> int:
 
 
 func _part_text(runtime: SoulRuntime) -> String:
-	if runtime == null or runtime.slot == null:
+	if runtime == null:
 		return ""
-	var part: String = CONTAINER_IDS.part_for_soul_cell(runtime.slot.container_name)
-	return SoulText.part_name(part) if not part.is_empty() else runtime.slot.container_name
+	return runtime.vessel_name()
 #endregion

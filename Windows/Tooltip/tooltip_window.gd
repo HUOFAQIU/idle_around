@@ -38,6 +38,9 @@ func _ready() -> void:
 	_body_label.visible = false
 	_apply_panel_colors()
 	reset_size()
+	# 仓库、角色魂器槽、魂器窗口共用同一套悬停提示，避免每个窗口各写一份
+	GBIS.sig_item_focused.connect(_on_item_focused)
+	GBIS.sig_item_focus_lost.connect(_on_item_focus_lost)
 
 
 func _process(_delta: float) -> void:
@@ -85,6 +88,20 @@ func _set_text(title_text: String, body_text: String) -> void:
 		changed = true
 	if changed:
 		reset_size()
+
+
+## 物品焦点：魂灵和魂器有正文，其他物品保持单行标题
+func _on_item_focused(item_data: ItemData, _container_name: String) -> void:
+	var body := ""
+	if item_data is SoulData:
+		body = SoulTooltip.build(item_data as SoulData, true)
+	elif item_data is SoulVesselData:
+		body = VesselTooltip.build(item_data as SoulVesselData, true)
+	show_tip(self, Layer.ITEM, item_data.item_name, body)
+
+
+func _on_item_focus_lost(_item_data: ItemData) -> void:
+	hide_tip(self)
 
 
 ## 自己决定往哪边弹：锚点是鼠标，边界是屏幕

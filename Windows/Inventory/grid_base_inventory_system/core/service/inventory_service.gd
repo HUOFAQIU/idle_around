@@ -6,7 +6,8 @@ class_name InventoryService
 ## 如果是可堆叠物品，如果当前数量大于可堆叠数量，会重置为允许的最大值，成功后发射信号 sig_inv_item_updated
 ## 如果是不可堆叠物品，或堆叠后还有剩余，成功后发射 sig_inv_item_added
 func add_item(inv_name: String, item_data: ItemData) -> bool:
-	var new_item_data = item_data.duplicate()
+	# 魂器需要在复制时连同内部魂灵一起复制，普通物品仍等价于 duplicate()
+	var new_item_data = item_data.make_instance()
 	if new_item_data is StackableData:
 		if new_item_data.current_amount > new_item_data.stack_size:
 			new_item_data.current_amount = new_item_data.stack_size
@@ -85,6 +86,10 @@ func use_item(inv_name: String, grid_id: Vector2i) -> bool:
 			remove_item_by_data(inv_name, item_data)
 		else:
 			GBIS.sig_inv_item_updated.emit(inv_name, grid_id)
+		return true
+	elif item_data.activate():
+		# 魂器等“打开自身窗口”的物品；具体窗口由 UI 层监听信号决定
+		GBIS.sig_item_activated.emit(item_data)
 		return true
 	return false
 

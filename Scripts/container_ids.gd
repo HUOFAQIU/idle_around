@@ -1,6 +1,6 @@
 class_name ContainerIds
 extends RefCounted
-## 容器名（GBIS 注册键 / 存档键）与魂灵部位格的集中定义。
+## 容器名（GBIS 注册键 / 存档键）与角色魂器槽的集中定义。
 ##
 ## 场景里的 `container_name` 仍是字面量（.tscn 不能引用常量），
 ## 这里的常量必须与场景保持一致；改名时两边一起改。
@@ -10,35 +10,19 @@ const WAREHOUSE_PREFIX: String = "inventory_"
 const MAIN_INVENTORY: String = "inventory_0"
 const SHOP: String = "shop_0"
 
-## 部位枚举 → 魂灵格容器名
-const PART_SOUL_CELLS: Dictionary = {
-	"HEADSOUL": "cell_0",
-	"TORSOSOUL": "cell_1",
-	"ARMSSOUL": "cell_2",
-	"LEGSSOUL": "cell_3",
-}
+## 角色窗口里的三个魂器槽容器名，顺序即槽位顺序
+const VESSEL_CELLS: Array[String] = [
+	"vessel_cell_0",
+	"vessel_cell_1",
+	"vessel_cell_2",
+]
+
 
 ## 仓库页码（0 起）→ 容器名
 static func warehouse_page(page: int) -> String:
 	return "%s%d" % [WAREHOUSE_PREFIX, page]
 
 
-## 魂灵格容器名，按部位顺序排列
-static func soul_cells() -> Array[String]:
-	var cells: Array[String] = []
-	for part in PART_SOUL_CELLS:
-		cells.append(String(PART_SOUL_CELLS[part]))
-	return cells
-
-
-## 部位 → 魂灵格容器名；ANY/未知返回空字符串
-static func soul_cell_for_part(part: String) -> String:
-	return String(PART_SOUL_CELLS.get(part, ""))
-
-
-## 魂灵格容器名 → 部位枚举；未知返回空字符串
-static func part_for_soul_cell(cell: String) -> String:
-	for part in PART_SOUL_CELLS:
-		if String(PART_SOUL_CELLS[part]) == cell:
-			return String(part)
-	return ""
+## 魂器槽容器名，按槽位顺序
+static func vessel_cells() -> Array[String]:
+	return VESSEL_CELLS.duplicate()

@@ -5,9 +5,12 @@ extends ItemData
 ## `game/battle/soul_runtime.gd` 的 SoulRuntime 里，通过 SoulRuntimeDB 查询。
 class_name SoulData
 
-## 运行期稳定 ID：由 ModLoader 从 manifest 写入（core 沿用原 ID）。
-## 由 CollectionDB / ModLoader 写入；不要在资源里手填，也不要拿来显示。
-@export_storage var content_id: StringName = &""
+## 尺寸标签；每颗魂灵必须且只能带一个，决定 tooltip 的 [ 小型 / 中型 / 大型 ]
+const SIZE_TAGS : Array[StringName] = [
+	&"Soul.tags.Small",
+	&"Soul.tags.Medium",
+	&"Soul.tags.Large",
+]
 
 ## 这颗魂灵在战斗中提供的技能：冷却、范围、效果全写在这份数据里。
 ## 空着 = 装上去也不提供任何技能
@@ -26,6 +29,10 @@ class_name SoulData
 ## 魂灵标签：见闻窗口筛选用（例：Soul.tags.Small、Soul.tags.Burn）
 @export var tags: Array[StringName] = []
 
-## 可装备的部位；ANY = 不限
-@export_enum("ANY", "HEADSOUL", "TORSOSOUL", "ARMSSOUL", "LEGSSOUL")
-var equip_part: String = "ANY"
+
+## 取尺寸标签；没配时返回空（ModLoader 会报错）
+func size_tag() -> StringName:
+	for tag in SIZE_TAGS:
+		if tags.has(tag):
+			return tag
+	return &""

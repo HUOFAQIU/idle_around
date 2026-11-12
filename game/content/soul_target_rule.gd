@@ -1,13 +1,13 @@
 ## 魂灵目标规则（数据资源）。
 ##
 ## 给“加速/减速/冻结/充能”这类以魂灵为目标的技能用：
-##   LEFT / RIGHT  同一部位行内、紧邻的魂灵；中间空一格不算相邻
-##   BOTH_SIDES    同一部位行内、左右两侧紧邻的魂灵（各最多一个）
+##   LEFT / RIGHT  同一魂器容器内、紧邻的魂灵；中间空一格不算相邻
+##   BOTH_SIDES    同一魂器容器内、左右两侧紧邻的魂灵（各最多一个）
 ##   RANDOM        从有冷却的魂灵里随机
 ##   SELF          自己
 ##   ALL           全部有冷却的魂灵
 ##
-## 目标只从施法者所属单位的魂灵栏里选：玩家来自装备容器，
+## 目标只从施法者所属单位的魂灵栏里选：玩家来自魂器内部容器，
 ## 怪物来自 MonsterData.soul_entries 生成的虚拟魂灵栏。
 
 class_name SoulTargetRule extends TargetRuleBase
@@ -79,8 +79,9 @@ func resolve(caster: ChargedAbility, rng: RandomNumberGenerator) -> Array[Charge
 	return result
 
 
-## 两颗魂灵是否同一部位栏内左右紧贴；中间空一格不算相邻。
-## 当前只比较列区间，不区分行（现有魂灵都是 2 行高）；以后同栏出现多排时需要把行信息补进 SoulSlot。
+## 两颗魂灵是否同一魂器容器内左右紧贴；中间空一格不算相邻。
+## 当前只比较列区间，不区分行（现有魂灵都是 2 行高、魂器为 2 行）；
+## 以后出现多行魂器、需要跨排判断时把行信息补进 SoulSlot。
 static func is_adjacent(a: ChargedAbility, b: ChargedAbility) -> bool:
 	if a == null or b == null or a.soul_container != b.soul_container:
 		return false

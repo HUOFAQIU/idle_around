@@ -7,4 +7,5 @@ enum Kind {
 	SOUL,
 	MONSTER,
 	CUE,
+	VESSEL,
 }

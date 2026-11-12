@@ -12,6 +12,7 @@ const LOCAL_ID_PATTERN: String = "^[a-z][a-z0-9_]*$"
 const TAG_PATTERN: String = "^[A-Z][a-zA-Z0-9]*(\\.[A-Z][a-zA-Z0-9]*)*$"
 const SOUL_SUFFIX: String = "_soul"
 const MONSTER_SUFFIX: String = "_monster"
+const VESSEL_SUFFIX: String = "_vessel"
 ## 第三方技能 ID 的固定前缀；core 不使用
 const MOD_TAG_PREFIX: String = "Mod."
 
@@ -45,7 +46,7 @@ static func local_id_of(content_id: StringName, mod_id: StringName) -> String:
 
 ## 去掉可识别的类型后缀，得到命名主干
 static func strip_kind_suffix(local_id: String) -> String:
-	for suffix in [SOUL_SUFFIX, MONSTER_SUFFIX]:
+	for suffix in [SOUL_SUFFIX, MONSTER_SUFFIX, VESSEL_SUFFIX]:
 		if local_id.ends_with(suffix) and local_id.length() > suffix.length():
 			return local_id.trim_suffix(suffix)
 	return local_id

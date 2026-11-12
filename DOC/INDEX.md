@@ -20,10 +20,10 @@
 | 读档丢物品/回退旧档/版本过高只读 | `架构/存档.md` §10（常见排查） | `Scripts/save/` |
 | 改 GAS 属性/标签/Cue | `架构/GAS.md`、`特效/effects.md` | `godot_gas/`、`addons/GodotGAS/`、`Scripts/mod/mod_cue_registrar.gd` |
 | 按完整链路理解系统 | `架构/关键流程.md` | `game/battle/`、`Windows/Inventory/` |
-| 新增魂灵/怪物/技能/窗口/特效 | `架构/扩展点.md` | `base_mods/core/`、`game/content/`、`Main/control.gd` |
+| 新增魂灵/怪物/魂器/技能/窗口/特效 | `架构/扩展点.md` | `base_mods/core/`、`game/content/`、`Main/control.gd` |
 | 改 mod 加载/内容注册/存档兼容/管理窗口/加载顺序 | `架构/Mod系统.md` | `Scripts/mod/`、`Scripts/collection_db.gd`、`Scripts/save/`、`Windows/ModWindow/` |
 | mod 未生效/内容缺失/orphaned/Cue 未注册/顺序不生效 | `架构/Mod系统.md` §11（常见排查） | `Scripts/mod/`、`Windows/ModWindow/` |
-| 新增/修改官方魂灵、怪物、Cue | `架构/Mod系统.md`、`指南/Mod制作.md` | `base_mods/core/mod.json`、`modkit/validate_core_manifest.gd` |
+| 新增/修改官方魂灵、怪物、魂器、Cue | `架构/Mod系统.md`、`指南/Mod制作.md` | `base_mods/core/mod.json`、`modkit/validate_core_manifest.gd` |
 | 查/改内容 ID、技能 ID、Cue 标签命名 | `指南/Mod制作.md` §3.1、`架构/Mod系统.md` §6 | `Scripts/mod/content_naming.gd`、`Scripts/mod/mod_loader.gd` |
 | 制作/打包/发布 mod、看示例 | `指南/Mod制作.md` | `Scripts/mod/`、`mods/example_souls/`、`modkit/` |
 | 确认功能是否已实现/已知坑 | `架构/现状与注意.md` | — |
@@ -32,9 +32,9 @@
 | 新增调试事件或理解遥测数据 | `架构/调试与遥测.md` | `game/battle/battle_event*.gd`、`Scripts/debug/`、`Windows/Debug/` |
 | 改魂灵冷却/充能/冻结/主动效果 | `魂灵/主动魂灵.md` | `base_mods/core/souls/`、`game/content/`、`game/battle/charged_ability.gd` |
 | 改被动魂灵/触发效果 | `魂灵/被动魂灵.md` | `base_mods/core/souls/`、`game/content/passive_soul_data.gd`、`passive_effect.gd`、`passive_trigger.gd` |
-| 确认四部位定位 | `魂灵/魂灵.md` | `Windows/Equipment/` |
+| 确认魂灵尺寸/魂器/角色魂器槽 | `魂灵/魂灵.md`、`魂灵/魂器.md` | `game/content/`、`Windows/Vessel/`、`Windows/Character/` |
 | 改怪物魂灵/掉落设计 | `怪物/怪物.md` | `base_mods/core/monsters/`、`game/content/monster_data.gd`、`game/content/monster_soul_entry.gd` |
-| 改魂灵 tooltip 内容/格式 | `魂灵/魂灵.md`、`架构/窗口与场景.md` | `Windows/Tooltip/` |
+| 改魂灵/魂器 tooltip 内容/格式 | `魂灵/魂灵.md`、`魂灵/魂器.md`、`架构/窗口与场景.md` | `Windows/Tooltip/` |
 | 改颜色/色板（战斗状态/UI/场景/特效） | `架构/颜色与主题.md` | `Scripts/game_colors.gd` |
 | 改见闻/图鉴/解锁 | `窗口/见闻.md` | `Scripts/collection_db.gd`、`Windows/Collection/` |
 | 改仓库窗口/背包理念/仓库分页 | `窗口/仓库.md` | `Windows/Inventory/`、`Scripts/warehouse.gd` |
@@ -51,34 +51,35 @@
 |---|---|---|---|
 | `战斗/战斗逻辑.md` | 设计 | 有效 | 2026-11-07 |
 | `属性/人物属性.md` | 设计 | 设计 | 2026-11-11 |
-| `怪物/怪物.md` | 设计 | 部分实现 | 2026-11-10 |
+| `怪物/怪物.md` | 设计 | 部分实现 | 2026-11-12 |
 | `窗口/仓库.md` | 设计 | 部分实现 | 2026-11-05 |
 | `窗口/见闻.md` | 实现 | 已实现 | 2026-11-11 |
-| `魂灵/魂灵.md` | 设计 | 部分实现 | 2026-11-05 |
+| `魂灵/魂灵.md` | 设计 | 部分实现 | 2026-11-12 |
+| `魂灵/魂器.md` | 设计 | 已实现 | 2026-11-12 |
 | `魂灵/主动魂灵.md` | 设计 | 部分实现 | 2026-11-07 |
 | `魂灵/被动魂灵.md` | 设计 | 已实现 | 2026-11-10 |
 | `archive/souls.xlsx` | 数据 | 归档（二进制，Claude 不可读） | — |
 | `特效/effects.md` | 指南 | 有效 | 2026-11-10 |
-| `指南/AI测试接口.md` | 指南 | 有效 | 2026-11-11 |
-| `指南/调试窗口.md` | 指南 | 有效 | 2026-11-10 |
+| `指南/AI测试接口.md` | 指南 | 有效 | 2026-11-12 |
+| `指南/调试窗口.md` | 指南 | 有效 | 2026-11-12 |
 | `架构/调试与遥测.md` | 实现 | 有效 | 2026-11-10 |
 | `背景故事/背景故事.md` | 设计 | 占位 | 2026-10-31 |
 | `archive/给AI玩的游戏.md` | 记录 | 归档 | 2026-10-31 |
-| `架构/00_总览.md` | 实现 | 有效 | 2026-11-11 |
-| `架构/窗口与场景.md` | 实现 | 有效 | 2026-11-11 |
-| `架构/战斗运行时_施法与冷却.md` | 实现 | 有效 | 2026-11-11 |
+| `架构/00_总览.md` | 实现 | 有效 | 2026-11-12 |
+| `架构/窗口与场景.md` | 实现 | 有效 | 2026-11-12 |
+| `架构/战斗运行时_施法与冷却.md` | 实现 | 有效 | 2026-11-12 |
 | `架构/战斗运行时_移动与投射物.md` | 实现 | 有效 | 2026-11-11 |
-| `架构/战斗运行时_伤害与流程.md` | 实现 | 有效 | 2026-11-11 |
-| `架构/战斗数据与魂灵.md` | 实现 | 有效 | 2026-11-11 |
+| `架构/战斗运行时_伤害与流程.md` | 实现 | 有效 | 2026-11-12 |
+| `架构/战斗数据与魂灵.md` | 实现 | 有效 | 2026-11-12 |
 | `架构/GAS.md` | 实现 | 有效 | 2026-11-11 |
-| `架构/背包_GBIS.md` | 实现 | 有效 | 2026-11-11 |
-| `架构/存档.md` | 实现 | 已实现 | 2026-11-11 |
-| `架构/关键流程.md` | 实现 | 有效 | 2026-11-11 |
-| `架构/扩展点.md` | 指南 | 有效 | 2026-11-11 |
+| `架构/背包_GBIS.md` | 实现 | 有效 | 2026-11-12 |
+| `架构/存档.md` | 实现 | 已实现 | 2026-11-12 |
+| `架构/关键流程.md` | 实现 | 有效 | 2026-11-12 |
+| `架构/扩展点.md` | 指南 | 有效 | 2026-11-12 |
 | `架构/颜色与主题.md` | 实现 | 有效 | 2026-11-07 |
-| `架构/现状与注意.md` | 实现 | 有效 | 2026-11-11 |
-| `架构/Mod系统.md` | 设计 | 部分实现（内置 core mod 已接入） | 2026-11-11 |
-| `指南/Mod制作.md` | 指南 | 部分实现（内置 core 已接入） | 2026-11-11 |
+| `架构/现状与注意.md` | 实现 | 有效 | 2026-11-12 |
+| `架构/Mod系统.md` | 设计 | 部分实现（内置 core mod 已接入） | 2026-11-12 |
+| `指南/Mod制作.md` | 指南 | 部分实现（内置 core 已接入） | 2026-11-12 |
 
 > `archive/souls.xlsx` 是旧计划表，文本工具读不了；要引用其中内容时先转成 Markdown 表格。
 >

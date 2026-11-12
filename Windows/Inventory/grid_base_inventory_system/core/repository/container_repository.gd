@@ -43,6 +43,20 @@ func add_container(inv_name: String, columns: int, rows: int, avilable_types: Ar
 func get_container(inv_name: String) -> ContainerData:
 	return _container_data_map.get(inv_name)
 
+
+## 直接登记一个运行时容器（例如魂器内部容器）。
+## 不走 add_container：容器数据已经由物品实例持有，名字也由实例生成。
+func register_container_data(container_name: String, container: ContainerData) -> void:
+	if container == null:
+		return
+	container.container_name = container_name
+	_container_data_map[container_name] = container
+
+
+## 注销运行时容器；魂器窗口关闭时调用，容器数据仍由魂器物品持有
+func remove_container(container_name: String) -> void:
+	_container_data_map.erase(container_name)
+
 ## 增加快速移动关系
 func add_quick_move_relation(inv_name: String, target_inv_name: String) -> void:
 	if _quick_move_relations_map.has(inv_name):

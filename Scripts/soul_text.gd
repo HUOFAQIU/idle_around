@@ -1,13 +1,11 @@
 class_name SoulText
 extends RefCounted
-## 魂灵相关固定显示名（部位、类型），tooltip / 见闻 / 调试共用。
+## 魂灵相关固定显示名（尺寸、类型），tooltip / 见闻 / 调试共用。
 
-const PART_NAMES := {
-	"ANY": "不限部位",
-	"HEADSOUL": "头部",
-	"TORSOSOUL": "身体",
-	"ARMSSOUL": "手部",
-	"LEGSSOUL": "腿部",
+const SIZE_NAMES := {
+	&"Soul.tags.Small": "小型",
+	&"Soul.tags.Medium": "中型",
+	&"Soul.tags.Large": "大型",
 }
 
 const TYPE_NAMES := {
@@ -16,9 +14,9 @@ const TYPE_NAMES := {
 }
 
 
-## 部位枚举值 → 中文名；未知值原样返回
-static func part_name(part: String) -> String:
-	return PART_NAMES.get(part, part)
+## 尺寸标签 → 中文名；未知值原样返回
+static func size_name(size_tag: StringName) -> String:
+	return SIZE_NAMES.get(size_tag, String(size_tag))
 
 
 ## 类型 ID → 中文名；未知类型回退到 ID 最后一段

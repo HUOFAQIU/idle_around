@@ -26,7 +26,6 @@ tooltip_blocks = Array[String](["( {cooldown} 秒 )
 - 每有一个狼，此魂灵+10 点伤害"])
 types = Array[StringName]([&"Soul.types.Wolf", &"Soul.types.Animal"])
 tags = Array[StringName]([&"Soul.tags.Medium", &"Soul.tags.Damage"])
-equip_part = "ARMSSOUL"
 item_name = "恐狼"
 category = "SOUL"
 icon = ExtResource("1_icon")

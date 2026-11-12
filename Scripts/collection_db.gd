@@ -19,6 +19,7 @@ var unlock_all_for_testing: bool = false
 ## content_id → 资源
 var _souls: Dictionary[StringName, SoulData] = {}
 var _monsters: Dictionary[StringName, MonsterData] = {}
+var _vessels: Dictionary[StringName, SoulVesselData] = {}
 ## 已遇见：ContentKind.Kind → { content_id: true }
 var _seen: Dictionary = {}
 
@@ -50,6 +51,16 @@ func get_soul(id: StringName) -> SoulData:
 
 func get_monster(id: StringName) -> MonsterData:
 	return _monsters.get(id)
+
+
+func get_vessel_ids() -> Array[StringName]:
+	var ids: Array[StringName] = []
+	ids.assign(_vessels.keys())
+	return ids
+
+
+func get_vessel(id: StringName) -> SoulVesselData:
+	return _vessels.get(id)
 
 
 func is_seen(kind: int, id: StringName) -> bool:
@@ -191,6 +202,14 @@ func _load_catalog() -> void:
 		monster.content_id = entry.content_id
 		_monsters[entry.content_id] = monster
 
+	for entry in ModLoader.get_vessel_entries():
+		var vessel := entry.resource as SoulVesselData
+		if vessel == null:
+			push_warning("见闻：魂器加载失败 %s" % entry.content_id)
+			continue
+		vessel.content_id = entry.content_id
+		_vessels[entry.content_id] = vessel
+
 	if _souls.is_empty() or _monsters.is_empty():
 		push_warning("见闻：内容目录为空，检查内置 core mod 是否加载成功")
 	_warn_duplicate_skill_ids()
@@ -244,8 +263,7 @@ func _mark_seen(kind: int, id: StringName) -> void:
 
 
 func _on_inv_item_added(_inv_name: String, item_data: ItemData, _grids: Array[Vector2i]) -> void:
-	if item_data is SoulData:
-		mark_soul_seen(item_data as SoulData)
+	_scan_owned_item(item_data)
 
 
 ## 读档后背包里的魂灵不会重新发 add_item 信号，这里补扫一遍
@@ -260,8 +278,17 @@ func _scan_owned_souls() -> void:
 		if container == null:
 			continue
 		for item in container.items:
-			if item is SoulData:
-				mark_soul_seen(item as SoulData)
+			_scan_owned_item(item)
+
+
+## 魂灵本身和魂器内部的魂灵都算“已拥有”；魂器可能还没打开过窗口
+func _scan_owned_item(item: ItemData) -> void:
+	if item is SoulData:
+		mark_soul_seen(item as SoulData)
+	elif item is SoulVesselData:
+		var vessel := item as SoulVesselData
+		for inner in vessel.ensure_contents().items:
+			_scan_owned_item(inner)
 
 
 func _seen_ids(kind: int) -> Array[String]:

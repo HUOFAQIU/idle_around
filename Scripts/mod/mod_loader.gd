@@ -37,9 +37,11 @@ var _load_index: Dictionary[StringName, int] = {}
 var _mods_by_id: Dictionary[StringName, ModInfo] = {}
 var _soul_entries: Array[ModContentEntry] = []
 var _monster_entries: Array[ModContentEntry] = []
+var _vessel_entries: Array[ModContentEntry] = []
 var _cue_entries: Array[ModContentEntry] = []
 var _soul_ids: Dictionary[StringName, bool] = {}
 var _monster_ids: Dictionary[StringName, bool] = {}
+var _vessel_ids: Dictionary[StringName, bool] = {}
 var _cue_tags: Dictionary[StringName, bool] = {}
 ## 内容路径 → 首次登记的 content_id；同一 .tres 不允许挂两个 ID
 var _content_paths: Dictionary[String, StringName] = {}
@@ -88,6 +90,12 @@ func get_soul_entries() -> Array[ModContentEntry]:
 func get_monster_entries() -> Array[ModContentEntry]:
 	var result: Array[ModContentEntry] = []
 	result.assign(_monster_entries)
+	return result
+
+
+func get_vessel_entries() -> Array[ModContentEntry]:
+	var result: Array[ModContentEntry] = []
+	result.assign(_vessel_entries)
 	return result
 
 
@@ -181,6 +189,7 @@ func get_mod_list() -> Array[Dictionary]:
 			"locked": mod.is_builtin(),
 			"souls": mod.soul_count,
 			"monsters": mod.monster_count,
+			"vessels": mod.vessel_count,
 			"cues": mod.cue_count,
 			"errors": mod.errors.duplicate(),
 			"warnings": mod.warnings.duplicate(),
@@ -528,6 +537,23 @@ func _load_content_entry(mod: ModInfo, spec: Dictionary, raw_entry: Dictionary) 
 			_content_paths[path] = content_id
 			_monster_entries.append(_make_entry(kind, mod, content_id, path, resource))
 			mod.monster_count += 1
+		ContentKind.Kind.VESSEL:
+			if not resource is SoulVesselData:
+				_mod_error(mod, "魂器资源类型不对：%s" % path)
+				return
+			if _vessel_ids.has(content_id):
+				_mod_error(mod, "魂器 ID 重复：%s" % content_id)
+				return
+			var vessel := resource as SoulVesselData
+			vessel.content_id = content_id
+			var errors_before := _errors.size()
+			_validate_vessel_config(mod, vessel)
+			if _errors.size() > errors_before:
+				return
+			_vessel_ids[content_id] = true
+			_content_paths[path] = content_id
+			_vessel_entries.append(_make_entry(kind, mod, content_id, path, resource))
+			mod.vessel_count += 1
 		ContentKind.Kind.CUE:
 			if not resource is PackedScene:
 				_mod_error(mod, "Cue 资源不是 PackedScene：%s" % path)
@@ -632,6 +658,14 @@ func _validate_soul_vocabulary(mod: ModInfo, soul: SoulData) -> void:
 	for tag in soul.tags:
 		if not _is_soul_tag(tag):
 			_mod_error(mod, "魂灵 %s 的标签应为 Soul.tags.<PascalName>：%s" % [soul.content_id, tag])
+	var size_count := 0
+	for tag in soul.tags:
+		if SoulData.SIZE_TAGS.has(tag):
+			size_count += 1
+	if size_count != 1:
+		_mod_error(mod, "魂灵 %s 必须且只能带一个尺寸标签（Small/Medium/Large）：实际 %d 个" % [
+			soul.content_id, size_count,
+		])
 	for trigger in soul.triggers:
 		if trigger == null:
 			continue
@@ -656,6 +690,28 @@ func _validate_monster_config(mod: ModInfo, monster: MonsterData) -> void:
 		return
 	if monster.spawn_weight > 0.0:
 		_mod_error(mod, "怪物 %s 标记为 is_rare，spawn_weight 应为 0" % monster.content_id)
+
+
+## 魂器：物品占格、内部容器、类型、效果和 tooltip 必须完整
+func _validate_vessel_config(mod: ModInfo, vessel: SoulVesselData) -> void:
+	if vessel.category != "VESSEL":
+		_mod_error(mod, "魂器 %s 的 category 应为 VESSEL：%s" % [vessel.content_id, vessel.category])
+	if vessel.columns <= 0 or vessel.rows <= 0:
+		_mod_error(mod, "魂器 %s 的物品占格必须大于 0：%dx%d" % [vessel.content_id, vessel.columns, vessel.rows])
+	if vessel.container_columns <= 0 or vessel.container_rows <= 0:
+		_mod_error(mod, "魂器 %s 的容器尺寸必须大于 0：%dx%d" % [
+			vessel.content_id, vessel.container_columns, vessel.container_rows
+		])
+	if vessel.vessel_kind != "COMBAT" and vessel.vessel_kind != "TOOL":
+		_mod_error(mod, "魂器 %s 的类型应为 COMBAT / TOOL：%s" % [vessel.content_id, vessel.vessel_kind])
+	if vessel.tooltip_blocks.is_empty():
+		_mod_error(mod, "魂器 %s 缺少 tooltip_blocks" % vessel.content_id)
+	for effect in vessel.effects:
+		if effect == null:
+			_mod_error(mod, "魂器 %s 的效果列表里有空项" % vessel.content_id)
+			continue
+		if effect.stat == SoulVesselEffect.Stat.DAMAGE_BONUS and effect.value < 0.0:
+			_mod_error(mod, "魂器 %s 的伤害加成不能为负：%s" % [vessel.content_id, effect.value])
 
 
 func _is_soul_type(value: StringName) -> bool:

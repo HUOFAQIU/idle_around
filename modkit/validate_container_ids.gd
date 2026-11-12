@@ -24,8 +24,8 @@ func _init() -> void:
 func _validate() -> Array[String]:
 	var errors: Array[String] = []
 	_check_scene(
-		"res://Windows/Equipment/equipment_window.tscn",
-		CONTAINER_IDS.soul_cells(),
+		"res://Windows/Character/character_window.tscn",
+		CONTAINER_IDS.vessel_cells(),
 		errors
 	)
 	var inventory_names: Array[String] = [CONTAINER_IDS.MAIN_INVENTORY]

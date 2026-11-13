@@ -271,7 +271,7 @@ static func get_soul_ids() -> Array[StringName]:
 	return CollectionDB.get_soul_ids()
 
 
-## 魂灵类型（content ID），例如 &"Soul.types.Wolf"
+## 魂灵类型（GAS 标签），例如 &"Soul.types.Wolf"
 static func get_soul_types(id : StringName) -> Array[StringName]:
 	var soul := CollectionDB.get_soul(id)
 	if soul == null:
@@ -279,7 +279,7 @@ static func get_soul_types(id : StringName) -> Array[StringName]:
 	return soul.types.duplicate()
 
 
-## 魂灵标签（见闻筛选 content ID），例如 &"Soul.tags.Small"
+## 魂灵标签（GAS 标签，见闻筛选用），例如 &"Soul.tags.Small"
 static func get_soul_tags(id : StringName) -> Array[StringName]:
 	var soul := CollectionDB.get_soul(id)
 	if soul == null:
@@ -293,7 +293,7 @@ static func get_soul_size_tag(id : StringName) -> StringName:
 	return soul.size_tag() if soul != null else &""
 
 
-## 魂器 tooltip 正文（不含魂器名）
+## 魂器名 + tooltip 正文
 static func get_vessel_tooltip_text(id : StringName) -> String:
 	var vessel := CollectionDB.get_vessel(id)
 	if vessel == null:
@@ -462,7 +462,7 @@ static func get_monster_ids() -> Array[StringName]:
 	return CollectionDB.get_monster_ids()
 
 
-## 怪物的可选刷新距离（格）；每次刷怪从数组里随机取一个
+## 怪物的可选刷新距离（格）
 static func get_monster_spawn_distances(id : StringName) -> Array[int]:
 	var monster := CollectionDB.get_monster(id)
 	if monster == null:
@@ -683,11 +683,82 @@ static func get_window_pin_states() -> Dictionary:
 	return result
 
 
+## PetPanel 当前的左上角位置（主视口坐标）；找不到返回 (-1, -1)
+static func get_pet_panel_position() -> Vector2:
+	var panel := _pet_panel()
+	return panel.position if panel != null else Vector2(-1, -1)
+
+
+## 把 PetPanel 移动到指定位置并持久化；找不到返回 false
+static func set_pet_panel_position(target_position : Vector2) -> bool:
+	var panel := _pet_panel()
+	if panel == null:
+		return false
+	panel.move_to(target_position)
+	return true
+
+
+## 当前激活面板的节点名；没有返回 ""
+static func get_active_panel_name() -> String:
+	var manager := PanelManager.instance
+	if manager == null:
+		return ""
+	var panel := manager.get_active()
+	return String(panel.name) if panel != null else ""
+
+
+## 所有可见 BaseWindow 面板的全局矩形
+static func get_visible_panel_rects() -> Array[Rect2]:
+	var result : Array[Rect2] = []
+	var manager := PanelManager.instance
+	if manager != null:
+		result = manager.get_visible_panel_rects()
+	return result
+
+
+## 透明覆盖层点击穿透总开关；找不到模块返回 false
+static func set_overlay_passthrough_enabled(enabled : bool) -> bool:
+	var module := OverlayPassthrough.instance
+	if module == null:
+		return false
+	module.enabled = enabled
+	return true
+
+
+## 透明覆盖层点击穿透是否开启
+static func is_overlay_passthrough_enabled() -> bool:
+	var module := OverlayPassthrough.instance
+	return module != null and module.enabled
+
+
+## 穿透状态：enabled / locked / rects / polygon_points
+static func get_overlay_passthrough_state() -> Dictionary:
+	var module := OverlayPassthrough.instance
+	if module == null:
+		return {}
+	return {
+		"enabled": module.enabled,
+		"locked": module.is_locked(),
+		"rects": module.get_hit_rects().size(),
+		"polygon_points": module.get_polygon_points().size(),
+	}
+
+
 static func _main_window() -> Window:
 	var tree := Engine.get_main_loop() as SceneTree
 	if tree == null:
 		return null
 	return tree.root as Window
+
+
+static func _pet_panel() -> PetPanel:
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree == null:
+		return null
+	var root : Node = tree.current_scene
+	if root == null:
+		root = tree.root
+	return root.find_child("PetPanel", true, false) as PetPanel
 
 
 static func _sync_main_pin_button(pinned : bool) -> void:
@@ -797,7 +868,7 @@ static func apply_soul_freeze(soul_name : String, seconds : float = 1.0, target 
 	return charged.apply_freeze(seconds)
 
 
-## 模拟某个已装备魂灵被“使用”一次（不动冷却），用于确定性地测 OTHER_SOUL_USED 触发器
+## 模拟某个已装备魂灵被“使用”一次（不动冷却），用于确定性地测 SoulUsed 触发器
 static func simulate_soul_used(soul_name : String, target : String = "player") -> bool:
 	var charged := _find_equipped_ability(soul_name, target)
 	var unit := _find_unit(target)

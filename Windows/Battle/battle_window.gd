@@ -13,14 +13,14 @@ const FPS_UPDATE_FRAMES : int = 15
 ## 单位的家：跟地图同一个坐标系，所以单位直接挂这儿
 @onready var units_root: Node2D = $Tile/Units
 
-@onready var player_health_bar: PlayerHealthBar = $CanvasLayer/Control/PlayerHealthBar
-@onready var player_regen_bar: PlayerStatusBar = $CanvasLayer/Control/PlayerRegenBar
-@onready var player_shield_bar: PlayerStatusBar = $CanvasLayer/Control/PlayerShieldBar
-@onready var player_burn_bar: PlayerStatusBar = $CanvasLayer/Control/PlayerBurnBar
-@onready var player_poison_bar: PlayerStatusBar = $CanvasLayer/Control/PlayerPoisonBar
-@onready var info_button: Button = $CanvasLayer/Control/GridContainer/InfoButton
-@onready var start_button: Button = $CanvasLayer/Control/GridContainer/StartButton
-@onready var fps_label: Label = $CanvasLayer/Control/FpsLabel
+@onready var player_health_bar: PlayerHealthBar = $UiOverlay/Control/PlayerHealthBar
+@onready var player_regen_bar: PlayerStatusBar = $UiOverlay/Control/PlayerRegenBar
+@onready var player_shield_bar: PlayerStatusBar = $UiOverlay/Control/PlayerShieldBar
+@onready var player_burn_bar: PlayerStatusBar = $UiOverlay/Control/PlayerBurnBar
+@onready var player_poison_bar: PlayerStatusBar = $UiOverlay/Control/PlayerPoisonBar
+@onready var info_button: Button = $UiOverlay/Control/GridContainer/InfoButton
+@onready var start_button: Button = $UiOverlay/Control/GridContainer/StartButton
+@onready var fps_label: Label = $UiOverlay/Control/FpsLabel
 
 ## 本场会话：创建/销毁 BattleManager、生成单位、稀有队列、复活重开
 var _session : BattleSession
@@ -48,7 +48,7 @@ func _ready() -> void:
 	player_burn_bar.visible = false
 	player_poison_bar.visible = false
 	# 场景只负责布局；文字颜色统一由 GameColors 提供
-	$CanvasLayer/Control.theme = GameColors.build_label_theme()
+	$UiOverlay/Control.theme = GameColors.build_label_theme()
 	fps_label.add_theme_color_override("font_outline_color", GameColors.to_color(GameColors.TEXT_OUTLINE))
 	fps_label.add_theme_color_override("font_color", GameColors.to_color(GameColors.SUCCESS))
 	_apply_status_bar_colors()
@@ -91,7 +91,6 @@ func _ready() -> void:
 
 
 func _process(_delta: float) -> void:
-	# 窗口没开着就不统计
 	if not visible:
 		return
 
@@ -105,7 +104,6 @@ func _process(_delta: float) -> void:
 
 
 func _physics_process(_delta: float) -> void:
-	# 窗口没开着就不跑
 	if not visible:
 		return
 
@@ -253,9 +251,11 @@ func _update_coord_tooltip() -> void:
 	if tip == null:
 		return
 
-	# 只有战斗窗口自己拥有焦点时才显示坐标。仓库/魂器窗口盖在上面时，
-	# 它们的物品 tooltip 优先级更高，这里不能再抢。
-	if not has_focus():
+	# 只有战斗窗口是激活面板、且鼠标下最上层是它时才显示坐标。
+	# 仓库/魂器窗口盖在上面时，它们的物品 tooltip 优先级更高，这里不能再抢。
+	var manager := PanelManager.instance
+	if manager == null or not manager.is_active(self) \
+			or manager.get_top_panel_at(get_global_mouse_position()) != self:
 		_mouse_was_inside = false
 		tip.hide_tip(self)
 		return
@@ -270,9 +270,7 @@ func _update_coord_tooltip() -> void:
 		return
 	_mouse_was_inside = true
 
-	# 鼠标在 TileMapLayer 局部坐标系中的位置
 	var local_mouse := ground_tilemaplayer.get_local_mouse_position()
-	# 鼠标所指的格子
 	var hovered_cell := ground_tilemaplayer.local_to_map(local_mouse)
 	# 鼠标不在有效图块上 -> 收起提示
 	if ground_tilemaplayer.get_cell_source_id(hovered_cell) == -1:
@@ -281,9 +279,8 @@ func _update_coord_tooltip() -> void:
 	tip.show_tip(self, TooltipWindow.Layer.COORD, str(hovered_cell))
 
 
-# 鼠标在不在本窗口的视口范围里（嵌入窗口的鼠标坐标相对自己的 Viewport）
 func _is_mouse_inside() -> bool:
-	return Rect2(Vector2.ZERO, Vector2(size)).has_point(get_viewport().get_mouse_position())
+	return get_global_rect().has_point(get_global_mouse_position())
 
 
 ## 状态条和状态名标签统一从 GameColors 取色

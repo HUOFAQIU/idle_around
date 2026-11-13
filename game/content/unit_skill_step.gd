@@ -1,7 +1,6 @@
 class_name UnitSkillStep extends SkillStep
 ## 以战斗单位为目标的技能步骤。
 
-## 选单位规则
 @export var target_rule: TargetRule
 ## 施加到每个目标的效果列表（可多个：例如"伤害 + 中毒"）
 @export var effects: Array[GameplayEffect] = []

@@ -26,7 +26,7 @@ var freeze_seconds: float = 0.0
 ## 所在魂器提供的直接伤害加成；只作用于这颗魂灵
 var vessel_damage_bonus: float = 0.0
 
-## 本场统计；报告/调试用，键名见 _COUNTER_DEFAULTS
+## 本场统计；报告/调试用，键名见下方字典
 var counters: Dictionary = {
 	"activations": 0,
 	"releases": 0,

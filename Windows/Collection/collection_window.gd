@@ -254,7 +254,7 @@ func _on_state_reloaded() -> void:
 	_refresh()
 
 
-## 关窗时收起 tooltip：tooltip 是独立窗口，不会跟着见闻窗口一起隐藏
+## 关窗时收起 tooltip：tooltip 是独立浮层，不会跟着见闻窗口一起隐藏
 func _on_visibility_changed() -> void:
 	if not visible:
 		_hide_tooltip()

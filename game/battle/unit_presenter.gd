@@ -1,7 +1,7 @@
 ## 单位表现：血条、阵营染色、头顶名字、伤害/治疗飘字。
 ##
 ## 只订阅 ASC 信号做视觉反馈，不写中文日志、不参与战斗判定；
-## 叙事由 C6 的 CombatNarrator 统一处理。单位销毁时随单位一起释放。
+## 叙事由 CombatNarrator 统一处理。单位销毁时随单位一起释放。
 class_name UnitPresenter extends Node
 
 var unit: BattleUnit

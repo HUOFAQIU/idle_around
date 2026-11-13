@@ -4,7 +4,7 @@ extends RefCounted
 
 var kind: ContentKind.Kind = ContentKind.Kind.SOUL
 var mod_id: StringName = &""
-## 魂灵/怪物：manifest 内容 ID；Cue：标签
+## 魂灵/怪物/魂器：manifest 内容 ID；Cue：标签
 var content_id: StringName = &""
 var path: String = ""
 var resource: Resource

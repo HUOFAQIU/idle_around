@@ -5,7 +5,7 @@
 ##   ② 吟唱（可选）       吟唱结束后才选目标，避免对着尸体放大
 ##   ③ 按 steps 顺序结算  每步自己选目标；全部步骤都空放才记一次空放
 ##
-## SkillDefinition.cast_times > 1 时（多重触发），②～④ 会重复执行：
+## SkillDefinition.cast_times > 1 时（多重触发），②～③ 会重复执行：
 ## 每次释放重新选目标、独立暴击、独立结算自身效果。第 2 次起各占一个 20 刻
 ## 激活锁，所以 1 秒最多释放 6 次，超出的顺延到后续秒继续，不丢弃。
 ## 一次激活仍只扣一次充能、只广播一次 SoulUsed。
@@ -40,9 +40,9 @@ enum WaitResult {
 
 ## 本技能的数据定义（由 SoulLoadout 构建时注入）
 @export var skill: SkillDefinition
-## 本技能来源的魂灵数据；用于 OTHER_SOUL_USED 触发器的标签过滤
+## 本技能来源的魂灵数据；用于 SoulUsed 触发器的标签过滤
 var soul_data: SoulData
-## 本技能对应的战斗运行期状态（由 BattleUnit 注入）
+## 本技能对应的战斗运行期状态（由 SoulLoadout 构建时注入）
 var soul_runtime: SoulRuntime
 ## 释放步骤；apply_definition() 时缓存
 var _steps: Array[SkillStep] = []
@@ -114,10 +114,10 @@ func _activate_ability() -> bool:
 		soul_runtime.add_counter("activations")
 		soul_runtime.set_counter_timestamp("last_activation_t", battle.elapsed_seconds())
 	_record_cast("activate", trace, {"cooldown": cooldown, "cast_times": total})
-	# 空放也算“使用”：先广播，让 OTHER_SOUL_USED 触发器有机会充能别的魂灵
+	# 空放也算“使用”：先广播，让 SoulUsed 触发器有机会充能别的魂灵
 	_notify_soul_used(trace)
 
-	# ②～④ 按多重触发次数循环释放
+	# ②～③ 按多重触发次数循环释放
 	return await _run_releases(battle, trace, total)
 
 

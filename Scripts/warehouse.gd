@@ -7,9 +7,7 @@ extends Node
 
 ## 仓库页数；以后要扩仓库改这里
 const PAGE_COUNT: int = 10
-## 每页列数
 const PAGE_COLUMNS: int = 26
-## 每页行数
 const PAGE_ROWS: int = 24
 ## 每页允许的物品大类
 const PAGE_TYPES: Array[String] = ["SOUL", "VESSEL"]

@@ -4,8 +4,8 @@
 ##   UnitRegistry      单位名册与阵营分桶
 ##   UnitSpatialIndex  附近单位查询
 ##   BattleGrid        格子 ↔ 像素换算
-##   EnemySpawner      刷怪计时与选格
-##   LootRoller        掉落判定（入包动作由 BattleWindow 注入）
+##   EnemySpawner      刷怪计时与回调
+##   LootRoller        掉落判定（入包动作由 BattleSession 注入）
 ##
 ## 实时制：怪物由本类统一驱动，向角色直线移动；跨入新格子时发 moved 事件。
 ## 只有角色进入怪物的攻击范围后，怪物大脑才开始跑（魂灵才开始充能）。
@@ -21,9 +21,9 @@ const MOVE_BUDGET_PER_FRAME : int = 200
 
 ## 单位坐标 → 像素坐标要用的地图
 var map: TileMapLayer
-## 刷怪回调，签名 func(cell: Vector2i)。谁建怪、怪长什么样，是游戏侧的事
+## 刷怪回调，签名 func()。谁建怪、怪长什么样，是游戏侧的事
 var spawn_enemy: Callable = Callable()
-## 掉落入包动作，签名 func(item: ItemData) -> bool；由 BattleWindow 注入
+## 掉落入包动作，签名 func(item: ItemData) -> bool；由 BattleSession 注入
 var loot_sink: Callable = Callable()
 ## 角色（目前只有它一个 PLAYER 单位）
 var player: BattleUnit
@@ -57,7 +57,6 @@ var cell_size_px: float:
 
 var _loot: LootRoller
 var _start_msec: int = 0
-## 当前移动分片
 var _move_slice: int = 0
 ## 广播型触发器事件的监听者：事件标签 → 确实带该触发器的单位
 var _trigger_listeners: Dictionary = {}
@@ -127,7 +126,7 @@ func start_battle() -> void:
 		unit.brain.begin_charge()
 
 
-## 战斗心跳：刷怪 + 驱动怪物移动
+## 战斗心跳：推进刷怪计时（怪物移动在 _physics_process）
 func _process(delta: float) -> void:
 	if not is_running:
 		return
@@ -249,7 +248,7 @@ func log_line(text: String, color: String = "white") -> void:
 #endregion
 
 
-## 有单位倒下：角色倒下就发信号让外面重开；怪倒下就从名册里划掉、清掉节点
+## 有单位倒下：角色倒下只停战斗（重开由 BattleSession 监听 died 处理）；怪倒下就从名册里划掉、清掉节点
 func _on_unit_died(unit: BattleUnit) -> void:
 	if unit == player:
 		is_running = false

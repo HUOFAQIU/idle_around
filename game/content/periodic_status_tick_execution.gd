@@ -28,7 +28,6 @@ func remove_when_zero() -> bool:
 	return false
 
 
-## 日志颜色
 func log_color() -> String:
 	return StatusText.log_color(status_attribute())
 

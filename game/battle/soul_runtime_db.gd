@@ -3,7 +3,7 @@
 ## 按 SoulData 实例查玩家装备的 SoulRuntime：装备栏 ItemView 用它刷新徽章/扫描线，
 ## 调试窗口用它列当前装备、战斗统计。怪物魂灵可能被多只怪共享同一份 SoulData，
 ## 因此不注册到这里；调试快照直接读 BattleUnit.loadout。
-## 战斗结束由 BattleWindow 统一 clear()。
+## 战斗结束由 BattleSession 统一 clear()。
 extends Node
 
 signal runtime_registered(runtime: SoulRuntime)

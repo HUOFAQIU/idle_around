@@ -5,7 +5,6 @@
 ## 治疗谁就净化谁：target_asc 是实际接受治疗的单位。
 class_name HealExecution extends GameplayExecutionCalculation
 
-## 基础治疗量
 @export var base_heal: float = 0.0
 ## 净化比例：治疗量的 5%
 @export_range(0.0, 1.0, 0.01) var cleanse_ratio: float = 0.05

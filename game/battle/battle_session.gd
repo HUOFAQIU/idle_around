@@ -227,7 +227,7 @@ func _rebuild_spawn_cells() -> void:
 	_spawn_cells_by_distance = battle.grid.cells_by_distance(battle.player_cell())
 
 
-## 按怪物的 spawn_distances 随机选距离，再在该环里随机选一格。
+## 把怪物的 spawn_distances 对应的环合并成候选格，再随机选一格。
 ## 请求的距离都没有格子时，退到离任意请求距离最近的有格环；整张图没格子才放弃。
 func _pick_spawn_cell(monster: MonsterData) -> Array[Vector2i]:
 	var wanted: Array[int] = monster.spawn_distances.duplicate()

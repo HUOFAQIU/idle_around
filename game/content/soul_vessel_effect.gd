@@ -6,7 +6,5 @@ class_name SoulVesselEffect extends Resource
 
 enum Stat { DAMAGE_BONUS }
 
-## 作用属性
 @export var stat: Stat = Stat.DAMAGE_BONUS
-## 加成数值
 @export var value: float = 0.0

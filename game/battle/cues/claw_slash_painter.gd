@@ -2,8 +2,8 @@ class_name ClawSlashPainter
 extends Node2D
 ## 爪痕绘制：三道弧形、入口粗出口细的划痕，按 progress 从左往右显现。
 ##
-## 只负责画，不管生命周期和方向；方向由父节点镜像整棵子树。
-## 绘制永远按“从左往右”取样，所以父节点 scale.x = -1 时看起来就是从右往左。
+## 只负责画，不管生命周期；方向由 play(direction) 通过 scale.x = -1 镜像。
+## 绘制永远按“从左往右”取样，镜像后看起来就是从右往左。
 
 ## 爪痕总跨度（像素）
 const LENGTH : float = 48.0
@@ -25,7 +25,6 @@ const SWEEP_TIME : float = 0.11
 const HOLD_TIME : float = 0.05
 ## 淡出时长（秒）
 const FADE_TIME : float = 0.16
-## 爪痕道数
 const SLASH_COUNT : int = 3
 
 ## 0~1 的显现进度；由 play() 的补间推进

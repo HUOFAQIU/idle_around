@@ -3,10 +3,13 @@
 [ext_resource type="Script" uid="uid://7siqbpean10a" path="res://Windows/Character/character_window.gd" id="1_vc8vg"]
 [ext_resource type="Script" uid="uid://b3x4mwtjmm4tp" path="res://Windows/Inventory/grid_base_inventory_system/core/view/container/inventory/inventory_view.gd" id="2_view"]
 
-[node name="CharacterWindow" type="Window" unique_id=1910727813]
-oversampling_override = 1.0
-position = Vector2i(0, 36)
-size = Vector2i(360, 240)
+[node name="CharacterWindow" type="Control" unique_id=1910727813]
+layout_mode = 1
+anchors_preset = 0
+offset_left = 0.0
+offset_top = 36.0
+offset_right = 360.0
+offset_bottom = 276.0
 script = ExtResource("1_vc8vg")
 open_position = Vector2i(20, 20)
 

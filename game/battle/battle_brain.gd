@@ -29,8 +29,8 @@ const FROZEN_TAG : StringName = ChargedAbility.FROZEN_TAG
 ## 单帧待释放队列的安全上限（20 刻激活锁是主限制，这里只防异常递归）
 const MAX_PENDING_ACTIVATIONS_PER_FRAME : int = 64
 
-## 本单位的技能（AutoCastAbility 节点，已授予给 ASC）
 var unit: BattleUnit
+## 本单位的技能（AutoCastAbility 节点，已授予给 ASC）
 var abilities: Array[GameplayAbility] = []
 
 ## 本帧由触发器充能满、等待统一释放的能力；每颗最多入队一次

@@ -145,6 +145,8 @@ func _ready() -> void:
 func _input(event: InputEvent) -> void:
 	if Engine.is_editor_hint():
 		return
+	if not is_visible_in_tree():
+		return
 	if not event.is_action_pressed(GBIS.input_use):
 		return
 	if not GBIS.has_moving_item():

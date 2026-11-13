@@ -12,12 +12,11 @@
 ##   └── Name (Label)             ← 头顶名字（可选，有就自动填 unit_name）
 ##
 ## 位置：战斗改即时制后，单位用 position（像素）作为真实位置；
-## cell 只记录“当前压在地图哪一格”，用于刷怪、调试和 ENEMY_MOVED 这类按格触发的事件。
+## cell 只记录“当前压在地图哪一格”，用于刷怪、调试和 UnitMoved 这类按格触发的事件。
 ## 移动由 BattleManager 统一驱动，单位自己是 CharacterBody2D，负责和别的单位碰撞。
 
 class_name BattleUnit extends CharacterBody2D
 
-## 单位倒下时发出
 signal died(unit: BattleUnit)
 ## 单位跨入新的地图格时发出（实时移动中由 BattleManager 在换格时触发）。
 ## 出生/瞬移用的 set_cell() 不触发。
@@ -98,7 +97,7 @@ func setup_from_scene(
 	for child in asc.get_children():
 		if child is GameplayAbility:
 			brain.abilities.append(child as GameplayAbility)
-	# 场景配置的魂灵 → 技能/运行期状态（玩家场景 souls 为空，由 BattleWindow 从装备读取后调用）
+	# 场景配置的魂灵 → 技能/运行期状态（玩家场景 souls 为空，由 BattleSession 传入装备槽位后调用）
 	add_soul_abilities(souls)
 
 	# 表现（血条/染色/名字/飘字）交给 presenter，单位本身只保留战斗身份
@@ -263,7 +262,7 @@ func apply_trigger_effect(
 
 
 ## 把一批魂灵变成技能和运行期状态；返回与输入等长的能力数组，null 表示这颗魂灵没有技能。
-## slots 留空时按魂灵部位生成虚拟魂灵栏（怪物用）；玩家由 BattleWindow 传入真实槽位。
+## slots 留空时按魂灵顺序生成一行虚拟魂灵栏（怪物用）；玩家由 BattleSession 传入真实槽位。
 func add_soul_abilities(
 	soul_list: Array[SoulData],
 	slots: Array[SoulSlot] = []

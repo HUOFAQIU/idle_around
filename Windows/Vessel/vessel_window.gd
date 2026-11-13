@@ -7,7 +7,6 @@ extends BaseWindow
 ## 这样 InventoryView、拖拽服务和悬停提示都能按普通容器处理；存档不走容器清单，
 ## 魂器的内部魂灵随物品记录一起嵌套保存。
 
-## 窗口内边距
 const WINDOW_PADDING : int = 16
 
 static var instance : SoulVesselWindow
@@ -49,7 +48,7 @@ func open_for(vessel: SoulVesselData) -> void:
 	inventory_view.mark_dirty()
 	if not visible:
 		open_window()
-	# 首次打开时 open_window 会把置顶栏高度补进窗口；尺寸放在它之后算，避免多加一次
+	# 首次打开时 open_window 会把标题栏高度补进窗口；尺寸放在它之后算，避免多加一次
 	_fit_to_contents(contents)
 	if not GBIS.opened_containers.has(contents.container_name):
 		GBIS.opened_containers.append(contents.container_name)
@@ -100,7 +99,7 @@ func _fit_to_contents(contents: ContainerData) -> void:
 		contents.columns * inventory_view.base_size + WINDOW_PADDING,
 		contents.rows * inventory_view.base_size + TITLE_BAR_HEIGHT + WINDOW_PADDING
 	)
-	size = Vector2i(
+	size = Vector2(
 		clampi(want.x, 1, bounds.x),
 		clampi(want.y, 1, bounds.y)
 	)

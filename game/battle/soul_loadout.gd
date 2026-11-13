@@ -2,7 +2,7 @@
 ##
 ## 玩家和怪物走同一条管线，只有槽位来源不同：
 ##   玩家：BattleWindow 从装备容器读出 SoulSlot；
-##   怪物：不传槽位，按魂灵自身部位生成虚拟魂灵栏。
+##   怪物：不传槽位，按魂灵列表顺序生成一行虚拟魂灵栏。
 ## BattleUnit 只持有构建结果，不再自己拼装技能/触发器/运行时。
 class_name SoulLoadout extends RefCounted
 

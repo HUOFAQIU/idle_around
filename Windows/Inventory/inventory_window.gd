@@ -1,7 +1,6 @@
 class_name InventoryWindow
 extends BaseWindow
 
-## 页码按钮尺寸
 const PAGE_BUTTON_SIZE: Vector2 = Vector2(30, 26)
 
 @onready var inventory_view: InventoryView = $InventoryView

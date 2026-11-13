@@ -3,10 +3,13 @@
 [ext_resource type="Script" uid="uid://wdso8tw62aev" path="res://Windows/Inventory/inventory_window.gd" id="1_window"]
 [ext_resource type="Script" uid="uid://b3x4mwtjmm4tp" path="res://Windows/Inventory/grid_base_inventory_system/core/view/container/inventory/inventory_view.gd" id="2_5mbsx"]
 
-[node name="InventoryWindow" type="Window" unique_id=111619256]
-oversampling_override = 1.0
-position = Vector2i(0, 36)
-size = Vector2i(850, 850)
+[node name="InventoryWindow" type="Control" unique_id=111619256]
+layout_mode = 1
+anchors_preset = 0
+offset_left = 0.0
+offset_top = 36.0
+offset_right = 850.0
+offset_bottom = 886.0
 script = ExtResource("1_window")
 
 [node name="InventoryView" type="Control" parent="." unique_id=1654115602]

@@ -1,7 +1,6 @@
 class_name SoulSkillStep extends SkillStep
 ## 以魂灵为目标的技能步骤。
 
-## 选魂灵规则
 @export var target_rule: SoulTargetRule
 ## 加速/减速/冻结时长（秒）；0 = 不施加
 @export_range(0.0, 60.0, 0.1) var haste_duration: float = 0.0

@@ -13,6 +13,9 @@
 [ext_resource type="PackedScene" uid="uid://bc0rml4pkml2k" path="res://Windows/Info/info_window.tscn" id="10_gdtoh"]
 [ext_resource type="PackedScene" uid="uid://b87wi6f58te5u" path="res://Windows/Item/item_window.tscn" id="11_n2hic"]
 [ext_resource type="PackedScene" uid="uid://cj4ex21pfm4qa" path="res://Windows/Debug/debug_window.tscn" id="12_debug"]
+[ext_resource type="Script" path="res://Main/pet_panel.gd" id="13_pet"]
+[ext_resource type="Script" path="res://Main/panel_manager.gd" id="14_panel_manager"]
+[ext_resource type="Script" path="res://Main/overlay_passthrough.gd" id="15_overlay"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pet"]
 bg_color = Color(0.117647, 0.129412, 0.152941, 1)
@@ -33,6 +36,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 script = ExtResource("1_6fago")
 
 [node name="PetPanel" type="Control" parent="." unique_id=1932018194]
@@ -42,6 +46,7 @@ offset_left = 5.0
 offset_top = 655.0
 offset_right = 305.0
 offset_bottom = 955.0
+script = ExtResource("13_pet")
 
 [node name="Background" type="Panel" parent="PetPanel" unique_id=1150979607]
 layout_mode = 1
@@ -62,11 +67,6 @@ grow_horizontal = 2
 alignment = 1
 script = ExtResource("3_nu5lx")
 
-[node name="Button" type="Button" parent="PetPanel/StatusBarContainer" unique_id=1481583101]
-custom_minimum_size = Vector2(44, 44)
-layout_mode = 2
-text = "<"
-
 [node name="Button2" type="Button" parent="PetPanel/StatusBarContainer" unique_id=155035595]
 custom_minimum_size = Vector2(44, 44)
 layout_mode = 2
@@ -83,11 +83,6 @@ layout_mode = 2
 [node name="Button5" type="Button" parent="PetPanel/StatusBarContainer" unique_id=1605001095]
 custom_minimum_size = Vector2(44, 44)
 layout_mode = 2
-
-[node name="Button6" type="Button" parent="PetPanel/StatusBarContainer" unique_id=872853390]
-custom_minimum_size = Vector2(44, 44)
-layout_mode = 2
-text = ">"
 
 [node name="GridContainer" type="GridContainer" parent="PetPanel" unique_id=1805388438]
 custom_minimum_size = Vector2(0, 50)
@@ -157,10 +152,13 @@ open_position = Vector2i(560, 20)
 [node name="ShopWindow" parent="." unique_id=1488491486 instance=ExtResource("8_mkciv")]
 visible = false
 
-[node name="ModWindow" type="Window" parent="." unique_id=829175154]
-oversampling_override = 1.0
-position = Vector2i(0, 36)
-size = Vector2i(640, 356)
+[node name="ModWindow" type="Control" parent="." unique_id=829175154]
+layout_mode = 1
+anchors_preset = 0
+offset_left = 0.0
+offset_top = 36.0
+offset_right = 640.0
+offset_bottom = 392.0
 visible = false
 script = ExtResource("9_70kn5")
 
@@ -174,6 +172,12 @@ visible = false
 visible = false
 
 [node name="InfoWindow" parent="." unique_id=158491879 instance=ExtResource("10_gdtoh")]
+
+[node name="PanelManager" type="Node" parent="." unique_id=1449830164]
+script = ExtResource("14_panel_manager")
+
+[node name="OverlayPassthrough" type="Node" parent="." unique_id=1742031552]
+script = ExtResource("15_overlay")
 
 [node name="DragLayer" type="CanvasLayer" parent="." unique_id=269600030]
 layer = 1025

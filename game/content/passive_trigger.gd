@@ -22,7 +22,6 @@ enum TargetScope {
 
 ## 生命值事件：严格低于该比例时触发（0~1）
 @export_range(0.0, 1.0, 0.01) var threshold_ratio: float = 0.5
-## 效果施加范围
 @export var target_scope: TargetScope = TargetScope.EVENT_TARGET
 ## 每场战斗只触发一次（半血这类一次性事件用）
 @export var once_per_battle: bool = false
@@ -30,7 +29,7 @@ enum TargetScope {
 @export_range(0.0, 60.0, 0.1) var charge_source_seconds: float = 0.0
 ## 被使用的魂灵必须带齐这些类型；空 = 不限
 @export var required_soul_types: Array[StringName] = []
-## 被使用的魂灵必须与本魂灵同一部位栏、左右紧邻
+## 被使用的魂灵必须与本魂灵在同一魂器容器内、左右紧邻
 @export var require_adjacent: bool = false
 ## 触发日志里显示的名字；留空则不写触发日志
 @export var trigger_name: String = ""

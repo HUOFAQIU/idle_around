@@ -14,7 +14,6 @@ class_name SoulTargetRule extends TargetRuleBase
 
 enum Mode { LEFT, RIGHT, RANDOM, SELF, ALL, BOTH_SIDES }
 
-## 选择方式
 @export var mode: Mode = Mode.RIGHT
 ## RANDOM / ALL 时是否包含自己
 @export var include_self: bool = false

@@ -1,7 +1,7 @@
 ## 地图适配：格子 ↔ 像素换算、格子尺寸、已使用格查询。
 ##
 ## 战斗逻辑只认像素位置；这个类把 TileMapLayer 的坐标能力收在一起，
-## BattleManager 和 EnemySpawner 共用，不直接碰地图节点。
+## BattleManager 和 BattleSession 共用，不直接碰地图节点。
 class_name BattleGrid extends RefCounted
 
 const MIN_CELL_SIZE_PX: float = 1.0

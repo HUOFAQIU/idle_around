@@ -169,12 +169,13 @@ func execute_cue(target: Node, payload: Dictionary = {}) -> void:
 2. **`play_cue` 被调用了吗** —— 临时在里面 `print` 或加个计数器
 3. **节点真的在画吗** —— 有时候是 `_draw`/粒子在跑，但太小太淡看不见
 
-第 3 步可以直接读窗口像素验证（战斗窗口是嵌入子窗口，仍能读自己的 Viewport 纹理；坐标是窗口内部坐标）：
+第 3 步可以直接读主视口像素验证（面板不再是独立 Viewport；先拿面板的全局矩形，再把面板内部坐标换算成视口坐标）：
 
 ```gdscript
 await RenderingServer.frame_post_draw
-var img := battle_window.get_texture().get_image()
-print(img.get_pixel(x, y))          # 窗口内部坐标
+var img := get_viewport().get_texture().get_image()
+var origin := Vector2i(battle_window.get_global_rect().position)
+print(img.get_pixel(origin + Vector2i(x, y)))   # x, y 是面板内部坐标
 ```
 
 读之前把特效参数强行钉死（比如 `半径 = 30`、`alpha = 1.0`）再读，能把"时机不对"这个变量排除掉。

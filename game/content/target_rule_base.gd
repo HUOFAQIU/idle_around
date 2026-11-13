@@ -4,7 +4,7 @@
 ##   TargetRule      选战斗单位，返回批次 Array[Array[BattleUnit]]
 ##   SoulTargetRule  选魂灵能力，返回 Array[ChargedAbility]
 ##
-## SkillDefinition 只暴露一个 target_rule 字段，消费端按 domain() 分派。
+## target_rule 挂在 SkillStep 的具体子类上（UnitSkillStep / SoulSkillStep），由各步骤自己调用 resolve()。
 
 class_name TargetRuleBase extends Resource
 

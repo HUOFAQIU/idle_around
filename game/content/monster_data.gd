@@ -19,12 +19,12 @@ class_name MonsterData extends Resource
 @export_range(0.0, 1000.0, 0.1) var attack_range: float = 30.0
 ## 移动速度（像素/秒）
 @export_range(0.0, 1000.0, 0.1) var move_speed: float = 11.0
-## 可用的刷新距离（格）；每次刷怪随机选一个距离，再在该距离的环上随机选格。
+## 可用的刷新距离（格）；刷怪时从这些距离环的格子中合并随机选一格。
 ## 默认 [3]；ModLoader 要求非空且每个距离 >= 1。
 @export var spawn_distances: Array[int] = [3]
 ## 常规刷怪权重；0 表示不参与常规随机刷怪，只能由特殊规则或测试刷出
 @export_range(0.0, 100.0, 0.1) var spawn_weight: float = 1.0
-## 稀有标记：不参与常规随机池，由 BattleWindow 每击杀 N 只常规怪后替换刷出。
+## 稀有标记：不参与常规随机池，由 BattleSession 每击杀 N 只常规怪后替换刷出。
 ## 稀有怪应同时把 spawn_weight 设为 0；死亡也不计入常规击杀数。
 @export var is_rare: bool = false
 ## 携带的魂灵与各自的掉落几率；战斗时按列表顺序生成虚拟魂灵栏

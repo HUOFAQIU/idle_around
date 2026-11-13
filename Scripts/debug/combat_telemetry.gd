@@ -33,7 +33,7 @@ var max_events: int = MAX_EVENTS_DEFAULT
 var events: Array[Dictionary] = []
 ## 因为超过上限被覆盖的事件数
 var dropped_events: int = 0
-## 当前战斗场次；BattleWindow 开战时设置
+## 当前战斗场次；BattleSession 开战时设置
 var current_run_id: int = 0
 var current_battle: BattleManager
 ## 关注单位实例 id；详细事件只记录它

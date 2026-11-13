@@ -3,9 +3,11 @@
 [ext_resource type="Script" path="res://Windows/Vessel/vessel_window.gd" id="1_window"]
 [ext_resource type="Script" uid="uid://b3x4mwtjmm4tp" path="res://Windows/Inventory/grid_base_inventory_system/core/view/container/inventory/inventory_view.gd" id="2_view"]
 
-[node name="VesselWindow" type="Window"]
-oversampling_override = 1.0
-size = Vector2i(224, 112)
+[node name="VesselWindow" type="Control"]
+layout_mode = 1
+anchors_preset = 0
+offset_right = 224.0
+offset_bottom = 112.0
 script = ExtResource("1_window")
 open_position = Vector2i(20, 320)
 

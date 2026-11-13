@@ -41,7 +41,6 @@ func get_mod_cues() -> Array[Dictionary]:
 	return result
 
 
-## 某个 mod Cue 是否已注册
 func is_mod_cue_registered(tag: StringName) -> bool:
 	return _mod_registered_tags.has(tag)
 

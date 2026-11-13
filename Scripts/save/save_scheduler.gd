@@ -20,7 +20,7 @@ func mark_dirty(urgent: bool = false) -> void:
 	_urgent = _urgent or urgent
 
 
-## 每帧推进；can_save 为 false 时只累计时间，不触发
+## 每帧推进；can_save 为 false 时直接跳过本帧，不累计时间
 func tick(delta: float, can_save: bool = true) -> bool:
 	if not can_save:
 		return false

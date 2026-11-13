@@ -1,6 +1,6 @@
 ## 魂灵直接伤害的 GAS 执行计算。
 ##
-## 伤害 = (base_damage + 施法者 damage_bonus + 匹配魂灵数量 × bonus_per_matching_soul) × 暴击倍率
+## 伤害 = (base_damage + 施法者 damage_bonus + 匹配魂灵数量 × bonus_per_matching_soul + 魂器加成) × 暴击倍率
 ## 暴击倍率由 AutoCastAbility 通过 spec 的 SetByCaller 传入。
 ## 最终伤害交给 DamageResolver 先扣护盾，再扣生命。
 ##

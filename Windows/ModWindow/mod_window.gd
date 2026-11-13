@@ -20,7 +20,7 @@ var _startup_order: Array[StringName] = []
 func _ready() -> void:
 	super._ready()
 	title = "Mod 管理"
-	size = Vector2i(760, 520)
+	size = Vector2(760, 520)
 	visibility_changed.connect(_on_visibility_changed)
 	_build_ui()
 	for mod in ModLoader.get_mod_list():

@@ -16,6 +16,7 @@ extends Control
 @onready var collection_window: CollectionWindow = $CollectionWindow
 @onready var debug_window: DebugWindow = $DebugWindow
 @onready var mod_window: ModWindow = $ModWindow
+@onready var panel_manager: PanelManager = $PanelManager
 
 
 func _ready() -> void:
@@ -50,7 +51,4 @@ func _ready() -> void:
 
 
 func popup_window(window: BaseWindow) -> void:
-	if window.visible:
-		window.hide()
-		return
-	window.open_window()
+	panel_manager.toggle(window)

@@ -2,8 +2,10 @@
 
 [ext_resource type="Script" uid="uid://bi78epiel3a54" path="res://Windows/Debug/debug_window.gd" id="1_debug"]
 
-[node name="DebugWindow" type="Window" unique_id=729122597]
-oversampling_override = 1.0
-size = Vector2i(1200, 760)
+[node name="DebugWindow" type="Control" unique_id=729122597]
+layout_mode = 1
+anchors_preset = 0
+offset_right = 1200.0
+offset_bottom = 760.0
 visible = false
 script = ExtResource("1_debug")

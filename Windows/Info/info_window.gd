@@ -13,6 +13,7 @@ static var instance : InfoWindow
 func _ready() -> void:
 	super()
 	instance = self
+	title = "战斗信息"
 
 
 ## 加一行信息（战斗日志走这儿）；超过上限时裁掉最旧的行

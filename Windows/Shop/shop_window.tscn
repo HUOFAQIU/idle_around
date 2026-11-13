@@ -3,10 +3,13 @@
 [ext_resource type="Script" uid="uid://dgtlj3504pj44" path="res://Windows/Shop/shop_window.gd" id="1_dff8h"]
 [ext_resource type="Script" uid="uid://gqt6pq4lt0gw" path="res://Windows/Inventory/grid_base_inventory_system/core/view/container/shop/shop_view.gd" id="2_shopview"]
 
-[node name="ShopWindow" type="Window" unique_id=1488491486]
-oversampling_override = 1.0
-position = Vector2i(0, 36)
-size = Vector2i(640, 356)
+[node name="ShopWindow" type="Control" unique_id=1488491486]
+layout_mode = 1
+anchors_preset = 0
+offset_left = 0.0
+offset_top = 36.0
+offset_right = 640.0
+offset_bottom = 392.0
 script = ExtResource("1_dff8h")
 
 [node name="ShopView" type="Control" parent="."]

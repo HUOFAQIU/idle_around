@@ -28,7 +28,7 @@ var content_namespace: String = "mod"
 ## 内置 mod 的内容根目录；空 = res://base_mods/<mod_id>/。
 ## 只允许内置 mod 使用，第三方 mod 必须把内容放在自己的命名空间目录下。
 var content_root: String = ""
-## 原样保存 content 段；souls / monsters / cues 的路径由 ModLoader 解析
+## 原样保存 content 段；souls / monsters / vessels / cues 的路径由 ModLoader 解析
 var content: Dictionary = {}
 var overrides: Array[String] = []
 var errors: Array[String] = []

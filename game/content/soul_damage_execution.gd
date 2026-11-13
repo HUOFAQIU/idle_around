@@ -17,6 +17,36 @@ class_name SoulDamageExecution extends GameplayExecutionCalculation
 @export var matching_soul_types: Array[StringName] = []
 
 
+## 暴击前的伤害合计；tooltip 预览与 execute 共用，避免两份公式。
+static func total_before_crit(
+	base_damage: float,
+	damage_bonus: float,
+	soul_bonus: float,
+	vessel_bonus: float
+) -> float:
+	return maxf(base_damage + damage_bonus + soul_bonus + vessel_bonus, 0.0)
+
+
+## 数装备栏里带匹配类型的魂灵；恐狼自己也算一颗。
+## 用无类型 Array 动态读字段，避免静态引用 SoulRuntime 让 modkit --script 校验编译失败。
+static func matching_soul_count(loadout: Array, matching_types: Array[StringName]) -> int:
+	var count := 0
+	for runtime in loadout:
+		if not (runtime is Object):
+			continue
+		var soul: Variant = runtime.get("soul")
+		if soul == null:
+			continue
+		var types: Variant = soul.get("types")
+		if types == null:
+			continue
+		for soul_type in matching_types:
+			if types.has(soul_type):
+				count += 1
+				break
+	return count
+
+
 func execute(spec: GameplayEffectSpec, target_asc: AbilitySystemComponent) -> Dictionary:
 	var damage_bonus := 0.0
 	var source_asc := _source_asc(spec)
@@ -29,7 +59,7 @@ func execute(spec: GameplayEffectSpec, target_asc: AbilitySystemComponent) -> Di
 
 	var soul_bonus := _matching_soul_bonus(source_asc)
 	var vessel_bonus := _vessel_damage_bonus(spec)
-	var damage := maxf(base_damage + damage_bonus + soul_bonus + vessel_bonus, 0.0) * crit_multiplier
+	var damage := total_before_crit(base_damage, damage_bonus, soul_bonus, vessel_bonus) * crit_multiplier
 	if damage <= 0.0:
 		return {}
 	CritResolution.inject_if_critical(spec, crit_multiplier)
@@ -45,14 +75,7 @@ func _matching_soul_bonus(source_asc: AbilitySystemComponent) -> float:
 	var unit := source_asc.get_parent() as BattleUnit
 	if unit == null:
 		return 0.0
-	var count := 0
-	for runtime in unit.loadout:
-		if runtime == null or runtime.soul == null:
-			continue
-		for soul_type in matching_soul_types:
-			if runtime.soul.types.has(soul_type):
-				count += 1
-				break
+	var count := matching_soul_count(unit.loadout, matching_soul_types)
 	return float(count) * bonus_per_matching_soul
 
 

@@ -19,7 +19,7 @@ enum DropState {
 @export_storage var avilable_types: Array[String]
 ## 魂器类型限制（空 = 不限制；COMBAT / TOOL）
 @export_storage var vessel_kind: String = ""
-## 最多容纳物品件数；0 = 不限制（角色魂器槽用 1）
+## 最多容纳物品件数；0 = 不限制（角色魂器网格不设）
 @export_storage var max_items: int = 0
 
 ## 当前存放的物品数据列表
@@ -87,7 +87,7 @@ func remove_item(item: ItemData) -> bool:
 func is_item_avilable(item_data: ItemData) -> bool:
 	if not (avilable_types.has("ANY") or avilable_types.has(item_data.category)):
 		return false
-	# 角色魂器槽只收指定类型；槽位本身的单件限制由 max_items 控制
+	# 角色魂器网格只收指定类型；件数上限由 max_items 控制（网格不设）
 	if max_items > 0 and items.size() >= max_items and not items.has(item_data):
 		return false
 	if vessel_kind != "" and item_data.container_kind_tag() != vessel_kind:

@@ -16,6 +16,8 @@ static var instance : SoulVesselWindow
 
 ## 当前显示的魂器
 var _vessel: SoulVesselData
+## 当前显示的内部容器名；魂器被移走后清空
+var _contents_name: String = ""
 
 
 func _ready() -> void:
@@ -37,6 +39,7 @@ func open_for(vessel: SoulVesselData) -> void:
 		return
 	_vessel = vessel
 	var contents := vessel.ensure_contents()
+	_contents_name = contents.container_name
 	ContainerRepository.instance.register_container_data(contents.container_name, contents)
 	# 关窗时从 inventory_names 注销过；重新打开要补回，InventoryService 才能查到容器
 	if not GBIS.inventory_names.has(contents.container_name):
@@ -50,6 +53,16 @@ func open_for(vessel: SoulVesselData) -> void:
 	_fit_to_contents(contents)
 	if not GBIS.opened_containers.has(contents.container_name):
 		GBIS.opened_containers.append(contents.container_name)
+
+
+## 当前显示的内部容器名；Tooltip 用它判断魂灵是否位于魂器窗口
+func contents_container_name() -> String:
+	return _contents_name
+
+
+## 当前显示的魂器；没有绑定时为 null
+func contents_vessel() -> SoulVesselData:
+	return _vessel
 
 
 ## 窗口关闭后把内部容器移出“已打开”列表并注销；内容仍留在魂器里。
@@ -71,6 +84,7 @@ func _on_item_removed(_inv_name: String, item_data: ItemData) -> void:
 		return
 	hide()
 	_vessel = null
+	_contents_name = ""
 
 
 ## 物品激活信号：只有魂器需要开窗
@@ -79,10 +93,15 @@ func _on_item_activated(item_data: ItemData) -> void:
 		open_for(item_data as SoulVesselData)
 
 
-## 窗口尺寸跟着内部容器走；置顶栏高度由 BaseWindow 负责
+## 窗口尺寸跟着内部容器走；标题栏高度由 BaseWindow 负责
 func _fit_to_contents(contents: ContainerData) -> void:
+	var bounds := Vector2i(get_parent().get_viewport().get_visible_rect().size)
 	var want := Vector2i(
 		contents.columns * inventory_view.base_size + WINDOW_PADDING,
-		contents.rows * inventory_view.base_size + PIN_ROW_HEIGHT + WINDOW_PADDING
+		contents.rows * inventory_view.base_size + TITLE_BAR_HEIGHT + WINDOW_PADDING
 	)
-	size = Vector2i(maxi(want.x, 1), maxi(want.y, 1))
+	size = Vector2i(
+		clampi(want.x, 1, bounds.x),
+		clampi(want.y, 1, bounds.y)
+	)
+	position = _clamp_position(position)

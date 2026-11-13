@@ -19,7 +19,9 @@ func _ready() -> void:
 func append_line(line: String, color: String = "white") -> void:
 	log_label.append_text("[color=%s]%s[/color]\n" % [color, line])
 	while log_label.get_paragraph_count() > MAX_LOG_LINES:
-		log_label.remove_paragraph(0)
+		# 每行都是一个自带闭合标签的完整段落，删掉不影响后面的段落缓存。
+		# no_invalidate 不能省：窗口可见时默认会重排剩余全部段落，500 行下每来一条日志都会卡一下。
+		log_label.remove_paragraph(0, true)
 
 
 ## 清空（每场战斗重开时用）

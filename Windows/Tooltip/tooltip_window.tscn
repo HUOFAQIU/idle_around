@@ -8,30 +8,14 @@ border_width_top = 3
 border_width_right = 3
 border_width_bottom = 3
 
-[node name="TooltipWindow" type="Window" unique_id=143098148]
-oversampling_override = 1.0
-title = "Tooltip"
-size = Vector2i(200, 100)
-wrap_controls = true
-borderless = true
-transient = true
-unfocusable = true
-mouse_passthrough = true
-minimize_disabled = true
-maximize_disabled = true
-min_size = Vector2i(200, 100)
-script = ExtResource("1_axn8q")
-
-[node name="Panel" type="PanelContainer" parent="." unique_id=1822012879]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+[node name="TooltipWindow" type="PanelContainer"]
+custom_minimum_size = Vector2(200, 100)
+size = Vector2(200, 100)
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_tip")
+script = ExtResource("1_axn8q")
 
-[node name="Margin" type="MarginContainer" parent="Panel" unique_id=874054277]
+[node name="Margin" type="MarginContainer" parent="."]
 layout_mode = 2
 mouse_filter = 2
 theme_override_constants/margin_left = 10
@@ -39,15 +23,15 @@ theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 10
 theme_override_constants/margin_bottom = 8
 
-[node name="VBox" type="VBoxContainer" parent="Panel/Margin" unique_id=1140105933]
+[node name="VBox" type="VBoxContainer" parent="Margin"]
 layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 4
 
-[node name="TitleLabel" type="Label" parent="Panel/Margin/VBox" unique_id=420969359]
+[node name="TitleLabel" type="Label" parent="Margin/VBox"]
 layout_mode = 2
 
-[node name="BodyLabel" type="RichTextLabel" parent="Panel/Margin/VBox" unique_id=730266214]
+[node name="BodyLabel" type="RichTextLabel" parent="Margin/VBox"]
 visible = false
 layout_mode = 2
 focus_mode = 0

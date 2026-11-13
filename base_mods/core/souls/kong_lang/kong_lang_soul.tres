@@ -20,10 +20,10 @@ shader_parameter/freeze_color = Color(0.58, 0.86, 1, 1)
 script = ExtResource("3_soul")
 skill = ExtResource("4_skill")
 tooltip_blocks = Array[String](["( {cooldown} 秒 )
-> 对最近的怪物造成 30 伤害
+> 对最近的怪物造成 {damage} 伤害
 > 多重触发，{cast_times}
 
-- 每有一个狼，此魂灵+10 点伤害"])
+- 每有一个狼，此魂灵+{damage_per_soul} 点伤害"])
 types = Array[StringName]([&"Soul.types.Wolf", &"Soul.types.Animal"])
 tags = Array[StringName]([&"Soul.tags.Medium", &"Soul.tags.Damage"])
 item_name = "恐狼"

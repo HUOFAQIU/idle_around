@@ -128,10 +128,6 @@ var _log_rebuilding: bool = false
 func _ready() -> void:
 	super()
 	title = "调试窗口"
-	unresizable = false
-	min_size = Vector2i(900, 520)
-	if size.x < 1000 or size.y < 620:
-		size = Vector2i(1200, 760)
 	_build_ui()
 	_connect_controls()
 	var log_bar := _log_text.get_v_scroll_bar()
@@ -224,11 +220,6 @@ func _build_ui() -> void:
 	_search_edit.custom_minimum_size = Vector2(160, 0)
 	_search_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	toolbar.add_child(_search_edit)
-
-	# 给 BaseWindow 右上角的 T 置顶按钮留位
-	var pin_space := Control.new()
-	pin_space.custom_minimum_size = Vector2i(32, 0)
-	toolbar.add_child(pin_space)
 
 	_tabs = TabContainer.new()
 	_tabs.name = "Tabs"

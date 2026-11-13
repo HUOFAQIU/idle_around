@@ -34,7 +34,7 @@ tools: Read, Grep, Glob, Bash
 
 - 同一常量、类型、校验规则或逻辑块在两处以上出现时，指出应复用的共享辅助（优先检查是否已有 `GameColors`、`ContainerIds`、`ModPaths`、`StatusAttributes`、`CombatNames` 等现成入口）。
 - 背包/仓库：避免显示时无条件全量重建；关注 624 格控件、每件物品的 Label/徽章/材质副本创建。
-- 窗口：`embed_subwindows=false`，每次显隐都会重建原生窗口；避免同帧反复 `visible` 切换。
+- 窗口：单窗口模式（`embed_subwindows=true`）；嵌入子窗口坐标是主视口局部坐标，Tooltip/Item 在 `CanvasLayer` 1025+。不要让面板使用屏幕绝对坐标或原生 topmost/transient 补丁。
 - 战斗：避免每帧全量扫描怪物；确认使用了空间索引/分片移动等现有机制。
 
 ### 4. 文档与测试

@@ -23,6 +23,8 @@
 5. 先定位再读：先搜索，再按 offset/limit 只读命中段落，不整篇读文档。
 6. 新增功能/内容时，同步在 `Scripts/test_api.gd` 暴露测试方法，并更新 `DOC/指南/AI测试接口.md`。
 7. 新建资源（含 `GameplayEffect`）不设中文 `resource_name`，文件名不带固定数值；数值走数据/SetByCaller（详见 `DOC/架构/现状与注意.md`）。
+8. 跨 3 个以上文件的搜索优先派 Explore 子代理；只取结论和 `file:line`，不把大段文件内容带进主上下文。
+9. 超过 200 行的命令输出先落盘，再 `grep`/`tail` 取关键行，不整段读入上下文。
 
 ## 文档
 

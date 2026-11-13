@@ -142,19 +142,16 @@ static func add_vessel(id : StringName, container : String = "") -> bool:
 	return GBIS.add_item(container, vessel)
 
 
-## 把战斗魂器装备到第一个空的角色魂器槽
+## 把战斗魂器装进角色魂器网格；网格放不下时返回 false
 static func equip_vessel(id : StringName) -> bool:
 	var vessel := CollectionDB.get_vessel(id)
 	if vessel == null:
 		push_warning("TestAPI：魂器不存在 %s" % id)
 		return false
-	for cell_name in CONTAINER_IDS.vessel_cells():
-		if GBIS.add_item(cell_name, vessel):
-			return true
-	return false
+	return GBIS.add_item(CONTAINER_IDS.VESSEL_GRID, vessel)
 
 
-## 往指定槽位的魂器里放一颗魂灵；魂器内部容器只收 SOUL
+## 往魂器网格里第 vessel_slot 个魂器中放一颗魂灵；魂器内部容器只收 SOUL
 static func vessel_add_soul(soul_id : StringName, vessel_slot : int = 0) -> bool:
 	var soul := CollectionDB.get_soul(soul_id)
 	if soul == null:
@@ -162,7 +159,7 @@ static func vessel_add_soul(soul_id : StringName, vessel_slot : int = 0) -> bool
 		return false
 	var vessel := _equipped_vessel(vessel_slot)
 	if vessel == null:
-		push_warning("TestAPI：槽位 %d 没有魂器" % vessel_slot)
+		push_warning("TestAPI：魂器网格第 %d 个魂器不存在" % vessel_slot)
 		return false
 	var contents := vessel.ensure_contents()
 	var item := soul.make_instance()
@@ -173,7 +170,7 @@ static func vessel_add_soul(soul_id : StringName, vessel_slot : int = 0) -> bool
 	return true
 
 
-## 指定槽位魂器里的魂灵名；没装备魂器时返回空数组
+## 魂器网格里第 vessel_slot 个魂器中的魂灵名；没有这个魂器时返回空数组
 static func get_vessel_contents(vessel_slot : int = 0) -> Array[String]:
 	var names : Array[String] = []
 	var vessel := _equipped_vessel(vessel_slot)
@@ -190,7 +187,7 @@ static func get_vessel_ids() -> Array[StringName]:
 	return CollectionDB.get_vessel_ids()
 
 
-## 指定槽位魂器的 tooltip 正文（含内部魂灵网格）
+## 魂器网格里第 vessel_slot 个魂器的 tooltip 正文（含内部魂灵网格）
 static func get_equipped_vessel_tooltip_text(vessel_slot : int = 0) -> String:
 	var vessel := _equipped_vessel(vessel_slot)
 	if vessel == null:
@@ -198,7 +195,7 @@ static func get_equipped_vessel_tooltip_text(vessel_slot : int = 0) -> String:
 	return "%s\n%s" % [vessel.item_name, VesselTooltip.build(vessel)]
 
 
-## 指定槽位魂器的 tooltip 正文（BBCode）
+## 魂器网格里第 vessel_slot 个魂器的 tooltip 正文（BBCode）
 static func get_equipped_vessel_tooltip_bbcode(vessel_slot : int = 0) -> String:
 	var vessel := _equipped_vessel(vessel_slot)
 	if vessel == null:
@@ -207,16 +204,13 @@ static func get_equipped_vessel_tooltip_bbcode(vessel_slot : int = 0) -> String:
 
 
 static func _equipped_vessel(vessel_slot : int) -> SoulVesselData:
-	var cells: Array[String] = CONTAINER_IDS.vessel_cells()
-	if vessel_slot < 0 or vessel_slot >= cells.size():
-		return null
-	var container := ContainerRepository.instance.get_container(cells[vessel_slot])
+	var container := ContainerRepository.instance.get_container(CONTAINER_IDS.VESSEL_GRID)
 	if container == null:
 		return null
-	for item in container.items:
-		if item is SoulVesselData:
-			return item as SoulVesselData
-	return null
+	var vessels := SoulVesselData.combat_vessels_in(container)
+	if vessel_slot < 0 or vessel_slot >= vessels.size():
+		return null
+	return vessels[vessel_slot]
 
 
 ## 清空容器并刷新视图
@@ -243,8 +237,11 @@ static func get_container_items(container : String) -> Array[String]:
 ## 校验 ContainerIds 里的容器是否都已注册；在主场景运行后调用
 static func validate_container_ids() -> Array[String]:
 	var errors: Array[String] = []
-	var expected: Array[String] = [CONTAINER_IDS.MAIN_INVENTORY, CONTAINER_IDS.SHOP]
-	expected.append_array(CONTAINER_IDS.vessel_cells())
+	var expected: Array[String] = [
+		CONTAINER_IDS.MAIN_INVENTORY,
+		CONTAINER_IDS.SHOP,
+		CONTAINER_IDS.VESSEL_GRID,
+	]
 	for container_name in expected:
 		if ContainerRepository.instance.get_container(container_name) == null:
 			errors.append("容器未注册：%s" % container_name)
@@ -348,21 +345,34 @@ static func get_soul_damage_scaling(id : StringName) -> Dictionary:
 	var soul := CollectionDB.get_soul(id)
 	if soul == null or soul.skill == null:
 		return {}
-	for step in soul.skill.steps:
-		if not step is UnitSkillStep:
-			continue
-		for effect in (step as UnitSkillStep).effects:
-			if effect == null:
-				continue
-			for execution in effect.executions:
-				if execution is SoulDamageExecution:
-					var damage := execution as SoulDamageExecution
-					return {
-						"base_damage": damage.base_damage,
-						"bonus_per_matching_soul": damage.bonus_per_matching_soul,
-						"matching_soul_types": damage.matching_soul_types.duplicate(),
-					}
-	return {}
+	var damage := SoulDamagePreview.find_damage_execution(soul.skill)
+	if damage == null:
+		return {}
+	return {
+		"base_damage": damage.base_damage,
+		"bonus_per_matching_soul": damage.bonus_per_matching_soul,
+		"matching_soul_types": damage.matching_soul_types.duplicate(),
+	}
+
+
+## 已装备魂灵的伤害预览；战斗中优先运行期值，否则按当前魂器网格静态预览。
+## 未装备返回 {}。静态预览只汇总被动魂灵 modifiers 里的 STATIC 数值。
+static func get_equipped_soul_damage_preview(id : StringName) -> Dictionary:
+	var context := _equipped_soul_context(id)
+	if context.is_empty():
+		return {}
+	var preview := context["preview"] as SoulDamagePreview
+	return {
+		"base_damage": preview.base_damage,
+		"bonus_per_matching_soul": preview.bonus_per_matching_soul,
+		"matching_soul_types": preview.matching_soul_types.duplicate(),
+		"matching_soul_count": preview.matching_soul_count,
+		"player_damage_bonus": preview.player_damage_bonus,
+		"vessel_damage_bonus": preview.vessel_damage_bonus,
+		"is_dynamic": preview.is_dynamic,
+		"has_runtime": preview.has_runtime,
+		"total": preview.total(),
+	}
 
 
 ## 技能步骤概况：类型、domain、目标规则、效果数量；用于验证多步骤技能
@@ -425,6 +435,27 @@ static func get_soul_tooltip_bbcode(id : StringName) -> String:
 		push_warning("TestAPI：魂灵不存在 %s" % id)
 		return ""
 	return "%s\n%s" % [soul.item_name, SoulTooltip.build(soul, true)]
+
+
+## 已装备魂灵的动态 tooltip 纯文本；未装备时回退静态 tooltip
+## 战斗中优先运行期值，否则按当前魂器网格做“装上后”静态预览。
+static func get_equipped_soul_tooltip_text(id : StringName) -> String:
+	var context := _equipped_soul_context(id)
+	if context.is_empty():
+		return get_soul_tooltip_text(id)
+	var soul := context["soul"] as SoulData
+	var preview := context["preview"] as SoulDamagePreview
+	return "%s\n%s" % [soul.item_name, SoulTooltip.build(soul, false, preview)]
+
+
+## 已装备魂灵的动态 tooltip BBCode；未装备时回退静态 tooltip
+static func get_equipped_soul_tooltip_bbcode(id : StringName) -> String:
+	var context := _equipped_soul_context(id)
+	if context.is_empty():
+		return get_soul_tooltip_bbcode(id)
+	var soul := context["soul"] as SoulData
+	var preview := context["preview"] as SoulDamagePreview
+	return "%s\n%s" % [soul.item_name, SoulTooltip.build(soul, true, preview)]
 
 
 static func get_monster_ids() -> Array[StringName]:
@@ -582,7 +613,7 @@ static func show_mod_window() -> bool:
 	if window == null:
 		return false
 	if not window.visible:
-		window.popup_centered()
+		window.open_window()
 	window.refresh()
 	return true
 
@@ -622,42 +653,33 @@ static func get_orphaned_records() -> Array[Dictionary]:
 
 #region 窗口
 
-## 设置窗口置顶；window_name 为节点名（CharacterWindow 等），MainWindow 表示主窗口。
-## 持久化使用稳定 window_id（BaseWindow 默认取脚本文件名，主窗口为 main_window）。
+## 设置主窗口置顶；单窗口模式下子面板没有原生置顶。
 static func set_window_pinned(window_name : String, pinned : bool) -> bool:
-	if window_name == "MainWindow":
-		var main := _main_window()
-		if main == null:
-			return false
-		main.always_on_top = pinned
-		WindowPinSettings.save_pin(WindowPinSettings.MAIN_WINDOW_ID, pinned)
-		_sync_main_pin_button(pinned)
-		return true
-	var window := _window_by_name(window_name)
-	if window is BaseWindow:
-		(window as BaseWindow).set_pinned(pinned)
-		return true
-	return false
+	if window_name != "MainWindow":
+		return false
+	var main := _main_window()
+	if main == null:
+		return false
+	main.always_on_top = pinned
+	WindowPinSettings.save_pin(WindowPinSettings.MAIN_WINDOW_ID, pinned)
+	_sync_main_pin_button(pinned)
+	return true
 
 
-## 查询窗口置顶状态
+## 查询主窗口置顶状态；子面板固定返回 false。
 static func is_window_pinned(window_name : String) -> bool:
-	if window_name == "MainWindow":
-		var main := _main_window()
-		return main != null and main.always_on_top
-	var window := _window_by_name(window_name)
-	return window is BaseWindow and (window as BaseWindow).is_pinned()
+	if window_name != "MainWindow":
+		return false
+	var main := _main_window()
+	return main != null and main.always_on_top
 
 
-## 所有普通窗口的置顶状态：{节点名: bool}，含 MainWindow
+## 主窗口置顶状态：{"MainWindow": bool}
 static func get_window_pin_states() -> Dictionary:
 	var result := {}
 	var main := _main_window()
 	if main != null:
 		result["MainWindow"] = main.always_on_top
-	for window in _window_nodes():
-		if window is BaseWindow:
-			result[String(window.name)] = (window as BaseWindow).is_pinned()
 	return result
 
 
@@ -666,25 +688,6 @@ static func _main_window() -> Window:
 	if tree == null:
 		return null
 	return tree.root as Window
-
-
-static func _window_nodes() -> Array[Window]:
-	var result: Array[Window] = []
-	var tree := Engine.get_main_loop() as SceneTree
-	if tree == null:
-		return result
-	var root: Node = tree.current_scene if tree.current_scene != null else tree.root
-	for node in root.find_children("*", "", true, false):
-		if node is Window:
-			result.append(node as Window)
-	return result
-
-
-static func _window_by_name(window_name : String) -> Window:
-	for window in _window_nodes():
-		if String(window.name) == window_name:
-			return window
-	return null
 
 
 static func _sync_main_pin_button(pinned : bool) -> void:
@@ -710,7 +713,7 @@ static func start_battle(monster_id : StringName = &"") -> bool:
 		push_warning("TestAPI：找不到 BattleWindow")
 		return false
 	if not window.visible:
-		window.show()
+		window.open_window()
 	window.start_battle_for_test(monster_id)
 	return true
 
@@ -1015,6 +1018,49 @@ static func _find_unit(target : String) -> BattleUnit:
 		if unit.unit_name == target:
 			return unit
 	return null
+
+
+## 按内容 id 找玩家当前装备的魂灵运行期实例；同一 id 有多颗时取第一颗
+static func _player_runtime_for(id : StringName) -> SoulRuntime:
+	for runtime in SoulRuntimeDB.player_runtimes():
+		if runtime.soul != null and runtime.soul.content_id == id:
+			return runtime
+	return null
+
+
+## 已装备魂灵的展示上下文：soul + preview；未装备返回 {}
+## 战斗中优先运行期值，否则按当前魂器网格做“装上后”静态预览。
+static func _equipped_soul_context(id : StringName) -> Dictionary:
+	var runtime := _player_runtime_for(id)
+	if runtime != null and runtime.soul != null:
+		return {
+			"soul": runtime.soul,
+			"preview": SoulDamagePreview.for_soul(runtime.soul, runtime),
+		}
+	var entry := _equipped_soul_entry(id)
+	if entry.is_empty():
+		return {}
+	var soul := entry["soul"] as SoulData
+	var vessel := entry["vessel"] as SoulVesselData
+	var grid := ContainerRepository.instance.get_container(CONTAINER_IDS.VESSEL_GRID)
+	return {
+		"soul": soul,
+		"preview": SoulDamagePreview.preview_for(
+			soul, vessel, SoulVesselData.combat_souls_in(grid)
+		),
+	}
+
+
+## 在角色魂器网格里按内容 id 找魂灵实例和所在魂器；找不到返回 {}
+static func _equipped_soul_entry(id : StringName) -> Dictionary:
+	var grid := ContainerRepository.instance.get_container(CONTAINER_IDS.VESSEL_GRID)
+	if grid == null:
+		return {}
+	for vessel in SoulVesselData.combat_vessels_in(grid):
+		for item in vessel.ensure_contents().items:
+			if item is SoulData and (item as SoulData).content_id == id:
+				return {"soul": item as SoulData, "vessel": vessel}
+	return {}
 
 
 static func _battle_window() -> BattleWindow:

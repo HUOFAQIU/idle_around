@@ -8,7 +8,7 @@ oversampling_override = 1.0
 position = Vector2i(0, 36)
 size = Vector2i(360, 240)
 script = ExtResource("1_vc8vg")
-open_position = Vector2i(1310, 160)
+open_position = Vector2i(20, 20)
 
 [node name="VBox" type="VBoxContainer" parent="." unique_id=369359917]
 anchors_preset = 15
@@ -24,53 +24,15 @@ bbcode_enabled = true
 fit_content = true
 scroll_active = false
 
-[node name="SlotRow" type="HBoxContainer" parent="VBox" unique_id=818752741]
+[node name="VesselGrid" type="Control" parent="VBox" unique_id=137238694]
+custom_minimum_size = Vector2(288, 96)
 layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="Slot0" type="Control" parent="VBox/SlotRow" unique_id=265022701]
-custom_minimum_size = Vector2(96, 96)
-layout_mode = 2
+size_flags_horizontal = 0
 script = ExtResource("2_view")
 avilable_types = Array[String](["VESSEL"])
 vessel_kind = "COMBAT"
-max_items = 1
-container_name = "vessel_cell_0"
-container_columns = 3
-container_rows = 3
-grid_border_color = Color(0.5019608, 0.5019608, 0.5019608, 1)
-gird_background_color_empty = Color(0.18431373, 0.30980393, 0.30980393, 1)
-gird_background_color_taken = Color(0.46666667, 0.53333336, 0.6, 1)
-gird_background_color_conflict = Color(0.8039216, 0.36078432, 0.36078432, 1)
-grid_background_color_avilable = Color(0.27450982, 0.50980395, 0.7058824, 1)
-stack_num_color = Color(1, 1, 1, 1)
-
-[node name="Slot1" type="Control" parent="VBox/SlotRow" unique_id=1852970354]
-custom_minimum_size = Vector2(96, 96)
-layout_mode = 2
-script = ExtResource("2_view")
-avilable_types = Array[String](["VESSEL"])
-vessel_kind = "COMBAT"
-max_items = 1
-container_name = "vessel_cell_1"
-container_columns = 3
-container_rows = 3
-grid_border_color = Color(0.5019608, 0.5019608, 0.5019608, 1)
-gird_background_color_empty = Color(0.18431373, 0.30980393, 0.30980393, 1)
-gird_background_color_taken = Color(0.46666667, 0.53333336, 0.6, 1)
-gird_background_color_conflict = Color(0.8039216, 0.36078432, 0.36078432, 1)
-grid_background_color_avilable = Color(0.27450982, 0.50980395, 0.7058824, 1)
-stack_num_color = Color(1, 1, 1, 1)
-
-[node name="Slot2" type="Control" parent="VBox/SlotRow" unique_id=1311411903]
-custom_minimum_size = Vector2(96, 96)
-layout_mode = 2
-script = ExtResource("2_view")
-avilable_types = Array[String](["VESSEL"])
-vessel_kind = "COMBAT"
-max_items = 1
-container_name = "vessel_cell_2"
-container_columns = 3
+container_name = "vessel_cells"
+container_columns = 9
 container_rows = 3
 grid_border_color = Color(0.5019608, 0.5019608, 0.5019608, 1)
 gird_background_color_empty = Color(0.18431373, 0.30980393, 0.30980393, 1)

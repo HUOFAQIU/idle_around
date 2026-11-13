@@ -8,11 +8,12 @@
 [node name="BattleWindow" type="Window" unique_id=1101778887]
 oversampling_override = 1.0
 position = Vector2i(0, 36)
-size = Vector2i(1000, 1100)
+size = Vector2i(1000, 892)
 script = ExtResource("1_nc1sn")
 
 [node name="Tile" parent="." unique_id=2019690502 instance=ExtResource("2_7qkyi")]
-position = Vector2(490, 475)
+position = Vector2(500, 409)
+scale = Vector2(0.8, 0.8)
 metadata/_edit_lock_ = true
 
 [node name="Units" type="Node2D" parent="Tile" unique_id=544514597]

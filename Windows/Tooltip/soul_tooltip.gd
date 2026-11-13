@@ -5,20 +5,26 @@ extends RefCounted
 ## 标题（魂灵名）由 TooltipWindow 用大字号单独显示，这里只生成正文：
 ## 类型行（尺寸 + 语义类型，可选）→ 暴击率 / 攻击距离 → SoulData.tooltip_blocks。
 ## 段落之间固定一条分隔线；( X 秒 ) 冷却行放大到 20 号（正文 16、标题 24）。
-## {cooldown} 会替换成技能冷却，{cast_times} 会替换成多重触发次数；没有段落时正文为「无」。
-## colored = true 时按 GameColors 全局色板给状态词上色，返回 BBCode。
+## {cooldown} / {cast_times} 来自技能；{damage} / {damage_per_soul} 来自直接伤害执行。
+## 传入 preview 且带当前装备上下文时，{damage} 前面加 * 表示会随当前装备变化。
+## 没有段落时正文为「无」；colored = true 时按 GameColors 给状态词上色，返回 BBCode。
 
 const COOLDOWN_PLACEHOLDER : String = "{cooldown}"
 const CAST_TIMES_PLACEHOLDER : String = "{cast_times}"
+const DAMAGE_PLACEHOLDER : String = "{damage}"
+const DAMAGE_PER_SOUL_PLACEHOLDER : String = "{damage_per_soul}"
 
 
 ## 生成魂灵 tooltip 正文（不含魂灵名）
-static func build(soul: SoulData, colored: bool = false) -> String:
+static func build(
+	soul: SoulData, colored: bool = false, preview: SoulDamagePreview = null
+) -> String:
 	if soul == null:
 		return TooltipText.EMPTY_TEXT
 
 	var skill := soul.skill
-	var blocks := _collect_blocks(soul, skill)
+	var damage := preview if preview != null else SoulDamagePreview.base_for(skill)
+	var blocks := _collect_blocks(soul, skill, damage)
 	if blocks.is_empty():
 		blocks.append(TooltipText.EMPTY_TEXT)
 
@@ -38,11 +44,15 @@ static func build(soul: SoulData, colored: bool = false) -> String:
 	return TooltipText.colorize(body) if colored else body
 
 
-## 读取魂灵自身的 tooltip 段落，并替换 {cooldown} / {cast_times}
-static func _collect_blocks(soul: SoulData, skill: SkillDefinition) -> PackedStringArray:
+## 读取魂灵自身的 tooltip 段落，并替换所有静态/运行期数值占位符
+static func _collect_blocks(
+	soul: SoulData, skill: SkillDefinition, damage: SoulDamagePreview
+) -> PackedStringArray:
 	var blocks := PackedStringArray()
 	var cooldown := _cooldown_text(skill)
 	var cast_times := _cast_times_text(skill)
+	var damage_text := _damage_text(damage)
+	var per_soul_text := TooltipText.format_number(damage.bonus_per_matching_soul)
 	for block in soul.tooltip_blocks:
 		if block.is_empty():
 			continue
@@ -50,8 +60,18 @@ static func _collect_blocks(soul: SoulData, skill: SkillDefinition) -> PackedStr
 			block
 			.replace(COOLDOWN_PLACEHOLDER, cooldown)
 			.replace(CAST_TIMES_PLACEHOLDER, cast_times)
+			.replace(DAMAGE_PLACEHOLDER, damage_text)
+			.replace(DAMAGE_PER_SOUL_PLACEHOLDER, per_soul_text)
 		)
 	return blocks
+
+
+## 伤害数值；只有带当前装备上下文时才加 *，表示会随当前装备变化
+static func _damage_text(damage: SoulDamagePreview) -> String:
+	if damage == null or not damage.has_damage:
+		return "0"
+	var text := TooltipText.format_number(damage.total())
+	return "*%s" % text if damage.is_dynamic else text
 
 
 ## 类型行：尺寸标签排最前，再按 SoulData.types 的顺序显示语义类型。

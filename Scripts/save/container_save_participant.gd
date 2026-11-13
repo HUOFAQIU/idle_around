@@ -1,4 +1,4 @@
-## 容器的存档域：仓库各页 + 角色魂器槽，以及放不进世界的孤儿记录。
+## 容器的存档域：仓库各页 + 角色魂器网格，以及放不进世界的孤儿记录。
 ##
 ## 魂器内部容器不在这里单独保存：它随魂器物品记录一起嵌套在容器记录里。
 ## 容器未注册时不读不写（由 SaveManager 检查 missing_containers）；
@@ -11,12 +11,12 @@ var _restore_count: int = 0
 var _orphaned_records: Array[Dictionary] = []
 
 
-## 存档必须覆盖的容器：仓库各页 + 角色魂器槽
+## 存档必须覆盖的容器：仓库各页 + 角色魂器网格
 func expected_containers() -> Array[String]:
 	var names: Array[String] = []
 	for page in Warehouse.PAGE_COUNT:
 		names.append(Warehouse.page_name(page))
-	names.append_array(ContainerIds.vessel_cells())
+	names.append(ContainerIds.VESSEL_GRID)
 	return names
 
 

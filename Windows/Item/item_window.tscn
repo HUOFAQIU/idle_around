@@ -2,12 +2,7 @@
 
 [ext_resource type="Script" uid="uid://be0ek2p83blw0" path="res://Windows/Item/item_window.gd" id="1_66h7q"]
 
-[node name="ItemWindow" type="Window" unique_id=61833472]
-oversampling_override = 1.0
+[node name="ItemWindow" type="Control"]
 visible = false
-transient = true
-unfocusable = true
-mouse_passthrough = true
-minimize_disabled = true
-maximize_disabled = true
+mouse_filter = 2
 script = ExtResource("1_66h7q")

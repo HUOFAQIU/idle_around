@@ -1,14 +1,14 @@
 class_name WindowPinSettings
 extends RefCounted
-## 窗口置顶状态持久化。
+## 主窗口置顶状态持久化。
 ##
 ## 文件：user://Settings.cfg
-## 段：[window_pins]，键：BaseWindow.get_pin_key()（默认脚本文件名，如 character_window）
-## 或 MAIN_WINDOW_ID（主窗口），值：bool。
+## 段：[window_pins]，键：main_window，值：bool。
+## 单窗口模式下只有整个应用可以置顶，面板不再各自持久化置顶状态。
 
 const SETTINGS_PATH: String = "user://Settings.cfg"
 const PIN_SECTION: String = "window_pins"
-## 主窗口不是 BaseWindow，单独占一个稳定键
+## 主窗口的稳定键
 const MAIN_WINDOW_ID: String = "main_window"
 
 

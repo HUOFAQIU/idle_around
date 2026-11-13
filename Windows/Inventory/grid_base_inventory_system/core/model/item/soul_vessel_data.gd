@@ -10,7 +10,7 @@ extends ItemData
 class_name SoulVesselData
 
 ## 魂器类型；与 ContainerData.vessel_kind 的过滤值对应。
-## COMBAT 可以装进角色魂器槽；TOOL 只能放在背包/仓库。
+## COMBAT 可以装进角色魂器网格；TOOL 只能放在背包/仓库。
 @export_enum("COMBAT", "TOOL") var vessel_kind: String = "COMBAT"
 ## 内部容器列数
 @export var container_columns: int = 6
@@ -59,6 +59,38 @@ func soul_damage_bonus() -> float:
 	return bonus
 
 
+## 容器里的战斗魂器，按占格左上角从上到下、从左到右排序。
+## 角色窗口的魂器网格和 TestAPI 都用这个顺序定义“魂器位”。
+static func combat_vessels_in(container: ContainerData) -> Array[SoulVesselData]:
+	var vessels: Array[SoulVesselData] = []
+	if container == null:
+		return vessels
+	for item in container.items:
+		if not item is SoulVesselData:
+			continue
+		var vessel := item as SoulVesselData
+		if vessel.vessel_kind == "COMBAT":
+			vessels.append(vessel)
+	vessels.sort_custom(func (a: SoulVesselData, b: SoulVesselData) -> bool:
+		var a_anchor := _anchor_in(container, a)
+		var b_anchor := _anchor_in(container, b)
+		if a_anchor.y == b_anchor.y:
+			return a_anchor.x < b_anchor.x
+		return a_anchor.y < b_anchor.y
+	)
+	return vessels
+
+
+## 角色魂器网格里所有战斗魂器内部的魂灵；预览用，顺序按魂器
+static func combat_souls_in(container: ContainerData) -> Array[SoulData]:
+	var souls: Array[SoulData] = []
+	for vessel in combat_vessels_in(container):
+		for item in vessel.ensure_contents().items:
+			if item is SoulData:
+				souls.append(item as SoulData)
+	return souls
+
+
 ## 从源容器复制内容；必须由复制体调用，`_new_contents()` 才会用复制体的实例 id
 func _clone_contents_from(source: ContainerData) -> ContainerData:
 	var copy := _new_contents()
@@ -84,3 +116,11 @@ func _new_contents() -> ContainerData:
 	return ContainerData.new(
 		container_name, container_columns, container_rows, types
 	)
+
+
+## 魂器在容器里的左上角；查不到占格时排到最后
+static func _anchor_in(container: ContainerData, vessel: SoulVesselData) -> Vector2i:
+	var grids := container.find_grids_by_item_data(vessel)
+	if grids.is_empty():
+		return Vector2i(1 << 20, 1 << 20)
+	return ContainerData.anchor_of(grids)

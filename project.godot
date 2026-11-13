@@ -36,12 +36,12 @@ SaveManager="*res://Scripts/save/save_manager.gd"
 
 [display]
 
-window/size/viewport_width=300
-window/size/viewport_height=300
-window/size/initial_position_type=0
+window/size/viewport_width=1600
+window/size/viewport_height=960
 window/size/resizable=false
+window/size/transparent=true
 window/size/maximize_disabled=true
-window/subwindows/embed_subwindows=false
+window/per_pixel_transparency/allowed=true
 
 [editor_plugins]
 
@@ -85,3 +85,5 @@ inv_split={
 [rendering]
 
 textures/canvas_textures/default_texture_filter=0
+renderer/rendering_method="gl_compatibility"
+viewport/transparent_background=true

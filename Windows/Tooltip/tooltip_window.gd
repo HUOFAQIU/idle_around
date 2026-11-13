@@ -1,5 +1,5 @@
 class_name TooltipWindow
-extends Window
+extends PanelContainer
 
 static var instance : TooltipWindow
 
@@ -10,13 +10,16 @@ const GAP : float = 10.0
 const TITLE_FONT_SIZE : int = 24
 const BODY_FONT_SIZE : int = 16
 
+## 容器名集中定义；用 preload 而不是全局类名，保证 --script 无头模式也能解析
+const CONTAINER_IDS: GDScript = preload("res://Scripts/container_ids.gd")
+
 ## tooltip 层级：数值越大越优先，低层级不能覆盖仍然有效的高层级
 enum Layer { COORD, ITEM }
 
 ## 本帧结算出来的显隐目标。
 ## 信号的收发发生在输入阶段、_process 在其后，所以一帧内的 hide + show
-## 会被合并成「保持显示」—— Window 的 visible 是真的去 OS 那里撤窗口、建窗口，
-## 同帧一撤一建，肉眼就是闪一下。
+## 会被合并成「保持显示」；现在是窗口内浮层，不再有 OS 窗口撤建，但保留
+## 这套结算可以继续合并同帧的 owner 切换。
 var _want_visible : bool = false
 ## 本帧收到过隐藏请求
 var _hide_armed : bool = false
@@ -25,9 +28,9 @@ var _owner : Object
 ## 当前层级，默认是战斗坐标
 var _layer : int = Layer.COORD
 ## 标题行：魂灵名 / 物品名 / 战斗坐标
-@onready var _title_label : Label = $Panel/Margin/VBox/TitleLabel
+@onready var _title_label : Label = $Margin/VBox/TitleLabel
 ## 正文：魂灵 tooltip；非魂灵物品和战斗坐标没有正文
-@onready var _body_label : RichTextLabel = $Panel/Margin/VBox/BodyLabel
+@onready var _body_label : RichTextLabel = $Margin/VBox/BodyLabel
 
 
 func _ready() -> void:
@@ -38,7 +41,7 @@ func _ready() -> void:
 	_body_label.visible = false
 	_apply_panel_colors()
 	reset_size()
-	# 仓库、角色魂器槽、魂器窗口共用同一套悬停提示，避免每个窗口各写一份
+	# 仓库、角色魂器网格、魂器窗口共用同一套悬停提示，避免每个窗口各写一份
 	GBIS.sig_item_focused.connect(_on_item_focused)
 	GBIS.sig_item_focus_lost.connect(_on_item_focus_lost)
 
@@ -76,7 +79,7 @@ func hide_tip(owner: Object) -> void:
 
 
 ## 标题和正文只在文字真的变了才写；正文为空时隐藏正文标签，
-## 让非魂灵物品 / 战斗坐标保持单行提示。窗口尺寸跟着内容走。
+## 让非魂灵物品 / 战斗坐标保持单行提示。尺寸跟着内容走。
 func _set_text(title_text: String, body_text: String) -> void:
 	var changed := false
 	if _title_label.text != title_text:
@@ -91,47 +94,63 @@ func _set_text(title_text: String, body_text: String) -> void:
 
 
 ## 物品焦点：魂灵和魂器有正文，其他物品保持单行标题
-func _on_item_focused(item_data: ItemData, _container_name: String) -> void:
+func _on_item_focused(item_data: ItemData, container_name: String) -> void:
 	var body := ""
 	if item_data is SoulData:
-		body = SoulTooltip.build(item_data as SoulData, true)
+		var soul := item_data as SoulData
+		body = SoulTooltip.build(soul, true, _soul_preview(soul, container_name))
 	elif item_data is SoulVesselData:
 		body = VesselTooltip.build(item_data as SoulVesselData, true)
 	show_tip(self, Layer.ITEM, item_data.item_name, body)
+
+
+## 魂器窗口内的 COMBAT 魂灵带当前装备预览；魂器外的物品、见闻保持基础值。
+## 战斗中且魂器已装备时用运行期值，否则按“装上这份魂器后”静态预览。
+func _soul_preview(soul: SoulData, container_name: String) -> SoulDamagePreview:
+	var vessel_window := SoulVesselWindow.instance
+	if vessel_window == null or vessel_window.contents_container_name() != container_name:
+		return null
+	var vessel := vessel_window.contents_vessel()
+	if vessel == null or vessel.vessel_kind != "COMBAT":
+		return null
+	var runtime := SoulRuntimeDB.get_runtime(soul)
+	if runtime != null:
+		return SoulDamagePreview.for_soul(soul, runtime)
+	var grid := ContainerRepository.instance.get_container(CONTAINER_IDS.VESSEL_GRID)
+	return SoulDamagePreview.preview_for(soul, vessel, SoulVesselData.combat_souls_in(grid))
 
 
 func _on_item_focus_lost(_item_data: ItemData) -> void:
 	hide_tip(self)
 
 
-## 自己决定往哪边弹：锚点是鼠标，边界是屏幕
+## 自己决定往哪边弹：锚点是主视口内的鼠标，边界是主视口
 func _place_tip() -> void:
-	_place_near(DisplayServer.mouse_get_position(), DisplayServer.screen_get_size())
+	_place_near(get_viewport().get_mouse_position(), get_viewport_rect().size)
 
 
 ## 面板颜色统一从 GameColors 取；场景里只留边框宽度和圆角
 func _apply_panel_colors() -> void:
-	var panel := $Panel as PanelContainer
-	var style := panel.get_theme_stylebox("panel").duplicate() as StyleBoxFlat
+	var style := get_theme_stylebox("panel").duplicate() as StyleBoxFlat
+	if style == null:
+		return
 	style.bg_color = GameColors.to_color(GameColors.TOOLTIP_BG)
 	style.border_color = GameColors.to_color(GameColors.TOOLTIP_BORDER)
-	panel.add_theme_stylebox_override("panel", style)
+	add_theme_stylebox_override("panel", style)
 
 
-## 摆位：默认在鼠标右下方，右边放不下就翻到左边，翻过头再夹回窗口里。
+## 摆位：默认在鼠标右下方，右边放不下就翻到左边，翻过头再夹回视口里。
 func _place_near(anchor: Vector2, bounds: Vector2) -> void:
 	var tip := size
-	
+
 	var pos := anchor + Vector2(GAP, GAP)
 	if pos.x + tip.x > bounds.x:
 		pos.x = anchor.x - GAP - tip.x
 	if pos.y + tip.y > bounds.y:
 		pos.y = anchor.y - GAP - tip.y
-	
+
 	pos.x = clampf(pos.x, 0.0, maxf(0.0, bounds.x - tip.x))
 	pos.y = clampf(pos.y, 0.0, maxf(0.0, bounds.y - tip.y))
-	# 原生窗口每写一次 position 都是一次 OS 调用。鼠标停着不动时，
-	# 每帧重复写同一个坐标会让窗口管理器做无用功，看起来就是“卡”。
-	var target := Vector2i(pos)
-	if position != target:
-		position = target
+	# 鼠标停着不动时不要每帧重排浮层。
+	if not position.is_equal_approx(pos):
+		position = pos

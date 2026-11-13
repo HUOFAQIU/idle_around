@@ -7,8 +7,6 @@ oversampling_override = 1.0
 title = "战斗信息"
 size = Vector2i(600, 400)
 visible = false
-minimize_disabled = true
-maximize_disabled = true
 script = ExtResource("1_info")
 
 [node name="LogPanel" type="PanelContainer" parent="." unique_id=1573224825]

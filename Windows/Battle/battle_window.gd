@@ -165,39 +165,33 @@ func _end_battle() -> void:
 	_session.stop()
 
 
-## 装备着的魂灵：角色窗口的三个魂器槽，每个槽一件战斗魂器。
-## 返回按“槽位从上到下、魂器内部从左到右”排好的位置信息。
+## 装备着的魂灵：角色窗口的魂器网格，魂器按占格从上到下、从左到右，
+## 魂器内部从左到右。返回按这个顺序排好的位置信息。
 func _equipped_souls() -> Array[SoulSlot]:
 	var slots : Array[SoulSlot] = []
-	for slot_name in CONTAINER_IDS.vessel_cells():
-		var container := ContainerRepository.instance.get_container(slot_name)
-		if container == null:
-			continue
-		for item in container.items:
-			if not item is SoulVesselData:
+	var container := ContainerRepository.instance.get_container(CONTAINER_IDS.VESSEL_GRID)
+	if container == null:
+		return slots
+	for vessel in SoulVesselData.combat_vessels_in(container):
+		var contents := vessel.ensure_contents()
+		var row_slots : Array[SoulSlot] = []
+		for soul_item in contents.items:
+			if not soul_item is SoulData:
 				continue
-			var vessel := item as SoulVesselData
-			if vessel.vessel_kind != "COMBAT":
+			var soul := soul_item as SoulData
+			var grids := contents.find_grids_by_item_data(soul)
+			if grids.is_empty():
 				continue
-			var contents := vessel.ensure_contents()
-			var row_slots : Array[SoulSlot] = []
-			for soul_item in contents.items:
-				if not soul_item is SoulData:
-					continue
-				var soul := soul_item as SoulData
-				var grids := contents.find_grids_by_item_data(soul)
-				if grids.is_empty():
-					continue
-				var column := ContainerData.anchor_of(grids).x
-				var slot := SoulSlot.new()
-				slot.soul = soul
-				slot.vessel = vessel
-				slot.container_name = contents.container_name
-				slot.column = column
-				slot.width = maxi(soul.get_shape().x, 1)
-				row_slots.append(slot)
-			row_slots.sort_custom(func (a: SoulSlot, b: SoulSlot) -> bool: return a.column < b.column)
-			slots.append_array(row_slots)
+			var column := ContainerData.anchor_of(grids).x
+			var slot := SoulSlot.new()
+			slot.soul = soul
+			slot.vessel = vessel
+			slot.container_name = contents.container_name
+			slot.column = column
+			slot.width = maxi(soul.get_shape().x, 1)
+			row_slots.append(slot)
+		row_slots.sort_custom(func (a: SoulSlot, b: SoulSlot) -> bool: return a.column < b.column)
+		slots.append_array(row_slots)
 	return slots
 
 
@@ -287,9 +281,9 @@ func _update_coord_tooltip() -> void:
 	tip.show_tip(self, TooltipWindow.Layer.COORD, str(hovered_cell))
 
 
-# 鼠标在不在本窗口的屏幕范围里（窗口是独立 OS 窗口，所以拿屏幕坐标比）
+# 鼠标在不在本窗口的视口范围里（嵌入窗口的鼠标坐标相对自己的 Viewport）
 func _is_mouse_inside() -> bool:
-	return Rect2i(position, size).has_point(DisplayServer.mouse_get_position())
+	return Rect2(Vector2.ZERO, Vector2(size)).has_point(get_viewport().get_mouse_position())
 
 
 ## 状态条和状态名标签统一从 GameColors 取色

@@ -5,9 +5,9 @@ class_name InventoryView
 
 ## 允许存放的物品大类，如果背包名字重复，可存放的物品大类需要一样
 @export_enum("ANY", "SOUL", "VESSEL") var avilable_types: Array[String] = ["ANY"]
-## 魂器类型限制（NONE = 不限制；角色魂器槽用 COMBAT）
+## 魂器类型限制（NONE = 不限制；角色魂器网格用 COMBAT）
 @export_enum("NONE", "COMBAT", "TOOL") var vessel_kind: String = "NONE"
-## 最多物品件数；0 = 不限制（角色魂器槽用 1）
+## 最多物品件数；0 = 不限制（角色魂器网格不设）
 @export var max_items: int = 0
 ## 是否在 _ready 时注册容器。魂器窗口这种运行时才绑定数据源的视图设为 false，
 ## 避免在仓库/商店里留下一个看不见的占位容器。

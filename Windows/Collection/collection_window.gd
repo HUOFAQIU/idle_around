@@ -68,7 +68,7 @@ func _build_unlock_all_button() -> void:
 	_unlock_all_button.name = "UnlockAllButton"
 	_unlock_all_button.text = "全解锁"
 	_unlock_all_button.tooltip_text = "永久解锁全部见闻并保存"
-	_unlock_all_button.custom_minimum_size = Vector2i(0, PIN_BUTTON_SIZE.y)
+	_unlock_all_button.custom_minimum_size = Vector2i(0, TITLE_BUTTON_SIZE.y)
 	_unlock_all_button.pressed.connect(_on_unlock_all_pressed)
 	add_title_bar_button(_unlock_all_button)
 

@@ -1,8 +1,8 @@
 # AI 测试接口 TestAPI
 
-> 类型：指南 | 状态：有效 | 核对：2026-11-12
+> 类型：指南 | 状态：有效 | 核对：2026-11-13
 > 何时读：写自动化测试/探针、构造战斗或背包场景、验证新功能
-> 关键词：测试 TestAPI 探针 自动化 战斗快照 魂灵 魂器 vessel 仓库 见闻 商店 冷却 冻结 触发器 类型 标签 尺寸 充能 卡面 tooltip 伤害缩放 多重触发 cast_times releases 颜色 色板 存档 save 爪痕 play_claw_cue mod ModLoader ModWindow 加载顺序 order mod_cue_registrar cue Cue 特效 manifest 创意工坊 内置 core content_id validate_core_manifest manifest 校验 技能 ID ability_tag 命名 窗口置顶 T Settings.cfg window_id
+> 关键词：测试 TestAPI 探针 自动化 战斗快照 魂灵 魂器 vessel 仓库 见闻 商店 冷却 冻结 触发器 类型 标签 尺寸 充能 卡面 tooltip 伤害缩放 动态伤害 静态预览 SoulDamagePreview get_equipped_soul_damage_preview is_dynamic has_runtime 多重触发 cast_times releases 颜色 色板 存档 save 爪痕 play_claw_cue mod ModLoader ModWindow 加载顺序 order mod_cue_registrar cue Cue 特效 manifest 创意工坊 内置 core content_id validate_core_manifest manifest 校验 技能 ID ability_tag 命名 主窗口置顶 单窗口 浮层 CanvasLayer
 > 代码：`Scripts/test_api.gd`、`Windows/Battle/battle_window.gd`、`Scripts/collection_db.gd`、`Scripts/save/`、`Scripts/mod/`、`base_mods/core/mod.json`
 > 约定：新增功能/内容时，同步补 TestAPI 方法并更新本文。
 
@@ -42,13 +42,13 @@ TestAPI.stop_battle()
 | `set_warehouse_page(page) -> bool` | 切换仓库窗口到指定页（0 起）；窗口不存在返回 `false` |
 | `get_warehouse_page() -> int` | 当前仓库页码（0 起）；找不到窗口返回 `-1` |
 | `add_vessel(id, container := "") -> bool` | 按 content_id 把魂器放进指定容器；`container` 为空时放仓库第 1 页 |
-| `equip_vessel(id) -> bool` | 把战斗魂器装进第一个空的角色魂器槽 |
-| `vessel_add_soul(soul_id, vessel_slot := 0) -> bool` | 往指定槽位魂器的内部容器放一颗魂灵 |
-| `get_vessel_contents(vessel_slot := 0) -> Array[String]` | 指定槽位魂器里的魂灵名 |
+| `equip_vessel(id) -> bool` | 把战斗魂器装进角色魂器网格；网格放不下返回 `false` |
+| `vessel_add_soul(soul_id, vessel_slot := 0) -> bool` | 往魂器网格里第 `vessel_slot` 个魂器的内部容器放一颗魂灵 |
+| `get_vessel_contents(vessel_slot := 0) -> Array[String]` | 魂器网格里第 `vessel_slot` 个魂器中的魂灵名 |
 | `get_vessel_ids() -> Array[StringName]` | 已加载的魂器 content_id（core + 第三方 mod） |
 | `clear_container(container) -> void` | 清空容器并刷新 |
 | `get_container_items(container) -> Array[String]` | 容器内物品名 |
-| `validate_container_ids() -> Array[String]` | 校验 `ContainerIds` 里的仓库、商店、魂器槽是否都已注册；主场景运行后调用 |
+| `validate_container_ids() -> Array[String]` | 校验 `ContainerIds` 里的仓库、商店、魂器网格是否都已注册；主场景运行后调用 |
 | `set_unlock_all(enabled) -> void` | 切换见闻全解锁（不写存档） |
 | `unlock_all_collection() -> bool` | 永久解锁全部见闻并触发写档；返回是否新增记录 |
 | `get_seen_ids(kind) -> Array[StringName]` | 真实已解锁 ID |
@@ -66,8 +66,10 @@ TestAPI.stop_battle()
 | `get_soul_cast_times(id) -> int` | 魂灵技能的多重触发次数；未知魂灵或无技能返回 `0` |
 | `get_soul_tooltip_text(id) -> String` | 魂灵 tooltip 完整纯文本；第一行是标题，后面是正文（格式见 `魂灵/魂灵.md`） |
 | `get_soul_tooltip_bbcode(id) -> String` | 魂灵 tooltip 的 BBCode 文本；正文状态词带颜色标签，用于验证上色 |
+| `get_equipped_soul_tooltip_text(id)` / `get_equipped_soul_tooltip_bbcode(id)` | 已装备魂灵的动态 tooltip；伤害带 `*` 前缀（战斗中运行期值，否则“装上后”静态预览），未装备回退静态 tooltip |
+| `get_equipped_soul_damage_preview(id) -> Dictionary` | 已装备魂灵的伤害预览：战斗中优先运行期值，否则按当前魂器网格静态预览；含基础/匹配数量/玩家与魂器加成/最终值/`is_dynamic`/`has_runtime`；未装备返回 `{}` |
 | `get_vessel_tooltip_text(id)` / `get_vessel_tooltip_bbcode(id)` | 魂器模板的 tooltip；模板不带运行时内容，网格为满格 `*` |
-| `get_equipped_vessel_tooltip_text(slot := 0)` / `get_equipped_vessel_tooltip_bbcode(slot := 0)` | 已装备魂器的 tooltip；网格反映内部魂灵 |
+| `get_equipped_vessel_tooltip_text(slot := 0)` / `get_equipped_vessel_tooltip_bbcode(slot := 0)` | 魂器网格里第 `slot` 个魂器的 tooltip；网格反映内部魂灵 |
 
 `kind` 用 `ContentKind.Kind.SOUL` / `ContentKind.Kind.MONSTER` / `ContentKind.Kind.VESSEL`。见闻窗口的魂灵/魂器条目悬停使用与仓库相同的 tooltip（魂灵 `SoulTooltip.build()`，魂器 `VesselTooltip.build()`）；右键已遇见魂灵等价于 `add_soul_to_warehouse(id)`，右键已遇见魂器等价于 `add_vessel(id)`。魂器首次进入任意容器即解锁：
 
@@ -159,17 +161,17 @@ print(TestAPI.get_mod_load_order())
 
 | 方法 | 说明 |
 |---|---|
-| `set_window_pinned(window_name, pinned) -> bool` | 设置窗口置顶；`window_name` 为节点名（`CharacterWindow`、`InventoryWindow` 等），主窗口用 `MainWindow`；写入 `user://Settings.cfg`，键是稳定 `window_id`（默认脚本文件名，主窗口 `main_window`） |
-| `is_window_pinned(window_name) -> bool` | 查询窗口置顶状态 |
-| `get_window_pin_states() -> Dictionary` | 所有普通窗口的置顶状态：`{节点名: bool}`，含 `MainWindow` |
+| `set_window_pinned(window_name, pinned) -> bool` | 设置主窗口（整个应用）置顶；单窗口模式只有 `MainWindow` 有效，其他名字返回 false；写入 `user://Settings.cfg`，键 `main_window` |
+| `is_window_pinned(window_name) -> bool` | 查询主窗口置顶状态；其他名字返回 false |
+| `get_window_pin_states() -> Dictionary` | 主窗口置顶状态：`{"MainWindow": bool}` |
 
 ```gdscript
-print(TestAPI.set_window_pinned("CharacterWindow", true))
-print(TestAPI.is_window_pinned("CharacterWindow"))
+print(TestAPI.set_window_pinned("MainWindow", true))
+print(TestAPI.is_window_pinned("MainWindow"))
 print(TestAPI.get_window_pin_states())
 ```
 
-窗口置顶状态存在 `user://Settings.cfg` 的 `[window_pins]` 段。键是 `BaseWindow.get_pin_key()`（默认脚本文件名，如 `character_window`）或 `main_window`，与节点名解耦。`TooltipWindow` / `ItemWindow` 没有置顶接口，固定 transient 跟随主窗口。
+窗口置顶状态存在 `user://Settings.cfg` 的 `[window_pins]` 段，只有 `main_window` 一个键。单窗口模式下面板没有独立系统置顶；`BaseWindow` 的标题栏只负责拖动和关闭。`TooltipWindow` / `ItemWindow` 是主视口内的浮层（CanvasLayer 1026 / 1025），不参与置顶。
 
 ## 颜色
 
@@ -230,15 +232,21 @@ TestAPI.damage_unit("player", 300.0)
 print(TestAPI.has_status(&"State.Frozen", "enemy"))
 
 # 恐狼：每有一颗 Soul.types.Wolf +10 伤害；1 颗 = 40，2 颗 = 50
-TestAPI.clear_container("vessel_cell_0")
+TestAPI.clear_container("vessel_cells")
 TestAPI.equip_vessel(&"mei_you_deng_vessel")
 TestAPI.vessel_add_soul(&"kong_lang_soul", 0)
 print(TestAPI.get_soul_damage_scaling(&"kong_lang_soul"))
 TestAPI.vessel_add_soul(&"kong_lang_soul", 0)
 print(TestAPI.get_soul_damage_scaling(&"kong_lang_soul"))
 
+# 未开战也按“装上这份魂器后”预览：2 颗狼×10 + 煤油灯 10 → 60
+print(TestAPI.get_equipped_soul_damage_preview(&"kong_lang_soul"))
+
 # 恐狼：直接充能触发主动技能
 TestAPI.start_battle(&"snake_monster")
+# 战斗中优先运行期值；tooltip 的伤害数值带 * 前缀
+print(TestAPI.get_equipped_soul_damage_preview(&"kong_lang_soul"))
+print(TestAPI.get_equipped_soul_tooltip_text(&"kong_lang_soul"))
 TestAPI.charge_soul("恐狼", 5.0)
 await get_tree().physics_frame
 print(TestAPI.get_battle_state()["player_souls"])

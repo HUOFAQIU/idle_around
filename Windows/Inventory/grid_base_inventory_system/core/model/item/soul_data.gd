@@ -19,7 +19,7 @@ const SIZE_TAGS : Array[StringName] = [
 ## 魂灵触发规则；主动魂灵和被动魂灵都可以配
 @export var triggers: Array[PassiveTrigger] = []
 
-## tooltip 正文段落；格式化器用分隔线连接，{cooldown} 会替换成技能冷却。
+## tooltip 正文段落；格式化器用分隔线连接，{cooldown}/{cast_times}/{damage}/{damage_per_soul} 会替换。
 ## 留空 = 不提供正文，tooltip 显示「无」。
 @export var tooltip_blocks: Array[String] = []
 

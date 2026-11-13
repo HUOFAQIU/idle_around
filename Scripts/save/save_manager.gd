@@ -25,7 +25,7 @@ func _ready() -> void:
 	_participants.append(_containers)
 	_participants.append(_collection)
 	_connect_signals()
-	# 仓库页由 Warehouse autoload 预注册，魂器槽由 CharacterWindow 里的 InventoryView._ready() 注册；等一帧再读档
+	# 仓库页由 Warehouse autoload 预注册，魂器网格由 CharacterWindow 里的 InventoryView._ready() 注册；等一帧再读档
 	await get_tree().process_frame
 	# --script/工具模式没有主场景，容器不会注册；不读也不写，避免写档时丢掉未恢复的容器。
 	if get_tree().current_scene == null:

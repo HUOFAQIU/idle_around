@@ -20,7 +20,6 @@ var _startup_order: Array[StringName] = []
 func _ready() -> void:
 	super._ready()
 	title = "Mod 管理"
-	min_size = Vector2i(640, 360)
 	size = Vector2i(760, 520)
 	visibility_changed.connect(_on_visibility_changed)
 	_build_ui()
@@ -150,11 +149,6 @@ func _build_ui() -> void:
 	open_button.tooltip_text = "第三方 mod 目录：%s（内置 core 在游戏包内）" % ProjectSettings.globalize_path(MODS_DIR)
 	open_button.pressed.connect(_open_mods_dir)
 	header.add_child(open_button)
-
-	# 给 BaseWindow 右上角的 T 置顶按钮留位
-	var pin_space := Control.new()
-	pin_space.custom_minimum_size = Vector2i(32, 0)
-	header.add_child(pin_space)
 
 	vbox.add_child(HSeparator.new())
 

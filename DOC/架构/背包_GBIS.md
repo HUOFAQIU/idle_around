@@ -1,8 +1,8 @@
 # 背包 / 仓库系统（GBIS）
 
-> 类型：实现 | 状态：有效 | 核对：2026-11-12
-> 何时读：改背包/仓库/魂器容器/魂器槽、拖拽、商店容器、存档
-> 关键词：GBIS 背包 仓库 inventory container 物品大类 category 魂器 vessel vessel_cell 拖拽 Tooltip 存档 分页 Warehouse 商店 Shop
+> 类型：实现 | 状态：有效 | 核对：2026-11-13
+> 何时读：改背包/仓库/魂器容器/魂器网格、拖拽、商店容器、存档
+> 关键词：GBIS 背包 仓库 inventory container 物品大类 category 魂器 vessel vessel_cells 魂器网格 拖拽 Tooltip 存档 分页 Warehouse 商店 Shop
 > 代码：Windows/Inventory/grid_base_inventory_system/、Scripts/warehouse.gd
 > 不覆盖：仓库玩法设计（见 DOC/窗口/仓库.md）
 
@@ -16,7 +16,7 @@
 - `ContainerRepository` / `EquipmentSlotRepository` 是 `Resource` 单例（`static var instance`），通过 `GBIS` 的 Service 访问。
 - 视图层通过 `GBIS` 的信号刷新，不直接互相引用。
 - 游戏层另有 `Warehouse` autoload（`Scripts/warehouse.gd`）：启动时预注册 `inventory_0..inventory_9` 十页仓库，并提供 `add_item()` 跨页找空位；它只调用 GBIS 的公开接口，不修改框架本身。
-- 容器名常量集中在 `Scripts/container_ids.gd`（`inventory_0`、`shop_0`、`vessel_cell_0..2`）；场景 `.tscn` 里的 `container_name` 仍是字面量，改名时必须两边一起改。
+- 容器名常量集中在 `Scripts/container_ids.gd`（`inventory_0`、`shop_0`、`vessel_cells`）；场景 `.tscn` 里的 `container_name` 仍是字面量，改名时必须两边一起改。
 - 场景漂移校验：`--headless --script res://modkit/validate_container_ids.gd` 对比场景字面量与常量；运行中的主场景可用 `TestAPI.validate_container_ids()` 检查容器是否都已注册。
 
 ### 1.2 分层与主要类
@@ -126,17 +126,17 @@ GBIS.add_item(inv_name, item_data)
 - 能否放下由 `ContainerData.drop_state_at()`（BLOCKED / PLACE / STACK）和 `EquipmentSlotData.can_accept()` 判定，高亮预览、实际放置和装备共用同一套规则。
 - `DragPresenter` 只管幽灵视图、`ItemWindow` 和 `DropAreaView` 显隐；`MovingItemService` 不再直接碰这些视图。
 - 各 service 只做存储操作，不再自己清拖拽状态；`InventoryView` / `EquipmentSlotView` 收到 `drag_ended` 后清残留高亮。
-- `ItemWindow` 是独立无边框窗口，物品拖出原窗口也不会被画布裁掉。
+- `ItemWindow` 是主视口内的 `Control` 浮层（`DragLayer`，layer 1025），每帧跟主视口鼠标，整棵子树 `mouse_filter = IGNORE`，不会挡住放置/取消事件。单窗口模式下不再需要独立无边框窗口、topmost、屏幕外预热或焦点降级；幽灵只在主窗口内，拖出窗口会被裁掉。
 
-### 1.5 本项目的扩展：魂器容器与魂器槽
+### 1.5 本项目的扩展：魂器容器与魂器网格
 
 框架原本只有 `category`（物品大类）限制；本项目在三个地方加了“魂器类型/件数”限制：
 
 | 位置 | 字段 | 作用 |
 |---|---|---|
 | `ItemData` | `container_kind_tag()`（默认空） | `SoulVesselData` 返回 `COMBAT / TOOL`，供容器过滤 |
-| `ContainerData` | `vessel_kind`（空 = 不限制） | 只收对应类型的魂器；角色魂器槽填 `COMBAT` |
-| `ContainerData` | `max_items`（0 = 不限制） | 角色魂器槽填 1，保证一槽一件 |
+| `ContainerData` | `vessel_kind`（空 = 不限制） | 只收对应类型的魂器；角色魂器网格填 `COMBAT` |
+| `ContainerData` | `max_items`（0 = 不限制） | 可选的件数上限；角色魂器网格不设，能放几件由格子和魂器占格决定 |
 | `InventoryView` | `vessel_kind` / `max_items` | 编辑器里配置；`_ready()` / `change_data_source()` 写进 `ContainerData` |
 
 `ContainerData.is_item_avilable()` 的判定顺序：
@@ -150,7 +150,7 @@ GBIS.add_item(inv_name, item_data)
 
 | 容器名 | 节点 | 尺寸 | 类型/限制 | 用途 |
 |---|---|---|---|---|
-| `vessel_cell_0..2` | `CharacterWindow/.../Slot0..2` | 3×3 | `VESSEL` + `COMBAT`，`max_items = 1` | 角色装备战斗魂器 |
+| `vessel_cells` | `CharacterWindow/.../VesselGrid` | 9×3 | `VESSEL` + `COMBAT` | 角色装备战斗魂器；能放几件由格子和魂器占格决定 |
 | 魂器内部容器 | 运行时按 `vessel_<id>` 注册 | 由魂器数据决定（示例 6×2） | `SOUL` | 魂器窗口里的实际容器；内容随魂器物品存档 |
 | `inventory_0..inventory_9` | `InventoryWindow/InventoryView`（只挂当前页） | 26×24 | `SOUL` + `VESSEL` | 仓库 10 页；掉落和见闻右键入仓从第 1 页开始找空位 |
 
@@ -171,7 +171,7 @@ GBIS.add_item(inv_name, item_data)
 | 使用/激活 | 右键 | `InventoryService.use_item()`；魂器 `activate()` 返回 true 时发 `GBIS.sig_item_activated`，魂器窗口监听后打开 |
 | 分割 | 中键（且当前没有拖拽物） | `InventoryService.split_item()` |
 
-角色魂器槽和魂器窗口都用 `InventoryView`，拖拽规则与仓库一致；装备槽的 `EquipmentSlotView` 仍未接入。右键魂器时如果正在拖拽，先走“取消拿起”，不会误开窗口。
+角色魂器网格和魂器窗口都用 `InventoryView`，拖拽规则与仓库一致；装备槽的 `EquipmentSlotView` 仍未接入。右键魂器时如果正在拖拽，先走“取消拿起”，不会误开窗口。
 
 ### 1.7 商店
 

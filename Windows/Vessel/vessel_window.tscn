@@ -7,7 +7,7 @@
 oversampling_override = 1.0
 size = Vector2i(224, 112)
 script = ExtResource("1_window")
-open_position = Vector2i(1266, 150)
+open_position = Vector2i(20, 320)
 
 [node name="VBox" type="VBoxContainer" parent="."]
 layout_mode = 3

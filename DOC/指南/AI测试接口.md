@@ -2,7 +2,7 @@
 
 > 类型：指南 | 状态：有效 | 核对：2026-11-14
 > 何时读：写自动化测试/探针、构造战斗或背包场景、验证新功能
-> 关键词：测试 TestAPI 探针 自动化 战斗快照 魂灵 魂器 vessel 仓库 见闻 商店 冷却 冻结 触发器 类型 标签 尺寸 充能 卡面 tooltip 伤害缩放 动态伤害 静态预览 SoulDamagePreview get_equipped_soul_damage_preview is_dynamic has_runtime 多重触发 cast_times releases 颜色 色板 存档 save 爪痕 play_claw_cue mod ModLoader ModWindow 加载顺序 order mod_cue_registrar cue Cue 特效 manifest 创意工坊 内置 core content_id validate_core_manifest manifest 校验 技能 ID ability_tag 命名 主窗口置顶 单窗口 浮层 CanvasLayer PetPanel 拖动 位置持久化 PanelManager 激活面板 遮挡 穿透 mouse_passthrough OverlayPassthrough 终端 字符网格 TerminalView TerminalBuffer ANSI SGR 回看 scrollback auto_scroll
+> 关键词：测试 TestAPI 探针 自动化 战斗快照 魂灵 魂器 vessel 仓库 见闻 商店 冷却 冻结 触发器 类型 标签 尺寸 充能 卡面 tooltip 伤害缩放 动态伤害 静态预览 SoulDamagePreview get_equipped_soul_damage_preview is_dynamic has_runtime 多重触发 cast_times releases 颜色 色板 存档 save 爪痕 play_claw_cue mod ModLoader ModWindow 加载顺序 order mod_cue_registrar cue Cue 特效 manifest 创意工坊 内置 core content_id validate_core_manifest manifest 校验 技能 ID ability_tag 命名 主窗口置顶 单窗口 浮层 CanvasLayer PetPanel 拖动 位置持久化 PanelManager 激活面板 遮挡 穿透 mouse_passthrough OverlayPassthrough 终端 字符网格 TerminalView TerminalBuffer TerminalSpan 跨格大字 ANSI SGR 回看 scrollback auto_scroll
 > 代码：`Scripts/test_api.gd`、`Windows/Battle/battle_window.gd`、`Scripts/collection_db.gd`、`Scripts/save/`、`Scripts/mod/`、`base_mods/core/mod.json`
 > 约定：新增功能/内容时，同步补 TestAPI 方法并更新本文。
 
@@ -66,10 +66,13 @@ TestAPI.stop_battle()
 | `get_soul_cast_times(id) -> int` | 魂灵技能的多重触发次数；未知魂灵或无技能返回 `0` |
 | `get_soul_tooltip_text(id) -> String` | 魂灵 tooltip 完整纯文本；第一行是标题，后面是正文（格式见 `魂灵/魂灵.md`） |
 | `get_soul_tooltip_bbcode(id) -> String` | 魂灵 tooltip 的 BBCode 文本；正文状态词带颜色标签，用于验证上色 |
-| `get_equipped_soul_tooltip_text(id)` / `get_equipped_soul_tooltip_bbcode(id)` | 已装备魂灵的动态 tooltip；伤害带 `*` 前缀（战斗中运行期值，否则“装上后”静态预览），未装备回退静态 tooltip |
+| `get_soul_tooltip_ansi(id) -> String` | 魂灵 tooltip 的 ANSI 文本；标题粗体，可直接传给 `terminal_set_ansi_content()` |
+| `get_equipped_soul_tooltip_text(id)` / `get_equipped_soul_tooltip_bbcode(id)` / `get_equipped_soul_tooltip_ansi(id)` | 已装备魂灵的动态 tooltip；伤害带 `*` 前缀（战斗中运行期值，否则“装上后”静态预览），未装备回退静态 tooltip |
 | `get_equipped_soul_damage_preview(id) -> Dictionary` | 已装备魂灵的伤害预览：战斗中优先运行期值，否则按当前魂器网格静态预览；含基础/匹配数量/玩家与魂器加成/最终值/`is_dynamic`/`has_runtime`；未装备返回 `{}` |
-| `get_vessel_tooltip_text(id)` / `get_vessel_tooltip_bbcode(id)` | 魂器模板的 tooltip；模板不带运行时内容，网格为满格 `*` |
-| `get_equipped_vessel_tooltip_text(slot := 0)` / `get_equipped_vessel_tooltip_bbcode(slot := 0)` | 魂器网格里第 `slot` 个魂器的 tooltip；网格反映内部魂灵 |
+| `get_vessel_tooltip_text(id)` / `get_vessel_tooltip_bbcode(id)` / `get_vessel_tooltip_ansi(id)` | 魂器模板的 tooltip；模板不带运行时内容，网格为满格 `*`；`ansi` 可直接传给终端 |
+| `get_equipped_vessel_tooltip_text(slot := 0)` / `get_equipped_vessel_tooltip_bbcode(slot := 0)` / `get_equipped_vessel_tooltip_ansi(slot := 0)` | 魂器网格里第 `slot` 个魂器的 tooltip；网格反映内部魂灵；`ansi` 可直接传给终端 |
+
+仓库/见闻悬停的 `TooltipWindow` 正文现在由内嵌 `TerminalView` 渲染：传入 `SoulTooltip.build(..., Format.PLAIN)` / `VesselTooltip.build(..., Format.PLAIN)`，窗口内部转 ANSI 并显示调试网格；`text` 方法返回的就是这份输入，`bbcode` / `ansi` 用于对比和直接喂终端。
 
 `kind` 用 `ContentKind.Kind.SOUL` / `ContentKind.Kind.MONSTER` / `ContentKind.Kind.VESSEL`。见闻窗口的魂灵/魂器条目悬停使用与仓库相同的 tooltip（魂灵 `SoulTooltip.build()`，魂器 `VesselTooltip.build()`）；右键已遇见魂灵等价于 `add_soul_to_warehouse(id)`，右键已遇见魂器等价于 `add_vessel(id)`。魂器首次进入任意容器即解锁：
 
@@ -203,9 +206,14 @@ print(TestAPI.get_overlay_passthrough_state())
 | `terminal_scroll(lines) -> bool` | 往历史翻 `lines` 行；正值向上、负值向下 |
 | `terminal_scroll_to_bottom() -> bool` | 回到实时屏幕并恢复自动滚底 |
 | `terminal_clear() -> bool` | 清空当前 `TerminalView`（屏幕 + 历史）；找不到返回 `false` |
-| `terminal_snapshot() -> Dictionary` | 返回 `{cols, rows, cell, cursor, history, view_offset, auto_scroll}`；找不到返回 `{}` |
+| `terminal_set_grid(enabled) -> bool` | 开关当前 `TerminalView` 的调试网格；找不到返回 `false` |
+| `terminal_snapshot() -> Dictionary` | 返回 `{cols, rows, cell, cursor, history, view_offset, auto_scroll, spans}`；`spans` 是跨格大字矩形数组；找不到返回 `{}` |
+| `tooltip_snapshot() -> Dictionary` | 浮动 `TooltipWindow` 内容终端状态（标题 span + 正文）：`{grid, debug_grid, body_visible, tooltip_size, spans}`；未显示返回 `{}` |
 | `show_terminal() -> bool` | 打开终端窗口；找不到窗口返回 `false` |
 | `is_terminal_open() -> bool` | 终端窗口当前是否可见；找不到窗口返回 `false` |
+| `terminal_show_soul_tooltip(id, equipped := false, grid := true) -> bool` | 把魂灵 tooltip（标题粗体 + ANSI 正文）写进终端并打开窗口；`equipped` 时用动态预览值，`grid` 默认打开调试网格 |
+| `terminal_show_vessel_tooltip(id, grid := true) -> bool` | 把魂器模板 tooltip 写进终端并打开窗口；`grid` 默认打开调试网格 |
+| `terminal_show_equipped_vessel_tooltip(slot := 0, grid := true) -> bool` | 把魂器网格里第 `slot` 个魂器的 tooltip 写进终端并打开窗口；`grid` 默认打开调试网格 |
 
 ## 战斗
 

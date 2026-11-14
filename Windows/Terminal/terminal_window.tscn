@@ -19,3 +19,4 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("2_terminal_view")
 font_size = 16
+debug_grid = true

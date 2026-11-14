@@ -99,6 +99,15 @@ static func terminal_clear() -> bool:
 	return true
 
 
+## 开关当前 TerminalView 的调试网格；找不到返回 false
+static func terminal_set_grid(enabled: bool) -> bool:
+	var view := _terminal_view()
+	if view == null:
+		return false
+	view.set_debug_grid(enabled)
+	return true
+
+
 ## 当前 TerminalView 的网格/回看信息；找不到返回 {}
 static func terminal_snapshot() -> Dictionary:
 	var view := _terminal_view()
@@ -112,7 +121,28 @@ static func terminal_snapshot() -> Dictionary:
 		"history": view.get_scrollback_count(),
 		"view_offset": view.view_offset,
 		"auto_scroll": view.auto_scroll,
+		"spans": view.get_span_rects(),
 	}
+
+
+## 当前浮动 Tooltip 的内容终端状态（标题 span + 正文）；未显示返回 {}
+static func tooltip_snapshot() -> Dictionary:
+	var tip := TooltipWindow.instance
+	if not is_instance_valid(tip) or not tip.visible:
+		return {}
+	for node in tip.find_children("*", "", true, false):
+		if node is TerminalView:
+			var view := node as TerminalView
+			if view.buffer == null or not view.visible:
+				return {}
+			return {
+				"grid": view.get_grid_size(),
+				"debug_grid": view.debug_grid,
+				"body_visible": view.visible,
+				"tooltip_size": tip.size,
+				"spans": view.get_span_rects(),
+			}
+	return {}
 
 
 ## 打开终端窗口；找不到窗口返回 false
@@ -129,6 +159,35 @@ static func show_terminal() -> bool:
 static func is_terminal_open() -> bool:
 	var window := _terminal_window()
 	return window != null and window.visible
+
+
+## 在终端里显示魂灵 tooltip（标题 + ANSI 正文）；equipped 时用动态预览值。
+## grid 默认打开调试网格；找不到终端或魂灵返回 false。
+static func terminal_show_soul_tooltip(
+	id : StringName, equipped : bool = false, grid : bool = true
+) -> bool:
+	var text := get_equipped_soul_tooltip_ansi(id) if equipped else get_soul_tooltip_ansi(id)
+	if text.is_empty():
+		return false
+	return _terminal_show_tooltip(text, grid)
+
+
+## 在终端里显示魂器模板 tooltip（标题 + ANSI 正文）；grid 默认打开调试网格
+static func terminal_show_vessel_tooltip(id : StringName, grid : bool = true) -> bool:
+	var text := get_vessel_tooltip_ansi(id)
+	if text.is_empty():
+		return false
+	return _terminal_show_tooltip(text, grid)
+
+
+## 在终端里显示魂器网格里第 slot 个魂器的 tooltip；grid 默认打开调试网格
+static func terminal_show_equipped_vessel_tooltip(
+	slot : int = 0, grid : bool = true
+) -> bool:
+	var text := get_equipped_vessel_tooltip_ansi(slot)
+	if text.is_empty():
+		return false
+	return _terminal_show_tooltip(text, grid)
 
 #endregion
 
@@ -299,7 +358,21 @@ static func get_equipped_vessel_tooltip_bbcode(vessel_slot : int = 0) -> String:
 	var vessel := _equipped_vessel(vessel_slot)
 	if vessel == null:
 		return ""
-	return "%s\n%s" % [vessel.item_name, VesselTooltip.build(vessel, true)]
+	return "%s\n%s" % [
+		vessel.item_name,
+		VesselTooltip.build(vessel, TooltipText.Format.BBCODE),
+	]
+
+
+## 魂器网格里第 vessel_slot 个魂器的 tooltip 正文（终端 ANSI）
+static func get_equipped_vessel_tooltip_ansi(vessel_slot : int = 0) -> String:
+	var vessel := _equipped_vessel(vessel_slot)
+	if vessel == null:
+		return ""
+	return "%s\n%s" % [
+		TooltipText.title_ansi(vessel.item_name),
+		VesselTooltip.build(vessel, TooltipText.Format.ANSI),
+	]
 
 
 static func _equipped_vessel(vessel_slot : int) -> SoulVesselData:
@@ -407,7 +480,22 @@ static func get_vessel_tooltip_bbcode(id : StringName) -> String:
 	if vessel == null:
 		push_warning("TestAPI：魂器不存在 %s" % id)
 		return ""
-	return "%s\n%s" % [vessel.item_name, VesselTooltip.build(vessel, true)]
+	return "%s\n%s" % [
+		vessel.item_name,
+		VesselTooltip.build(vessel, TooltipText.Format.BBCODE),
+	]
+
+
+## 魂器 tooltip 正文（终端 ANSI）
+static func get_vessel_tooltip_ansi(id : StringName) -> String:
+	var vessel := CollectionDB.get_vessel(id)
+	if vessel == null:
+		push_warning("TestAPI：魂器不存在 %s" % id)
+		return ""
+	return "%s\n%s" % [
+		TooltipText.title_ansi(vessel.item_name),
+		VesselTooltip.build(vessel, TooltipText.Format.ANSI),
+	]
 
 
 ## 所有魂灵的 content_id、技能 ID 和 ability_tag；用于验证技能命名规范化
@@ -533,7 +621,19 @@ static func get_soul_tooltip_bbcode(id : StringName) -> String:
 	if soul == null:
 		push_warning("TestAPI：魂灵不存在 %s" % id)
 		return ""
-	return "%s\n%s" % [soul.item_name, SoulTooltip.build(soul, true)]
+	return "%s\n%s" % [soul.item_name, SoulTooltip.build(soul, TooltipText.Format.BBCODE)]
+
+
+## 魂灵 tooltip 的 ANSI 文本；标题粗体，可直接喂给 terminal_set_ansi_content()
+static func get_soul_tooltip_ansi(id : StringName) -> String:
+	var soul := CollectionDB.get_soul(id)
+	if soul == null:
+		push_warning("TestAPI：魂灵不存在 %s" % id)
+		return ""
+	return "%s\n%s" % [
+		TooltipText.title_ansi(soul.item_name),
+		SoulTooltip.build(soul, TooltipText.Format.ANSI),
+	]
 
 
 ## 已装备魂灵的动态 tooltip 纯文本；未装备时回退静态 tooltip
@@ -544,7 +644,10 @@ static func get_equipped_soul_tooltip_text(id : StringName) -> String:
 		return get_soul_tooltip_text(id)
 	var soul := context["soul"] as SoulData
 	var preview := context["preview"] as SoulDamagePreview
-	return "%s\n%s" % [soul.item_name, SoulTooltip.build(soul, false, preview)]
+	return "%s\n%s" % [
+		soul.item_name,
+		SoulTooltip.build(soul, TooltipText.Format.PLAIN, preview),
+	]
 
 
 ## 已装备魂灵的动态 tooltip BBCode；未装备时回退静态 tooltip
@@ -554,7 +657,23 @@ static func get_equipped_soul_tooltip_bbcode(id : StringName) -> String:
 		return get_soul_tooltip_bbcode(id)
 	var soul := context["soul"] as SoulData
 	var preview := context["preview"] as SoulDamagePreview
-	return "%s\n%s" % [soul.item_name, SoulTooltip.build(soul, true, preview)]
+	return "%s\n%s" % [
+		soul.item_name,
+		SoulTooltip.build(soul, TooltipText.Format.BBCODE, preview),
+	]
+
+
+## 已装备魂灵的动态 tooltip ANSI；未装备时回退静态 tooltip
+static func get_equipped_soul_tooltip_ansi(id : StringName) -> String:
+	var context := _equipped_soul_context(id)
+	if context.is_empty():
+		return get_soul_tooltip_ansi(id)
+	var soul := context["soul"] as SoulData
+	var preview := context["preview"] as SoulDamagePreview
+	return "%s\n%s" % [
+		TooltipText.title_ansi(soul.item_name),
+		SoulTooltip.build(soul, TooltipText.Format.ANSI, preview),
+	]
 
 
 static func get_monster_ids() -> Array[StringName]:
@@ -1257,6 +1376,17 @@ static func _mod_window() -> ModWindow:
 		if node is ModWindow:
 			return node as ModWindow
 	return null
+
+
+## 把标题 + ANSI 正文写进当前 TerminalView；grid 控制调试网格开关
+static func _terminal_show_tooltip(text : String, grid : bool) -> bool:
+	var view := _terminal_view()
+	if view == null or view.buffer == null:
+		return false
+	view.set_debug_grid(grid)
+	view.set_ansi_content(PackedStringArray(text.split("\n")))
+	show_terminal()
+	return true
 
 
 static func _terminal_view() -> TerminalView:

@@ -4,10 +4,10 @@ extends RefCounted
 ##
 ## 标题（魂灵名）由 TooltipWindow 用大字号单独显示，这里只生成正文：
 ## 类型行（尺寸 + 语义类型，可选）→ 暴击率 / 攻击距离 → SoulData.tooltip_blocks。
-## 段落之间固定一条分隔线；( X 秒 ) 冷却行放大到 20 号（正文 16、标题 24）。
+## 段落之间和最后一段之后各有一条分隔线；( X 秒 ) 冷却行放大到 20 号（正文 16、标题 24）。
 ## {cooldown} / {cast_times} 来自技能；{damage} / {damage_per_soul} 来自直接伤害执行。
 ## 传入 preview 且带当前装备上下文时，{damage} 前面加 * 表示会随当前装备变化。
-## 没有段落时正文为「无」；colored = true 时按 GameColors 给状态词上色，返回 BBCode。
+## 没有段落时正文为「无」；format 决定输出纯文本、BBCode 还是终端 ANSI。
 
 const COOLDOWN_PLACEHOLDER : String = "{cooldown}"
 const CAST_TIMES_PLACEHOLDER : String = "{cast_times}"
@@ -17,7 +17,9 @@ const DAMAGE_PER_SOUL_PLACEHOLDER : String = "{damage_per_soul}"
 
 ## 生成魂灵 tooltip 正文（不含魂灵名）
 static func build(
-	soul: SoulData, colored: bool = false, preview: SoulDamagePreview = null
+	soul: SoulData,
+	format: TooltipText.Format = TooltipText.Format.PLAIN,
+	preview: SoulDamagePreview = null
 ) -> String:
 	if soul == null:
 		return TooltipText.EMPTY_TEXT
@@ -40,8 +42,9 @@ static func build(
 		if i > 0:
 			lines.append(TooltipText.SEPARATOR)
 		lines.append(blocks[i])
+	lines.append(TooltipText.SEPARATOR)
 	var body := "\n".join(lines)
-	return TooltipText.colorize(body) if colored else body
+	return TooltipText.render(body, format)
 
 
 ## 读取魂灵自身的 tooltip 段落，并替换所有静态/运行期数值占位符
@@ -80,9 +83,9 @@ static func _header_line(soul: SoulData) -> String:
 	var labels := PackedStringArray()
 	var size_tag := soul.size_tag()
 	if not size_tag.is_empty():
-		labels.append("[ %s ]" % SoulText.size_name(size_tag))
+		labels.append("[%s]" % SoulText.size_name(size_tag))
 	for soul_type in soul.types:
-		labels.append("[ %s ]" % SoulText.type_name(soul_type))
+		labels.append("[%s]" % SoulText.type_name(soul_type))
 	return "".join(labels)
 
 

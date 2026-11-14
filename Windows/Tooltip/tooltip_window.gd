@@ -6,9 +6,9 @@ static var instance : TooltipWindow
 ## 提示框跟鼠标隔开多少像素
 const GAP : float = 10.0
 
-## 标题行（魂灵名 / 物品名 / 战斗坐标）和正文的字号
-const TITLE_FONT_SIZE : int = 24
 const BODY_FONT_SIZE : int = 16
+## Tooltip 标题占用的字符网格行数；2 行就是多格高大字
+const TITLE_SPAN_ROWS : int = 2
 
 ## 容器名集中定义；用 preload 而不是全局类名，保证 --script 无头模式也能解析
 const CONTAINER_IDS: GDScript = preload("res://Scripts/container_ids.gd")
@@ -27,18 +27,19 @@ var _hide_armed : bool = false
 var _owner : Object
 ## 当前层级，默认是战斗坐标
 var _layer : int = Layer.COORD
-## 标题行：魂灵名 / 物品名 / 战斗坐标
-@onready var _title_label : Label = $Margin/VBox/TitleLabel
-## 正文：魂灵 tooltip；非魂灵物品和战斗坐标没有正文
-@onready var _body_label : RichTextLabel = $Margin/VBox/BodyLabel
+## 当前标题纯文本，用来判断内容是否变化
+var _title_text : String = ""
+## 当前正文纯文本，用来判断内容是否变化
+var _body_text : String = ""
+## 标题和正文都由终端绘制；标题是顶部跨格大字，正文从标题下方开始
+@onready var _body_terminal : TerminalView = $Margin/VBox/BodyTerminal
 
 
 func _ready() -> void:
 	instance = self
 	visible = false
-	_title_label.add_theme_font_size_override("font_size", TITLE_FONT_SIZE)
-	_body_label.add_theme_font_size_override("normal_font_size", BODY_FONT_SIZE)
-	_body_label.visible = false
+	_body_terminal.font_size = BODY_FONT_SIZE
+	_body_terminal.visible = false
 	_apply_panel_colors()
 	reset_size()
 	# 仓库、角色魂器网格、魂器窗口共用同一套悬停提示，避免每个窗口各写一份
@@ -59,7 +60,8 @@ func _process(_delta: float) -> void:
 
 
 ## 显示提示框；低层级不能覆盖仍然有效的高层级 owner。
-## 本帧内收到的隐藏请求作废。body_text 支持 BBCode，为空时只显示标题行。
+## 本帧内收到的隐藏请求作废。body_text 是纯文本，由 BodyTerminal 转成 ANSI；
+## 为空时只显示标题行。
 func show_tip(owner: Object, layer: int, title_name: String, body_text: String = "") -> void:
 	if is_instance_valid(_owner) and _owner != owner and layer < _layer and not _hide_armed:
 		return
@@ -78,29 +80,51 @@ func hide_tip(owner: Object) -> void:
 	_hide_armed = true
 
 
-## 标题和正文只在文字真的变了才写；正文为空时隐藏正文标签，
-## 让非魂灵物品 / 战斗坐标保持单行提示。尺寸跟着内容走。
+## 标题和正文只在文字真的变了才写。标题是顶部跨格大字，正文从标题下方开始；
+## 只有标题的物品 / 战斗坐标也走同一个终端。尺寸跟着内容走。
 func _set_text(title_text: String, body_text: String) -> void:
-	var changed := false
-	if _title_label.text != title_text:
-		_title_label.text = title_text
-		changed = true
-	if _body_label.text != body_text:
-		_body_label.text = body_text
-		_body_label.visible = not body_text.is_empty()
-		changed = true
-	if changed:
+	if _title_text == title_text and _body_text == body_text:
+		return
+	_title_text = title_text
+	_body_text = body_text
+	_body_terminal.visible = not title_text.is_empty() or not body_text.is_empty()
+	if not _body_terminal.visible:
 		reset_size()
+		return
+	var title_span: TerminalSpan = null
+	var title_size := Vector2i.ZERO
+	if not title_text.is_empty():
+		title_size = _body_terminal.measure_span(title_text, TITLE_SPAN_ROWS)
+		title_span = TerminalSpan.new()
+		title_span.text = title_text
+		title_span.rows = TITLE_SPAN_ROWS
+		# 下划线先按 span 块底部画；后续要贴字再改 _draw_span() 的 y
+		var title_style := TerminalStyle.new()
+		title_style.underline = true
+		title_span.style = title_style
+	var body_top := title_size.y
+	_body_terminal.fit_text(body_text, body_top, maxi(title_size.x, 1))
+	if not body_text.is_empty():
+		_body_terminal.set_ansi_content(
+			PackedStringArray([TooltipText.to_ansi(body_text)]), body_top
+		)
+	if title_span != null:
+		var spans: Array[TerminalSpan] = []
+		spans.append(title_span)
+		_body_terminal.set_spans(spans)
+	reset_size()
 
 
-## 物品焦点：魂灵和魂器有正文，其他物品保持单行标题
+## 物品焦点：魂灵和魂器有正文，其他物品只有标题（标题同样由终端 span 绘制）
 func _on_item_focused(item_data: ItemData, container_name: String) -> void:
 	var body := ""
 	if item_data is SoulData:
 		var soul := item_data as SoulData
-		body = SoulTooltip.build(soul, true, _soul_preview(soul, container_name))
+		body = SoulTooltip.build(
+			soul, TooltipText.Format.PLAIN, _soul_preview(soul, container_name)
+		)
 	elif item_data is SoulVesselData:
-		body = VesselTooltip.build(item_data as SoulVesselData, true)
+		body = VesselTooltip.build(item_data as SoulVesselData, TooltipText.Format.PLAIN)
 	show_tip(self, Layer.ITEM, item_data.item_name, body)
 
 

@@ -166,13 +166,23 @@ func _show_entry_tooltip(id: StringName) -> void:
 			var soul := CollectionDB.get_soul(id)
 			if soul == null:
 				return
-			tip.show_tip(self, TooltipWindow.Layer.ITEM, soul.item_name, SoulTooltip.build(soul, true))
+			tip.show_tip(
+				self,
+				TooltipWindow.Layer.ITEM,
+				soul.item_name,
+				SoulTooltip.build(soul, TooltipText.Format.PLAIN)
+			)
 		ContentKind.Kind.VESSEL:
 			var vessel := CollectionDB.get_vessel(id)
 			if vessel == null:
 				return
 			# 见闻展示的是模板，没有运行时 contents，网格会显示满格 *
-			tip.show_tip(self, TooltipWindow.Layer.ITEM, vessel.item_name, VesselTooltip.build(vessel, true))
+			tip.show_tip(
+				self,
+				TooltipWindow.Layer.ITEM,
+				vessel.item_name,
+				VesselTooltip.build(vessel, TooltipText.Format.PLAIN)
+			)
 
 
 func _hide_tooltip() -> void:

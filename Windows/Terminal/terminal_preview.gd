@@ -332,7 +332,7 @@ class DebugOverlay extends Control:
 		var cell := terminal.get_cell_size()
 		var grid := terminal.get_grid_size()
 		if show_grid:
-			var line_color := Color(1.0, 1.0, 1.0, 0.06)
+			var line_color := TerminalView.DEBUG_GRID_COLOR
 			for col in range(grid.x + 1):
 				var x := col * cell.x
 				draw_line(Vector2(x, 0.0), Vector2(x, grid.y * cell.y), line_color)

@@ -15,6 +15,7 @@
 | 改主窗口置顶、T 按钮、置顶持久化 | `架构/窗口与场景.md` §1.6 | `Main/status_bar_container.gd`、`Scripts/window_pin_settings.gd` |
 | 改主界面拖动/位置持久化 | `架构/窗口与场景.md` §1.5 | `Main/pet_panel.gd`、`Scripts/ui/control_drag.gd`、`Scripts/pet_panel_settings.gd`、`Scripts/settings_file.gd` |
 | 主窗口置顶失效/置顶设置丢失 | `架构/窗口与场景.md` §3（常见排查） | `Main/status_bar_container.gd`、`Scripts/window_pin_settings.gd` |
+| 改终端字符网格/ANSI/输入/命令/性能 | `窗口/终端.md` | `Scripts/terminal/`、`Windows/Terminal/` |
 | 改战斗单位、施法、冷却/扫描线 | `架构/战斗运行时_施法与冷却.md` | `game/battle/`、`Windows/Battle/` |
 | 改移动、攻击范围门控、刷怪、空间索引、投射物 | `架构/战斗运行时_移动与投射物.md` | `game/battle/`、`Windows/Battle/` |
 | 改暴击/伤害/异常、开战关窗、玩家怪物场景 | `架构/战斗运行时_伤害与流程.md` | `game/battle/`、`Windows/Battle/` |
@@ -58,6 +59,7 @@
 | `怪物/怪物.md` | 设计 | 部分实现 | 2026-11-14 |
 | `窗口/仓库.md` | 设计 | 部分实现 | 2026-11-14 |
 | `窗口/见闻.md` | 实现 | 已实现 | 2026-11-14 |
+| `窗口/终端.md` | 实现 | 部分实现 | 2026-11-14 |
 | `魂灵/魂灵.md` | 设计 | 部分实现 | 2026-11-14 |
 | `魂灵/魂器.md` | 设计 | 已实现 | 2026-11-14 |
 | `魂灵/主动魂灵.md` | 设计 | 部分实现 | 2026-11-14 |

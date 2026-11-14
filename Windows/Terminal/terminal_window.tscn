@@ -1,0 +1,21 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://Windows/Terminal/terminal_window.gd" id="1_terminal_window"]
+[ext_resource type="Script" path="res://Windows/Terminal/terminal_view.gd" id="2_terminal_view"]
+
+[node name="TerminalWindow" type="Control"]
+layout_mode = 1
+anchors_preset = 0
+offset_right = 900.0
+offset_bottom = 600.0
+script = ExtResource("1_terminal_window")
+
+[node name="TerminalView" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("2_terminal_view")
+font_size = 16

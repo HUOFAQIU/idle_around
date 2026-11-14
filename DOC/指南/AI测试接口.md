@@ -2,7 +2,7 @@
 
 > 类型：指南 | 状态：有效 | 核对：2026-11-14
 > 何时读：写自动化测试/探针、构造战斗或背包场景、验证新功能
-> 关键词：测试 TestAPI 探针 自动化 战斗快照 魂灵 魂器 vessel 仓库 见闻 商店 冷却 冻结 触发器 类型 标签 尺寸 充能 卡面 tooltip 伤害缩放 动态伤害 静态预览 SoulDamagePreview get_equipped_soul_damage_preview is_dynamic has_runtime 多重触发 cast_times releases 颜色 色板 存档 save 爪痕 play_claw_cue mod ModLoader ModWindow 加载顺序 order mod_cue_registrar cue Cue 特效 manifest 创意工坊 内置 core content_id validate_core_manifest manifest 校验 技能 ID ability_tag 命名 主窗口置顶 单窗口 浮层 CanvasLayer PetPanel 拖动 位置持久化 PanelManager 激活面板 遮挡 穿透 mouse_passthrough OverlayPassthrough
+> 关键词：测试 TestAPI 探针 自动化 战斗快照 魂灵 魂器 vessel 仓库 见闻 商店 冷却 冻结 触发器 类型 标签 尺寸 充能 卡面 tooltip 伤害缩放 动态伤害 静态预览 SoulDamagePreview get_equipped_soul_damage_preview is_dynamic has_runtime 多重触发 cast_times releases 颜色 色板 存档 save 爪痕 play_claw_cue mod ModLoader ModWindow 加载顺序 order mod_cue_registrar cue Cue 特效 manifest 创意工坊 内置 core content_id validate_core_manifest manifest 校验 技能 ID ability_tag 命名 主窗口置顶 单窗口 浮层 CanvasLayer PetPanel 拖动 位置持久化 PanelManager 激活面板 遮挡 穿透 mouse_passthrough OverlayPassthrough 终端 字符网格 TerminalView TerminalBuffer ANSI SGR 回看 scrollback auto_scroll
 > 代码：`Scripts/test_api.gd`、`Windows/Battle/battle_window.gd`、`Scripts/collection_db.gd`、`Scripts/save/`、`Scripts/mod/`、`base_mods/core/mod.json`
 > 约定：新增功能/内容时，同步补 TestAPI 方法并更新本文。
 
@@ -191,6 +191,21 @@ print(TestAPI.get_overlay_passthrough_state())
 | 方法 | 说明 |
 |---|---|
 | `get_game_color(name) -> String` | 按常量名取 `GameColors` 的十六进制色值，如 `"DAMAGE"`、`"TEXT_PRIMARY"`；`Color` 常量会转成 HTML 色值 |
+
+## 终端
+
+| 方法 | 说明 |
+|---|---|
+| `terminal_write_line(text) -> bool` | 向当前场景里的 `TerminalView` 写一行；预览场景/终端窗口用，找不到返回 `false` |
+| `terminal_write_ansi(text) -> bool` | 按 ANSI 转义序列写入当前 `TerminalView`（支持 SGR 颜色/样式）；找不到返回 `false` |
+| `terminal_set_content(text) -> bool` | 整屏替换为多行纯文本（`\n` 分行），清空历史并回到底部 |
+| `terminal_set_ansi_content(text) -> bool` | 同 `terminal_set_content`，但按 ANSI 解析 |
+| `terminal_scroll(lines) -> bool` | 往历史翻 `lines` 行；正值向上、负值向下 |
+| `terminal_scroll_to_bottom() -> bool` | 回到实时屏幕并恢复自动滚底 |
+| `terminal_clear() -> bool` | 清空当前 `TerminalView`（屏幕 + 历史）；找不到返回 `false` |
+| `terminal_snapshot() -> Dictionary` | 返回 `{cols, rows, cell, cursor, history, view_offset, auto_scroll}`；找不到返回 `{}` |
+| `show_terminal() -> bool` | 打开终端窗口；找不到窗口返回 `false` |
+| `is_terminal_open() -> bool` | 终端窗口当前是否可见；找不到窗口返回 `false` |
 
 ## 战斗
 

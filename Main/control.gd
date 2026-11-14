@@ -1,11 +1,13 @@
 extends Control
 
-@onready var button: Button = $PetPanel/GridContainer/Button
+@onready var button_1: Button = $PetPanel/GridContainer/Button1
+@onready var button_2: Button = $PetPanel/GridContainer/Button2
 @onready var button_3: Button = $PetPanel/GridContainer/Button3
 @onready var button_4: Button = $PetPanel/GridContainer/Button4
 @onready var button_5: Button = $PetPanel/GridContainer/Button5
 @onready var button_6: Button = $PetPanel/GridContainer/Button6
 @onready var button_7: Button = $PetPanel/GridContainer/Button7
+@onready var button_8: Button = $PetPanel/GridContainer/Button8
 @onready var button_9: Button = $PetPanel/GridContainer/Button9
 
 @onready var character_window: CharacterWindow = $CharacterWindow
@@ -15,13 +17,18 @@ extends Control
 @onready var collection_window: CollectionWindow = $CollectionWindow
 @onready var debug_window: DebugWindow = $DebugWindow
 @onready var mod_window: ModWindow = $ModWindow
+@onready var terminal_window: TerminalWindow = $TerminalWindow
 @onready var panel_manager: PanelManager = $PanelManager
 
 
 func _ready() -> void:
-	button.pressed.connect(
+	button_1.pressed.connect(
 		func ():
 			popup_window(character_window)
+	)
+	button_2.pressed.connect(
+		func ():
+			pass
 	)
 	button_3.pressed.connect(
 		func ():
@@ -42,6 +49,10 @@ func _ready() -> void:
 	button_7.pressed.connect(
 		func ():
 			popup_window(debug_window)
+	)
+	button_8.pressed.connect(
+		func ():
+			popup_window(terminal_window)
 	)
 	button_9.pressed.connect(
 		func ():

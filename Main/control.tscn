@@ -16,6 +16,7 @@
 [ext_resource type="Script" uid="uid://dbsdf645uusn7" path="res://Main/pet_panel.gd" id="13_pet"]
 [ext_resource type="Script" uid="uid://cvrphgarwhs83" path="res://Main/panel_manager.gd" id="14_panel_manager"]
 [ext_resource type="Script" uid="uid://d4ednqm82mwyj" path="res://Main/overlay_passthrough.gd" id="15_overlay"]
+[ext_resource type="PackedScene" path="res://Windows/Terminal/terminal_window.tscn" id="16_terminal"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pet"]
 bg_color = Color(0.117647, 0.129412, 0.152941, 1)
@@ -99,10 +100,14 @@ grow_horizontal = 2
 grow_vertical = 0
 columns = 3
 
-[node name="Button" type="Button" parent="PetPanel/GridContainer" unique_id=1147498350]
+[node name="Button1" type="Button" parent="PetPanel/GridContainer" unique_id=1147498350]
 custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
 text = "人物"
+
+[node name="Button2" type="Button" parent="PetPanel/GridContainer" unique_id=178598264]
+custom_minimum_size = Vector2(80, 80)
+layout_mode = 2
 
 [node name="Button3" type="Button" parent="PetPanel/GridContainer" unique_id=1363769282]
 custom_minimum_size = Vector2(80, 80)
@@ -132,6 +137,7 @@ text = "调试"
 [node name="Button8" type="Button" parent="PetPanel/GridContainer" unique_id=24536484]
 custom_minimum_size = Vector2(80, 80)
 layout_mode = 2
+text = "终端"
 
 [node name="Button9" type="Button" parent="PetPanel/GridContainer" unique_id=1526956540]
 custom_minimum_size = Vector2(80, 80)
@@ -168,6 +174,9 @@ open_position = Vector2i(200, 80)
 visible = false
 
 [node name="VesselWindow" parent="." unique_id=675089360 instance=ExtResource("5_vessel")]
+visible = false
+
+[node name="TerminalWindow" parent="." unique_id=1698684277 instance=ExtResource("16_terminal")]
 visible = false
 
 [node name="InfoWindow" parent="." unique_id=158491879 instance=ExtResource("10_gdtoh")]

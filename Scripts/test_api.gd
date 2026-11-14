@@ -34,6 +34,105 @@ static func get_game_color(constant_name : String) -> String:
 #endregion
 
 
+#region 终端
+
+## 向当前场景里的 TerminalView 写一行；预览场景/终端窗口用，找不到返回 false
+static func terminal_write_line(text : String) -> bool:
+	var view := _terminal_view()
+	if view == null or view.buffer == null:
+		return false
+	view.write_line(text)
+	return true
+
+
+## 按 ANSI 转义序列往当前 TerminalView 写文本；找不到返回 false
+static func terminal_write_ansi(text : String) -> bool:
+	var view := _terminal_view()
+	if view == null or view.buffer == null:
+		return false
+	view.write_ansi(text)
+	return true
+
+
+## 显示用：整屏替换为多行纯文本；找不到返回 false
+static func terminal_set_content(text : String) -> bool:
+	var view := _terminal_view()
+	if view == null or view.buffer == null:
+		return false
+	view.set_content(PackedStringArray(text.split("\n")))
+	return true
+
+
+## 显示用：整屏替换为多行 ANSI 文本；找不到返回 false
+static func terminal_set_ansi_content(text : String) -> bool:
+	var view := _terminal_view()
+	if view == null or view.buffer == null:
+		return false
+	view.set_ansi_content(PackedStringArray(text.split("\n")))
+	return true
+
+
+## 往历史翻 lines 行；正值向上，负值向下
+static func terminal_scroll(lines : int) -> bool:
+	var view := _terminal_view()
+	if view == null or view.buffer == null:
+		return false
+	view.scroll_by(lines)
+	return true
+
+
+## 回到实时屏幕并恢复自动滚底
+static func terminal_scroll_to_bottom() -> bool:
+	var view := _terminal_view()
+	if view == null or view.buffer == null:
+		return false
+	view.scroll_to_bottom()
+	return true
+
+
+## 清空当前 TerminalView；找不到返回 false
+static func terminal_clear() -> bool:
+	var view := _terminal_view()
+	if view == null or view.buffer == null:
+		return false
+	view.clear()
+	return true
+
+
+## 当前 TerminalView 的网格/回看信息；找不到返回 {}
+static func terminal_snapshot() -> Dictionary:
+	var view := _terminal_view()
+	if view == null or view.buffer == null:
+		return {}
+	return {
+		"cols": view.buffer.cols,
+		"rows": view.buffer.rows,
+		"cell": view.get_cell_size(),
+		"cursor": Vector2i(view.buffer.cursor_col, view.buffer.cursor_row),
+		"history": view.get_scrollback_count(),
+		"view_offset": view.view_offset,
+		"auto_scroll": view.auto_scroll,
+	}
+
+
+## 打开终端窗口；找不到窗口返回 false
+static func show_terminal() -> bool:
+	var window := _terminal_window()
+	if window == null:
+		return false
+	if not window.visible:
+		window.open_window()
+	return true
+
+
+## 终端窗口当前是否可见；找不到窗口返回 false
+static func is_terminal_open() -> bool:
+	var window := _terminal_window()
+	return window != null and window.visible
+
+#endregion
+
+
 #region 背包 / 见闻
 
 ## 按 content_id 把魂灵放进指定容器（默认仓库第 1 页）
@@ -1157,6 +1256,32 @@ static func _mod_window() -> ModWindow:
 	for node in root.find_children("*", "", true, false):
 		if node is ModWindow:
 			return node as ModWindow
+	return null
+
+
+static func _terminal_view() -> TerminalView:
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree == null:
+		return null
+	var root : Node = tree.current_scene
+	if root == null:
+		root = tree.root
+	for node in root.find_children("*", "", true, false):
+		if node is TerminalView:
+			return node as TerminalView
+	return null
+
+
+static func _terminal_window() -> TerminalWindow:
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree == null:
+		return null
+	var root : Node = tree.current_scene
+	if root == null:
+		root = tree.root
+	for node in root.find_children("*", "", true, false):
+		if node is TerminalWindow:
+			return node as TerminalWindow
 	return null
 
 #endregion

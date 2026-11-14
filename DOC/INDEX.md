@@ -9,11 +9,11 @@
 |---|---|---|
 | 了解项目结构、autoload、输入动作 | `架构/00_总览.md` | `project.godot` |
 | 改启动链、单窗口外壳、面板清单/单例 | `架构/窗口与场景.md` | `Main/control.gd`、`Main/panel_manager.gd`、`Windows/base_window.gd` |
-| 改面板拖动/关闭/标题栏、面板坐标 | `架构/窗口与场景.md` §1.2/§1.3 | `Windows/base_window.gd`、`Scripts/ui/control_drag.gd`、`Main/control.tscn` |
+| 改面板拖动/关闭/标题栏、面板坐标 | `架构/窗口与场景.md` §1.2/§1.3 | `Windows/base_window.gd`、`Scripts/ui/control_drag.gd`、`Scripts/ui/ui_bounds.gd`、`Main/control.tscn` |
 | 改面板置顶/激活/遮挡判断 | `架构/窗口与场景.md` §1.2/§3 | `Main/panel_manager.gd` |
-| 改透明区域点击穿透/mouse_passthrough | `架构/窗口与场景.md` §1.7 | `Main/overlay_passthrough.gd` |
+| 改透明区域点击穿透/mouse_passthrough | `架构/窗口与场景.md` §1.7 | `Main/overlay_passthrough.gd`、`Scripts/ui/ui_region.gd` |
 | 改主窗口置顶、T 按钮、置顶持久化 | `架构/窗口与场景.md` §1.6 | `Main/status_bar_container.gd`、`Scripts/window_pin_settings.gd` |
-| 改主界面拖动/位置持久化 | `架构/窗口与场景.md` §1.5 | `Main/pet_panel.gd`、`Scripts/ui/control_drag.gd`、`Scripts/pet_panel_settings.gd` |
+| 改主界面拖动/位置持久化 | `架构/窗口与场景.md` §1.5 | `Main/pet_panel.gd`、`Scripts/ui/control_drag.gd`、`Scripts/pet_panel_settings.gd`、`Scripts/settings_file.gd` |
 | 主窗口置顶失效/置顶设置丢失 | `架构/窗口与场景.md` §3（常见排查） | `Main/status_bar_container.gd`、`Scripts/window_pin_settings.gd` |
 | 改战斗单位、施法、冷却/扫描线 | `架构/战斗运行时_施法与冷却.md` | `game/battle/`、`Windows/Battle/` |
 | 改移动、攻击范围门控、刷怪、空间索引、投射物 | `架构/战斗运行时_移动与投射物.md` | `game/battle/`、`Windows/Battle/` |
@@ -33,10 +33,10 @@
 | 确认功能是否已实现/已知坑 | `架构/现状与注意.md` | — |
 | AI/自动化测试、构造战斗或背包场景 | `指南/AI测试接口.md` | `Scripts/test_api.gd` |
 | 按症状排查战斗（不放技能/不触发/没伤害/Cue 不播/卡顿） | `指南/调试窗口.md` §常见排查、`架构/现状与注意.md` | `Windows/Debug/`、`game/battle/` |
-| 新增调试事件或理解遥测数据 | `架构/调试与遥测.md` | `game/battle/battle_event*.gd`、`Scripts/debug/`、`Windows/Debug/` |
+| 新增调试事件或理解遥测数据 | `架构/调试与遥测.md` | `game/battle/battle_event.gd`、`game/battle/battle_event_bus.gd`、`Scripts/debug/`、`Windows/Debug/` |
 | 改魂灵冷却/充能/冻结/主动效果 | `魂灵/主动魂灵.md` | `base_mods/core/souls/`、`game/content/`、`game/battle/charged_ability.gd` |
-| 改被动魂灵/触发效果 | `魂灵/被动魂灵.md` | `base_mods/core/souls/`、`game/content/passive_soul_data.gd`、`passive_effect.gd`、`passive_trigger.gd` |
-| 确认魂灵尺寸/魂器/角色魂器网格 | `魂灵/魂灵.md`、`魂灵/魂器.md` | `game/content/`、`Windows/Vessel/`、`Windows/Character/` |
+| 改被动魂灵/触发效果 | `魂灵/被动魂灵.md` | `base_mods/core/souls/`、`game/content/passive_soul_data.gd`、`game/content/passive_effect.gd`、`game/content/passive_trigger.gd` |
+| 确认魂灵尺寸/魂器/角色魂器网格 | `魂灵/魂灵.md`、`魂灵/魂器.md` | `Windows/Inventory/grid_base_inventory_system/core/model/item/soul_data.gd`、`soul_vessel_data.gd`、`Windows/Vessel/`、`Windows/Character/` |
 | 改怪物魂灵/掉落/刷新距离 | `怪物/怪物.md` | `base_mods/core/monsters/`、`game/content/monster_data.gd`、`game/content/monster_soul_entry.gd` |
 | 改魂灵/魂器 tooltip 内容/格式 | `魂灵/魂灵.md`、`魂灵/魂器.md`、`架构/窗口与场景.md` | `Windows/Tooltip/` |
 | 改颜色/色板（战斗状态/UI/场景/特效） | `架构/颜色与主题.md` | `Scripts/game_colors.gd` |
@@ -54,36 +54,36 @@
 | 文档 | 类型 | 状态 | 最后核对/整理 |
 |---|---|---|---|
 | `战斗/战斗逻辑.md` | 设计 | 有效 | 2026-11-14 |
-| `属性/人物属性.md` | 设计 | 设计 | 2026-11-11 |
+| `属性/人物属性.md` | 设计 | 设计 | 2026-11-14 |
 | `怪物/怪物.md` | 设计 | 部分实现 | 2026-11-14 |
-| `窗口/仓库.md` | 设计 | 部分实现 | 2026-11-05 |
-| `窗口/见闻.md` | 实现 | 已实现 | 2026-11-12 |
-| `魂灵/魂灵.md` | 设计 | 部分实现 | 2026-11-12 |
-| `魂灵/魂器.md` | 设计 | 已实现 | 2026-11-12 |
-| `魂灵/主动魂灵.md` | 设计 | 部分实现 | 2026-11-07 |
+| `窗口/仓库.md` | 设计 | 部分实现 | 2026-11-14 |
+| `窗口/见闻.md` | 实现 | 已实现 | 2026-11-14 |
+| `魂灵/魂灵.md` | 设计 | 部分实现 | 2026-11-14 |
+| `魂灵/魂器.md` | 设计 | 已实现 | 2026-11-14 |
+| `魂灵/主动魂灵.md` | 设计 | 部分实现 | 2026-11-14 |
 | `魂灵/被动魂灵.md` | 设计 | 已实现 | 2026-11-10 |
 | `archive/souls.xlsx` | 数据 | 归档（二进制，Claude 不可读） | — |
-| `特效/effects.md` | 指南 | 有效 | 2026-11-13 |
-| `指南/AI测试接口.md` | 指南 | 有效 | 2026-11-13 |
-| `指南/调试窗口.md` | 指南 | 有效 | 2026-11-12 |
-| `架构/调试与遥测.md` | 实现 | 有效 | 2026-11-10 |
+| `特效/effects.md` | 指南 | 有效 | 2026-11-14 |
+| `指南/AI测试接口.md` | 指南 | 有效 | 2026-11-14 |
+| `指南/调试窗口.md` | 指南 | 有效 | 2026-11-14 |
+| `架构/调试与遥测.md` | 实现 | 有效 | 2026-11-14 |
 | `背景故事/背景故事.md` | 设计 | 占位 | 2026-10-31 |
 | `archive/给AI玩的游戏.md` | 记录 | 归档 | 2026-10-31 |
-| `架构/00_总览.md` | 实现 | 有效 | 2026-11-13 |
-| `架构/窗口与场景.md` | 实现 | 有效 | 2026-11-13 |
-| `架构/战斗运行时_施法与冷却.md` | 实现 | 有效 | 2026-11-12 |
+| `架构/00_总览.md` | 实现 | 有效 | 2026-11-14 |
+| `架构/窗口与场景.md` | 实现 | 有效 | 2026-11-14 |
+| `架构/战斗运行时_施法与冷却.md` | 实现 | 有效 | 2026-11-14 |
 | `架构/战斗运行时_移动与投射物.md` | 实现 | 有效 | 2026-11-14 |
-| `架构/战斗运行时_伤害与流程.md` | 实现 | 有效 | 2026-11-12 |
+| `架构/战斗运行时_伤害与流程.md` | 实现 | 有效 | 2026-11-14 |
 | `架构/战斗数据与魂灵.md` | 实现 | 有效 | 2026-11-14 |
-| `架构/GAS.md` | 实现 | 有效 | 2026-11-11 |
-| `架构/背包_GBIS.md` | 实现 | 有效 | 2026-11-13 |
-| `架构/存档.md` | 实现 | 已实现 | 2026-11-12 |
-| `架构/关键流程.md` | 实现 | 有效 | 2026-11-13 |
+| `架构/GAS.md` | 实现 | 有效 | 2026-11-14 |
+| `架构/背包_GBIS.md` | 实现 | 有效 | 2026-11-14 |
+| `架构/存档.md` | 实现 | 已实现 | 2026-11-14 |
+| `架构/关键流程.md` | 实现 | 有效 | 2026-11-14 |
 | `架构/扩展点.md` | 指南 | 有效 | 2026-11-14 |
-| `架构/颜色与主题.md` | 实现 | 有效 | 2026-11-07 |
+| `架构/颜色与主题.md` | 实现 | 有效 | 2026-11-14 |
 | `架构/现状与注意.md` | 实现 | 有效 | 2026-11-14 |
-| `架构/Mod系统.md` | 设计 | 部分实现（内置 core mod 已接入） | 2026-11-12 |
-| `指南/Mod制作.md` | 指南 | 部分实现（内置 core 已接入） | 2026-11-12 |
+| `架构/Mod系统.md` | 设计 | 部分实现（内置 core mod 已接入） | 2026-11-14 |
+| `指南/Mod制作.md` | 指南 | 部分实现（内置 core 已接入） | 2026-11-14 |
 
 > `archive/souls.xlsx` 是旧计划表，文本工具读不了；要引用其中内容时先转成 Markdown 表格。
 >
@@ -94,7 +94,7 @@
 每篇文档标题下紧跟一段引用块：
 
 ```markdown
-> 类型：设计 / 实现 / 指南 / 记录 | 状态：设计 / 部分实现 / 已实现 / 占位 / 废弃
+> 类型：设计 / 实现 / 指南 / 记录 | 状态：设计 / 部分实现 / 已实现 / 有效 / 占位 / 废弃
 > 何时读：一句话说明什么任务该打开它
 > 关键词：同义词、类名、文件名，供 grep 命中
 > 代码：相关入口文件；没有就写 —

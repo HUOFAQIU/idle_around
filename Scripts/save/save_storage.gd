@@ -13,7 +13,6 @@ const TEMP_PATH: String = SAVE_DIR + "/" + TEMP_FILE
 const BACKUP_PATH: String = SAVE_DIR + "/" + BACKUP_FILE
 
 var _read_only: bool = false
-var _read_only_reason: String = ""
 
 
 func read_primary() -> Dictionary:
@@ -85,17 +84,12 @@ func path() -> String:
 	return SAVE_PATH
 
 
-func set_read_only(on: bool, reason: String = "") -> void:
+func set_read_only(on: bool) -> void:
 	_read_only = on
-	_read_only_reason = reason
 
 
 func is_read_only() -> bool:
 	return _read_only
-
-
-func read_only_reason() -> String:
-	return _read_only_reason
 
 
 func _read(file_path: String) -> Dictionary:

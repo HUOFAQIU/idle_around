@@ -6,7 +6,6 @@ extends Control
 @onready var button_5: Button = $PetPanel/GridContainer/Button5
 @onready var button_6: Button = $PetPanel/GridContainer/Button6
 @onready var button_7: Button = $PetPanel/GridContainer/Button7
-@onready var button_8: Button = $PetPanel/GridContainer/Button8
 @onready var button_9: Button = $PetPanel/GridContainer/Button9
 
 @onready var character_window: CharacterWindow = $CharacterWindow

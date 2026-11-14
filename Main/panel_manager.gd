@@ -68,7 +68,7 @@ func get_top_panel_at(global_position : Vector2) -> BaseWindow:
 	return null
 
 
-## 所有可见面板的全局矩形；给后续透明穿透模块用
+## 所有可见面板的全局矩形；供 OverlayPassthrough 收集命中区域
 func get_visible_panel_rects() -> Array[Rect2]:
 	var result : Array[Rect2] = []
 	var parent := get_parent()

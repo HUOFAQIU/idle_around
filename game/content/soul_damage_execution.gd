@@ -27,7 +27,7 @@ static func total_before_crit(
 	return maxf(base_damage + damage_bonus + soul_bonus + vessel_bonus, 0.0)
 
 
-## 数装备栏里带匹配类型的魂灵；恐狼自己也算一颗。
+## 数魂器网格里带匹配类型的魂灵；恐狼自己也算一颗。
 ## 用无类型 Array 动态读字段，避免静态引用 SoulRuntime 让 modkit --script 校验编译失败。
 static func matching_soul_count(loadout: Array, matching_types: Array[StringName]) -> int:
 	var count := 0
@@ -66,7 +66,7 @@ func execute(spec: GameplayEffectSpec, target_asc: AbilitySystemComponent) -> Di
 	return DamageResolver.split_damage(target_asc, damage, 1.0)
 
 
-## 数施法者装备栏里带匹配类型的魂灵；恐狼自己也算一颗。
+## 数施法者魂器网格里带匹配类型的魂灵；恐狼自己也算一颗。
 func _matching_soul_bonus(source_asc: AbilitySystemComponent) -> float:
 	if bonus_per_matching_soul <= 0.0 or matching_soul_types.is_empty():
 		return 0.0

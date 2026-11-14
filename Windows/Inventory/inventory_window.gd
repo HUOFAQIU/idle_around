@@ -51,7 +51,7 @@ func _build_page_bar() -> void:
 		_page_buttons.append(button)
 
 
-## 当前页按钮用 ACCENT 底色 + 深色文字，和顶部状态栏的开关一致
+## 当前页按钮用 ACCENT 底色 + 深色文字，和主窗口置顶按钮的按下态一致
 func _apply_selected_style(button: Button) -> void:
 	var pressed_style := button.get_theme_stylebox("pressed").duplicate() as StyleBoxFlat
 	if pressed_style == null:

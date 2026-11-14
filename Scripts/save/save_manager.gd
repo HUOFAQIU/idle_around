@@ -6,8 +6,6 @@ extends Node
 ## 只保存玩家进度：容器里的物品 + 见闻；战斗运行期状态和静态资源数据不存。
 ## 写入采用临时文件 + 备份轮换；启动等一帧（容器注册完）后自动读档。
 
-const SAVE_VERSION: int = SaveDocument.VERSION
-
 var _storage := SaveStorage.new()
 var _scheduler := SaveScheduler.new()
 var _containers := ContainerSaveParticipant.new()
@@ -94,7 +92,7 @@ func load_game() -> bool:
 		var version := SaveDocument.version_of(data)
 		if version > SaveDocument.VERSION:
 			push_warning("存档：版本 %d 高于当前 %d，只读不覆盖" % [version, SaveDocument.VERSION])
-			_storage.set_read_only(true, "存档版本过高")
+			_storage.set_read_only(true)
 		elif version != SaveDocument.VERSION:
 			data = SaveDocument.migrate(data, version)
 			write_back = true
@@ -165,7 +163,7 @@ func mark_dirty(urgent: bool = false) -> void:
 #region 内部
 ## 进入只读：不读档也不写档，避免容器不齐时覆盖存档
 func _enter_read_only(reason: String, report_error: bool) -> void:
-	_storage.set_read_only(true, reason)
+	_storage.set_read_only(true)
 	set_process(false)
 	if report_error:
 		push_error("存档：%s；本次不读档也不写档" % reason)

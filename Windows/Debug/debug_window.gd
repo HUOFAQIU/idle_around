@@ -859,7 +859,7 @@ func _refresh_soul_tree() -> void:
 		var item := _soul_tree.create_item(root)
 		var ability := runtime.ability
 		item.set_text(0, runtime.display_name())
-		item.set_text(1, _part_text(runtime))
+		item.set_text(1, _vessel_text(runtime))
 		item.set_text(2, str(runtime.slot.column) if runtime.slot != null else "-")
 		item.set_text(3, "%.1f/%.1fs" % [ability.charge_seconds(), ability.cooldown] if ability != null else "被动")
 		item.set_text(4, "%.0f%%" % (runtime.scanline_progress * 100.0))
@@ -902,7 +902,7 @@ func _show_soul_detail(runtime: SoulRuntime) -> void:
 	var lines: Array[String] = []
 	lines.append("[b]%s[/b]  %s  列 %d 宽 %d" % [
 		runtime.display_name(),
-		_part_text(runtime),
+		_vessel_text(runtime),
 		int(data.get("column", -1)),
 		int(data.get("width", 1)),
 	])
@@ -1327,7 +1327,7 @@ func _selected_runtime_id(tree: Tree) -> int:
 	return int(selected.get_metadata(0)) if selected != null else 0
 
 
-func _part_text(runtime: SoulRuntime) -> String:
+func _vessel_text(runtime: SoulRuntime) -> String:
 	if runtime == null:
 		return ""
 	return runtime.vessel_name()

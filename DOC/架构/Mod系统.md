@@ -3,11 +3,10 @@
 > 类型：设计 | 状态：部分实现（内置 core mod 已接入；Steam 后置）
 > 何时读：改 mod 加载、内容注册、存档兼容，或准备接 Steam 创意工坊
 > 关键词：mod ModLoader manifest PCK 创意工坊 Workshop content_id orphaned 加载顺序 内置 core content_namespace content_root validate_core_manifest manifest 校验 技能 ID 命名 PascalCase 魂器 vessels 常见排查 排障 症状 未生效 未注册 顺序不生效
-> 核对：2026-11-12
 > 代码：`Scripts/mod/`、`Scripts/collection_db.gd`、`Scripts/save/`、`project.godot`、`base_mods/core/mod.json`
 > 相关：`架构/存档.md`、`架构/扩展点.md`、`指南/Mod制作.md`
 > 不覆盖：Steamworks 后台配置、GodotSteam 完整 API
-> 核对：2026-11-11
+> 核对：2026-11-14
 
 ## 1. 目标与边界
 

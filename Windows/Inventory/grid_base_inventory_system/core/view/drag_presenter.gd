@@ -1,5 +1,5 @@
 extends RefCounted
-## 拖拽表现：幽灵 ItemView、跟随窗口和丢弃区域。
+## 拖拽表现：幽灵 ItemView、跟随指针的浮层和丢弃区域。
 ##
 ## 只负责“看起来怎样”，不判断能不能放下；状态与命令由 MovingItemService 管。
 class_name DragPresenter

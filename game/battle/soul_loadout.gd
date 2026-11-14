@@ -1,7 +1,7 @@
 ## 一个单位本场的魂灵装载：槽位、技能、触发器与 SoulRuntime 的统一构建器。
 ##
 ## 玩家和怪物走同一条管线，只有槽位来源不同：
-##   玩家：BattleWindow 从装备容器读出 SoulSlot；
+##   玩家：BattleWindow 从魂器网格读出 SoulSlot；
 ##   怪物：不传槽位，按魂灵列表顺序生成一行虚拟魂灵栏。
 ## BattleUnit 只持有构建结果，不再自己拼装技能/触发器/运行时。
 class_name SoulLoadout extends RefCounted
@@ -12,7 +12,7 @@ var souls: Array[SoulData] = []
 var slots: Array[SoulSlot] = []
 ## 与 souls 同下标；没有技能的魂灵（被动/未配）为 null
 var abilities: Array[AutoCastAbility] = []
-## 非空魂灵的运行期状态；玩家装备栏和调试窗口读这一份
+## 非空魂灵的运行期状态；玩家魂器网格和调试窗口读这一份
 var runtimes: Array[SoulRuntime] = []
 ## 本场由这些魂灵生成的触发器能力（已 grant 到 ASC）
 var triggers: Array[SoulTriggerAbility] = []
@@ -159,7 +159,7 @@ func _create_runtimes() -> void:
 		if ability is AutoCastAbility:
 			(ability as AutoCastAbility).soul_runtime = runtime
 		runtimes.append(runtime)
-		# 只有玩家装备栏需要按 SoulData 实例反查运行时（ItemView 绑定）；
+		# 只有玩家魂器网格需要按 SoulData 实例反查运行时（ItemView 绑定）；
 		# 怪物的魂灵资源可能被多只怪共享，不能按同一实例 id 注册。
 		if unit.team == BattleUnit.Team.PLAYER:
 			SoulRuntimeDB.register(runtime)

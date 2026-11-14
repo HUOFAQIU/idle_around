@@ -75,7 +75,7 @@ var opened_equipment_slots: Array[String]
 
 ## 当前保存路径
 var current_save_path: String = DEFAULT_SAVE_FOLDER
-## 当前存档名，支持 "tres" 和 "res"，目前版本会保存两个文件：inv_存档名、equipment_slot_存档名
+## 旧 TRES 存档链的存档名；会保存 container_存档名、equipment_slot_存档名（当前游戏改用 SaveManager，不调用这条链）
 var current_save_name: String = "default.tres"
 
 ## 点击物品

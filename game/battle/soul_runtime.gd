@@ -1,7 +1,7 @@
 ## 一颗已装备魂灵的战斗运行期状态。
 ##
 ## SoulData 只保留静态数据；扫描线、加速/减速/冻结、计数器都放这里。
-## 玩家装备栏的 ItemView 和调试窗口都从同一个 SoulRuntime 读，避免两份真相。
+## 玩家魂器网格的 ItemView 和调试窗口都从同一个 SoulRuntime 读，避免两份真相。
 class_name SoulRuntime extends RefCounted
 
 signal changed
@@ -115,14 +115,6 @@ func set_counter_timestamp(key: String, value: float) -> void:
 
 func counter(key: String) -> float:
 	return float(counters.get(key, 0.0))
-
-
-func activation_count() -> int:
-	return int(counter("activations"))
-
-
-func trigger_count() -> int:
-	return int(counter("triggers_fired"))
 
 
 func to_dict() -> Dictionary:

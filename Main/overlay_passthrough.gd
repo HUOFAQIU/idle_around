@@ -5,6 +5,10 @@ extends Node
 ## Windows 上 Godot 的 mouse_passthrough 只传给同一应用的窗口，跨应用穿透
 ## 必须用 mouse_passthrough_polygon（窗口区域）。这里把 PetPanel、可见面板
 ## 和 Tooltip/Item 浮层合成一个多边形；区域外点击落到桌面，区域内仍可交互。
+## 每块矩形向外扩 REGION_MARGIN 像素，边缘不贴死，相邻区域也更容易连成一片。
+
+## 参与命中的 UI 矩形向外扩的像素
+const REGION_MARGIN : int = 8
 
 static var instance : OverlayPassthrough
 
@@ -79,7 +83,7 @@ func is_locked() -> bool:
 	return _locked
 
 
-## 当前参与命中的 UI 矩形（PetPanel + 可见面板 + Tooltip/Item）
+## 当前参与命中的 UI 矩形（PetPanel + 可见面板 + Tooltip/Item，已按 REGION_MARGIN 外扩）
 func get_hit_rects() -> Array[Rect2]:
 	return _last_rects.duplicate()
 
@@ -94,15 +98,22 @@ func get_polygon_points() -> PackedVector2Array:
 
 func _collect_rects() -> Array[Rect2]:
 	var rects : Array[Rect2] = []
+	var area := Rect2(Vector2.ZERO, get_viewport().get_visible_rect().size)
 	if _pet_panel != null and _pet_panel.is_visible_in_tree():
-		rects.append(_pet_panel.get_global_rect())
+		rects.append(_expand(_pet_panel.get_global_rect(), area))
 	if _panel_manager != null:
-		rects.append_array(_panel_manager.get_visible_panel_rects())
+		for rect in _panel_manager.get_visible_panel_rects():
+			rects.append(_expand(rect, area))
 	if _tooltip != null and _tooltip.is_visible_in_tree():
-		rects.append(_tooltip.get_global_rect())
+		rects.append(_expand(_tooltip.get_global_rect(), area))
 	if _item_window != null and _item_window.is_visible_in_tree():
-		rects.append(_item_window.get_global_rect())
+		rects.append(_expand(_item_window.get_global_rect(), area))
 	return rects
+
+
+## 命中/绘制区域在 UI 矩形外留一圈缓冲，并裁到客户区内
+func _expand(rect : Rect2, area : Rect2) -> Rect2:
+	return rect.grow(REGION_MARGIN).intersection(area)
 
 
 func _refresh_region() -> void:

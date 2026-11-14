@@ -1,6 +1,6 @@
 # AI 测试接口 TestAPI
 
-> 类型：指南 | 状态：有效 | 核对：2026-11-13
+> 类型：指南 | 状态：有效 | 核对：2026-11-14
 > 何时读：写自动化测试/探针、构造战斗或背包场景、验证新功能
 > 关键词：测试 TestAPI 探针 自动化 战斗快照 魂灵 魂器 vessel 仓库 见闻 商店 冷却 冻结 触发器 类型 标签 尺寸 充能 卡面 tooltip 伤害缩放 动态伤害 静态预览 SoulDamagePreview get_equipped_soul_damage_preview is_dynamic has_runtime 多重触发 cast_times releases 颜色 色板 存档 save 爪痕 play_claw_cue mod ModLoader ModWindow 加载顺序 order mod_cue_registrar cue Cue 特效 manifest 创意工坊 内置 core content_id validate_core_manifest manifest 校验 技能 ID ability_tag 命名 主窗口置顶 单窗口 浮层 CanvasLayer PetPanel 拖动 位置持久化 PanelManager 激活面板 遮挡 穿透 mouse_passthrough OverlayPassthrough
 > 代码：`Scripts/test_api.gd`、`Windows/Battle/battle_window.gd`、`Scripts/collection_db.gd`、`Scripts/save/`、`Scripts/mod/`、`base_mods/core/mod.json`
@@ -115,7 +115,7 @@ print(TestAPI.get_container_items("inventory_0"))
 TestAPI.delete_save()
 ```
 
-读档会保留物品的左上角格子，所以验证装备栏相邻关系时可以直接比较读档前后的锚点。存档结构、备份/迁移规则见 `架构/存档.md`。
+读档会保留物品的左上角格子，所以验证魂器网格相邻关系时可以直接比较读档前后的锚点。存档结构、备份/迁移规则见 `架构/存档.md`。
 
 ## Mod
 
@@ -170,7 +170,7 @@ print(TestAPI.get_mod_load_order())
 | `get_visible_panel_rects() -> Array[Rect2]` | 所有可见 `BaseWindow` 面板的全局矩形，给遮挡/穿透测试用 |
 | `set_overlay_passthrough_enabled(enabled) -> bool` | 开关透明覆盖层点击穿透；找不到模块返回 `false` |
 | `is_overlay_passthrough_enabled() -> bool` | 穿透总开关是否开启 |
-| `get_overlay_passthrough_state() -> Dictionary` | `enabled` / `locked` / `rects` / `polygon_points`（窗口区域多边形顶点数） |
+| `get_overlay_passthrough_state() -> Dictionary` | `enabled` / `locked` / `rects`（命中矩形数量，矩形已按 `REGION_MARGIN` 外扩）/ `polygon_points`（窗口区域多边形顶点数） |
 
 ```gdscript
 print(TestAPI.set_window_pinned("MainWindow", true))

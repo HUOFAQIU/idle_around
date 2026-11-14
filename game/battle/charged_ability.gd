@@ -41,7 +41,7 @@ var slow_units: int = 0
 ## 魂灵自身冻结剩余时间（刻度）；重复施加只累加时间
 var freeze_units: int = 0
 
-## 装备位置（玩家来自装备容器，怪物来自配置生成的虚拟魂灵栏；没有位置时为空 / -1）
+## 魂灵位置（玩家来自魂器网格，怪物来自配置生成的虚拟魂灵栏；没有位置时为空 / -1）
 var soul_container: String = ""
 var soul_column: int = -1
 var soul_width: int = 1

@@ -12,7 +12,7 @@ var base_damage: float = 0.0
 var bonus_per_matching_soul: float = 0.0
 ## 匹配的魂灵类型（SoulData.types）
 var matching_soul_types: Array[StringName] = []
-## 当前装备栏里匹配的魂灵数量；恐狼自己也算一颗
+## 当前魂器网格里匹配的魂灵数量；恐狼自己也算一颗
 var matching_soul_count: int = 0
 ## 玩家 ASC 的全局直接伤害加成
 var player_damage_bonus: float = 0.0

@@ -1,6 +1,6 @@
 # GAS 适配层
 
-> 类型：实现 | 状态：有效 | 核对：2026-11-11
+> 类型：实现 | 状态：有效 | 核对：2026-11-14
 > 何时读：改属性集、标签注册、Cue 清单
 > 关键词：GAS GameplayAbility AttributeSet Tag Cue godot_gas
 > 代码：godot_gas/、base_mods/core/mod.json
@@ -11,7 +11,7 @@
 | 文件 | 内容 |
 |---|---|
 | `attributes/player_stats_attribute_set.gd` | `max_health`、`health`、`damage_bonus`、`burn`、`shield`、`poison`、`regen`；`health` 钳制在 `[0, max_health]`，状态值钳制为不小于 0 |
-| `attributes/monster_stats_attribute_set.gd` | 同上 |
+| `attributes/monster_stats_attribute_set.gd` | `max_health`、`health`、`burn`、`shield`、`poison`、`regen`；没有 `damage_bonus` |
 | `attributes_draft.cfg` | GodotGAS 编辑器插件的属性草稿数据，不参与运行时 |
 | `tag_registry.tres` | 标签注册表：`Cue.*`、`Data.*`（SetByCaller）、`Event.*`（GameplayEvent）、`State.*`、`Team.*`、`Skill.<id>`、`Skill.Trigger.*`；完整列表以此文件为准 |
 | `gameplay_tags.gd` | 由插件根据注册表自动生成，**不要手改**；新增标签后通过插件重新生成 |

@@ -7,7 +7,7 @@ var runtime: SoulRuntime
 
 var _icon: TextureRect
 var _name_label: Label
-var _part_label: Label
+var _vessel_label: Label
 var _charge_bar: ProgressBar
 var _charge_label: Label
 var _status_label: Label
@@ -38,10 +38,10 @@ func _ready() -> void:
 	_name_label.clip_text = true
 	row.add_child(_name_label)
 
-	_part_label = Label.new()
-	_part_label.custom_minimum_size = Vector2(66, 0)
-	_part_label.add_theme_color_override("font_color", GameColors.to_color(GameColors.DEBUG_HINT))
-	row.add_child(_part_label)
+	_vessel_label = Label.new()
+	_vessel_label.custom_minimum_size = Vector2(66, 0)
+	_vessel_label.add_theme_color_override("font_color", GameColors.to_color(GameColors.DEBUG_HINT))
+	row.add_child(_vessel_label)
 
 	_charge_bar = ProgressBar.new()
 	_charge_bar.custom_minimum_size = Vector2(150, 16)
@@ -76,7 +76,7 @@ func refresh() -> void:
 	if runtime.soul != null:
 		_icon.texture = runtime.soul.icon
 	_name_label.text = runtime.display_name()
-	_part_label.text = _part_text()
+	_vessel_label.text = _vessel_text()
 
 	if runtime.ability == null:
 		_charge_bar.value = 0.0
@@ -114,7 +114,7 @@ func refresh() -> void:
 	]
 
 
-func _part_text() -> String:
+func _vessel_text() -> String:
 	if runtime == null:
 		return ""
 	return runtime.vessel_name()

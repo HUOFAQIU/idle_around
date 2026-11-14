@@ -45,7 +45,3 @@ func reset() -> void:
 	_dirty = false
 	_urgent = false
 	_since_save = 0.0
-
-
-func is_dirty() -> bool:
-	return _dirty

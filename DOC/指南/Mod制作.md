@@ -3,10 +3,9 @@
 > 类型：指南 | 状态：部分实现（内置 core 已接入）
 > 何时读：制作、打包、调试 idle_around 的 mod，或新增官方内容
 > 关键词：mod.json content.pck modkit 示例 mod pack_example patch 导出 覆盖 加载顺序 内置 core content_root content_namespace validate_core_manifest manifest 校验 内容 ID 技能 ID 命名 PascalCase content_id 魂器 vessels
-> 核对：2026-11-12
 > 代码：`Scripts/mod/`、`Scripts/collection_db.gd`、`base_mods/core/mod.json`
 > 相关：`架构/Mod系统.md`
-> 核对：2026-11-11
+> 核对：2026-11-14
 
 ## 1. 最小 mod
 
@@ -176,7 +175,7 @@ user://mods/example_souls/
 
 ## 9. 官方内置内容（core）
 
-- 清单：`base_mods/core/mod.json`；内容资源已经物理迁移到 `base_mods/core/` 的 `souls/`、`monsters/`、`effects/`、`cues/`，manifest 不再填写 `content_root`。
+- 清单：`base_mods/core/mod.json`；内容资源已经物理迁移到 `base_mods/core/` 的 `souls/`、`monsters/`、`vessels/`、`effects/`、`cues/`，manifest 不再填写 `content_root`。
 - 当前条目：`souls` 19 条、`monsters` 2 条、`vessels` 1 条、`cues` 5 条。技能、触发器、effects 不单独登记，由魂灵/技能资源内部引用。
 - 新增官方魂灵：把 `.tres` 放到 `base_mods/core/souls/<name>/`，在 `content.souls` 加 `{ "id": "<id>", "path": "souls/<name>/<file>.tres" }`。
 - 新增官方怪物：数据放 `base_mods/core/monsters/<name>/`，在 `content.monsters` 加 `{ "id": "<id>", "path": "monsters/<name>/<file>.tres" }`；`display_name` / `max_health` / `attack_range` / `move_speed` / `spawn_distances` / `icon` / `battle_scene` 都配在 `MonsterData`，战斗场景不再写这些字段。

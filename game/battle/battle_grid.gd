@@ -24,12 +24,6 @@ func world_to_cell(pos: Vector2) -> Vector2i:
 	return map.local_to_map(pos)
 
 
-func used_cells() -> Array[Vector2i]:
-	if map == null:
-		return []
-	return map.get_used_cells()
-
-
 ## 以 anchor 为中心，按六边形距离给已使用格子分环：距离 → 该环的格子数组。
 ## 刷怪按 MonsterData.spawn_distances 选距离时直接用这张表。
 func cells_by_distance(anchor: Vector2i) -> Dictionary:

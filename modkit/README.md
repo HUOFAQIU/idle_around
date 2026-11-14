@@ -29,7 +29,7 @@ user://mods/example_souls/mod.json
 
 Windows 下 `user://` 是 `%APPDATA%\Godot\app_userdata\idle_around\`。
 
-5. 重启游戏，打开主界面第 9 个按钮“Mod”，应该能看到 `Example Souls`。
+5. 重启游戏，打开主界面的“Mod”按钮，应该能看到 `Example Souls`。
 6. 用测试接口把示例魂灵放进仓库：
 
 ```gdscript
@@ -38,7 +38,7 @@ TestAPI.add_soul_to_warehouse(&"example_souls:fire_wolf_soul")
 
 ## 校验内置 core manifest
 
-官方内容清单 `base_mods/core/mod.json` 是手工维护的。改完魂灵/怪物/Cue 后运行：
+官方内容清单 `base_mods/core/mod.json` 是手工维护的。改完魂灵/怪物/魂器/Cue 后运行：
 
 ```text
 "U:\Godot_ver\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64.exe" ^
@@ -46,7 +46,7 @@ TestAPI.add_soul_to_warehouse(&"example_souls:fire_wolf_soul")
   --script res://modkit/validate_core_manifest.gd
 ```
 
-检查项：manifest 格式、`id=core` / `content_namespace=global`、魂灵/怪物/Cue 条目与目录文件是否一一对应、重复 ID/路径、ID/标签格式、魂灵技能 ID 是否与 content_id 派生值一致。退出码 `0` 表示通过，`1` 表示有错误。
+检查项：manifest 格式、`id=core` / `content_namespace=global`、魂灵/怪物/魂器/Cue 条目与目录文件是否一一对应、重复 ID/路径、ID/标签格式、魂灵技能 ID 是否与 content_id 派生值一致。退出码 `0` 表示通过，`1` 表示有错误。
 
 运行时也可以用 `TestAPI.validate_core_manifest()` 查询同一份校验结果。
 
@@ -60,7 +60,7 @@ TestAPI.add_soul_to_warehouse(&"example_souls:fire_wolf_soul")
   --script res://modkit/validate_container_ids.gd
 ```
 
-对比装备/仓库/商店场景的 `container_name` 与 `Scripts/container_ids.gd`。运行时可用 `TestAPI.validate_container_ids()` 检查容器是否都注册成功。
+对比角色（魂器网格）/仓库/商店场景的 `container_name` 与 `Scripts/container_ids.gd`。运行时可用 `TestAPI.validate_container_ids()` 检查容器是否都注册成功。
 
 ## 发布 mod
 
@@ -78,15 +78,15 @@ example_souls/
 
 - `id`：小写 snake_case，全局唯一；改 id 后所有内容 ID、Cue 前缀和 PCK 目标路径也要一起改。
 - `name` / `version` / `author` / `description`：Mod 窗口展示用。
-- `content`：魂灵、怪物、Cue 的路径列表。
+- `content`：魂灵、怪物、魂器、Cue 的路径列表。
 
 ## 内容规则
 
-- 魂灵/怪物 ID：`<mod_id>:<local_id>`；local_id 用小写 snake_case，魂灵以 `_soul` 结尾、怪物以 `_monster` 结尾。
+- 魂灵/怪物/魂器 ID：`<mod_id>:<local_id>`；local_id 用小写 snake_case，魂灵以 `_soul` 结尾、怪物以 `_monster` 结尾、魂器以 `_vessel` 结尾。
 - 技能 ID：`Mod.<PascalModId>.<PascalName>`，示例是 `Mod.ExampleSouls.FireWolf`；留空时 `ModLoader` 会按魂灵 content_id 自动派生。
 - Cue 标签：`Cue.Mod.<PascalModId>.<Name>`，示例是 `Cue.Mod.ExampleSouls.Fire`。
 - Cue 场景根节点必须继承 `GameplayCueNotify`。
-- 技能、效果可以引用原版脚本和资源；新魂灵/怪物/Cue 必须在 `mod.json` 的 `content` 里登记。
+- 技能、效果可以引用原版脚本和资源；新魂灵/怪物/魂器/Cue 必须在 `mod.json` 的 `content` 里登记。
 - 详细字段、覆盖和加载顺序见 `DOC/指南/Mod制作.md`。
 
 ## 说明

@@ -1,6 +1,6 @@
 # 给游戏加特效（GameplayCue）
 
-> 类型：指南 | 状态：有效 | 核对：2026-11-13
+> 类型：指南 | 状态：有效 | 核对：2026-11-14
 > 何时读：新增/调试 GameplayCue 特效
 > 关键词：特效 GameplayCue Cue 场景 对象池 补间 注册 挂钩 灼烧 剧毒 冻结 恐狼 爪痕 hit_cue_tag 命中特效 mod 内置 core manifest
 > 代码：`base_mods/core/mod.json`、`godot_gas/cue_registry.tres`、`addons/GodotGAS/cues/`、`Scripts/mod/mod_cue_registrar.gd`
@@ -80,10 +80,11 @@ func play_cue() -> void:
 | `periodic_cue_tags` | 每次周期 tick 时 | 中毒每跳一次 |
 | `removal_cue_tags` | 效果结束时 | 光环消散、状态解除 |
 
-比如长弓的伤害效果，在 `base_mods/core/souls/chang_gong/chang_gong_skill.tres` 里给"伤害"那个子资源填：
+比如剧毒的持续效果，在 `base_mods/core/effects/poison_tick.tres` 里同时填了：
 
 ```
-application_cue_tags = Array[StringName]([&"Cue.Combat.Hit"])
+application_cue_tags = Array[StringName]([&"Cue.Combat.PoisonApply"])
+persistent_cue_tags = Array[StringName]([&"Cue.Status.Poison"])
 ```
 
 **到这儿就完了** —— 框架会自动：命中时把场景挂到被打的单位身上 → 播 → 到点收回池子。

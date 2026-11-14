@@ -97,7 +97,7 @@ func setup_from_scene(
 	for child in asc.get_children():
 		if child is GameplayAbility:
 			brain.abilities.append(child as GameplayAbility)
-	# 场景配置的魂灵 → 技能/运行期状态（玩家场景 souls 为空，由 BattleSession 传入装备槽位后调用）
+	# 场景配置的魂灵 → 技能/运行期状态（玩家场景 souls 为空，由 BattleSession 传入魂器槽位后调用）
 	add_soul_abilities(souls)
 
 	# 表现（血条/染色/名字/飘字）交给 presenter，单位本身只保留战斗身份

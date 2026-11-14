@@ -13,9 +13,9 @@
 [ext_resource type="PackedScene" uid="uid://bc0rml4pkml2k" path="res://Windows/Info/info_window.tscn" id="10_gdtoh"]
 [ext_resource type="PackedScene" uid="uid://b87wi6f58te5u" path="res://Windows/Item/item_window.tscn" id="11_n2hic"]
 [ext_resource type="PackedScene" uid="uid://cj4ex21pfm4qa" path="res://Windows/Debug/debug_window.tscn" id="12_debug"]
-[ext_resource type="Script" path="res://Main/pet_panel.gd" id="13_pet"]
-[ext_resource type="Script" path="res://Main/panel_manager.gd" id="14_panel_manager"]
-[ext_resource type="Script" path="res://Main/overlay_passthrough.gd" id="15_overlay"]
+[ext_resource type="Script" uid="uid://dbsdf645uusn7" path="res://Main/pet_panel.gd" id="13_pet"]
+[ext_resource type="Script" uid="uid://cvrphgarwhs83" path="res://Main/panel_manager.gd" id="14_panel_manager"]
+[ext_resource type="Script" uid="uid://d4ednqm82mwyj" path="res://Main/overlay_passthrough.gd" id="15_overlay"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pet"]
 bg_color = Color(0.117647, 0.129412, 0.152941, 1)
@@ -153,13 +153,12 @@ open_position = Vector2i(560, 20)
 visible = false
 
 [node name="ModWindow" type="Control" parent="." unique_id=829175154]
+visible = false
 layout_mode = 1
 anchors_preset = 0
-offset_left = 0.0
 offset_top = 36.0
 offset_right = 640.0
 offset_bottom = 392.0
-visible = false
 script = ExtResource("9_70kn5")
 
 [node name="DebugWindow" parent="." unique_id=1698870524 instance=ExtResource("12_debug")]

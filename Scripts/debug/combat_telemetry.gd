@@ -14,7 +14,6 @@ signal run_started(run_id: int)
 signal run_ended(run_id: int)
 
 const MAX_EVENTS_DEFAULT: int = 5000
-const MIN_EVENTS: int = 100
 ## JSONL 每写这么多行 flush 一次，避免逐条事件触发磁盘刷新
 const FILE_FLUSH_EVERY: int = 50
 ## 缓冲溢出时一次裁掉的比例，避免每条事件都搬整个数组

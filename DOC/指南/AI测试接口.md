@@ -237,7 +237,7 @@ print(TestAPI.get_overlay_passthrough_state())
 | `get_nearest_enemy_distance() -> float` | 最近敌人到角色的像素距离；没有敌人返回 -1 |
 | `get_enemies_in_attack_range() -> int` | 当前在角色攻击范围内的敌人数（即时制下只有这些怪才充能） |
 | `get_perf_snapshot() -> Dictionary` | 性能快照：FPS、节点数、敌人数、范围内敌人数、最近距离 |
-| `get_battle_log() -> String` | 当前战斗日志纯文本 |
+| `get_battle_log() -> String` | 当前战斗日志纯文本（`InfoWindow` 的 500 行缓冲，含时间前缀） |
 | `get_fps_text() -> String` | 战斗窗口右上角的 FPS 文本 |
 
 `target` 支持 `"player"`、`"enemy"` 或单位名。灼烧测试可用：

@@ -1192,7 +1192,7 @@ static func get_perf_snapshot() -> Dictionary:
 static func get_battle_log() -> String:
 	if InfoWindow.instance == null:
 		return ""
-	return InfoWindow.instance.log_label.get_parsed_text()
+	return InfoWindow.instance.get_log_text()
 
 
 ## 战斗窗口右上角的 FPS 文本

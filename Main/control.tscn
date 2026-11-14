@@ -199,5 +199,3 @@ layer = 1026
 
 [node name="TooltipWindow" parent="TooltipLayer" unique_id=143098148 instance=ExtResource("9_c4peb")]
 visible = false
-offset_right = 200.0
-offset_bottom = 100.0

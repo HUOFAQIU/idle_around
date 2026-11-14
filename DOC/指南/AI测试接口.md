@@ -1,8 +1,8 @@
 # AI 测试接口 TestAPI
 
-> 类型：指南 | 状态：有效 | 核对：2026-11-14
+> 类型：指南 | 状态：有效 | 核对：2026-11-15
 > 何时读：写自动化测试/探针、构造战斗或背包场景、验证新功能
-> 关键词：测试 TestAPI 探针 自动化 战斗快照 魂灵 魂器 vessel 仓库 见闻 商店 冷却 冻结 触发器 类型 标签 尺寸 充能 卡面 tooltip 伤害缩放 动态伤害 静态预览 SoulDamagePreview get_equipped_soul_damage_preview is_dynamic has_runtime 多重触发 cast_times releases 颜色 色板 存档 save 爪痕 play_claw_cue mod ModLoader ModWindow 加载顺序 order mod_cue_registrar cue Cue 特效 manifest 创意工坊 内置 core content_id validate_core_manifest manifest 校验 技能 ID ability_tag 命名 主窗口置顶 单窗口 浮层 CanvasLayer PetPanel 拖动 位置持久化 PanelManager 激活面板 遮挡 穿透 mouse_passthrough OverlayPassthrough 终端 字符网格 TerminalView TerminalBuffer TerminalSpan 跨格大字 ANSI SGR 回看 scrollback auto_scroll
+> 关键词：测试 TestAPI 探针 自动化 战斗快照 魂灵 魂器 vessel 仓库 见闻 商店 冷却 冻结 触发器 类型 标签 尺寸 充能 卡面 tooltip 伤害缩放 动态伤害 静态预览 SoulDamagePreview get_equipped_soul_damage_preview is_dynamic has_runtime 多重触发 cast_times releases 颜色 色板 存档 save 爪痕 play_claw_cue mod ModLoader ModWindow 加载顺序 order mod_cue_registrar cue Cue 特效 manifest 创意工坊 内置 core content_id validate_core_manifest manifest 校验 技能 ID ability_tag 命名 主窗口置顶 单窗口 浮层 CanvasLayer PetPanel 主菜单 位置持久化 CubePlacement PanelManager 激活面板 遮挡 穿透 mouse_passthrough WindowPassthrough 立方体 cube 面 02 背面 终端 字符网格 TerminalView TerminalBuffer TerminalSpan 跨格大字 ANSI SGR 回看 scrollback auto_scroll
 > 代码：`Scripts/test_api.gd`、`Windows/Battle/battle_window.gd`、`Scripts/collection_db.gd`、`Scripts/save/`、`Scripts/mod/`、`base_mods/core/mod.json`
 > 约定：新增功能/内容时，同步补 TestAPI 方法并更新本文。
 
@@ -167,27 +167,51 @@ print(TestAPI.get_mod_load_order())
 | `set_window_pinned(window_name, pinned) -> bool` | 设置主窗口（整个应用）置顶；单窗口模式只有 `MainWindow` 有效，其他名字返回 false；写入 `user://Settings.cfg`，键 `main_window` |
 | `is_window_pinned(window_name) -> bool` | 查询主窗口置顶状态；其他名字返回 false |
 | `get_window_pin_states() -> Dictionary` | 主窗口置顶状态：`{"MainWindow": bool}` |
-| `get_pet_panel_position() -> Vector2` | PetPanel 左上角位置（主视口坐标）；找不到返回 `(-1, -1)` |
-| `set_pet_panel_position(position) -> bool` | 把 PetPanel 移到指定位置并写入 `user://Settings.cfg` 的 `[pet_panel]`；找不到返回 `false` |
+| `get_cube_screen_position() -> Vector2` | 立方体中心的屏幕像素坐标；找不到返回 `(-1, -1)` |
+| `set_cube_screen_position(position) -> bool` | 把立方体移到指定屏幕坐标并写入 `user://Settings.cfg` 的 `[cube]`；找不到返回 `false` |
 | `get_active_panel_name() -> String` | 当前激活面板的节点名；没有返回 `""` |
-| `get_visible_panel_rects() -> Array[Rect2]` | 所有可见 `BaseWindow` 面板的全局矩形，给遮挡/穿透测试用 |
-| `set_overlay_passthrough_enabled(enabled) -> bool` | 开关透明覆盖层点击穿透；找不到模块返回 `false` |
-| `is_overlay_passthrough_enabled() -> bool` | 穿透总开关是否开启 |
-| `get_overlay_passthrough_state() -> Dictionary` | `enabled` / `locked` / `rects`（命中矩形数量，矩形已按 `REGION_MARGIN` 外扩）/ `polygon_points`（窗口区域多边形顶点数） |
+| `get_visible_panel_rects() -> Array[Rect2]` | 所有可见 `BaseWindow` 面板的矩形（主视口坐标），给遮挡/穿透测试用 |
+| `set_cube_passthrough_enabled(enabled) -> bool` | 开关透明覆盖层点击穿透；找不到模块返回 `false` |
+| `is_cube_passthrough_enabled() -> bool` | 穿透总开关是否开启 |
+| `get_cube_passthrough_state() -> Dictionary` | `enabled` / `locked` / `rects`（游戏 UI + HUD + 拖动圆点矩形数量）/ `polygon_points`（窗口区域多边形顶点数） |
 
 ```gdscript
 print(TestAPI.set_window_pinned("MainWindow", true))
 print(TestAPI.is_window_pinned("MainWindow"))
 print(TestAPI.get_window_pin_states())
-print(TestAPI.set_pet_panel_position(Vector2(100, 100)))
-print(TestAPI.get_pet_panel_position())
+print(TestAPI.set_cube_screen_position(Vector2(160, 800)))
+print(TestAPI.get_cube_screen_position())
 print(TestAPI.get_active_panel_name())
 print(TestAPI.get_visible_panel_rects())
-print(TestAPI.set_overlay_passthrough_enabled(true))
-print(TestAPI.get_overlay_passthrough_state())
+print(TestAPI.set_cube_passthrough_enabled(true))
+print(TestAPI.get_cube_passthrough_state())
 ```
 
-窗口置顶状态存在 `user://Settings.cfg` 的 `[window_pins]` 段，只有 `main_window` 一个键。PetPanel 位置存在同一文件的 `[pet_panel]` 段，键 `position`；拖动或调用 `set_pet_panel_position()` 时写入，启动时读取并夹回主视口。面板置顶/激活由 `Main/panel_manager.gd` 统一管理：打开或点击面板时 `move_to_front()`，`get_active_panel_name()` 读当前激活面板。透明区域点击穿透由 `Main/overlay_passthrough.gd` 管理：用 `mouse_passthrough_polygon` 把 PetPanel + 可见面板 + Tooltip/Item 合成一个窗口区域，区域外点击落到桌面；`get_overlay_passthrough_state()` 返回当前开关、是否处于拖动锁定、命中矩形数量和区域多边形顶点数。单窗口模式下面板没有独立系统置顶；`BaseWindow` 的标题栏只负责拖动和关闭。`TooltipWindow` / `ItemWindow` 是主视口内的浮层（CanvasLayer 1026 / 1025），不参与置顶。
+窗口置顶状态存在 `user://Settings.cfg` 的 `[window_pins]` 段，只有 `main_window` 一个键。立方体位置存在同一文件的 `[cube]` 段，键 `screen_position`（立方体中心的屏幕像素坐标）；拖动圆点或调用 `set_cube_screen_position()` 时写入，启动时读取并夹回视口。面板置顶/激活由 `Main/panel_manager.gd` 统一管理：打开或点击面板时 `move_to_front()`，`get_active_panel_name()` 读当前激活面板。透明区域点击穿透由 `Main/Cube/Scripts/window_passthrough.gd` 管理：用 `mouse_passthrough_polygon` 把立方体投影凸包 + 可见游戏面板 + Tooltip/Item + HUD Toast + 拖动圆点合成一个窗口区域，区域外点击落到桌面；`get_cube_passthrough_state()` 返回当前开关、是否处于拖动锁定、矩形数量和区域多边形顶点数。单窗口模式下面板没有独立系统置顶；`BaseWindow` 的标题栏只负责拖动和关闭。`TooltipWindow` / `ItemWindow` 是主视口内的浮层（CanvasLayer 1026 / 1025），不参与置顶。
+
+## 立方体外壳
+
+| 方法 | 说明 |
+|---|---|
+| `get_cube_state() -> Dictionary` | `cube_scale` / `screen_center` / `orientation` / `front_face_index` / `ui_face_index` / `ui_face_viewport_size` / `passthrough` |
+| `set_cube_face_front(index) -> bool` | 立即把指定面转到正对相机（测试用，跳过动画） |
+| `get_cube_face_content(index) -> String` | `face_ui` / `pet_panel` / `unknown` |
+| `click_cube_face_button(index) -> bool` | 触发普通面的识别按钮，走与点击一致的信号链；面 02 返回 false |
+| `click_cube_pet_button(panel_id) -> bool` | 触发面 02 主菜单按钮（id 如 `inventory`），走完整信号链，窗口在主视口打开 |
+
+```gdscript
+print(TestAPI.get_cube_state())
+print(TestAPI.set_cube_face_front(1))
+print(TestAPI.get_cube_face_content(1))
+print(TestAPI.click_cube_face_button(0))
+print(TestAPI.click_cube_pet_button(&"inventory"))
+```
+
+- 面 02（`index = 1`）是 PetPanel 主菜单；游戏 UI 本身是主视口的 `GameUI` 覆盖层，不挂在面片上。
+- `set_cube_face_front(1)` 后可直接点击/测试主菜单；`click_cube_pet_button("inventory")` 应让 `InventoryWindow` 在主视口打开。
+- `get_cube_screen_position()` 是**立方体中心**的屏幕坐标，不是菜单面中心；菜单默认位置由 `CubePlacement` 按面 02 反算。
+- 面板坐标和 `get_visible_panel_rects()` 返回的是主视口像素坐标。
+- 普通面索引：0 正面、1 背面（主菜单）、2 左面、3 右面、4 上面、5 下面。
 
 ## 颜色
 

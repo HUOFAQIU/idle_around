@@ -1,6 +1,6 @@
 # 给游戏加特效（GameplayCue）
 
-> 类型：指南 | 状态：有效 | 核对：2026-11-14
+> 类型：指南 | 状态：有效 | 核对：2026-11-15
 > 何时读：新增/调试 GameplayCue 特效
 > 关键词：特效 GameplayCue Cue 场景 对象池 补间 注册 挂钩 灼烧 剧毒 冻结 恐狼 爪痕 hit_cue_tag 命中特效 mod 内置 core manifest
 > 代码：`base_mods/core/mod.json`、`godot_gas/cue_registry.tres`、`addons/GodotGAS/cues/`、`Scripts/mod/mod_cue_registrar.gd`
@@ -170,7 +170,7 @@ func execute_cue(target: Node, payload: Dictionary = {}) -> void:
 2. **`play_cue` 被调用了吗** —— 临时在里面 `print` 或加个计数器
 3. **节点真的在画吗** —— 有时候是 `_draw`/粒子在跑，但太小太淡看不见
 
-第 3 步可以直接读主视口像素验证（面板不再是独立 Viewport；先拿面板的全局矩形，再把面板内部坐标换算成视口坐标）：
+第 3 步可以直接读主视口像素验证（面板是主视口里的 Control；先拿面板的全局矩形，再把面板内部坐标换算成视口坐标）：
 
 ```gdscript
 await RenderingServer.frame_post_draw

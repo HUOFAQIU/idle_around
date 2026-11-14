@@ -1,14 +1,11 @@
+class_name GameUI
 extends Control
+## 游戏 UI 根节点：窗口开关与主菜单请求解析。
+##
+## 主菜单 PetPanel 挂在立方体面 02 上，按钮请求由 Main/Cube 装配脚本
+## 转进 open_panel()；窗口本身仍在主视口里，和以前一样弹出/置顶。
 
-@onready var button_1: Button = $PetPanel/GridContainer/Button1
-@onready var button_2: Button = $PetPanel/GridContainer/Button2
-@onready var button_3: Button = $PetPanel/GridContainer/Button3
-@onready var button_4: Button = $PetPanel/GridContainer/Button4
-@onready var button_5: Button = $PetPanel/GridContainer/Button5
-@onready var button_6: Button = $PetPanel/GridContainer/Button6
-@onready var button_7: Button = $PetPanel/GridContainer/Button7
-@onready var button_8: Button = $PetPanel/GridContainer/Button8
-@onready var button_9: Button = $PetPanel/GridContainer/Button9
+var _panels: Dictionary = {}
 
 @onready var character_window: CharacterWindow = $CharacterWindow
 @onready var inventory_window: InventoryWindow = $InventoryWindow
@@ -22,42 +19,21 @@ extends Control
 
 
 func _ready() -> void:
-	button_1.pressed.connect(
-		func ():
-			popup_window(character_window)
-	)
-	button_2.pressed.connect(
-		func ():
-			pass
-	)
-	button_3.pressed.connect(
-		func ():
-			popup_window(inventory_window)
-	)
-	button_4.pressed.connect(
-		func ():
-			popup_window(shop_window)
-	)
-	button_5.pressed.connect(
-		func ():
-			popup_window(battle_window)
-	)
-	button_6.pressed.connect(
-		func ():
-			popup_window(collection_window)
-	)
-	button_7.pressed.connect(
-		func ():
-			popup_window(debug_window)
-	)
-	button_8.pressed.connect(
-		func ():
-			popup_window(terminal_window)
-	)
-	button_9.pressed.connect(
-		func ():
-			popup_window(mod_window)
-	)
+	_panels = {
+		&"character": character_window,
+		&"inventory": inventory_window,
+		&"shop": shop_window,
+		&"battle": battle_window,
+		&"collection": collection_window,
+		&"debug": debug_window,
+		&"terminal": terminal_window,
+		&"mod": mod_window,
+	}
+
+
+## 主菜单按钮请求：按 id 打开/关闭对应窗口
+func open_panel(panel_id: StringName) -> void:
+	popup_window(_panels.get(panel_id) as BaseWindow)
 
 
 func popup_window(window: BaseWindow) -> void:

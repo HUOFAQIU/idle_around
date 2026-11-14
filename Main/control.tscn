@@ -1,7 +1,6 @@
 [gd_scene format=3 uid="uid://cf2t8qpdn820p"]
 
 [ext_resource type="Script" uid="uid://bykipvqgfvhwl" path="res://Main/control.gd" id="1_6fago"]
-[ext_resource type="Script" uid="uid://cj0t5upbe5p2n" path="res://Main/status_bar_container.gd" id="3_nu5lx"]
 [ext_resource type="PackedScene" uid="uid://da2scdocynbkk" path="res://Windows/Character/character_window.tscn" id="4_pa2rv"]
 [ext_resource type="PackedScene" path="res://Windows/Vessel/vessel_window.tscn" id="5_vessel"]
 [ext_resource type="PackedScene" uid="uid://f6jom4nfishp" path="res://Windows/Inventory/inventory_window.tscn" id="6_2mfgw"]
@@ -13,22 +12,8 @@
 [ext_resource type="PackedScene" uid="uid://bc0rml4pkml2k" path="res://Windows/Info/info_window.tscn" id="10_gdtoh"]
 [ext_resource type="PackedScene" uid="uid://b87wi6f58te5u" path="res://Windows/Item/item_window.tscn" id="11_n2hic"]
 [ext_resource type="PackedScene" uid="uid://cj4ex21pfm4qa" path="res://Windows/Debug/debug_window.tscn" id="12_debug"]
-[ext_resource type="Script" uid="uid://dbsdf645uusn7" path="res://Main/pet_panel.gd" id="13_pet"]
 [ext_resource type="Script" uid="uid://cvrphgarwhs83" path="res://Main/panel_manager.gd" id="14_panel_manager"]
-[ext_resource type="Script" uid="uid://d4ednqm82mwyj" path="res://Main/overlay_passthrough.gd" id="15_overlay"]
 [ext_resource type="PackedScene" path="res://Windows/Terminal/terminal_window.tscn" id="16_terminal"]
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pet"]
-bg_color = Color(0.117647, 0.129412, 0.152941, 1)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.290196, 0.309804, 0.341176, 1)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
 
 [node name="Control" type="Control" unique_id=887310324]
 layout_mode = 3
@@ -39,110 +24,6 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("1_6fago")
-
-[node name="PetPanel" type="Control" parent="." unique_id=1932018194]
-layout_mode = 1
-anchors_preset = 0
-offset_left = 5.0
-offset_top = 655.0
-offset_right = 305.0
-offset_bottom = 955.0
-script = ExtResource("13_pet")
-
-[node name="Background" type="Panel" parent="PetPanel" unique_id=1150979607]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_pet")
-
-[node name="StatusBarContainer" type="HBoxContainer" parent="PetPanel" unique_id=685106944]
-custom_minimum_size = Vector2(0, 44)
-layout_mode = 1
-anchors_preset = 10
-anchor_right = 1.0
-grow_horizontal = 2
-alignment = 1
-script = ExtResource("3_nu5lx")
-
-[node name="Button2" type="Button" parent="PetPanel/StatusBarContainer" unique_id=155035595]
-custom_minimum_size = Vector2(44, 44)
-layout_mode = 2
-text = "T"
-
-[node name="Button3" type="Button" parent="PetPanel/StatusBarContainer" unique_id=1429552806]
-custom_minimum_size = Vector2(44, 44)
-layout_mode = 2
-
-[node name="Button4" type="Button" parent="PetPanel/StatusBarContainer" unique_id=1786712034]
-custom_minimum_size = Vector2(44, 44)
-layout_mode = 2
-
-[node name="Button5" type="Button" parent="PetPanel/StatusBarContainer" unique_id=1605001095]
-custom_minimum_size = Vector2(44, 44)
-layout_mode = 2
-
-[node name="GridContainer" type="GridContainer" parent="PetPanel" unique_id=1805388438]
-custom_minimum_size = Vector2(0, 50)
-layout_mode = 1
-anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -124.0
-offset_top = -248.0
-offset_right = 124.0
-grow_horizontal = 2
-grow_vertical = 0
-columns = 3
-
-[node name="Button1" type="Button" parent="PetPanel/GridContainer" unique_id=1147498350]
-custom_minimum_size = Vector2(80, 80)
-layout_mode = 2
-text = "人物"
-
-[node name="Button2" type="Button" parent="PetPanel/GridContainer" unique_id=178598264]
-custom_minimum_size = Vector2(80, 80)
-layout_mode = 2
-
-[node name="Button3" type="Button" parent="PetPanel/GridContainer" unique_id=1363769282]
-custom_minimum_size = Vector2(80, 80)
-layout_mode = 2
-text = "仓库"
-
-[node name="Button4" type="Button" parent="PetPanel/GridContainer" unique_id=225774360]
-custom_minimum_size = Vector2(80, 80)
-layout_mode = 2
-text = "商店"
-
-[node name="Button5" type="Button" parent="PetPanel/GridContainer" unique_id=603772684]
-custom_minimum_size = Vector2(80, 80)
-layout_mode = 2
-text = "战！"
-
-[node name="Button6" type="Button" parent="PetPanel/GridContainer" unique_id=1960515822]
-custom_minimum_size = Vector2(80, 80)
-layout_mode = 2
-text = "见闻"
-
-[node name="Button7" type="Button" parent="PetPanel/GridContainer" unique_id=1732763487]
-custom_minimum_size = Vector2(80, 80)
-layout_mode = 2
-text = "调试"
-
-[node name="Button8" type="Button" parent="PetPanel/GridContainer" unique_id=24536484]
-custom_minimum_size = Vector2(80, 80)
-layout_mode = 2
-text = "终端"
-
-[node name="Button9" type="Button" parent="PetPanel/GridContainer" unique_id=1526956540]
-custom_minimum_size = Vector2(80, 80)
-layout_mode = 2
-text = "Mod"
 
 [node name="CharacterWindow" parent="." unique_id=1235136498 instance=ExtResource("4_pa2rv")]
 visible = false
@@ -183,9 +64,6 @@ visible = false
 
 [node name="PanelManager" type="Node" parent="." unique_id=1449830164]
 script = ExtResource("14_panel_manager")
-
-[node name="OverlayPassthrough" type="Node" parent="." unique_id=1742031552]
-script = ExtResource("15_overlay")
 
 [node name="DragLayer" type="CanvasLayer" parent="." unique_id=269600030]
 layer = 1025

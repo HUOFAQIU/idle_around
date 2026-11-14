@@ -901,18 +901,19 @@ static func get_window_pin_states() -> Dictionary:
 	return result
 
 
-## PetPanel 当前的左上角位置（主视口坐标）；找不到返回 (-1, -1)
-static func get_pet_panel_position() -> Vector2:
-	var panel := _pet_panel()
-	return panel.position if panel != null else Vector2(-1, -1)
+## 立方体中心的屏幕坐标（主视口像素）；找不到返回 (-1, -1)
+static func get_cube_screen_position() -> Vector2:
+	var placement := _cube_placement()
+	return placement.get_screen_center() if placement != null else Vector2(-1, -1)
 
 
-## 把 PetPanel 移动到指定位置并持久化；找不到返回 false
-static func set_pet_panel_position(target_position : Vector2) -> bool:
-	var panel := _pet_panel()
-	if panel == null:
+## 把立方体移到指定屏幕坐标并持久化到 [cube]；找不到返回 false
+static func set_cube_screen_position(target_position : Vector2) -> bool:
+	var placement := _cube_placement()
+	if placement == null:
 		return false
-	panel.move_to(target_position)
+	placement.set_screen_center(target_position)
+	placement.save_position()
 	return true
 
 
@@ -934,34 +935,6 @@ static func get_visible_panel_rects() -> Array[Rect2]:
 	return result
 
 
-## 透明覆盖层点击穿透总开关；找不到模块返回 false
-static func set_overlay_passthrough_enabled(enabled : bool) -> bool:
-	var module := OverlayPassthrough.instance
-	if module == null:
-		return false
-	module.enabled = enabled
-	return true
-
-
-## 透明覆盖层点击穿透是否开启
-static func is_overlay_passthrough_enabled() -> bool:
-	var module := OverlayPassthrough.instance
-	return module != null and module.enabled
-
-
-## 穿透状态：enabled / locked / rects / polygon_points
-static func get_overlay_passthrough_state() -> Dictionary:
-	var module := OverlayPassthrough.instance
-	if module == null:
-		return {}
-	return {
-		"enabled": module.enabled,
-		"locked": module.is_locked(),
-		"rects": module.get_hit_rects().size(),
-		"polygon_points": module.get_polygon_points().size(),
-	}
-
-
 static func _main_window() -> Window:
 	var tree := Engine.get_main_loop() as SceneTree
 	if tree == null:
@@ -969,14 +942,17 @@ static func _main_window() -> Window:
 	return tree.root as Window
 
 
-static func _pet_panel() -> PetPanel:
+static func _cube_placement() -> CubePlacement:
 	var tree := Engine.get_main_loop() as SceneTree
 	if tree == null:
 		return null
 	var root : Node = tree.current_scene
 	if root == null:
 		root = tree.root
-	return root.find_child("PetPanel", true, false) as PetPanel
+	for node in root.find_children("*", "", true, false):
+		if node is CubePlacement:
+			return node as CubePlacement
+	return null
 
 
 static func _sync_main_pin_button(pinned : bool) -> void:
@@ -989,6 +965,191 @@ static func _sync_main_pin_button(pinned : bool) -> void:
 	var button := status.get_node_or_null("Button2")
 	if button is Button:
 		(button as Button).set_pressed_no_signal(pinned)
+
+#endregion
+
+
+#region 立方体外壳
+
+## 透明覆盖层点击穿透总开关；找不到模块返回 false
+static func set_cube_passthrough_enabled(enabled : bool) -> bool:
+	var module := WindowPassthrough.instance
+	if module == null:
+		return false
+	module.enabled = enabled
+	return true
+
+
+## 透明覆盖层点击穿透是否开启
+static func is_cube_passthrough_enabled() -> bool:
+	var module := WindowPassthrough.instance
+	return module != null and module.enabled
+
+
+## 穿透状态：enabled / locked / rects / polygon_points
+static func get_cube_passthrough_state() -> Dictionary:
+	var module := WindowPassthrough.instance
+	if module == null:
+		return {}
+	return {
+		"enabled": module.enabled,
+		"locked": module.is_locked(),
+		"rects": module.get_hit_rects().size(),
+		"polygon_points": module.get_polygon_points().size(),
+	}
+
+
+## 立方体状态：缩放、屏幕位置、朝向、正对面、面 02 的 UI 视口与穿透
+static func get_cube_state() -> Dictionary:
+	if _cube_rig() == null:
+		return {}
+	var pivot := _cube_orientation()
+	var camera := _main_viewport_camera()
+	var ui_face_viewport := _ui_face_viewport()
+	return {
+		"cube_scale": _cube_scale(),
+		"screen_center": get_cube_screen_position(),
+		"orientation": pivot.quaternion if pivot != null else Quaternion.IDENTITY,
+		"front_face_index": _front_face_index(camera) if camera != null else -1,
+		"ui_face_index": 1,
+		"ui_face_viewport_size": (
+				ui_face_viewport.size if ui_face_viewport != null else Vector2i.ZERO
+		),
+		"passthrough": get_cube_passthrough_state(),
+	}
+
+
+## 立即把指定面转到正对相机；测试用
+static func set_cube_face_front(face_index : int) -> bool:
+	var orientation := _cube_orientation()
+	if orientation == null:
+		return false
+	return orientation.snap_face_to_camera(face_index)
+
+
+## 面内容类型：face_ui / pet_panel / unknown
+static func get_cube_face_content(face_index : int) -> String:
+	var face := _cube_face(face_index)
+	if face == null:
+		return "unknown"
+	var viewport := face.get_node_or_null("Viewport") as SubViewport
+	if viewport == null:
+		return "unknown"
+	for child in viewport.get_children():
+		if child is PetPanelContent:
+			return "pet_panel"
+		if child is FaceUI:
+			return "face_ui"
+	return "unknown"
+
+
+## 触发普通面的识别按钮，走与点击一致的信号链；面 02 主菜单返回 false
+static func click_cube_face_button(face_index : int) -> bool:
+	var viewport := _cube_face_viewport(face_index)
+	if viewport == null:
+		return false
+	var face_ui := viewport.find_child("FaceUI", true, false) as FaceUI
+	if face_ui == null:
+		return false
+	face_ui.identify_requested.emit()
+	return true
+
+
+## 触发面 02 主菜单按钮（按 panel_id，如 "inventory"），走完整信号链
+static func click_cube_pet_button(panel_id : StringName) -> bool:
+	var viewport := _ui_face_viewport()
+	if viewport == null:
+		return false
+	var panel := viewport.find_child("PetPanel", true, false) as PetPanel
+	if panel == null:
+		return false
+	var grid := panel.get_node_or_null("GridContainer")
+	if grid == null:
+		return false
+	for child in grid.get_children():
+		var button := child as Button
+		if button == null:
+			continue
+		if StringName(button.get_meta(&"panel_id", "")) == panel_id:
+			button.pressed.emit()
+			return true
+	return false
+
+
+static func _cube_rig() -> CubeRig:
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree == null:
+		return null
+	var root : Node = tree.current_scene
+	if root == null:
+		root = tree.root
+	for node in root.find_children("*", "", true, false):
+		if node is CubeRig:
+			return node as CubeRig
+	return null
+
+
+static func _cube_orientation() -> CubeOrientation:
+	var rig := _cube_rig()
+	if rig == null:
+		return null
+	return rig.get_node_or_null("OrientationPivot") as CubeOrientation
+
+
+static func _cube_face(face_index : int) -> Face3D:
+	var orientation := _cube_orientation()
+	if orientation == null:
+		return null
+	for child in orientation.get_children():
+		if child is Face3D and (child as Face3D).face_index == face_index:
+			return child as Face3D
+	return null
+
+
+static func _cube_face_viewport(face_index : int) -> SubViewport:
+	var face := _cube_face(face_index)
+	if face == null:
+		return null
+	return face.get_node_or_null("Viewport") as SubViewport
+
+
+static func _ui_face_viewport() -> SubViewport:
+	return _cube_face_viewport(1)
+
+
+static func _cube_scale() -> float:
+	var rig := _cube_rig()
+	if rig == null:
+		return 0.0
+	var cube := rig.get_parent() as Node3D
+	if cube == null:
+		return 0.0
+	return cube.global_transform.basis.get_scale().x
+
+
+static func _main_viewport_camera() -> Camera3D:
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree == null:
+		return null
+	return tree.root.get_camera_3d()
+
+
+static func _front_face_index(camera : Camera3D) -> int:
+	var orientation := _cube_orientation()
+	if orientation == null:
+		return -1
+	var to_camera := (camera.global_position - orientation.global_position).normalized()
+	var best_index := -1
+	var best_alignment := -INF
+	for child in orientation.get_children():
+		if not child is Face3D:
+			continue
+		var face := child as Face3D
+		var alignment := face.global_basis.z.normalized().dot(to_camera)
+		if alignment > best_alignment:
+			best_alignment = alignment
+			best_index = face.face_index
+	return best_index
 
 #endregion
 

@@ -8,12 +8,14 @@
 | 你要做什么 | 先读 | 代码入口 |
 |---|---|---|
 | 了解项目结构、autoload、输入动作 | `架构/00_总览.md` | `project.godot` |
-| 改启动链、单窗口外壳、面板清单/单例 | `架构/窗口与场景.md` | `Main/control.gd`、`Main/panel_manager.gd`、`Windows/base_window.gd` |
+| 改启动链、主场景、单窗口外壳、面板清单/单例 | `架构/窗口与场景.md`、`架构/立方体外壳.md` | `Main/Cube/Scenes/main.tscn`、`Main/control.gd`、`Main/panel_manager.gd`、`Windows/base_window.gd` |
 | 改面板拖动/关闭/标题栏、面板坐标 | `架构/窗口与场景.md` §1.2/§1.3 | `Windows/base_window.gd`、`Scripts/ui/control_drag.gd`、`Scripts/ui/ui_bounds.gd`、`Main/control.tscn` |
 | 改面板置顶/激活/遮挡判断 | `架构/窗口与场景.md` §1.2/§3 | `Main/panel_manager.gd` |
-| 改透明区域点击穿透/mouse_passthrough | `架构/窗口与场景.md` §1.7 | `Main/overlay_passthrough.gd`、`Scripts/ui/ui_region.gd` |
+| 改 3D 立方体、旋转/回正、面片内容、拖动圆点 | `架构/立方体外壳.md` | `Main/Cube/` |
+| 改面 02 主菜单/立方体承接 PetPanel | `架构/立方体外壳.md` §2/§3 | `Main/pet_panel.tscn`、`Main/pet_panel.gd`、`Main/Cube/Scenes/pet_face_3d.tscn`、`Main/Cube/Scripts/pet_panel_content.gd` |
+| 改透明区域点击穿透/mouse_passthrough | `架构/立方体外壳.md` §4 | `Main/Cube/Scripts/window_passthrough.gd`、`Scripts/ui/ui_region.gd` |
 | 改主窗口置顶、T 按钮、置顶持久化 | `架构/窗口与场景.md` §1.6 | `Main/status_bar_container.gd`、`Scripts/window_pin_settings.gd` |
-| 改主界面拖动/位置持久化 | `架构/窗口与场景.md` §1.5 | `Main/pet_panel.gd`、`Scripts/ui/control_drag.gd`、`Scripts/pet_panel_settings.gd`、`Scripts/settings_file.gd` |
+| 改立方体位置/拖动/位置持久化 | `架构/窗口与场景.md` §1.5、`架构/立方体外壳.md` §2.1 | `Main/Cube/Scripts/cube_placement.gd`、`Main/Cube/Scripts/cube_settings.gd`、`Main/Cube/Scripts/drag_handle.gd`、`Scripts/settings_file.gd` |
 | 主窗口置顶失效/置顶设置丢失 | `架构/窗口与场景.md` §3（常见排查） | `Main/status_bar_container.gd`、`Scripts/window_pin_settings.gd` |
 | 改终端字符网格/ANSI/输入/命令/性能 | `窗口/终端.md` | `Scripts/terminal/`、`Windows/Terminal/` |
 | 改战斗单位、施法、冷却/扫描线 | `架构/战斗运行时_施法与冷却.md` | `game/battle/`、`Windows/Battle/` |
@@ -59,31 +61,32 @@
 | `怪物/怪物.md` | 设计 | 部分实现 | 2026-11-14 |
 | `窗口/仓库.md` | 设计 | 部分实现 | 2026-11-14 |
 | `窗口/见闻.md` | 实现 | 已实现 | 2026-11-14 |
-| `窗口/终端.md` | 实现 | 部分实现 | 2026-11-14 |
+| `窗口/终端.md` | 实现 | 部分实现 | 2026-11-15 |
 | `魂灵/魂灵.md` | 设计 | 部分实现 | 2026-11-14 |
 | `魂灵/魂器.md` | 设计 | 已实现 | 2026-11-14 |
 | `魂灵/主动魂灵.md` | 设计 | 部分实现 | 2026-11-14 |
 | `魂灵/被动魂灵.md` | 设计 | 已实现 | 2026-11-10 |
 | `archive/souls.xlsx` | 数据 | 归档（二进制，Claude 不可读） | — |
-| `特效/effects.md` | 指南 | 有效 | 2026-11-14 |
-| `指南/AI测试接口.md` | 指南 | 有效 | 2026-11-14 |
+| `特效/effects.md` | 指南 | 有效 | 2026-11-15 |
+| `指南/AI测试接口.md` | 指南 | 有效 | 2026-11-15 |
 | `指南/调试窗口.md` | 指南 | 有效 | 2026-11-14 |
 | `架构/调试与遥测.md` | 实现 | 有效 | 2026-11-14 |
 | `背景故事/背景故事.md` | 设计 | 占位 | 2026-10-31 |
 | `archive/给AI玩的游戏.md` | 记录 | 归档 | 2026-10-31 |
-| `架构/00_总览.md` | 实现 | 有效 | 2026-11-14 |
-| `架构/窗口与场景.md` | 实现 | 有效 | 2026-11-14 |
+| `架构/00_总览.md` | 实现 | 有效 | 2026-11-15 |
+| `架构/窗口与场景.md` | 实现 | 有效 | 2026-11-15 |
+| `架构/立方体外壳.md` | 实现 | 有效 | 2026-11-15 |
 | `架构/战斗运行时_施法与冷却.md` | 实现 | 有效 | 2026-11-14 |
 | `架构/战斗运行时_移动与投射物.md` | 实现 | 有效 | 2026-11-14 |
 | `架构/战斗运行时_伤害与流程.md` | 实现 | 有效 | 2026-11-14 |
 | `架构/战斗数据与魂灵.md` | 实现 | 有效 | 2026-11-14 |
 | `架构/GAS.md` | 实现 | 有效 | 2026-11-14 |
-| `架构/背包_GBIS.md` | 实现 | 有效 | 2026-11-14 |
-| `架构/存档.md` | 实现 | 已实现 | 2026-11-14 |
-| `架构/关键流程.md` | 实现 | 有效 | 2026-11-14 |
-| `架构/扩展点.md` | 指南 | 有效 | 2026-11-14 |
+| `架构/背包_GBIS.md` | 实现 | 有效 | 2026-11-15 |
+| `架构/存档.md` | 实现 | 已实现 | 2026-11-15 |
+| `架构/关键流程.md` | 实现 | 有效 | 2026-11-15 |
+| `架构/扩展点.md` | 指南 | 有效 | 2026-11-15 |
 | `架构/颜色与主题.md` | 实现 | 有效 | 2026-11-14 |
-| `架构/现状与注意.md` | 实现 | 有效 | 2026-11-14 |
+| `架构/现状与注意.md` | 实现 | 有效 | 2026-11-15 |
 | `架构/Mod系统.md` | 设计 | 部分实现（内置 core mod 已接入） | 2026-11-14 |
 | `指南/Mod制作.md` | 指南 | 部分实现（内置 core 已接入） | 2026-11-14 |
 

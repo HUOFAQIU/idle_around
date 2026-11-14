@@ -1,0 +1,73 @@
+[gd_scene format=3 uid="uid://dvyqxdompdguj"]
+
+[ext_resource type="Script" uid="uid://c78xkpybmndv" path="res://Main/Cube/Scripts/main.gd" id="1_main"]
+[ext_resource type="PackedScene" path="res://Main/Cube/Scenes/cube.tscn" id="2_cube"]
+[ext_resource type="PackedScene" path="res://Main/Cube/Scenes/UI/hud.tscn" id="3_hud"]
+[ext_resource type="Script" uid="uid://dkdrngulsjgdk" path="res://Main/Cube/Scripts/window_passthrough.gd" id="4_passthrough"]
+[ext_resource type="PackedScene" uid="uid://cf2t8qpdn820p" path="res://Main/control.tscn" id="5_game_ui"]
+[ext_resource type="Script" path="res://Main/Cube/Scripts/cube_placement.gd" id="6_placement"]
+
+[sub_resource type="Environment" id="Environment_main"]
+ambient_light_source = 2
+ambient_light_color = Color(0.22, 0.3, 0.43, 1)
+ambient_light_energy = 0.7
+reflected_light_source = 1
+tonemap_mode = 3
+tonemap_exposure = 1.1
+glow_enabled = true
+glow_intensity = 0.45
+glow_bloom = 0.04
+glow_hdr_threshold = 0.95
+
+[node name="Main" type="Node3D" unique_id=1926542456]
+script = ExtResource("1_main")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1023616146]
+environment = SubResource("Environment_main")
+
+[node name="KeyLight" type="DirectionalLight3D" parent="." unique_id=364932023]
+transform = Transform3D(0.8480481, -0.32625088, 0.4175821, 0, 0.7880108, 0.6156615, -0.52991927, -0.5221106, 0.668271, 0, 0, 0)
+light_color = Color(1, 0.91, 0.82, 1)
+light_energy = 1.6
+shadow_enabled = true
+
+[node name="FillLight" type="OmniLight3D" parent="." unique_id=1241161938]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.8, -2.2, 3.2)
+light_color = Color(0.3, 0.57, 1, 1)
+light_energy = 3.2
+omni_range = 8.0
+
+[node name="RimLight" type="OmniLight3D" parent="." unique_id=1451151915]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.6, 1.6, -3)
+light_color = Color(0.66, 0.42, 1, 1)
+light_energy = 4.0
+omni_range = 7.0
+
+[node name="Cube" parent="." unique_id=1620714950 instance=ExtResource("2_cube")]
+
+[node name="Camera3D" type="Camera3D" parent="." unique_id=357505531]
+transform = Transform3D(1, 0, 0, 0, 0.9982398, 0.059306376, 0, -0.059306376, 0.9982398, 0, 0.35, 5.9)
+current = true
+fov = 12.0
+near = 0.1
+far = 50.0
+
+[node name="GameUI" type="CanvasLayer" parent="." unique_id=879021354]
+layer = 1
+
+[node name="GameControl" parent="GameUI" unique_id=1956732810 instance=ExtResource("5_game_ui")]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="HUD" parent="." unique_id=1677829438 instance=ExtResource("3_hud")]
+layer = 2
+
+[node name="CubePlacement" type="Node" parent="." unique_id=1440292637]
+script = ExtResource("6_placement")
+
+[node name="WindowPassthrough" type="Node" parent="." unique_id=1208137177]
+script = ExtResource("4_passthrough")

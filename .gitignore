@@ -15,6 +15,9 @@ export_credentials.cfg
 data_*/
 mono_crash.*.json
 Tests
+# tools 下的测试目录不能被上面的 Tests 规则（Windows 大小写不敏感）吞掉
+!tools/lint/tests/
+!tools/lint/tests/**
 
 # Python lint tool caches
 __pycache__/

@@ -1,16 +1,16 @@
 class_name StatusNetRule
 extends RefCounted
-## 剧毒与再生的净值规则：两者直接相减，数值多的一方生效。
+## 剧毒与生命再生的净值规则：两者直接相减，数值多的一方生效。
 ##
 ## 只比较整数层数，不改动属性本身；状态标签和状态条仍保留各自原值。
-## `poison_minus_regen()` 返回剧毒多出的差值，`regen_minus_poison()` 返回再生多出的差值。
+## `poison_minus_regen()` 返回剧毒多出的差值，`regen_minus_poison()` 返回生命再生多出的差值。
 
-## 剧毒减再生；正数表示剧毒更多
+## 剧毒减生命再生；正数表示剧毒更多
 static func poison_minus_regen(asc: AbilitySystemComponent) -> int:
 	return _stacks(asc, "poison") - _stacks(asc, "regen")
 
 
-## 再生减剧毒；正数表示再生更多
+## 生命再生减剧毒；正数表示生命再生更多
 static func regen_minus_poison(asc: AbilitySystemComponent) -> int:
 	return _stacks(asc, "regen") - _stacks(asc, "poison")
 

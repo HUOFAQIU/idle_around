@@ -2,7 +2,7 @@
 
 > 类型：指南 | 状态：有效 | 核对：2026-11-15
 > 何时读：写自动化测试/探针、构造战斗或背包场景、验证新功能
-> 关键词：测试 TestAPI 探针 自动化 战斗快照 魂灵 魂器 vessel 仓库 见闻 商店 冷却 冻结 触发器 类型 标签 尺寸 充能 卡面 tooltip 伤害缩放 动态伤害 静态预览 SoulDamagePreview get_equipped_soul_damage_preview is_dynamic has_runtime 多重触发 cast_times releases 颜色 色板 存档 save 爪痕 play_claw_cue mod ModLoader ModWindow 加载顺序 order mod_cue_registrar cue Cue 特效 manifest 创意工坊 内置 core content_id validate_core_manifest manifest 校验 技能 ID ability_tag 命名 主窗口置顶 单窗口 浮层 CanvasLayer PetPanel 主菜单 位置持久化 CubePlacement PanelManager 激活面板 遮挡 穿透 mouse_passthrough WindowPassthrough 立方体 cube 面 02 背面 层级 CubeView CubeInputSurface CubeProjection CubeScenePaths get_cube_layering_state view_layer 终端 字符网格 TerminalView TerminalBuffer TerminalSpan 跨格大字 ANSI SGR 回看 scrollback auto_scroll
+> 关键词：测试 TestAPI 探针 自动化 战斗快照 魂灵 魂器 vessel 仓库 见闻 商店 冷却 冻结 触发器 类型 标签 尺寸 充能 卡面 tooltip 伤害缩放 动态伤害 静态预览 SoulDamagePreview get_equipped_soul_damage_preview is_dynamic has_runtime 多重触发 cast_times releases 颜色 色板 色板目录 分组 别名 主屏幕 存档 save 爪痕 play_claw_cue mod ModLoader ModWindow 加载顺序 order mod_cue_registrar cue Cue 特效 manifest 创意工坊 内置 core content_id validate_core_manifest manifest 校验 技能 ID ability_tag 命名 主窗口置顶 单窗口 浮层 CanvasLayer PetPanel 主菜单 位置持久化 CubePlacement PanelManager 激活面板 遮挡 穿透 mouse_passthrough WindowPassthrough 立方体 cube 面 02 背面 层级 CubeView CubeInputSurface CubeProjection CubeScenePaths get_cube_layering_state view_layer 终端 字符网格 TerminalView TerminalBuffer TerminalSpan 跨格大字 ANSI SGR 回看 scrollback auto_scroll
 > 代码：`Scripts/test_api.gd`、`Windows/Battle/battle_window.gd`、`Scripts/collection_db.gd`、`Scripts/save/`、`Scripts/mod/`、`base_mods/core/mod.json`
 > 约定：新增功能/内容时，同步补 TestAPI 方法并更新本文。
 
@@ -223,6 +223,8 @@ print(TestAPI.click_cube_pet_button(&"inventory"))
 | 方法 | 说明 |
 |---|---|
 | `get_game_color(name) -> String` | 按常量名取 `GameColors` 的十六进制色值，如 `"DAMAGE"`、`"TEXT_PRIMARY"`；`Color` 常量会转成 HTML 色值 |
+| `get_color_catalog() -> Dictionary` | 色板目录：`groups`（分组/名称/hex/color）、`aliases`（同色别名）、`ungrouped`、`status`、`terminal` |
+| `validate_color_groups() -> Array[String]` | 校验 `GameColors.GROUPS`：返回未归类、拼错、重复归类等问题；空数组表示全部归类正确 |
 
 ## 终端
 
@@ -253,7 +255,7 @@ print(TestAPI.click_cube_pet_button(&"inventory"))
 | `spawn_monster(monster_id) -> bool` | 在远处空位刷一只指定怪 |
 | `apply_burn(target := "player") -> bool` | 对战斗单位施加灼烧（测试状态与火焰 Cue） |
 | `apply_poison(target := "player") -> bool` | 对战斗单位施加剧毒（测试飞溅与气泡 Cue） |
-| `apply_regen(target := "player") -> bool` | 对战斗单位施加生命再生（测试剧毒/再生相减） |
+| `apply_regen(target := "player") -> bool` | 对战斗单位施加生命再生（测试剧毒/生命再生相减） |
 | `apply_freeze(target := "player", seconds := 3.0) -> bool` | 对战斗单位施加冻结（测试冻结 Cue 与 `State.Frozen`）；会广播 `Event.Combat.FreezeApplied` |
 | `play_claw_cue(target := "enemy", direction := 1) -> bool` | 在单位身上播放恐狼爪痕 Cue；`direction` 1 = 左→右，-1 = 右→左 |
 | `apply_soul_freeze(soul_name, seconds := 1.0, target := "player") -> bool` | 对已装备的指定魂灵施加魂灵级冻结（测试冰霜 shader 与徽章） |
@@ -278,7 +280,7 @@ print(TestAPI.has_status(&"State.Burning", "player"))
 TestAPI.apply_poison("enemy")
 print(TestAPI.has_status(&"State.Poisoned", "enemy"))
 
-# 剧毒/再生直接相减：毒 8、再生 5 时每秒净扣 3 点生命
+# 剧毒/生命再生直接相减：毒 8、生命再生 5 时每秒净扣 3 点生命
 TestAPI.apply_regen("enemy")
 await get_tree().create_timer(1.3).timeout
 print(TestAPI.get_battle_state()["enemies"][0]["hp"])

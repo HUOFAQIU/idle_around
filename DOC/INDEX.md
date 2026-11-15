@@ -43,7 +43,7 @@
 | 确认魂灵尺寸/魂器/角色魂器网格 | `魂灵/魂灵.md`、`魂灵/魂器.md` | `Windows/Inventory/grid_base_inventory_system/core/model/item/soul_data.gd`、`soul_vessel_data.gd`、`Windows/Vessel/`、`Windows/Character/` |
 | 改怪物魂灵/掉落/刷新距离 | `怪物/怪物.md` | `base_mods/core/monsters/`、`game/content/monster_data.gd`、`game/content/monster_soul_entry.gd` |
 | 改魂灵/魂器 tooltip 内容/格式 | `魂灵/魂灵.md`、`魂灵/魂器.md`、`架构/窗口与场景.md` | `Windows/Tooltip/` |
-| 改颜色/色板（战斗状态/UI/场景/特效） | `架构/颜色与主题.md` | `Scripts/game_colors.gd` |
+| 改颜色/色板（战斗状态/UI/场景/特效） | `架构/颜色与主题.md` | `Scripts/game_colors.gd`、`Scripts/game_color_catalog.gd`、`addons/color_catalog/` |
 | 改见闻/图鉴/解锁（怪物/魂灵/魂器） | `窗口/见闻.md` | `Scripts/collection_db.gd`、`Windows/Collection/` |
 | 改仓库窗口/背包理念/仓库分页 | `窗口/仓库.md` | `Windows/Inventory/`、`Scripts/warehouse.gd` |
 | 改人物属性 | `属性/人物属性.md` | `godot_gas/attributes/player_stats_attribute_set.gd` |
@@ -86,7 +86,7 @@
 | `架构/存档.md` | 实现 | 已实现 | 2026-11-15 |
 | `架构/关键流程.md` | 实现 | 有效 | 2026-11-15 |
 | `架构/扩展点.md` | 指南 | 有效 | 2026-11-15 |
-| `架构/颜色与主题.md` | 实现 | 有效 | 2026-11-14 |
+| `架构/颜色与主题.md` | 实现 | 有效 | 2026-11-15 |
 | `架构/现状与注意.md` | 实现 | 有效 | 2026-11-15 |
 | `架构/Mod系统.md` | 设计 | 部分实现（内置 core mod 已接入） | 2026-11-14 |
 | `指南/Mod制作.md` | 指南 | 部分实现（内置 core 已接入） | 2026-11-14 |

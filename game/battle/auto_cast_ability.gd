@@ -314,7 +314,7 @@ func _on_projectiles_finished(result: Variant, target_count: int, trace: CombatT
 
 
 ## 对施法者自己结算 self_effects；每次释放各结算一次，独立掷暴击。
-## 即使目标规则空放，也照常生效（没有怪物时也会提高再生）。
+## 即使目标规则空放，也照常生效（没有怪物时也会提高生命再生）。
 func _apply_self_effects(battle: BattleManager, trace: CombatTrace) -> void:
 	if skill == null or skill.self_effects.is_empty():
 		return

@@ -24,7 +24,7 @@ tools: Read, Grep, Glob, Bash
 ### 2. 项目框架
 
 - 静态数据放 `SoulData`，运行期状态放 `SoulRuntime`；不要把运行期字段写回共享资源。
-- 直接伤害挂 `SoulDamageExecution`；灼烧/剧毒/再生周期本身不挂直接伤害 execution。
+- 直接伤害挂 `SoulDamageExecution`；灼烧/剧毒/生命再生周期本身不挂直接伤害 execution。
 - 状态显示名和颜色从 `GameColors.STATUS_*` / `GameColors.STATUS` 取，不要在代码里另写中文字面量。
 - 容器名走 `ContainerIds` / `Warehouse.page_name()`；mod 路径走 `Scripts/mod/mod_paths.gd`；不要硬编码 `user://mods`、`res://base_mods` 等。
 - 新资源不设中文 `resource_name`，文件名不带固定数值；数值走数据/SetByCaller。

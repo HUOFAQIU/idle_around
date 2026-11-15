@@ -312,7 +312,7 @@ func _build_units_tab() -> void:
 	split.split_offset = 300
 	split.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	tab.add_child(split)
-	_unit_tree = _make_tree(split, "Tree", ["名字", "阵营", "HP", "护盾", "灼烧", "剧毒", "再生", "标签", "状态", "距离"])
+	_unit_tree = _make_tree(split, "Tree", ["名字", "阵营", "HP", "护盾", "灼烧", "剧毒", "生命再生", "标签", "状态", "距离"])
 	_unit_detail = _make_rich(split, "Detail", 220)
 	_unit_detail.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_unit_tree.item_selected.connect(_on_unit_selected)
@@ -927,7 +927,7 @@ func _show_soul_detail(runtime: SoulRuntime) -> void:
 		float(contribution.get("heal", 0.0)),
 		float(contribution.get("shield", 0.0)),
 	])
-	lines.append("  灼烧 %.0f  剧毒 %.0f  再生 %.0f" % [
+	lines.append("  灼烧 %.0f  剧毒 %.0f  生命再生 %.0f" % [
 		float(contribution.get("burn", 0.0)),
 		float(contribution.get("poison", 0.0)),
 		float(contribution.get("regen", 0.0)),
@@ -1081,7 +1081,7 @@ func _format_unit_detail(data: Dictionary) -> String:
 	if data.is_empty():
 		return ""
 	var lines: Array[String] = []
-	lines.append("[b]%s[/b]  %s  HP %.0f/%.0f  护盾 %.0f  灼烧 %.0f  剧毒 %.0f  再生 %.0f" % [
+	lines.append("[b]%s[/b]  %s  HP %.0f/%.0f  护盾 %.0f  灼烧 %.0f  剧毒 %.0f  生命再生 %.0f" % [
 		String(data.get("name", "?")),
 		String(data.get("team", "")),
 		float(data.get("hp", 0.0)),

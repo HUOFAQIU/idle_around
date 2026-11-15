@@ -13,7 +13,7 @@ class_name SkillDefinition extends Resource
 ## 留空时由 ModLoader 按魂灵 content_id 自动派生。
 @export var id: String = ""
 
-## 只对施法者自己结算的效果列表（例如"攻击敌人的同时提高自身再生"）
+## 只对施法者自己结算的效果列表（例如"攻击敌人的同时提高自身生命再生"）
 @export var self_effects: Array[GameplayEffect] = []
 
 ## 冷却时长（秒）。魂灵使用充能模型：ChargedAbility 按 1/120 秒刻度累加，

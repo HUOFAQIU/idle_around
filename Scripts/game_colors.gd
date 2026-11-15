@@ -27,7 +27,6 @@ const STATUS := {
 	"减速": SLOW,
 	"充能": CHARGE,
 	"生命再生": REGEN,
-	"再生": REGEN,
 	"治疗": HEAL,
 	"暴击": CRIT,
 	"暴击率": CRIT,
@@ -35,7 +34,7 @@ const STATUS := {
 	"护盾": SHIELD,
 }
 ## tooltip 关键词匹配用；长词在前，避免「生命再生」「暴击率」被拆开
-const STATUS_PATTERN : String = "生命再生|暴击率|灼烧|剧毒|治疗|护盾|冻结|加速|减速|充能|伤害|暴击|再生"
+const STATUS_PATTERN : String = "生命再生|暴击率|灼烧|剧毒|治疗|护盾|冻结|加速|减速|充能|伤害|暴击"
 #endregion
 
 
@@ -114,6 +113,86 @@ const DEBUG_COUNTER : String = "#bfc7cc"
 const DEBUG_NAME : String = "#d9d9d9"
 const DEBUG_STATUS : String = "#66d9f2"
 const DEBUG_HIGHLIGHT : String = "#66ff80"
+#endregion
+
+
+#region 分类
+## 常量名 → 展示分组。编辑器色板按这里的顺序渲染；新增颜色必须归类，
+## 否则色板会显示在「未归类」并让 TestAPI.validate_color_groups() 报错。
+const GROUPS := {
+	"战斗状态": [
+		"DAMAGE",
+		"BURN",
+		"POISON",
+		"HASTE",
+		"SLOW",
+		"CHARGE",
+		"REGEN",
+		"HEAL",
+		"CRIT",
+		"FREEZE",
+		"SHIELD",
+	],
+	"UI 文字": [
+		"TEXT_PRIMARY",
+		"TEXT_SECONDARY",
+		"TEXT_DISABLED",
+		"TEXT_OUTLINE",
+		"TEXT_OUTLINE_SOFT",
+		"LOCKED_MODULATE",
+	],
+	"面板 / 提示": [
+		"TOOLTIP_BG",
+		"TOOLTIP_BORDER",
+		"PANEL_SEPARATOR",
+	],
+	"语义色": [
+		"ACCENT",
+		"ACCENT_TEXT",
+		"SUCCESS",
+		"WARNING",
+		"DANGER",
+		"INFO",
+	],
+	"血条 / 状态条": [
+		"BAR_BORDER",
+		"BAR_BG",
+		"STATUS_BAR_BG",
+		"HEALTH_FILL",
+		"HEALTH_FILL_ENEMY",
+	],
+	"背包网格": [
+		"GRID_BORDER",
+		"GRID_EMPTY",
+		"GRID_TAKEN",
+		"GRID_CONFLICT",
+		"GRID_AVAILABLE",
+		"GRID_AVAILABLE_SLOT",
+		"GRID_UNAVAILABLE_SLOT",
+		"SOUL_NAME",
+		"SOUL_NAME_OUTLINE",
+		"STACK_NUM",
+	],
+	"魂灵 / 场景特效": [
+		"SOUL_LINE",
+		"SOUL_FREEZE",
+		"PLAYER_MODULATE",
+		"ENEMY_MODULATE",
+		"PROJECTILE",
+		"CLAW_SLASH",
+		"POISON_SPLASH",
+		"FREEZE_BADGE_BG",
+		"FREEZE_BADGE_BORDER",
+	],
+	"调试面板": [
+		"DEBUG_TEXT",
+		"DEBUG_HINT",
+		"DEBUG_COUNTER",
+		"DEBUG_NAME",
+		"DEBUG_STATUS",
+		"DEBUG_HIGHLIGHT",
+	],
+}
 #endregion
 
 

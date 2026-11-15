@@ -1,5 +1,5 @@
 class_name NetStatusTickExecution extends PeriodicStatusTickExecution
-## 剧毒/再生这类“净值 × 每点数值”的周期结算基类。
+## 剧毒/生命再生这类“净值 × 每点数值”的周期结算基类。
 ## 每跳总量向下取整后落地；不足 1 点不结算。
 
 

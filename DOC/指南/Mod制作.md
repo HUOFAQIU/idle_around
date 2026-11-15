@@ -5,7 +5,7 @@
 > 关键词：mod.json content.pck modkit 示例 mod pack_example patch 导出 覆盖 加载顺序 内置 core content_root content_namespace validate_core_manifest manifest 校验 内容 ID 技能 ID 命名 PascalCase content_id 魂器 vessels
 > 代码：`Scripts/mod/`、`Scripts/collection_db.gd`、`base_mods/core/mod.json`
 > 相关：`架构/Mod系统.md`
-> 核对：2026-11-14
+> 核对：2026-11-15
 
 ## 1. 最小 mod
 
@@ -186,4 +186,4 @@ user://mods/example_souls/
 - 导出：`include_filter` 必须包含 `base_mods/*/mod.json`；`exclude_filter` 用 `mods/*,modkit/*`，不要用 `*mods/*`。
 - 改完官方内容后跑 `modkit/validate_core_manifest.gd`，或调用 `TestAPI.validate_core_manifest()`，检查 manifest 是否漏登记、路径不存在和中文 `resource_name`。
 - 技能由 `SkillDefinition.steps` 组成；步骤类型、`target_rule` 与字段不一致（例如 `UnitSkillStep` 配 `SoulTargetRule`、`SoulSkillStep` 没有任何时长）会在 ModLoader 加载时报错。执行器字段也会校验：`StatusApplyExecution.attribute_name` 必须是 `burn/poison/regen`，伤害/治疗/护盾数值不能为负。校验失败的条目不会注册（不进入图鉴/刷怪池，mod 内容计数也不增加）；看 `ModLoader.get_errors()` 或 ModWindow。未知 manifest 字段、`content.*` 未知段只记 warning（`ModLoader.get_warnings()`），不阻止加载。
-- 落地数值请写整数：`max_health`、`base_damage`、`bonus_per_matching_soul`、`base_heal`、`base_shield`、`base_amount`、`damage_per_stack`、`heal_per_stack`、`status_magnitude`、触发器 `magnitude`。写小数也能加载，但运行时会向下取整；每跳总量不足 1 点会变成 0，例如 `heal_per_stack = 0.5` + 1 层再生不产生治疗。暴击率/倍率、比例、冷却、概率、距离仍用小数。
+- 落地数值请写整数：`max_health`、`base_damage`、`bonus_per_matching_soul`、`base_heal`、`base_shield`、`base_amount`、`damage_per_stack`、`heal_per_stack`、`status_magnitude`、触发器 `magnitude`。写小数也能加载，但运行时会向下取整；每跳总量不足 1 点会变成 0，例如 `heal_per_stack = 0.5` + 1 层生命再生不产生治疗。暴击率/倍率、比例、冷却、概率、距离仍用小数。

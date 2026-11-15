@@ -144,7 +144,7 @@ func _on_effect_received(
 			% [unit.unit_name, health_delta, crit_suffix, old_value, current], GameColors.HEAL)
 
 
-## 周期效果每跳：护盾吸收、伤害/再生叙事
+## 周期效果每跳：护盾吸收、伤害/生命再生叙事
 func _on_periodic_effect_ticked(
 	_active_effect: ActiveGameplayEffect,
 	spec: GameplayEffectSpec,

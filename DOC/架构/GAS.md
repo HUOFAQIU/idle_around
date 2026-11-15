@@ -1,6 +1,6 @@
 # GAS 适配层
 
-> 类型：实现 | 状态：有效 | 核对：2026-11-14
+> 类型：实现 | 状态：有效 | 核对：2026-11-15
 > 何时读：改属性集、标签注册、Cue 清单
 > 关键词：GAS GameplayAbility AttributeSet Tag Cue godot_gas
 > 代码：godot_gas/、base_mods/core/mod.json
@@ -44,7 +44,7 @@ GAS 属性：
 
 - 两个 `AttributeSet` 的默认生命值都是 500，但 `BattleUnit._init_attributes()` 会先把场景根节点的 `max_health` 向下取整，再用它覆盖 `max_health` 和 `health` 的 `base_value`。
 - 所有战斗属性落地值都是整数：计算层（暴击、比例、百分比加成等）允许小数，写入属性前统一向下取整。`max_health` 受百分比加成影响时也按最终值取整。
-- `damage_bonus` 是己方魂灵直接伤害加成；`burn` 是当前灼烧层数，按整数层数结算；`shield` 是当前护盾值，无上限；`poison` 是当前剧毒值，按整数结算，每秒且不衰减；`regen` 是当前生命再生值，按整数结算，每秒恢复等量生命且不衰减。剧毒与再生属性各自保留原值，结算时直接相减，数值大的一方生效。
+- `damage_bonus` 是己方魂灵直接伤害加成；`burn` 是当前灼烧层数，按整数层数结算；`shield` 是当前护盾值，无上限；`poison` 是当前剧毒值，按整数结算，每秒且不衰减；`regen` 是当前生命再生值，按整数结算，每秒恢复等量生命且不衰减。剧毒与生命再生属性各自保留原值，结算时直接相减，数值大的一方生效。
 - ASC 在 `_ready()` 时会深拷贝 `attribute_sets`，所以 `BattleUnit` 必须等节点入树后再取 `get_attribute()` 的引用。
 - `pre_attribute_change()` 负责向下取整（`health` 先 clamp 再 floor）与下限/上限钳制；`post_attribute_change()` 负责 `max_health` 变化时同步 `health`。
 - `BattleUnit._apply_passive_effects()` 在被动最大生命变化后，用运行时 `INSTANT GameplayEffect`（health `ADD health_delta`）同步当前生命；同步目标生命同样向下取整。此时还没连接日志/血条，所以不会产生开场飘字。

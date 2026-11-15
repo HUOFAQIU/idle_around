@@ -20,6 +20,8 @@ const REGEN_TICK : GameplayEffect = preload("res://base_mods/core/effects/regen_
 const FREEZE_UNIT : GameplayEffect = preload("res://base_mods/core/effects/freeze_unit.tres")
 ## 色板脚本：用于按常量名取色
 const GAME_COLORS_SCRIPT : GDScript = preload("res://Scripts/game_colors.gd")
+## 色板目录：分组、别名、校验
+const GAME_COLOR_CATALOG : GDScript = preload("res://Scripts/game_color_catalog.gd")
 
 
 #region 颜色
@@ -30,6 +32,22 @@ static func get_game_color(constant_name : String) -> String:
 	if value is Color:
 		return (value as Color).to_html()
 	return String(value)
+
+
+## 色板目录：groups / aliases / ungrouped / status / terminal
+static func get_color_catalog() -> Dictionary:
+	return {
+		"groups": GAME_COLOR_CATALOG.groups(),
+		"aliases": GAME_COLOR_CATALOG.aliases(),
+		"ungrouped": GAME_COLOR_CATALOG.ungrouped(),
+		"status": GAME_COLOR_CATALOG.status_entries(),
+		"terminal": GAME_COLOR_CATALOG.terminal_palette(),
+	}
+
+
+## 色板分组校验：空数组表示所有 GameColors 颜色常量都已归类
+static func validate_color_groups() -> Array[String]:
+	return GAME_COLOR_CATALOG.validate()
 
 #endregion
 
@@ -1250,7 +1268,7 @@ static func apply_poison(target : String = "player") -> bool:
 	return true
 
 
-## 对战斗中的单位施加生命再生（用于验证剧毒/再生相减）
+## 对战斗中的单位施加生命再生（用于验证剧毒/生命再生相减）
 static func apply_regen(target : String = "player") -> bool:
 	var unit := _find_unit(target)
 	if unit == null or unit.asc == null:

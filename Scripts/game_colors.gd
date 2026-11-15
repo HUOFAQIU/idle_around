@@ -54,6 +54,8 @@ const TOOLTIP_BG : String = "#11120d"
 const TOOLTIP_BORDER : String = "#b1adac"
 ## 默认窗口灰底上的分隔线；tooltip 黑底仍用 TooltipText.SEPARATOR_COLOR 的暗色
 const PANEL_SEPARATOR : String = "#7d838c"
+## BaseWindow 标题栏背景；标题文字用 TEXT_OUTLINE 保证对比度
+const WINDOW_TITLE_BAR : String = "#facc15"
 #endregion
 
 
@@ -145,6 +147,7 @@ const GROUPS := {
 		"TOOLTIP_BG",
 		"TOOLTIP_BORDER",
 		"PANEL_SEPARATOR",
+		"WINDOW_TITLE_BAR",
 	],
 	"语义色": [
 		"ACCENT",

@@ -298,7 +298,7 @@ TestAPI.play_claw_cue("enemy", -1)
 TestAPI.damage_unit("player", 300.0)
 print(TestAPI.has_status(&"State.Frozen", "enemy"))
 
-# 恐狼：每有一颗 Soul.types.Wolf +10 伤害；1 颗 = 40，2 颗 = 50
+# 恐狼：每有一颗 Soul.types.Wolf +20 伤害；1 颗 = 50，2 颗 = 70
 TestAPI.clear_container("vessel_cells")
 TestAPI.equip_vessel(&"mei_you_deng_vessel")
 TestAPI.vessel_add_soul(&"kong_lang_soul", 0)
@@ -306,7 +306,7 @@ print(TestAPI.get_soul_damage_scaling(&"kong_lang_soul"))
 TestAPI.vessel_add_soul(&"kong_lang_soul", 0)
 print(TestAPI.get_soul_damage_scaling(&"kong_lang_soul"))
 
-# 未开战也按“装上这份魂器后”预览：2 颗狼×10 + 煤油灯 10 → 60
+# 未开战也按“装上这份魂器后”预览：30 + 2 颗狼×20 + 煤油灯 10 → 80
 print(TestAPI.get_equipped_soul_damage_preview(&"kong_lang_soul"))
 
 # 恐狼：直接充能触发主动技能
@@ -314,7 +314,7 @@ TestAPI.start_battle(&"snake_monster")
 # 战斗中优先运行期值；tooltip 的伤害数值带 * 前缀
 print(TestAPI.get_equipped_soul_damage_preview(&"kong_lang_soul"))
 print(TestAPI.get_equipped_soul_tooltip_text(&"kong_lang_soul"))
-TestAPI.charge_soul("恐狼", 5.0)
+TestAPI.charge_soul("恐狼", 6.5)
 await get_tree().physics_frame
 print(TestAPI.get_battle_state()["player_souls"])
 

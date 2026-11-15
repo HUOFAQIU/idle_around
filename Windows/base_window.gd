@@ -27,7 +27,8 @@ var title : String = "":
 ## 背景 / 标题栏 + 内容区
 var _background : Panel
 var _ui_root : VBoxContainer
-var _title_bar : HBoxContainer
+var _title_bar : PanelContainer
+var _title_bar_box : HBoxContainer
 var _title_label : Label
 var _close_button : Button
 var _content_root : Control
@@ -68,8 +69,8 @@ func add_title_bar_button(button : Button) -> void:
 		push_warning("BaseWindow：标题栏尚未创建，add_title_bar_button 必须在 super() 之后调用")
 		return
 	_style_title_bar_button(button)
-	_title_bar.add_child(button)
-	_title_bar.move_child(button, _close_button.get_index())
+	_title_bar_box.add_child(button)
+	_title_bar_box.move_child(button, _close_button.get_index())
 
 
 #region 标题栏与内容下移
@@ -98,11 +99,21 @@ func _build_title_bar() -> void:
 	_ui_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_ui_root)
 
-	_title_bar = HBoxContainer.new()
+	_title_bar = PanelContainer.new()
 	_title_bar.name = "TitleBar"
 	_title_bar.custom_minimum_size = Vector2(0, TITLE_BAR_HEIGHT)
 	_title_bar.mouse_filter = Control.MOUSE_FILTER_STOP
+	var title_style := StyleBoxFlat.new()
+	title_style.bg_color = GameColors.to_color(GameColors.WINDOW_TITLE_BAR)
+	title_style.set_content_margin_all(0)
+	_title_bar.add_theme_stylebox_override("panel", title_style)
 	_ui_root.add_child(_title_bar)
+
+	# 内层 HBox 只负责排版；忽略鼠标，事件落到外层 TitleBar 上给 ControlDrag。
+	_title_bar_box = HBoxContainer.new()
+	_title_bar_box.name = "TitleBarBox"
+	_title_bar_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_title_bar.add_child(_title_bar_box)
 
 	_drag = ControlDrag.new()
 	_drag.bind(self, _title_bar, get_parent() as Control)
@@ -112,7 +123,7 @@ func _build_title_bar() -> void:
 	title_margin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title_margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	title_margin.add_theme_constant_override("margin_left", 6)
-	_title_bar.add_child(title_margin)
+	_title_bar_box.add_child(title_margin)
 
 	_title_label = Label.new()
 	_title_label.name = "TitleLabel"
@@ -121,6 +132,7 @@ func _build_title_bar() -> void:
 	_title_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	_title_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_title_label.add_theme_font_size_override("font_size", TITLE_FONT_SIZE)
+	_title_label.add_theme_color_override("font_color", GameColors.to_color(GameColors.TEXT_OUTLINE))
 	title_margin.add_child(_title_label)
 
 	_close_button = Button.new()
@@ -131,12 +143,12 @@ func _build_title_bar() -> void:
 	_close_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	_style_title_bar_button(_close_button)
 	_close_button.pressed.connect(hide)
-	_title_bar.add_child(_close_button)
+	_title_bar_box.add_child(_close_button)
 
 	var right_space := Control.new()
 	right_space.custom_minimum_size = Vector2i(TITLE_BUTTON_MARGIN, 0)
 	right_space.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_title_bar.add_child(right_space)
+	_title_bar_box.add_child(right_space)
 
 	_content_root = Control.new()
 	_content_root.name = "ContentRoot"

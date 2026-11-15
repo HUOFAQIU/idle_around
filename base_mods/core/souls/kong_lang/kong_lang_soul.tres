@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="SoulData" format=3 uid="uid://bm5wocg6a6yv0"]
 
-[ext_resource type="Texture2D" uid="uid://cd5f3v7eq6ylb" path="res://Assets/soul_medium.png" id="1_icon"]
+[ext_resource type="Texture2D" uid="uid://dfrg010asso1y" path="res://Assets/soul_large.png" id="1_icon"]
 [ext_resource type="Shader" uid="uid://c7gxmyf484kcn" path="res://Assets/Shader/soul_scanline.gdshader" id="2_shader"]
 [ext_resource type="Script" uid="uid://bbcxwqb4ef1cg" path="res://Windows/Inventory/grid_base_inventory_system/core/model/item/soul_data.gd" id="3_soul"]
 [ext_resource type="Resource" uid="uid://dgadyrmn6ur71" path="res://base_mods/core/souls/kong_lang/kong_lang_skill.tres" id="4_skill"]
@@ -21,15 +21,15 @@ script = ExtResource("3_soul")
 skill = ExtResource("4_skill")
 tooltip_blocks = Array[String](["( {cooldown} 秒 )
 > 对最近的怪物造成 {damage} 伤害
-> 多重触发，{cast_times}
+> 多重触发: {cast_times}
 
 - 每有一个狼，此魂灵+{damage_per_soul} 点伤害"])
 types = Array[StringName]([&"Soul.types.Wolf", &"Soul.types.Animal"])
-tags = Array[StringName]([&"Soul.tags.Medium", &"Soul.tags.Damage"])
+tags = Array[StringName]([&"Soul.tags.Large", &"Soul.tags.Damage"])
 item_name = "恐狼"
 category = "SOUL"
 icon = ExtResource("1_icon")
-columns = 2
+columns = 3
 rows = 2
 material = SubResource("ShaderMaterial_scan")
 metadata/_custom_type_script = "uid://bbcxwqb4ef1cg"

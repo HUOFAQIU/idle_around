@@ -33,6 +33,7 @@ CombatTelemetry="*res://Scripts/debug/combat_telemetry.gd"
 SoulRuntimeDB="*res://game/battle/soul_runtime_db.gd"
 Warehouse="*res://Scripts/warehouse.gd"
 SaveManager="*res://Scripts/save/save_manager.gd"
+GameFlow="*res://game/flow/game_flow.gd"
 
 [display]
 
@@ -45,7 +46,7 @@ window/per_pixel_transparency/allowed=true
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/GodotGAS/plugin.cfg", "res://addons/color_catalog/plugin.cfg", "res://addons/kanban_tasks/plugin.cfg", "res://addons/markdown_docs_viewer/plugin.cfg", "res://addons/script-ide/plugin.cfg")
+enabled=PackedStringArray("res://addons/GodotGAS/plugin.cfg", "res://addons/color_catalog/plugin.cfg", "res://addons/kanban_tasks/plugin.cfg", "res://addons/script-ide/plugin.cfg")
 
 [file_customization]
 

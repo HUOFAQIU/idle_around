@@ -31,7 +31,7 @@
 | `State.Burning` / `State.Poisoned` | 灼烧/剧毒周期效果的 `granted_tags` |
 | `State.Frozen` | `ChargedAbility.FROZEN_TAG`（`BattleBrain.FROZEN_TAG` 别名）；单位级冻结由 `freeze_unit.tres` 挂/摘，同时驱动 `Cue.Status.Freeze` |
 | `Cue.Status.Freeze` | 单位冻结持久光环（`base_mods/core/cues/freeze_cue.tscn`） |
-| `Cue.Combat.ClawSlash` | 恐狼命中爪痕（`base_mods/core/cues/claw_slash_cue.tscn`）；`kong_lang_skill.tres` 的 `hit_cue_tag` 触发，带方向/位置 |
+| `Cue.Combat.ClawSlash` | 命中爪痕（`base_mods/core/cues/claw_slash_cue.tscn`）；由技能资源的 `hit_cue_tag` 触发，带方向/位置 |
 | `Event.Movement.UnitMoved` | 敌方跨格；`BattleUnit.on_enemy_moved()` 接收，`BattleManager` 只派发给注册了该触发器的单位 |
 | `Event.Health.BelowPercent` | 生命下降；`BattleUnit._check_health_triggers()` 发送 |
 | `Event.Combat.SoulUsed` | 魂灵成功激活；`AutoCastAbility._notify_soul_used()` 发送 |

@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="CharacterDefinition" format=3]
+
+[ext_resource type="Script" path="res://game/content/Characters/character_definition.gd" id="1_definition"]
+[ext_resource type="Resource" path="res://game/content/Player/player_profile.tres" id="2_profile"]
+
+[resource]
+script = ExtResource("1_definition")
+id = &"small_coal_lamp"
+display_name = "小煤灯"
+profile = ExtResource("2_profile")

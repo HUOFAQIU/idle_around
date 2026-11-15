@@ -38,3 +38,8 @@ func open_panel(panel_id: StringName) -> void:
 
 func popup_window(window: BaseWindow) -> void:
 	panel_manager.toggle(window)
+
+
+## 切档/新游戏前关闭所有面板，避免旧数据继续显示
+func close_all_panels() -> void:
+	panel_manager.hide_all()

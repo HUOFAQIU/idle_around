@@ -17,8 +17,6 @@ const REVIVE_DELAY: float = 3.0
 const RARE_SPAWN_EVERY_KILLS: int = 10
 ## 玩家单位：配置好的场景，开战时直接实例化
 const PLAYER_SCENE := preload("res://game/content/Player/player.tscn")
-## 角色静态档案：名字和最大生命与角色窗口共用
-const PLAYER_PROFILE := preload("res://game/content/Player/player_profile.tres")
 
 ## 单位节点容器（与地图同坐标系）
 var units_root: Node2D
@@ -29,6 +27,8 @@ var attach_observers: Callable = Callable()
 
 ## 当前场次；重开/关窗时自增，用来作废还没执行的复活等待
 var run_id: int = 0
+## 本场使用的角色档案；为空时由 GameFlow 提供当前会话角色
+var player_profile: PlayerProfile
 var battle: BattleManager
 ## 本场装备的魂灵位置；关战后再开新场前一直保留
 var slots: Array[SoulSlot] = []
@@ -166,8 +166,11 @@ func get_state() -> Dictionary:
 func _spawn_player() -> BattleUnit:
 	var passive_effects := SoulLoadout.collect_passive_effects(souls)
 	var unit := PLAYER_SCENE.instantiate() as BattleUnit
-	unit.unit_name = PLAYER_PROFILE.display_name
-	unit.max_health = PLAYER_PROFILE.max_health
+	var profile := player_profile
+	if profile == null:
+		profile = GameFlow.get_player_profile()
+	unit.unit_name = profile.display_name
+	unit.max_health = profile.max_health
 	units_root.add_child(unit)
 	unit.setup_from_scene(battle, passive_effects)
 	unit.set_cell(Vector2i.ZERO)

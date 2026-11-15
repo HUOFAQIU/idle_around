@@ -93,7 +93,7 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="HUD" parent="." unique_id=1677829438 instance=ExtResource("3_hud")]
-layer = 2
+layer = 1024
 
 [node name="CubePlacement" type="Node" parent="." unique_id=1440292637]
 script = ExtResource("6_placement")

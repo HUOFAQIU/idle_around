@@ -11,9 +11,10 @@
 | 改启动链、主场景、单窗口外壳、面板清单/单例 | `架构/窗口与场景.md`、`架构/立方体外壳.md` | `Main/Cube/Scenes/main.tscn`、`Main/control.gd`、`Main/panel_manager.gd`、`Windows/base_window.gd` |
 | 改面板拖动/关闭/标题栏、面板坐标 | `架构/窗口与场景.md` §1.2/§1.3 | `Windows/base_window.gd`、`Scripts/ui/control_drag.gd`、`Scripts/ui/ui_bounds.gd`、`Main/control.tscn` |
 | 改面板置顶/激活/遮挡判断 | `架构/窗口与场景.md` §1.2/§3 | `Main/panel_manager.gd` |
-| 改 3D 立方体、旋转/回正、面片内容、拖动圆点 | `架构/立方体外壳.md` | `Main/Cube/` |
-| 改立方体与游戏 UI 的上下层、立方体压住面板 | `架构/立方体外壳.md` §1/§3/§5 | `Main/Cube/Scenes/main.tscn`、`Main/Cube/Scripts/cube_input_surface.gd` |
-| 改面 02 主菜单/立方体承接 PetPanel | `架构/立方体外壳.md` §2/§3 | `Main/pet_panel.tscn`、`Main/pet_panel.gd`、`Main/Cube/Scenes/pet_face_3d.tscn`、`Main/Cube/Scripts/pet_panel_content.gd` |
+| 改 3D 立方体、旋转/回正/翻面、面片内容、拖动圆点 | `架构/立方体外壳.md` | `Main/Cube/` |
+| 改立方体与游戏 UI 的上下层、立方体压住面板、Toast 层级 | `架构/立方体外壳.md` §1/§3/§5 | `Main/Cube/Scenes/main.tscn`、`Main/Cube/Scripts/cube_input_surface.gd`、`Main/Cube/Scripts/hud.gd` |
+| 改面 02 主菜单/立方体承接 PetPanel | `架构/立方体外壳.md` §2/§3 | `Main/pet_panel.tscn`、`Main/pet_panel.gd`、`Main/Cube/Scenes/face_3d.tscn`、`Main/Cube/Scripts/pet_panel_content.gd` |
+| 改开局/新游戏/存档位/角色选择/面锁定 | `架构/开局流程.md`、`架构/存档.md` | `game/flow/game_flow.gd`、`game/content/Characters/`、`Main/Cube/Scenes/UI/save_slots_content.tscn`、`character_select_content.tscn`、`face_lock_overlay.tscn` |
 | 改透明区域点击穿透/mouse_passthrough | `架构/立方体外壳.md` §4 | `Main/Cube/Scripts/window_passthrough.gd`、`Scripts/ui/ui_region.gd` |
 | 改主窗口置顶、T 按钮、置顶持久化 | `架构/窗口与场景.md` §1.6 | `Main/status_bar_container.gd`、`Scripts/window_pin_settings.gd` |
 | 改立方体位置/拖动/位置持久化 | `架构/窗口与场景.md` §1.5、`架构/立方体外壳.md` §2.1 | `Main/Cube/Scripts/cube_placement.gd`、`Main/Cube/Scripts/cube_settings.gd`、`Main/Cube/Scripts/drag_handle.gd`、`Scripts/settings_file.gd` |
@@ -24,8 +25,8 @@
 | 改暴击/伤害/异常、开战关窗、玩家怪物场景 | `架构/战斗运行时_伤害与流程.md` | `game/battle/`、`Windows/Battle/` |
 | 改技能/目标规则/魂灵/怪物数据/掉落 | `架构/战斗数据与魂灵.md` | `base_mods/core/`、`game/content/` |
 | 改背包/仓库/装备槽/拖拽 | `架构/背包_GBIS.md` | `Windows/Inventory/grid_base_inventory_system/`、`Scripts/warehouse.gd` |
-| 改存档/读档/存档格式/迁移 | `架构/存档.md` | `Scripts/save/` |
-| 读档丢物品/回退旧档/版本过高只读 | `架构/存档.md` §10（常见排查） | `Scripts/save/` |
+| 改存档/六槽/读档/存档格式/迁移 | `架构/存档.md` | `Scripts/save/`、`game/flow/game_flow.gd` |
+| 读档丢物品/回退旧档/版本过高只读/槽位摘要异常/存档测试 | `指南/存档排查.md` | `Scripts/save/`、`Scripts/test_api.gd` |
 | 改 GAS 属性/标签/Cue | `架构/GAS.md`、`特效/effects.md` | `godot_gas/`、`addons/GodotGAS/`、`Scripts/mod/mod_cue_registrar.gd` |
 | 按完整链路理解系统 | `架构/关键流程.md` | `game/battle/`、`Windows/Inventory/` |
 | 新增魂灵/怪物/魂器/技能/窗口/特效 | `架构/扩展点.md` | `base_mods/core/`、`game/content/`、`Main/control.gd` |
@@ -59,37 +60,39 @@
 |---|---|---|---|
 | `战斗/战斗逻辑.md` | 设计 | 有效 | 2026-11-14 |
 | `属性/人物属性.md` | 设计 | 设计 | 2026-11-14 |
-| `怪物/怪物.md` | 设计 | 部分实现 | 2026-11-14 |
+| `怪物/怪物.md` | 设计 | 部分实现 | 2026-11-15 |
 | `窗口/仓库.md` | 设计 | 部分实现 | 2026-11-14 |
-| `窗口/见闻.md` | 实现 | 已实现 | 2026-11-14 |
+| `窗口/见闻.md` | 实现 | 已实现 | 2026-11-15 |
 | `窗口/终端.md` | 实现 | 部分实现 | 2026-11-15 |
-| `魂灵/魂灵.md` | 设计 | 部分实现 | 2026-11-14 |
-| `魂灵/魂器.md` | 设计 | 已实现 | 2026-11-14 |
-| `魂灵/主动魂灵.md` | 设计 | 部分实现 | 2026-11-14 |
-| `魂灵/被动魂灵.md` | 设计 | 已实现 | 2026-11-10 |
+| `魂灵/魂灵.md` | 设计 | 部分实现 | 2026-11-15 |
+| `魂灵/魂器.md` | 设计 | 已实现 | 2026-11-15 |
+| `魂灵/主动魂灵.md` | 设计 | 部分实现 | 2026-11-15 |
+| `魂灵/被动魂灵.md` | 设计 | 已实现 | 2026-11-15 |
 | `archive/souls.xlsx` | 数据 | 归档（二进制，Claude 不可读） | — |
 | `特效/effects.md` | 指南 | 有效 | 2026-11-15 |
 | `指南/AI测试接口.md` | 指南 | 有效 | 2026-11-15 |
+| `指南/存档排查.md` | 指南 | 有效 | 2026-11-15 |
 | `指南/调试窗口.md` | 指南 | 有效 | 2026-11-14 |
-| `架构/调试与遥测.md` | 实现 | 有效 | 2026-11-14 |
+| `架构/调试与遥测.md` | 实现 | 有效 | 2026-11-15 |
 | `背景故事/背景故事.md` | 设计 | 占位 | 2026-10-31 |
 | `archive/给AI玩的游戏.md` | 记录 | 归档 | 2026-10-31 |
 | `架构/00_总览.md` | 实现 | 有效 | 2026-11-15 |
 | `架构/窗口与场景.md` | 实现 | 有效 | 2026-11-15 |
 | `架构/立方体外壳.md` | 实现 | 有效 | 2026-11-15 |
-| `架构/战斗运行时_施法与冷却.md` | 实现 | 有效 | 2026-11-14 |
+| `架构/开局流程.md` | 实现 | 有效 | 2026-11-15 |
+| `架构/战斗运行时_施法与冷却.md` | 实现 | 有效 | 2026-11-15 |
 | `架构/战斗运行时_移动与投射物.md` | 实现 | 有效 | 2026-11-14 |
-| `架构/战斗运行时_伤害与流程.md` | 实现 | 有效 | 2026-11-14 |
-| `架构/战斗数据与魂灵.md` | 实现 | 有效 | 2026-11-14 |
-| `架构/GAS.md` | 实现 | 有效 | 2026-11-14 |
+| `架构/战斗运行时_伤害与流程.md` | 实现 | 有效 | 2026-11-15 |
+| `架构/战斗数据与魂灵.md` | 实现 | 有效 | 2026-11-15 |
+| `架构/GAS.md` | 实现 | 有效 | 2026-11-15 |
 | `架构/背包_GBIS.md` | 实现 | 有效 | 2026-11-15 |
 | `架构/存档.md` | 实现 | 已实现 | 2026-11-15 |
 | `架构/关键流程.md` | 实现 | 有效 | 2026-11-15 |
 | `架构/扩展点.md` | 指南 | 有效 | 2026-11-15 |
 | `架构/颜色与主题.md` | 实现 | 有效 | 2026-11-15 |
 | `架构/现状与注意.md` | 实现 | 有效 | 2026-11-15 |
-| `架构/Mod系统.md` | 设计 | 部分实现（内置 core mod 已接入） | 2026-11-14 |
-| `指南/Mod制作.md` | 指南 | 部分实现（内置 core 已接入） | 2026-11-14 |
+| `架构/Mod系统.md` | 设计 | 部分实现（内置 core mod 已接入） | 2026-11-15 |
+| `指南/Mod制作.md` | 指南 | 部分实现（内置 core 已接入） | 2026-11-15 |
 
 > `archive/souls.xlsx` 是旧计划表，文本工具读不了；要引用其中内容时先转成 Markdown 表格。
 >

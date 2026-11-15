@@ -13,6 +13,15 @@ const CUBE := ^"CubeView/ViewportContainer/CubeViewport/Cube"
 const RIG := ^"CubeView/ViewportContainer/CubeViewport/Cube/CubeRig"
 const ORIENTATION := ^"CubeView/ViewportContainer/CubeViewport/Cube/CubeRig/OrientationPivot"
 const DRAG_HANDLE := ^"CubeView/ViewportContainer/CubeViewport/Cube/DragHandle/Dot"
+const PLACEMENT := ^"CubePlacement"
+const SAVE_SLOTS := NodePath(
+		"CubeView/ViewportContainer/CubeViewport/Cube/CubeRig/OrientationPivot/Front/"
+		+ "Viewport/SaveSlotsContent"
+)
+const CHARACTER_SELECT := NodePath(
+		"CubeView/ViewportContainer/CubeViewport/Cube/CubeRig/OrientationPivot/Right/"
+		+ "Viewport/CharacterSelectContent"
+)
 const PET_MENU := NodePath(
 		"CubeView/ViewportContainer/CubeViewport/Cube/CubeRig/OrientationPivot/Back/"
 		+ "Viewport/PetPanelContent"

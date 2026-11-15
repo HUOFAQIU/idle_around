@@ -81,6 +81,18 @@ func stop_rotation() -> void:
 	_angular_velocity = Vector2.ZERO
 
 
+## 平滑翻到指定面；和拖拽后的自动回正共用 ALIGNING 状态
+func rotate_to_face(face_index: int) -> bool:
+	var camera := _get_camera()
+	if camera == null:
+		return false
+	var face := _find_face(face_index)
+	if face == null:
+		return false
+	_begin_snap(_alignment_quaternion(camera, face).normalized())
+	return true
+
+
 ## 立即把指定面转到正对相机；测试接口和初始化用
 func snap_face_to_camera(face_index: int) -> bool:
 	var camera := _get_camera()
@@ -137,6 +149,11 @@ func _begin_alignment() -> void:
 		return
 
 	var target_quaternion := _alignment_quaternion(camera, best_face)
+	_begin_snap(target_quaternion)
+
+
+func _begin_snap(target_quaternion: Quaternion) -> void:
+	stop_rotation()
 	_snap_from = quaternion
 	_snap_to = target_quaternion
 	_snap_elapsed = 0.0

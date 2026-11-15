@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" path="res://Main/Cube/Scripts/face_3d.gd" id="1_face_3d"]
 [ext_resource type="PackedScene" path="res://Main/Cube/Scenes/UI/face_ui.tscn" id="2_face_ui"]
+[ext_resource type="PackedScene" path="res://Main/Cube/Scenes/UI/face_lock_overlay.tscn" id="3_lock"]
 
 [sub_resource type="QuadMesh" id="QuadMesh_face"]
 size = Vector2(1.9, 1.9)
@@ -11,6 +12,7 @@ size = Vector3(2, 2, 0.02)
 
 [node name="Face3D" type="Node3D"]
 script = ExtResource("1_face_3d")
+content_scene = ExtResource("2_face_ui")
 face_index = 0
 face_name = "正面"
 accent_color = Color(0.309, 0.72, 1, 1)
@@ -32,4 +34,5 @@ disable_3d = true
 size = Vector2i(512, 512)
 render_target_update_mode = 4
 
-[node name="FaceUI" parent="Viewport" instance=ExtResource("2_face_ui")]
+[node name="LockOverlay" parent="Viewport" instance=ExtResource("3_lock")]
+visible = false

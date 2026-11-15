@@ -10,12 +10,12 @@ extends Node
 signal screen_center_changed
 
 const TARGET_FACE_PX : float = 300.0
-## 面片 QuadMesh 的边长，和 pet_face_3d.tscn 保持一致
+## 面片 QuadMesh 的边长，和 face_3d.tscn 保持一致
 const FACE_WORLD_SIZE : float = 1.9
 ## 面片相对立方体中心的距离，用于按面片深度修正缩放
 const FACE_OFFSET : float = 1.005
-## 默认朝向时面 02 的世界法线（OrientationPivot 180° 后背面朝相机）
-const MENU_FACE_NORMAL := Vector3(0, 0, 1)
+## 默认朝向时靠近相机的面（01 或 02）的世界法线
+const NEAR_FACE_NORMAL := Vector3(0, 0, 1)
 
 var _camera : Camera3D
 var _floating : FloatingMotion
@@ -82,7 +82,7 @@ func _apply() -> void:
 	_floating.set_base_position(_camera.project_position(_screen_center, _depth))
 
 
-## 面 02 在立方体靠近相机的一侧，按面片深度解出精确缩放，让菜单保持约 300px
+## 靠近相机的面按面片深度解出精确缩放，让面片投影保持约 300px
 func _compute_scale(viewport_size : Vector2) -> float:
 	var half_fov := deg_to_rad(_camera.fov * 0.5)
 	var k := TARGET_FACE_PX * 2.0 * tan(half_fov) / viewport_size.y
@@ -108,8 +108,8 @@ func _set_screen_center(value : Vector2) -> void:
 	screen_center_changed.emit()
 
 
-## 默认位置以「面 02 的中心」为准：近端面在透视下会向外偏，
-## 直接放立方体中心会让菜单被屏幕边缘裁掉，这里反算立方体中心。
+## 默认位置以「近端面的中心」为准：近端面在透视下会向外偏，
+## 直接放立方体中心会让面片被屏幕边缘裁掉，这里反算立方体中心。
 func _default_center() -> Vector2:
 	var viewport_size := get_viewport().get_visible_rect().size
 	var margin := float(GameGlobal.WINDOWPOSOFFSET)
@@ -123,9 +123,9 @@ func _default_center() -> Vector2:
 
 	var face_distance := FACE_OFFSET * _compute_scale(viewport_size)
 	var forward := -_camera.global_basis.z.normalized()
-	var face_depth := _depth + MENU_FACE_NORMAL.dot(forward) * face_distance
+	var face_depth := _depth + NEAR_FACE_NORMAL.dot(forward) * face_distance
 	var face_world := _camera.project_position(face_target, face_depth)
-	var center_world := face_world - MENU_FACE_NORMAL * face_distance
+	var center_world := face_world - NEAR_FACE_NORMAL * face_distance
 	return _camera.unproject_position(center_world)
 
 

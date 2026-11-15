@@ -1,6 +1,7 @@
 class_name InventoryWindow
 extends BaseWindow
 
+const WAREHOUSE_SCRIPT: GDScript = preload("res://Scripts/warehouse.gd")
 const PAGE_BUTTON_SIZE: Vector2 = Vector2(30, 26)
 
 @onready var inventory_view: InventoryView = $InventoryView
@@ -30,7 +31,7 @@ func set_page(page: int) -> void:
 	_current_page = page
 	for index in _page_buttons.size():
 		_page_buttons[index].set_pressed_no_signal(index == page)
-	var container_name := Warehouse.page_name(page)
+	var container_name: String = WAREHOUSE_SCRIPT.page_name(page)
 	if inventory_view.container_name != container_name:
 		inventory_view.change_data_source(container_name)
 

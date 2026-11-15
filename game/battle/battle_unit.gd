@@ -20,6 +20,7 @@ class_name BattleUnit extends CharacterBody2D
 signal died(unit: BattleUnit)
 ## 单位跨入新的地图格时发出（实时移动中由 BattleManager 在换格时触发）。
 ## 出生/瞬移用的 set_cell() 不触发。
+@warning_ignore("unused_signal")
 signal moved(unit: BattleUnit, from_cell: Vector2i, to_cell: Vector2i)
 
 enum Team { PLAYER, ENEMY }

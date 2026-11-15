@@ -19,12 +19,12 @@ class_name SoulDamageExecution extends GameplayExecutionCalculation
 
 ## 暴击前的伤害合计；tooltip 预览与 execute 共用，避免两份公式。
 static func total_before_crit(
-	base_damage: float,
+	base_damage_value: float,
 	damage_bonus: float,
 	soul_bonus: float,
 	vessel_bonus: float
 ) -> float:
-	return maxf(base_damage + damage_bonus + soul_bonus + vessel_bonus, 0.0)
+	return maxf(base_damage_value + damage_bonus + soul_bonus + vessel_bonus, 0.0)
 
 
 ## 数魂器网格里带匹配类型的魂灵；恐狼自己也算一颗。

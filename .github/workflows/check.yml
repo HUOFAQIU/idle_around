@@ -1,0 +1,28 @@
+name: check
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  check:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Download Godot 4.7.2
+        shell: pwsh
+        run: |
+          $url = "https://github.com/godotengine/godot/releases/download/4.7.2-stable/Godot_v4.7.2-stable_win64.exe.zip"
+          Invoke-WebRequest -Uri $url -OutFile godot.zip
+          Expand-Archive godot.zip -DestinationPath godot
+          $exe = Get-ChildItem godot -Filter "*console.exe" | Select-Object -First 1
+          "GODOT_BIN=$($exe.FullName)" >> $env:GITHUB_ENV
+
+      - name: Run checks
+        shell: bash
+        run: bash tools/check.sh --all

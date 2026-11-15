@@ -62,10 +62,10 @@ func _process(_delta: float) -> void:
 ## 显示提示框；低层级不能覆盖仍然有效的高层级 owner。
 ## 本帧内收到的隐藏请求作废。body_text 是纯文本，由 BodyTerminal 转成 ANSI；
 ## 为空时只显示标题行。
-func show_tip(owner: Object, layer: int, title_name: String, body_text: String = "") -> void:
-	if is_instance_valid(_owner) and _owner != owner and layer < _layer and not _hide_armed:
+func show_tip(tip_owner: Object, layer: int, title_name: String, body_text: String = "") -> void:
+	if is_instance_valid(_owner) and _owner != tip_owner and layer < _layer and not _hide_armed:
 		return
-	_owner = owner
+	_owner = tip_owner
 	_layer = layer
 	_set_text(title_name, body_text)
 	_hide_armed = false
@@ -74,8 +74,8 @@ func show_tip(owner: Object, layer: int, title_name: String, body_text: String =
 
 ## 收起来；只有当前 owner 能收，避免战斗窗口把物品提示关掉。
 ## 延迟到本帧末结算，期间又被 show 的话就不闪。
-func hide_tip(owner: Object) -> void:
-	if is_instance_valid(_owner) and _owner != owner:
+func hide_tip(tip_owner: Object) -> void:
+	if is_instance_valid(_owner) and _owner != tip_owner:
 		return
 	_hide_armed = true
 

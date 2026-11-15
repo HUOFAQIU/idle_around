@@ -13,6 +13,8 @@ const TYPING_TEXT := (
 const TYPE_INTERVAL: float = 0.035
 const PANEL_BG: String = "#141414"
 const PANEL_BORDER: String = "#262626"
+const HOVER_FILL_COLOR : Color = Color(0.13, 0.77, 0.37, 0.22)
+const HOVER_BORDER_COLOR : Color = Color(0.13, 0.77, 0.37, 0.85)
 
 var _terminal: TerminalView
 var _overlay: DebugOverlay
@@ -44,6 +46,7 @@ func _prepare_preview_window() -> void:
 	var screen_size := DisplayServer.screen_get_size()
 	var target := Vector2i(mini(1100, screen_size.x), mini(720, screen_size.y))
 	window.size = target
+	@warning_ignore("integer_division")
 	window.position = (screen_size - target) / 2
 
 
@@ -344,8 +347,8 @@ class DebugOverlay extends Control:
 				Vector2(hover_cell.x * cell.x, hover_cell.y * cell.y),
 				cell
 			)
-			draw_rect(hover_rect, Color(0.13, 0.77, 0.37, 0.22), true)
-			draw_rect(hover_rect, Color(0.13, 0.77, 0.37, 0.85), false, 1.0)
+			draw_rect(hover_rect, HOVER_FILL_COLOR, true)
+			draw_rect(hover_rect, HOVER_BORDER_COLOR, false, 1.0)
 
 
 	func _on_mouse_exited() -> void:

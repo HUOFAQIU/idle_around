@@ -29,6 +29,7 @@ func _ready() -> void:
 	_load_catalog()
 	GBIS.sig_inv_item_added.connect(_on_inv_item_added)
 	GBIS.sig_inv_refresh.connect(_scan_owned_souls)
+	@warning_ignore("missing_await")
 	_scan_owned_souls_after_ready()
 
 

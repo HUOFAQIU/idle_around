@@ -181,14 +181,14 @@ func _handle_primary_pressed(event: InputEventMouseButton) -> void:
 
 func _handle_primary_released(event: InputEventMouseButton) -> void:
 	if _ui_face != null:
-		var face := _ui_face
+		var released_face := _ui_face
 		_ui_face = null
-		var world_position := _world_on_face(face, event.position)
-		face.forward_mouse_button(event, world_position)
-		if face.has_content_point(world_position):
-			_hover_face = face
+		var world_position := _world_on_face(released_face, event.position)
+		released_face.forward_mouse_button(event, world_position)
+		if released_face.has_content_point(world_position):
+			_hover_face = released_face
 		else:
-			face.leave()
+			released_face.leave()
 			_hover_face = null
 		get_viewport().set_input_as_handled()
 		return

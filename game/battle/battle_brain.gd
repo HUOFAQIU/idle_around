@@ -150,6 +150,7 @@ func _flush_pending_activations() -> void:
 				"trace": trace,
 			}, BattleEvent.IMPORTANCE_DETAIL)
 			continue
+		@warning_ignore("missing_await")
 		ability.try_activate(trace)  # 开火即忘；激活锁在 AutoCastAbility._activate_ability() 里扣
 	_flushing = false
 
@@ -197,6 +198,7 @@ func _physics_process(_delta: float) -> void:
 		):
 			continue
 		if unit.asc.can_activate_ability(ability):
+			@warning_ignore("missing_await")
 			ability.try_activate()  # 开火即忘，技能内部自己 await
 
 	# 第三段：本帧触发充能满的魂灵同帧释放（保持入队顺序）

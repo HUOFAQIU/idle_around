@@ -34,7 +34,7 @@ func pre_attribute_change(attribute_name: String, proposed_value: float) -> floa
 
 
 ## The reaction pipeline: Handles moving goalposts (e.g. MaxHealth dropping below Health).
-func post_attribute_change(asc: Node, attribute_name: String, old_value: float, new_value: float) -> void:
+func post_attribute_change(asc: Node, attribute_name: String, _old_value: float, new_value: float) -> void:
 	match attribute_name:
 		"max_health":
 			if health.current_value > new_value:

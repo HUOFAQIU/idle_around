@@ -231,7 +231,7 @@ func _release_once(
 ## 整次激活的所有释放都没选中目标时，只报一次空放。
 ## 只要技能里有魂灵步骤就播报；纯单位技能只播报我方的。
 func _log_empty_activation(
-	battle: BattleManager,
+	_battle: BattleManager,
 	trace: CombatTrace,
 	release_count: int,
 	reasons: Array[String]
@@ -300,14 +300,14 @@ func _on_step_projectile_landed(hit_unit: BattleUnit, step: UnitSkillStep, ctx: 
 
 
 ## 所有箭落地/飞空后统计空箭；不再阻塞释放，只补一条日志。
-func _on_projectiles_finished(result: Variant, target_count: int, trace: CombatTrace) -> void:
+func _on_projectiles_finished(result: Variant, projectile_count: int, trace: CombatTrace) -> void:
 	var battle := _get_battle()
 	if battle == null or not battle.is_running:
 		return
 	var hit_count: int = result if result is int else 0
-	var missed: int = target_count - hit_count
+	var missed: int = projectile_count - hit_count
 	_record_cast("projectiles_finished", trace, {
-		"projectile_count": target_count,
+		"projectile_count": projectile_count,
 		"hit_count": hit_count,
 		"missed": missed,
 	})

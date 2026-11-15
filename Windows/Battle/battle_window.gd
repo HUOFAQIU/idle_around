@@ -315,7 +315,7 @@ func _apply_status_color(bar: PlayerStatusBar, label_name: String, hex: String) 
 
 
 # FPS 颜色：绿 / 黄 / 红
-func _fps_color(fps : int) -> Color:
+func _fps_color(fps : float) -> Color:
 	if fps >= 55:
 		return GameColors.to_color(GameColors.SUCCESS)
 	if fps >= 30:

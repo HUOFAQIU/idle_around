@@ -15,16 +15,12 @@ extends Node
 ## mod.json 里的内容路径可以是相对路径，也可以是 res://mods/<mod_id>/...；
 ## loose 模式会自动把 res://mods/<mod_id>/... 映射到 user://mods/<mod_id>/...。
 
-## 随游戏发布的内置 mod 目录；只会出现官方内容包
-const BUILTIN_MODS_DIR: String = "res://base_mods"
-const MODS_DIR: String = "user://mods"
-const CONFIG_PATH: String = "user://mods.cfg"
-const MANIFEST_FILE: String = "mod.json"
 const PACK_FILE: String = "content.pck"
 const GAME_VERSION_SETTING: String = "application/config/version"
 ## 用 preload 而不是全局类名，保证 --script 无头模式也能解析
 const CONTENT_NAMING: GDScript = preload("res://Scripts/mod/content_naming.gd")
 const CONTENT_KIND_SPEC: GDScript = preload("res://Scripts/mod/content_kind_spec.gd")
+const MOD_PATHS: GDScript = preload("res://Scripts/mod/mod_paths.gd")
 
 var _mods: Array[ModInfo] = []
 ## 按依赖/加载顺序排好、本次真正要加载的 mod
@@ -155,9 +151,9 @@ func set_mod_order(ids: Array[StringName]) -> bool:
 	for mod_id in _order:
 		packed.append(String(mod_id))
 	_config.set_value("order", "list", packed)
-	var err := _config.save(CONFIG_PATH)
+	var err := _config.save(MOD_PATHS.CONFIG_PATH)
 	if err != OK:
-		push_warning("ModLoader: 写入 %s 失败（%d）" % [CONFIG_PATH, err])
+		push_warning("ModLoader: 写入 %s 失败（%d）" % [MOD_PATHS.CONFIG_PATH, err])
 		return false
 	push_warning("ModLoader: 加载顺序已保存，重启后生效")
 	return true
@@ -213,9 +209,9 @@ func set_mod_enabled(mod_id: StringName, enabled: bool) -> bool:
 		return false
 	mod.enabled = enabled
 	_config.set_value("mods", String(mod_id), enabled)
-	var err := _config.save(CONFIG_PATH)
+	var err := _config.save(MOD_PATHS.CONFIG_PATH)
 	if err != OK:
-		push_warning("ModLoader: 写入 %s 失败（%d）" % [CONFIG_PATH, err])
+		push_warning("ModLoader: 写入 %s 失败（%d）" % [MOD_PATHS.CONFIG_PATH, err])
 		return false
 	push_warning("ModLoader: mod %s 的启用状态已保存，重启后生效" % mod_id)
 	return true
@@ -234,9 +230,9 @@ func _source_name(source: ModInfo.Source) -> String:
 
 #region 发现与排序
 func _load_config() -> void:
-	var err := _config.load(CONFIG_PATH)
+	var err := _config.load(MOD_PATHS.CONFIG_PATH)
 	if err != OK and err != ERR_FILE_NOT_FOUND:
-		_record_error("读取 %s 失败（%d）" % [CONFIG_PATH, err])
+		_record_error("读取 %s 失败（%d）" % [MOD_PATHS.CONFIG_PATH, err])
 
 
 func _load_order() -> void:
@@ -261,20 +257,20 @@ func _is_enabled(mod_id: StringName) -> bool:
 
 
 func _ensure_mods_dir() -> bool:
-	var global_path := ProjectSettings.globalize_path(MODS_DIR)
+	var global_path := ProjectSettings.globalize_path(MOD_PATHS.USER_MODS_DIR)
 	if DirAccess.dir_exists_absolute(global_path):
 		return true
 	var err := DirAccess.make_dir_recursive_absolute(global_path)
 	if err != OK:
-		_record_error("创建 %s 失败（%d）" % [MODS_DIR, err])
+		_record_error("创建 %s 失败（%d）" % [MOD_PATHS.USER_MODS_DIR, err])
 		return false
 	return true
 
 
 func _discover_mods() -> void:
-	_discover_mod_root(BUILTIN_MODS_DIR, ModInfo.Source.BUILTIN)
+	_discover_mod_root(MOD_PATHS.BUILTIN_MODS_DIR, ModInfo.Source.BUILTIN)
 	if _ensure_mods_dir():
-		_discover_mod_root(MODS_DIR, ModInfo.Source.LOCAL)
+		_discover_mod_root(MOD_PATHS.USER_MODS_DIR, ModInfo.Source.LOCAL)
 	_mods.sort_custom(_sort_by_user_order)
 
 
@@ -306,13 +302,13 @@ func _sort_by_user_order(a: ModInfo, b: ModInfo) -> bool:
 
 
 func _discover_mod_folder(folder: String, source: ModInfo.Source) -> void:
-	var manifest_path := folder.path_join(MANIFEST_FILE)
+	var manifest_path := folder.path_join(MOD_PATHS.MANIFEST_FILE)
 	if not FileAccess.file_exists(manifest_path):
 		return
 	var manifest := ModManifest.new()
 	if not manifest.load_from_file(manifest_path):
 		for message in manifest.errors:
-			_record_error("%s/%s: %s" % [folder, MANIFEST_FILE, message])
+			_record_error("%s/%s: %s" % [folder, MOD_PATHS.MANIFEST_FILE, message])
 		return
 	if _mods_by_id.has(manifest.id):
 		_record_error("mod id 重复：%s（%s）" % [manifest.id, folder])
@@ -575,7 +571,7 @@ func _make_entry(
 	resource: Resource
 ) -> ModContentEntry:
 	var entry := ModContentEntry.new()
-	entry.kind = kind
+	entry.kind = kind as ContentKind.Kind
 	entry.mod_id = mod.id
 	entry.content_id = content_id
 	entry.path = path
@@ -802,76 +798,76 @@ func _validate_skill_steps(mod: ModInfo, soul: SoulData) -> void:
 			_mod_error(mod, "魂灵 %s 的第 %d 步类型未知：%s" % [soul.content_id, step_no, step_path])
 
 
-func _validate_effects(mod: ModInfo, effects: Array[GameplayEffect], owner: StringName) -> void:
+func _validate_effects(mod: ModInfo, effects: Array[GameplayEffect], mod_owner: StringName) -> void:
 	for effect in effects:
 		if effect != null:
-			_validate_effect_tags(mod, effect, owner)
+			_validate_effect_tags(mod, effect, mod_owner)
 
 
-func _validate_effect_tags(mod: ModInfo, effect: GameplayEffect, owner: StringName) -> void:
+func _validate_effect_tags(mod: ModInfo, effect: GameplayEffect, mod_owner: StringName) -> void:
 	var effect_id := effect.get_instance_id()
 	if _validated_effect_ids.has(effect_id):
 		return
 	_validated_effect_ids[effect_id] = true
 
 	for tag in effect.granted_tags:
-		_validate_tag(mod, tag, "", "效果 %s 的 granted_tags" % owner)
+		_validate_tag(mod, tag, "", "效果 %s 的 granted_tags" % mod_owner)
 	for tag in effect.remove_effects_with_tags:
-		_validate_tag(mod, tag, "", "效果 %s 的 remove_effects_with_tags" % owner)
+		_validate_tag(mod, tag, "", "效果 %s 的 remove_effects_with_tags" % mod_owner)
 	for tag in effect.application_cue_tags:
-		_validate_tag(mod, tag, "Cue.", "效果 %s 的 application_cue_tags" % owner)
+		_validate_tag(mod, tag, "Cue.", "效果 %s 的 application_cue_tags" % mod_owner)
 	for tag in effect.persistent_cue_tags:
-		_validate_tag(mod, tag, "Cue.", "效果 %s 的 persistent_cue_tags" % owner)
+		_validate_tag(mod, tag, "Cue.", "效果 %s 的 persistent_cue_tags" % mod_owner)
 	for tag in effect.periodic_cue_tags:
-		_validate_tag(mod, tag, "Cue.", "效果 %s 的 periodic_cue_tags" % owner)
+		_validate_tag(mod, tag, "Cue.", "效果 %s 的 periodic_cue_tags" % mod_owner)
 	for tag in effect.removal_cue_tags:
-		_validate_tag(mod, tag, "Cue.", "效果 %s 的 removal_cue_tags" % owner)
+		_validate_tag(mod, tag, "Cue.", "效果 %s 的 removal_cue_tags" % mod_owner)
 	for tag in effect.event_tags:
-		_validate_tag(mod, tag, "Event.", "效果 %s 的 event_tags" % owner)
+		_validate_tag(mod, tag, "Event.", "效果 %s 的 event_tags" % mod_owner)
 
 	for execution in effect.executions:
-		_validate_execution_fields(mod, execution, owner)
+		_validate_execution_fields(mod, execution, mod_owner)
 		if execution is SoulDamageExecution:
 			for type in (execution as SoulDamageExecution).matching_soul_types:
 				if not _is_soul_type(type):
-					_mod_error(mod, "效果 %s 的 matching_soul_types 应为 Soul.types.<PascalName>：%s" % [owner, type])
+					_mod_error(mod, "效果 %s 的 matching_soul_types 应为 Soul.types.<PascalName>：%s" % [mod_owner, type])
 	for overflow in effect.overflow_effects:
 		if overflow != null:
-			_validate_effect_tags(mod, overflow, owner)
+			_validate_effect_tags(mod, overflow, mod_owner)
 
 
 ## 执行器字段校验：配错时运行期会静默无效果，尽量在加载期报出来。
-func _validate_execution_fields(mod: ModInfo, execution: Variant, owner: StringName) -> void:
+func _validate_execution_fields(mod: ModInfo, execution: Variant, mod_owner: StringName) -> void:
 	if execution is StatusApplyExecution:
 		var status := execution as StatusApplyExecution
 		if not StatusText.NAMES.has(status.attribute_name):
-			_mod_error(mod, "效果 %s 的 StatusApplyExecution.attribute_name 不合法：%s（应为 burn / poison / regen）" % [owner, status.attribute_name])
+			_mod_error(mod, "效果 %s 的 StatusApplyExecution.attribute_name 不合法：%s（应为 burn / poison / regen）" % [mod_owner, status.attribute_name])
 		if status.base_amount < 0.0:
-			_mod_error(mod, "效果 %s 的 StatusApplyExecution.base_amount 不能为负：%s" % [owner, status.base_amount])
+			_mod_error(mod, "效果 %s 的 StatusApplyExecution.base_amount 不能为负：%s" % [mod_owner, status.base_amount])
 	elif execution is PoisonDamageExecution:
 		var poison := execution as PoisonDamageExecution
-		_validate_damage_execution(mod, poison, owner)
+		_validate_damage_execution(mod, poison, mod_owner)
 		if poison.poison_ratio < 0.0 or poison.poison_ratio > 1.0:
-			_mod_error(mod, "效果 %s 的 PoisonDamageExecution.poison_ratio 必须在 0～1：%s" % [owner, poison.poison_ratio])
+			_mod_error(mod, "效果 %s 的 PoisonDamageExecution.poison_ratio 必须在 0～1：%s" % [mod_owner, poison.poison_ratio])
 	elif execution is SoulDamageExecution:
-		_validate_damage_execution(mod, execution as SoulDamageExecution, owner)
+		_validate_damage_execution(mod, execution as SoulDamageExecution, mod_owner)
 	elif execution is HealExecution:
 		var heal := execution as HealExecution
 		if heal.base_heal < 0.0:
-			_mod_error(mod, "效果 %s 的 HealExecution.base_heal 不能为负：%s" % [owner, heal.base_heal])
+			_mod_error(mod, "效果 %s 的 HealExecution.base_heal 不能为负：%s" % [mod_owner, heal.base_heal])
 		if heal.cleanse_ratio < 0.0 or heal.cleanse_ratio > 1.0:
-			_mod_error(mod, "效果 %s 的 HealExecution.cleanse_ratio 必须在 0～1：%s" % [owner, heal.cleanse_ratio])
+			_mod_error(mod, "效果 %s 的 HealExecution.cleanse_ratio 必须在 0～1：%s" % [mod_owner, heal.cleanse_ratio])
 	elif execution is ShieldExecution:
 		var shield := execution as ShieldExecution
 		if shield.base_shield < 0.0:
-			_mod_error(mod, "效果 %s 的 ShieldExecution.base_shield 不能为负：%s" % [owner, shield.base_shield])
+			_mod_error(mod, "效果 %s 的 ShieldExecution.base_shield 不能为负：%s" % [mod_owner, shield.base_shield])
 
 
-func _validate_damage_execution(mod: ModInfo, damage: SoulDamageExecution, owner: StringName) -> void:
+func _validate_damage_execution(mod: ModInfo, damage: SoulDamageExecution, mod_owner: StringName) -> void:
 	if damage.base_damage < 0.0:
-		_mod_error(mod, "效果 %s 的伤害执行 base_damage 不能为负：%s" % [owner, damage.base_damage])
+		_mod_error(mod, "效果 %s 的伤害执行 base_damage 不能为负：%s" % [mod_owner, damage.base_damage])
 	if damage.bonus_per_matching_soul < 0.0:
-		_mod_error(mod, "效果 %s 的伤害执行 bonus_per_matching_soul 不能为负：%s" % [owner, damage.bonus_per_matching_soul])
+		_mod_error(mod, "效果 %s 的伤害执行 bonus_per_matching_soul 不能为负：%s" % [mod_owner, damage.bonus_per_matching_soul])
 
 
 func _validate_tag(mod: ModInfo, tag: StringName, required_prefix: String, context: String) -> void:
@@ -909,7 +905,7 @@ func _is_protected_override(path: String) -> bool:
 		return true
 	if path.begins_with("res://Scripts/mod/"):
 		return true
-	if path.begins_with("res://base_mods/") and path.ends_with("/mod.json"):
+	if path.begins_with(MOD_PATHS.BUILTIN_MODS_DIR + "/") and path.ends_with("/mod.json"):
 		return true
 	return false
 
@@ -923,16 +919,16 @@ func _content_root(mod: ModInfo) -> String:
 	if mod.is_builtin():
 		if not mod.manifest.content_root.is_empty():
 			return mod.manifest.content_root
-		return "res://base_mods/%s/" % mod.id
+		return MOD_PATHS.builtin_mod_dir(mod.id)
 	if mod.pack_path.is_empty():
-		return "user://mods/%s/" % mod.id
-	return "res://mods/%s/" % mod.id
+		return MOD_PATHS.user_mod_dir(mod.id)
+	return MOD_PATHS.res_mod_dir(mod.id)
 
 
 func _canonical_content_prefix(mod: ModInfo) -> String:
 	if mod.is_builtin():
-		return "res://base_mods/%s/" % mod.id
-	return "res://mods/%s/" % mod.id
+		return MOD_PATHS.builtin_mod_dir(mod.id)
+	return MOD_PATHS.res_mod_dir(mod.id)
 
 
 func _resolve_content_path(mod: ModInfo, raw_path: String) -> String:

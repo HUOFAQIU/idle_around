@@ -36,6 +36,7 @@ func _ready() -> void:
 		push_warning("CubePlacement 找不到立方体节点，位置和缩放不会生效。")
 	_has_saved_position = CubeSettings.has_position()
 	_refresh_center()
+	@warning_ignore("missing_await")
 	_refresh_center_after_frame()
 	get_viewport().size_changed.connect(_on_viewport_size_changed)
 

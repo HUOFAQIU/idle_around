@@ -1004,11 +1004,12 @@ static func get_cube_state() -> Dictionary:
 	if _cube_rig() == null:
 		return {}
 	var pivot := _cube_orientation()
-	var camera := _main_viewport_camera()
+	var camera := _cube_camera()
 	var ui_face_viewport := _ui_face_viewport()
 	return {
 		"cube_scale": _cube_scale(),
 		"screen_center": get_cube_screen_position(),
+		"view_layer": _cube_view_layer(),
 		"orientation": pivot.quaternion if pivot != null else Quaternion.IDENTITY,
 		"front_face_index": _front_face_index(camera) if camera != null else -1,
 		"ui_face_index": 1,
@@ -1016,6 +1017,44 @@ static func get_cube_state() -> Dictionary:
 				ui_face_viewport.size if ui_face_viewport != null else Vector2i.ZERO
 		),
 		"passthrough": get_cube_passthrough_state(),
+	}
+
+
+## 立方体层级：CubeView 压住 GameUI/HUD，Tooltip 与拖拽幽灵仍在上面
+static func get_cube_layering_state() -> Dictionary:
+	var surface := CubeInputSurface.instance
+	if surface == null:
+		return {}
+	var cube_layer := _cube_view_layer()
+	if cube_layer < 0:
+		return {}
+
+	var tree := Engine.get_main_loop() as SceneTree
+	if tree == null:
+		return {}
+	var game_ui := tree.root.find_child("GameUI", true, false) as CanvasLayer
+	var hud := tree.root.find_child("HUD", true, false) as CanvasLayer
+	var tooltip := tree.root.find_child("TooltipLayer", true, false) as CanvasLayer
+	var drag := tree.root.find_child("DragLayer", true, false) as CanvasLayer
+	var rig := _cube_rig()
+	var viewport := rig.get_viewport() if rig != null else null
+	return {
+		"cube_layer": cube_layer,
+		"game_ui_layer": game_ui.layer if game_ui != null else -1,
+		"hud_layer": hud.layer if hud != null else -1,
+		"tooltip_layer": tooltip.layer if tooltip != null else -1,
+		"drag_layer": drag.layer if drag != null else -1,
+		"above_game_ui": game_ui != null and cube_layer > game_ui.layer,
+		"above_hud": hud != null and cube_layer > hud.layer,
+		"below_tooltip": tooltip != null and cube_layer < tooltip.layer,
+		"below_drag_ghost": drag != null and cube_layer < drag.layer,
+		"input_ready": surface.is_ready(),
+		"hull_points": surface.get_hull_points().size(),
+		"viewport_size": (
+				Vector2i(viewport.get_visible_rect().size)
+				if viewport != null
+				else Vector2i.ZERO
+		),
 	}
 
 
@@ -1127,11 +1166,19 @@ static func _cube_scale() -> float:
 	return cube.global_transform.basis.get_scale().x
 
 
-static func _main_viewport_camera() -> Camera3D:
-	var tree := Engine.get_main_loop() as SceneTree
-	if tree == null:
+static func _cube_camera() -> Camera3D:
+	var rig := _cube_rig()
+	if rig == null:
 		return null
-	return tree.root.get_camera_3d()
+	return rig.get_viewport().get_camera_3d()
+
+
+static func _cube_view_layer() -> int:
+	var surface := CubeInputSurface.instance
+	if surface == null:
+		return -1
+	var layer := surface.get_parent() as CanvasLayer
+	return layer.layer if layer != null else -1
 
 
 static func _front_face_index(camera : Camera3D) -> int:

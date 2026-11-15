@@ -2,7 +2,7 @@
 
 > 类型：指南 | 状态：有效 | 核对：2026-11-15
 > 何时读：写自动化测试/探针、构造战斗或背包场景、验证新功能
-> 关键词：测试 TestAPI 探针 自动化 战斗快照 魂灵 魂器 vessel 仓库 见闻 商店 冷却 冻结 触发器 类型 标签 尺寸 充能 卡面 tooltip 伤害缩放 动态伤害 静态预览 SoulDamagePreview get_equipped_soul_damage_preview is_dynamic has_runtime 多重触发 cast_times releases 颜色 色板 存档 save 爪痕 play_claw_cue mod ModLoader ModWindow 加载顺序 order mod_cue_registrar cue Cue 特效 manifest 创意工坊 内置 core content_id validate_core_manifest manifest 校验 技能 ID ability_tag 命名 主窗口置顶 单窗口 浮层 CanvasLayer PetPanel 主菜单 位置持久化 CubePlacement PanelManager 激活面板 遮挡 穿透 mouse_passthrough WindowPassthrough 立方体 cube 面 02 背面 终端 字符网格 TerminalView TerminalBuffer TerminalSpan 跨格大字 ANSI SGR 回看 scrollback auto_scroll
+> 关键词：测试 TestAPI 探针 自动化 战斗快照 魂灵 魂器 vessel 仓库 见闻 商店 冷却 冻结 触发器 类型 标签 尺寸 充能 卡面 tooltip 伤害缩放 动态伤害 静态预览 SoulDamagePreview get_equipped_soul_damage_preview is_dynamic has_runtime 多重触发 cast_times releases 颜色 色板 存档 save 爪痕 play_claw_cue mod ModLoader ModWindow 加载顺序 order mod_cue_registrar cue Cue 特效 manifest 创意工坊 内置 core content_id validate_core_manifest manifest 校验 技能 ID ability_tag 命名 主窗口置顶 单窗口 浮层 CanvasLayer PetPanel 主菜单 位置持久化 CubePlacement PanelManager 激活面板 遮挡 穿透 mouse_passthrough WindowPassthrough 立方体 cube 面 02 背面 层级 CubeView CubeInputSurface CubeProjection CubeScenePaths get_cube_layering_state view_layer 终端 字符网格 TerminalView TerminalBuffer TerminalSpan 跨格大字 ANSI SGR 回看 scrollback auto_scroll
 > 代码：`Scripts/test_api.gd`、`Windows/Battle/battle_window.gd`、`Scripts/collection_db.gd`、`Scripts/save/`、`Scripts/mod/`、`base_mods/core/mod.json`
 > 约定：新增功能/内容时，同步补 TestAPI 方法并更新本文。
 
@@ -193,7 +193,8 @@ print(TestAPI.get_cube_passthrough_state())
 
 | 方法 | 说明 |
 |---|---|
-| `get_cube_state() -> Dictionary` | `cube_scale` / `screen_center` / `orientation` / `front_face_index` / `ui_face_index` / `ui_face_viewport_size` / `passthrough` |
+| `get_cube_state() -> Dictionary` | `cube_scale` / `screen_center` / `view_layer` / `orientation` / `front_face_index` / `ui_face_index` / `ui_face_viewport_size` / `passthrough` |
+| `get_cube_layering_state() -> Dictionary` | `cube_layer` / `game_ui_layer` / `hud_layer` / `tooltip_layer` / `drag_layer`、`above_game_ui` / `above_hud` / `below_tooltip` / `below_drag_ghost`、`input_ready` / `hull_points` / `viewport_size` |
 | `set_cube_face_front(index) -> bool` | 立即把指定面转到正对相机（测试用，跳过动画） |
 | `get_cube_face_content(index) -> String` | `face_ui` / `pet_panel` / `unknown` |
 | `click_cube_face_button(index) -> bool` | 触发普通面的识别按钮，走与点击一致的信号链；面 02 返回 false |
@@ -201,6 +202,7 @@ print(TestAPI.get_cube_passthrough_state())
 
 ```gdscript
 print(TestAPI.get_cube_state())
+print(TestAPI.get_cube_layering_state())
 print(TestAPI.set_cube_face_front(1))
 print(TestAPI.get_cube_face_content(1))
 print(TestAPI.click_cube_face_button(0))
@@ -208,6 +210,9 @@ print(TestAPI.click_cube_pet_button(&"inventory"))
 ```
 
 - 面 02（`index = 1`）是 PetPanel 主菜单；游戏 UI 本身是主视口的 `GameUI` 覆盖层，不挂在面片上。
+- 立方体渲染在 `CubeView`（layer 1024）的透明子视口里：`get_cube_layering_state()` 应返回 `above_game_ui=true`、`above_hud=true`、`below_tooltip=true`、`below_drag_ghost=true`；`input_ready=true` 表示子视口、相机、朝向、CubeRig 和拖动圆点都解析成功；`hull_points` 是当前投影凸包顶点数，`viewport_size` 应与主视口一致。
+- 立方体轮廓内的鼠标由 `CubeInputSurface` 先接管，下层面板收不到 hover/点击；轮廓外仍由游戏 UI 处理。
+- 主场景里立方体子树的节点路径集中在 `Main/Cube/Scripts/cube_scene_paths.gd`；场景结构改动后先看 `input_ready`。
 - `set_cube_face_front(1)` 后可直接点击/测试主菜单；`click_cube_pet_button("inventory")` 应让 `InventoryWindow` 在主视口打开。
 - `get_cube_screen_position()` 是**立方体中心**的屏幕坐标，不是菜单面中心；菜单默认位置由 `CubePlacement` 按面 02 反算。
 - 面板坐标和 `get_visible_panel_rects()` 返回的是主视口像素坐标。

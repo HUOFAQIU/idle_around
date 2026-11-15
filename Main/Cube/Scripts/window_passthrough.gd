@@ -4,20 +4,17 @@ extends Node
 ##
 ## Windows 上跨应用穿透必须使用 Window.mouse_passthrough_polygon，
 ## 不能用 mouse_passthrough。未按下鼠标时，命中区域只覆盖立方体的屏幕
-## 投影凸包、可见游戏面板/Tooltip/ItemWindow、HUD 与拖动圆点；按下鼠标
-## 后临时扩成整个客户区，避免拖拽时丢事件。
+## 投影凸包（相机在 CubeView 子视口里）、可见游戏面板/Tooltip/ItemWindow、
+## HUD 与拖动圆点；按下鼠标后临时扩成整个客户区，避免拖拽时丢事件。
 
-const CUBE_HALF_EXTENT: float = 1.03
 const REGION_PADDING: float = 28.0
 ## 游戏 UI 面板外扩比立方体小，避免窗口周围出现太宽的拦截区
 const UI_REGION_PADDING: float = 8.0
 
 static var instance: WindowPassthrough
 
-@export var cube_orientation_path: NodePath = ^"../Cube/CubeRig/OrientationPivot"
 @export var cube_placement_path: NodePath = ^"../CubePlacement"
 @export var hud_path: NodePath = ^"../HUD"
-@export var drag_handle_path: NodePath = ^"../Cube/DragHandle/Dot"
 @export var panel_manager_path: NodePath = ^"../GameUI/GameControl/PanelManager"
 @export var tooltip_path: NodePath = ^"../GameUI/GameControl/TooltipLayer/TooltipWindow"
 @export var item_window_path: NodePath = ^"../GameUI/GameControl/DragLayer/ItemWindow"
@@ -35,6 +32,7 @@ var enabled: bool = true:
 
 var _window: Window
 var _cube_orientation: CubeOrientation
+var _camera: Camera3D
 var _cube_placement: CubePlacement
 var _hud: CubeHud
 var _drag_handle: CubeDragHandle
@@ -48,15 +46,19 @@ var _last_rects: Array[Rect2] = []
 var _last_ui_rects: Array[Rect2] = []
 var _last_viewport_size := Vector2i.ZERO
 var _last_window_size := Vector2i.ZERO
+var _last_cube_viewport_size := Vector2i.ZERO
 
 
 func _ready() -> void:
 	instance = self
 	_window = get_window()
-	_cube_orientation = get_node_or_null(cube_orientation_path) as CubeOrientation
+	_cube_orientation = CubeScenePaths.resolve(
+			self, CubeScenePaths.ORIENTATION) as CubeOrientation
+	_camera = CubeScenePaths.resolve(self, CubeScenePaths.CAMERA) as Camera3D
 	_cube_placement = get_node_or_null(cube_placement_path) as CubePlacement
 	_hud = get_node_or_null(hud_path) as CubeHud
-	_drag_handle = get_node_or_null(drag_handle_path) as CubeDragHandle
+	_drag_handle = CubeScenePaths.resolve(
+			self, CubeScenePaths.DRAG_HANDLE) as CubeDragHandle
 	_panel_manager = get_node_or_null(panel_manager_path) as PanelManager
 	_tooltip = get_node_or_null(tooltip_path) as Control
 	_item_window = get_node_or_null(item_window_path) as Control
@@ -70,6 +72,8 @@ func _ready() -> void:
 		push_warning("WindowPassthrough 找不到 HUD，点击穿透区域将只包含立方体。")
 	if _cube_orientation == null:
 		push_warning("WindowPassthrough 找不到立方体朝向节点。")
+	if _camera == null:
+		push_warning("WindowPassthrough 找不到立方体相机，穿透区域将只包含 UI。")
 	if _cube_placement != null:
 		_cube_placement.screen_center_changed.connect(_on_overlay_regions_changed)
 	else:
@@ -91,6 +95,12 @@ func _process(_delta: float) -> void:
 	if viewport_size != _last_viewport_size or window_size != _last_window_size:
 		_last_viewport_size = viewport_size
 		_last_window_size = window_size
+		_dirty = true
+
+	# 立方体子视口由 SubViewportContainer 拉伸，尺寸稳定后要重算凸包
+	var cube_viewport_size := _cube_viewport_size()
+	if cube_viewport_size != _last_cube_viewport_size:
+		_last_cube_viewport_size = cube_viewport_size
 		_dirty = true
 
 	var ui_rects := _collect_ui_rects()
@@ -211,9 +221,9 @@ func _refresh_region() -> void:
 		return
 
 	var base_polygon := PackedVector2Array()
-	var camera := get_viewport().get_camera_3d()
-	if camera != null and _cube_orientation != null:
-		base_polygon = _project_cube_hull(camera)
+	if _camera != null and _cube_orientation != null \
+			and _cube_viewport_size().y >= 2:
+		base_polygon = _project_cube_hull(_camera)
 
 	_last_ui_rects = _collect_ui_rects()
 	_last_rects.clear()
@@ -240,19 +250,13 @@ func _refresh_region() -> void:
 
 
 func _project_cube_hull(camera: Camera3D) -> PackedVector2Array:
-	var screen_points := PackedVector2Array()
-	for x_sign in [-1.0, 1.0]:
-		for y_sign in [-1.0, 1.0]:
-			for z_sign in [-1.0, 1.0]:
-				var local_corner := Vector3(x_sign, y_sign, z_sign) * CUBE_HALF_EXTENT
-				var world_corner := _cube_orientation.global_transform * local_corner
-				if camera.is_position_behind(world_corner):
-					continue
-				screen_points.append(camera.unproject_position(world_corner))
+	return CubeProjection.project_hull(camera, _cube_orientation)
 
-	if screen_points.size() < 3:
-		return PackedVector2Array()
-	return Geometry2D.convex_hull(screen_points)
+
+func _cube_viewport_size() -> Vector2i:
+	if _camera == null:
+		return Vector2i.ZERO
+	return Vector2i(_camera.get_viewport().get_visible_rect().size)
 
 
 func _scale_region(polygon: PackedVector2Array, scale: Vector2) -> PackedVector2Array:

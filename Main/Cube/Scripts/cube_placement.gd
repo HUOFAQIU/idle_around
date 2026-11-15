@@ -17,9 +17,6 @@ const FACE_OFFSET : float = 1.005
 ## 默认朝向时面 02 的世界法线（OrientationPivot 180° 后背面朝相机）
 const MENU_FACE_NORMAL := Vector3(0, 0, 1)
 
-@export var camera_path : NodePath = ^"../Camera3D"
-@export var cube_path : NodePath = ^"../Cube"
-
 var _camera : Camera3D
 var _floating : FloatingMotion
 var _screen_center := Vector2.ZERO
@@ -28,8 +25,9 @@ var _has_saved_position : bool = false
 
 
 func _ready() -> void:
-	_camera = get_node_or_null(camera_path) as Camera3D
-	_floating = get_node_or_null(cube_path) as FloatingMotion
+	_camera = CubeScenePaths.resolve(self, CubeScenePaths.CAMERA) as Camera3D
+	_floating = CubeScenePaths.resolve(
+			self, CubeScenePaths.CUBE) as FloatingMotion
 	if _camera == null:
 		push_warning("CubePlacement 找不到相机，立方体无法定位。")
 	else:
@@ -76,6 +74,9 @@ func _apply() -> void:
 		return
 	var viewport_size := get_viewport().get_visible_rect().size
 	if viewport_size.y < 2.0:
+		return
+	# 子视口由 SubViewportContainer 拉伸到主视口，布局稳定前先跳过一帧
+	if _camera.get_viewport().get_visible_rect().size.y < 2.0:
 		return
 	_floating.scale = Vector3.ONE * _compute_scale(viewport_size)
 	_floating.set_base_position(_camera.project_position(_screen_center, _depth))

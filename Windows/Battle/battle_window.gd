@@ -260,6 +260,15 @@ func _update_coord_tooltip() -> void:
 		tip.hide_tip(self)
 		return
 
+	# 立方体是应用内最上层：指针在它的输入区时，下面的格子坐标也要让位
+	var cube_surface := CubeInputSurface.instance
+	if cube_surface != null \
+			and cube_surface.contains_screen_point(
+					get_viewport().get_mouse_position()):
+		_mouse_was_inside = false
+		tip.hide_tip(self)
+		return
+
 	# 鼠标不在这个窗口里就彻底撒手：tooltip 是全游戏共用一个，
 	# 其他窗口 hover 物品时正用着它，这里每帧无条件 show/hide 会把人家盖掉。
 	# 只在"刚离开"那一帧收一次，之后就什么都不做

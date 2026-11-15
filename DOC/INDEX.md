@@ -12,6 +12,7 @@
 | 改面板拖动/关闭/标题栏、面板坐标 | `架构/窗口与场景.md` §1.2/§1.3 | `Windows/base_window.gd`、`Scripts/ui/control_drag.gd`、`Scripts/ui/ui_bounds.gd`、`Main/control.tscn` |
 | 改面板置顶/激活/遮挡判断 | `架构/窗口与场景.md` §1.2/§3 | `Main/panel_manager.gd` |
 | 改 3D 立方体、旋转/回正、面片内容、拖动圆点 | `架构/立方体外壳.md` | `Main/Cube/` |
+| 改立方体与游戏 UI 的上下层、立方体压住面板 | `架构/立方体外壳.md` §1/§3/§5 | `Main/Cube/Scenes/main.tscn`、`Main/Cube/Scripts/cube_input_surface.gd` |
 | 改面 02 主菜单/立方体承接 PetPanel | `架构/立方体外壳.md` §2/§3 | `Main/pet_panel.tscn`、`Main/pet_panel.gd`、`Main/Cube/Scenes/pet_face_3d.tscn`、`Main/Cube/Scripts/pet_panel_content.gd` |
 | 改透明区域点击穿透/mouse_passthrough | `架构/立方体外壳.md` §4 | `Main/Cube/Scripts/window_passthrough.gd`、`Scripts/ui/ui_region.gd` |
 | 改主窗口置顶、T 按钮、置顶持久化 | `架构/窗口与场景.md` §1.6 | `Main/status_bar_container.gd`、`Scripts/window_pin_settings.gd` |

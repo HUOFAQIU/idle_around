@@ -96,6 +96,24 @@ func _unhandled_input(event: InputEvent) -> void:
 func _notification(what: int) -> void:
 	if what != NOTIFICATION_WM_MOUSE_EXIT and what != NOTIFICATION_WM_WINDOW_FOCUS_OUT:
 		return
+	cancel_window_interaction()
+
+
+## 主场景装配：屏幕锚定和位置持久化统一交给 CubePlacement
+func setup_placement(placement : CubePlacement) -> void:
+	_placement = placement
+
+
+## 指针离开立方体输入代理时清掉悬停；正在拖动/转发 UI 时不打断
+func pointer_left() -> void:
+	if _ui_face != null or _pressed_face != null or _dragging or _moving_handle:
+		return
+	_clear_hover()
+
+
+## 窗口失焦/鼠标离开窗口：取消 UI 捕获或旋转。
+## CubeRig 在子视口里，主视口的 InputSurface 也会转发这两个通知。
+func cancel_window_interaction() -> void:
 	if _ui_face != null:
 		_ui_face.cancel_interaction()
 		_ui_face = null
@@ -112,11 +130,6 @@ func _notification(what: int) -> void:
 		_pressed_face.cancel_interaction()
 		_pressed_face = null
 	_clear_hover()
-
-
-## 主场景装配：屏幕锚定和位置持久化统一交给 CubePlacement
-func setup_placement(placement : CubePlacement) -> void:
-	_placement = placement
 
 
 func _handle_primary_pressed(event: InputEventMouseButton) -> void:

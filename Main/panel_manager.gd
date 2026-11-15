@@ -88,7 +88,12 @@ func _input(event : InputEvent) -> void:
 	var mouse_button := event as InputEventMouseButton
 	if not mouse_button.pressed or mouse_button.button_index != MOUSE_BUTTON_LEFT:
 		return
-	var panel := get_top_panel_at(get_viewport().get_mouse_position())
+	var mouse_position := get_viewport().get_mouse_position()
+	# 立方体在应用内最上层：被它的输入代理盖住的面板不参与置顶/激活
+	var cube_surface := CubeInputSurface.instance
+	if cube_surface != null and cube_surface.contains_screen_point(mouse_position):
+		return
+	var panel := get_top_panel_at(mouse_position)
 	if panel != null:
 		raise(panel)
 

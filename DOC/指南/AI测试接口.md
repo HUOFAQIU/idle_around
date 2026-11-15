@@ -2,7 +2,7 @@
 
 > 类型：指南 | 状态：有效 | 核对：2026-11-15
 > 何时读：写自动化测试/探针、构造战斗或背包场景、验证新功能
-> 关键词：测试 TestAPI 探针 自动化 战斗快照 魂灵 魂器 vessel 仓库 见闻 商店 冷却 冻结 触发器 类型 标签 尺寸 充能 卡面 tooltip 伤害缩放 动态伤害 静态预览 SoulDamagePreview get_equipped_soul_damage_preview is_dynamic has_runtime 多重触发 cast_times releases 颜色 色板 色板目录 分组 别名 主屏幕 存档 save 爪痕 play_claw_cue mod ModLoader ModWindow 加载顺序 order mod_cue_registrar cue Cue 特效 manifest 创意工坊 内置 core content_id validate_core_manifest manifest 校验 技能 ID ability_tag 命名 主窗口置顶 单窗口 浮层 CanvasLayer PetPanel 主菜单 位置持久化 CubePlacement PanelManager 激活面板 遮挡 穿透 mouse_passthrough WindowPassthrough 立方体 cube 面 02 背面 层级 CubeView CubeInputSurface CubeProjection CubeScenePaths get_cube_layering_state view_layer 终端 字符网格 TerminalView TerminalBuffer TerminalSpan 跨格大字 ANSI SGR 回看 scrollback auto_scroll
+> 关键词：测试 TestAPI 探针 自动化 战斗快照 魂灵 魂器 vessel 仓库 见闻 商店 冷却 冻结 触发器 类型 标签 尺寸 充能 卡面 tooltip 伤害缩放 动态伤害 静态预览 SoulDamagePreview get_equipped_soul_damage_preview is_dynamic has_runtime 多重触发 cast_times releases 颜色 色板 色板目录 分组 别名 主屏幕 六槽 存档位 角色选择 GameFlow 锁定 锁图 存档 save 删档 删除存档 确认 爪痕 play_claw_cue mod ModLoader ModWindow 加载顺序 order mod_cue_registrar cue Cue 特效 manifest 创意工坊 内置 core content_id validate_core_manifest manifest 校验 技能 ID ability_tag 命名 主窗口置顶 单窗口 浮层 CanvasLayer PetPanel 主菜单 位置持久化 CubePlacement PanelManager 激活面板 遮挡 穿透 mouse_passthrough WindowPassthrough 立方体 cube 面 02 背面 层级 CubeView CubeInputSurface CubeProjection CubeScenePaths get_cube_layering_state view_layer 终端 字符网格 TerminalView TerminalBuffer TerminalSpan 跨格大字 ANSI SGR 回看 scrollback auto_scroll
 > 代码：`Scripts/test_api.gd`、`Windows/Battle/battle_window.gd`、`Scripts/collection_db.gd`、`Scripts/save/`、`Scripts/mod/`、`base_mods/core/mod.json`
 > 约定：新增功能/内容时，同步补 TestAPI 方法并更新本文。
 
@@ -13,18 +13,20 @@
 ```gdscript
 TestAPI.set_unlock_all(false)
 TestAPI.clear_container("inventory_0")
-TestAPI.add_soul(&"xiao_lu_soul")
-TestAPI.add_vessel(&"mei_you_deng_vessel")
-TestAPI.equip_vessel(&"mei_you_deng_vessel")
-TestAPI.vessel_add_soul(&"xiao_lu_soul", 0)
-TestAPI.start_battle(&"snake_monster")
+var soul_id: StringName = TestAPI.get_soul_ids()[0]
+var vessel_id: StringName = TestAPI.get_vessel_ids()[0]
+TestAPI.add_soul(soul_id)
+TestAPI.add_vessel(vessel_id)
+TestAPI.equip_vessel(vessel_id)
+TestAPI.vessel_add_soul(soul_id, 0)
+TestAPI.start_battle(TestAPI.get_monster_ids()[0])
 await get_tree().physics_frame
 var state := TestAPI.get_battle_state()
 print(state)
 TestAPI.stop_battle()
 ```
 
-魂灵/怪物 ID 用 `TestAPI.get_soul_ids()`、`TestAPI.get_monster_ids()` 查，必须是 `content_id`（core 如 `snake_monster`、`fu_monster`；第三方带 `<mod_id>:` 前缀）。技能标签用 `TestAPI.get_skill_tags()` 查，core 如 `Skill.XiaoLu`，第三方如 `Skill.Mod.ExampleSouls.FireWolf`。
+魂灵/怪物 ID 用 `TestAPI.get_soul_ids()`、`TestAPI.get_monster_ids()` 查，必须是 `content_id`（core 不带前缀；第三方带 `<mod_id>:` 前缀）。技能标签用 `TestAPI.get_skill_tags()` 查：core 形如 `Skill.<PascalName>`，第三方形如 `Skill.Mod.<PascalModId>.<PascalName>`（示例 mod 为 `Skill.Mod.ExampleSouls.FireWolf`）。
 
 ## 背包 / 见闻
 
@@ -77,8 +79,9 @@ TestAPI.stop_battle()
 `kind` 用 `ContentKind.Kind.SOUL` / `ContentKind.Kind.MONSTER` / `ContentKind.Kind.VESSEL`。见闻窗口的魂灵/魂器条目悬停使用与仓库相同的 tooltip（魂灵 `SoulTooltip.build()`，魂器 `VesselTooltip.build()`）；右键已遇见魂灵等价于 `add_soul_to_warehouse(id)`，右键已遇见魂器等价于 `add_vessel(id)`。魂器首次进入任意容器即解锁：
 
 ```gdscript
-TestAPI.add_vessel(&"mei_you_deng_vessel")
-print(TestAPI.is_seen(ContentKind.Kind.VESSEL, &"mei_you_deng_vessel"))  # true
+var vessel_id: StringName = TestAPI.get_vessel_ids()[0]
+TestAPI.add_vessel(vessel_id)
+print(TestAPI.is_seen(ContentKind.Kind.VESSEL, vessel_id))  # true
 ```
 
 仓库有 10 页（`inventory_0..inventory_9`）。测试时用 `add_soul_to_warehouse()` 自动入页，或 `set_warehouse_page()` 切到指定页观察显示；页码从 0 开始。
@@ -87,7 +90,7 @@ print(TestAPI.is_seen(ContentKind.Kind.VESSEL, &"mei_you_deng_vessel"))  # true
 
 ```gdscript
 TestAPI.clear_container("inventory_0")
-TestAPI.add_soul(&"xiao_lu_soul")          # 落在 (0, 0)
+TestAPI.add_soul(TestAPI.get_soul_ids()[0])  # 落在 (0, 0)
 TestAPI.pick_up_item("inventory_0", Vector2i.ZERO)
 TestAPI.cancel_moving_item()               # 物品回到 (0, 0)
 
@@ -95,30 +98,42 @@ TestAPI.pick_up_item("inventory_0", Vector2i.ZERO)
 TestAPI.drop_moving_item("inventory_0", Vector2i(5, 0))  # 放到指定格
 ```
 
-## 存档
+## 存档与开局
 
 | 方法 | 说明 |
 |---|---|
-| `save_now() -> bool` | 立即写档到 `user://saves/slot_0.json` |
-| `load_save() -> bool` | 从磁盘读档，清空并按精确格子重建所有容器；不要在战斗/拖拽中调用 |
-| `delete_save() -> bool` | 只删除磁盘存档，不改变当前内存状态；要回到新游戏再调用 `load_save()` |
-| `has_save() -> bool` | 是否存在主文件或备份 |
-| `get_save_path() -> String` | 返回 `user://saves/slot_0.json`；绝对路径用 `ProjectSettings.globalize_path()` |
-| `get_save_status() -> Dictionary` | `ready` / `read_only` / `missing_containers`；缺容器时只读，不读也不写 |
+| `save_now() -> bool` | 立即写当前活动槽；没有活动槽返回 false |
+| `load_save_slot(slot) -> bool` | 完整流程读档：保存当前槽（如有）、结束战斗/关面板、读取目标槽、锁 04/解锁 02、翻到 02 面 |
+| `load_save_slot_raw(slot) -> bool` | 直接调 `SaveManager.load_slot()`，不改变 `GameFlow` 状态和立方体朝向；用于存档格式/迁移测试 |
+| `new_game(character_id = &"small_coal_lamp") -> bool` | 完整新游戏流程：01 面新游戏 → 04 面选角 → 02 面；占第一个空槽 |
+| `delete_save_slot(slot) -> bool` | 绕过 UI 直接删除指定槽的磁盘文件；删活动槽会断开活动槽，`GameFlow` 回到 `NO_SESSION`/01 面 |
+| `has_save() -> bool` | 是否存在任意可读槽 |
+| `get_save_slots() -> Array[Dictionary]` | 六个槽的视图数据：`slot` / `occupied` / `character_name` / `active` |
+| `get_active_slot() -> int` | 当前活动槽；启动停在 01 面时为 -1 |
+| `get_game_flow_state() -> Dictionary` | `state`（`NO_SESSION` / `CHARACTER_SELECT` / `IN_GAME`）/ `active_slot` / `character_id` / `character_name` |
+| `get_save_path(slot) -> String` | 指定槽的 `user://saves/slot_N.json`；绝对路径用 `ProjectSettings.globalize_path()` |
+| `get_save_status() -> Dictionary` | `ready` / `read_only` / `missing_containers` / `active_slot`；缺容器时只读，不读也不写 |
 | `dump_save() -> Dictionary` | 当前内存状态的存档快照，不写盘；用于检查序列化结果 |
 
 ```gdscript
+TestAPI.new_game()                       # 占第一个空槽并进入 IN_GAME
+print(TestAPI.get_game_flow_state())
+print(TestAPI.get_save_slots())
 TestAPI.clear_container("inventory_0")
-TestAPI.add_soul(&"xiao_lu_soul")
+TestAPI.add_soul(TestAPI.get_soul_ids()[0])
 TestAPI.save_now()
-print(TestAPI.get_save_path())
+print(TestAPI.get_save_path(0))
 TestAPI.clear_container("inventory_0")
-TestAPI.load_save()
+TestAPI.load_save_slot_raw(0)            # 只验证存档恢复
 print(TestAPI.get_container_items("inventory_0"))
-TestAPI.delete_save()
+TestAPI.delete_save_slot(0)
 ```
 
-读档会保留物品的左上角格子，所以验证魂器网格相邻关系时可以直接比较读档前后的锚点。存档结构、备份/迁移规则见 `架构/存档.md`。
+- 启动不再自动读档：先 `new_game()` 或 `load_save_slot(0)` 才有活动槽；否则 `save_now()` 返回 false。
+- `delete_save_slot()` 是绕过 UI 的后端直删；游戏内删除走 `click_cube_delete_save_slot()`，第一次确认、第二次才删，活动槽不可删。
+- 读档会保留物品的左上角格子，所以验证魂器网格相邻关系时可以直接比较读档前后的锚点。
+- 无头测试建议把 `APPDATA` 指到临时目录，避免写到真实 `user://`；完整流程回归见 `指南/存档排查.md`。
+- 存档结构、六槽、备份/迁移规则见 `架构/存档.md`；面锁定和状态机见 `架构/开局流程.md`。
 
 ## Mod
 
@@ -157,7 +172,7 @@ print(TestAPI.get_mod_load_order())
 ```
 
 - 内置 core 清单在 `base_mods/core/mod.json`，固定启用、排序最前；第三方 mod 目录是 `user://mods/<mod_id>/`，最小结构 `mod.json` + `content.pck`，开发期可以只放 loose 目录。
-- 制作和字段说明见 `指南/Mod制作.md`，加载规则见 `架构/Mod系统.md`。core 内容 ID 沿用原值（`xiao_lu_soul`、`fu_monster`），第三方内容 ID 带 `<mod_id>:` 前缀，都可以直接传给 `add_soul()` / `get_soul_ids()`。
+- 制作和字段说明见 `指南/Mod制作.md`，加载规则见 `架构/Mod系统.md`。core 内容 ID 不带前缀，第三方内容 ID 带 `<mod_id>:` 前缀，都可以直接传给 `add_soul()` / `get_soul_ids()`。
 - 装好示例 mod 后，可以用 `TestAPI.add_soul_to_warehouse(&"example_souls:fire_wolf_soul")` 验证。示例源码在 `mods/example_souls/`，打包脚本是 `modkit/pack_example.gd`。
 
 ## 窗口
@@ -194,29 +209,35 @@ print(TestAPI.get_cube_passthrough_state())
 | 方法 | 说明 |
 |---|---|
 | `get_cube_state() -> Dictionary` | `cube_scale` / `screen_center` / `view_layer` / `orientation` / `front_face_index` / `ui_face_index` / `ui_face_viewport_size` / `passthrough` |
-| `get_cube_layering_state() -> Dictionary` | `cube_layer` / `game_ui_layer` / `hud_layer` / `tooltip_layer` / `drag_layer`、`above_game_ui` / `above_hud` / `below_tooltip` / `below_drag_ghost`、`input_ready` / `hull_points` / `viewport_size` |
+| `get_cube_layering_state() -> Dictionary` | `cube_layer` / `game_ui_layer` / `hud_layer` / `tooltip_layer` / `drag_layer`、`above_game_ui` / `above_hud` / `hud_above_cube` / `below_tooltip` / `below_drag_ghost`、`input_ready` / `hull_points` / `viewport_size` |
 | `set_cube_face_front(index) -> bool` | 立即把指定面转到正对相机（测试用，跳过动画） |
-| `get_cube_face_content(index) -> String` | `face_ui` / `pet_panel` / `unknown` |
-| `click_cube_face_button(index) -> bool` | 触发普通面的识别按钮，走与点击一致的信号链；面 02 返回 false |
+| `get_cube_face_content(index) -> String` | `save_slots` / `pet_panel` / `character_select` / `face_ui` / `unknown` |
+| `get_cube_face_lock_state(index) -> bool` | 面是否锁定；02 只在 `IN_GAME` 解锁，04 只在 `CHARACTER_SELECT` 解锁 |
+| `click_cube_face_button(index) -> bool` | 触发普通 FaceUI 面的识别按钮；非 FaceUI 面返回 false |
+| `click_cube_new_game() -> bool` | 点击 01 面「新游戏」按钮 |
+| `click_cube_save_slot(slot) -> bool` | 点击 01 面指定存档位（0..5） |
+| `click_cube_delete_save_slot(slot) -> bool` | 点击 01 面指定存档位的删除按钮；第一次确认、第二次才删；活动槽返回 false |
+| `click_cube_character(character_id) -> bool` | 点击 04 面指定角色（当前 `&"small_coal_lamp"`） |
 | `click_cube_pet_button(panel_id) -> bool` | 触发面 02 主菜单按钮（id 如 `inventory`），走完整信号链，窗口在主视口打开 |
 
 ```gdscript
 print(TestAPI.get_cube_state())
 print(TestAPI.get_cube_layering_state())
-print(TestAPI.set_cube_face_front(1))
-print(TestAPI.get_cube_face_content(1))
-print(TestAPI.click_cube_face_button(0))
+print(TestAPI.get_cube_face_content(0))       # save_slots
+print(TestAPI.get_cube_face_lock_state(1))     # 启动 true
+print(TestAPI.click_cube_new_game())           # → 04 面
+print(TestAPI.click_cube_character(&"small_coal_lamp"))  # → 02 面
+print(TestAPI.click_cube_save_slot(0))
 print(TestAPI.click_cube_pet_button(&"inventory"))
 ```
 
-- 面 02（`index = 1`）是 PetPanel 主菜单；游戏 UI 本身是主视口的 `GameUI` 覆盖层，不挂在面片上。
-- 立方体渲染在 `CubeView`（layer 1024）的透明子视口里：`get_cube_layering_state()` 应返回 `above_game_ui=true`、`above_hud=true`、`below_tooltip=true`、`below_drag_ghost=true`；`input_ready=true` 表示子视口、相机、朝向、CubeRig 和拖动圆点都解析成功；`hull_points` 是当前投影凸包顶点数，`viewport_size` 应与主视口一致。
-- 立方体轮廓内的鼠标由 `CubeInputSurface` 先接管，下层面板收不到 hover/点击；轮廓外仍由游戏 UI 处理。
-- 主场景里立方体子树的节点路径集中在 `Main/Cube/Scripts/cube_scene_paths.gd`；场景结构改动后先看 `input_ready`。
-- `set_cube_face_front(1)` 后可直接点击/测试主菜单；`click_cube_pet_button("inventory")` 应让 `InventoryWindow` 在主视口打开。
-- `get_cube_screen_position()` 是**立方体中心**的屏幕坐标，不是菜单面中心；菜单默认位置由 `CubePlacement` 按面 02 反算。
+- 面索引：0 正面（存档位）、1 背面（主菜单）、2 左面（FaceUI）、3 右面（角色选择）、4 上面、5 下面；启动正对 01 面。
+- 01/02/04 面是 300×300 子视口，03/05/06 仍是 512×512；`get_cube_state().ui_face_index` 仍指面 02 主菜单视口。
+- 立方体渲染在 `CubeView`（layer 1024）的透明子视口里；HUD 也在 1024 但树中更靠后，Toast 压在立方体上。`get_cube_layering_state()` 应返回 `above_game_ui=true`、`above_hud=false`、`hud_above_cube=true`、`below_tooltip=true`、`below_drag_ghost=true`；`input_ready=true` 表示子视口、相机、朝向、CubeRig 和拖动圆点都解析成功。
+- 锁定面仍可拖动旋转；`Face3D` 的指针方法全部被拦，锁图覆盖在内容上。
+- `set_cube_face_front(1)` 后可直接点击/测试主菜单；启动/读档流程应使用 `new_game()` / `load_save_slot()`，让 `GameFlow` 负责解锁和翻面。
 - 面板坐标和 `get_visible_panel_rects()` 返回的是主视口像素坐标。
-- 普通面索引：0 正面、1 背面（主菜单）、2 左面、3 右面、4 上面、5 下面。
+- 面内容的信号链与锁定规则见 `架构/开局流程.md`；翻面动画在 `CubeOrientation.rotate_to_face()`，`set_cube_face_front()` 是瞬移版本。
 
 ## 颜色
 
@@ -257,7 +278,7 @@ print(TestAPI.click_cube_pet_button(&"inventory"))
 | `apply_poison(target := "player") -> bool` | 对战斗单位施加剧毒（测试飞溅与气泡 Cue） |
 | `apply_regen(target := "player") -> bool` | 对战斗单位施加生命再生（测试剧毒/生命再生相减） |
 | `apply_freeze(target := "player", seconds := 3.0) -> bool` | 对战斗单位施加冻结（测试冻结 Cue 与 `State.Frozen`）；会广播 `Event.Combat.FreezeApplied` |
-| `play_claw_cue(target := "enemy", direction := 1) -> bool` | 在单位身上播放恐狼爪痕 Cue；`direction` 1 = 左→右，-1 = 右→左 |
+| `play_claw_cue(target := "enemy", direction := 1) -> bool` | 在单位身上播放爪痕 Cue；`direction` 1 = 左→右，-1 = 右→左 |
 | `apply_soul_freeze(soul_name, seconds := 1.0, target := "player") -> bool` | 对已装备的指定魂灵施加魂灵级冻结（测试冰霜 shader 与徽章） |
 | `simulate_soul_used(soul_name, target := "player") -> bool` | 模拟“魂灵被使用”（不动冷却），确定性验证 `Event.Combat.SoulUsed` 触发器；触发充能满时会走同帧待释放队列，调用后等一帧再读状态 |
 | `charge_soul(soul_name, seconds, target := "player") -> bool` | 给已装备魂灵直接充能，用于快速触发主动技能；不经过触发器队列 |
@@ -287,7 +308,7 @@ print(TestAPI.get_battle_state()["enemies"][0]["hp"])
 
 TestAPI.apply_freeze("enemy", 3.0)
 print(TestAPI.has_status(&"State.Frozen", "enemy"))
-TestAPI.apply_soul_freeze("尖牙", 1.0)
+TestAPI.apply_soul_freeze("<魂灵名>", 1.0)  # 参数是已装备魂灵的显示名
 
 # 爪痕：分别看左右两个方向
 TestAPI.play_claw_cue("enemy", 1)
@@ -298,28 +319,31 @@ TestAPI.play_claw_cue("enemy", -1)
 TestAPI.damage_unit("player", 300.0)
 print(TestAPI.has_status(&"State.Frozen", "enemy"))
 
-# 恐狼：每有一颗 Soul.types.Wolf +20 伤害；1 颗 = 50，2 颗 = 70
+# 伤害缩放：清空魂器网格，装上任意魂器并放入任意魂灵
 TestAPI.clear_container("vessel_cells")
-TestAPI.equip_vessel(&"mei_you_deng_vessel")
-TestAPI.vessel_add_soul(&"kong_lang_soul", 0)
-print(TestAPI.get_soul_damage_scaling(&"kong_lang_soul"))
-TestAPI.vessel_add_soul(&"kong_lang_soul", 0)
-print(TestAPI.get_soul_damage_scaling(&"kong_lang_soul"))
+var vessel_id: StringName = TestAPI.get_vessel_ids()[0]
+var soul_id: StringName = TestAPI.get_soul_ids()[0]
+TestAPI.equip_vessel(vessel_id)
+TestAPI.vessel_add_soul(soul_id, 0)
+print(TestAPI.get_soul_damage_scaling(soul_id))
+TestAPI.vessel_add_soul(soul_id, 0)
+print(TestAPI.get_soul_damage_scaling(soul_id))
 
-# 未开战也按“装上这份魂器后”预览：30 + 2 颗狼×20 + 煤油灯 10 → 80
-print(TestAPI.get_equipped_soul_damage_preview(&"kong_lang_soul"))
+# 未开战也按“装上这份魂器后”预览
+print(TestAPI.get_equipped_soul_damage_preview(soul_id))
 
-# 恐狼：直接充能触发主动技能
-TestAPI.start_battle(&"snake_monster")
+# 直接充能触发主动技能；替换成一颗有主动技能的魂灵
+TestAPI.start_battle(TestAPI.get_monster_ids()[0])
 # 战斗中优先运行期值；tooltip 的伤害数值带 * 前缀
-print(TestAPI.get_equipped_soul_damage_preview(&"kong_lang_soul"))
-print(TestAPI.get_equipped_soul_tooltip_text(&"kong_lang_soul"))
-TestAPI.charge_soul("恐狼", 6.5)
+print(TestAPI.get_equipped_soul_damage_preview(soul_id))
+print(TestAPI.get_equipped_soul_tooltip_text(soul_id))
+var soul_name: String = TestAPI.get_soul_card_info(soul_id)["label"]
+TestAPI.charge_soul(soul_name, 6.5)
 await get_tree().physics_frame
 print(TestAPI.get_battle_state()["player_souls"])
 
 # 模拟“魂灵被使用”事件；当前没有魂灵配置 SoulUsed 触发器，接口保留
-TestAPI.simulate_soul_used("恐狼")
+TestAPI.simulate_soul_used(soul_name)
 print(TestAPI.get_battle_state()["player_souls"])
 ```
 
@@ -363,7 +387,7 @@ print(TestAPI.get_battle_state()["player_souls"])
 ## 注意
 
 - 只用于测试/探针；会改运行时状态。
-- `set_unlock_all(false)` 后，`add_soul` 仍会走正常入包流程，并打上存档脏标记，由 `SaveManager` 写入 `user://saves/slot_0.json`。
+- `set_unlock_all(false)` 后，`add_soul` 仍会走正常入包流程，并打上存档脏标记，由 `SaveManager` 写入当前活动槽。
 - `set_unlock_all` 只改判定，不会自动刷新已打开的见闻窗口；切页签或重开窗口即可。
 - `player.souls` 是场景配置（玩家通常为空）；玩家装备的魂灵看 `player_souls`。
 - `start_battle` 会显示战斗窗口；找不到 `BattleWindow` 时返回 `false`。

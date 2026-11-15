@@ -68,6 +68,14 @@ func get_top_panel_at(global_position : Vector2) -> BaseWindow:
 	return null
 
 
+## 关闭所有已登记面板；切档/新游戏前清掉旧会话的窗口
+func hide_all() -> void:
+	for panel in _registered.keys():
+		var window := panel as BaseWindow
+		if window != null:
+			window.hide()
+
+
 ## 所有可见面板的全局矩形；供测试/调试使用
 func get_visible_panel_rects() -> Array[Rect2]:
 	var result : Array[Rect2] = []

@@ -22,23 +22,21 @@ description: Verify GDScript changes in this Godot 4.7 project — headless pars
 
 ## 2. 运行期探针（需要时才做）
 
-不要用 `--headless --script`：该模式不注册 autoload 全局名，脚本里出现 `GBIS`、`SaveManager`、`TestAPI` 等会直接编译失败。用临时探针场景：
+不要用 `--headless --script`：该模式不注册 autoload 全局名，脚本里出现 `GBIS`、`SaveManager`、`TestAPI` 等会直接编译失败。用临时探针场景，并把用户目录隔离：
 
 1. 新建 `res://_probe_xxx.tscn` + `res://_probe_xxx.gd`。
-2. `_ready()` **第一行**就调用 `SaveManager.set_process(false)`：无头跑主场景时，启动帧的 `delta` 可能超过自动写档的 2 秒阈值，晚一帧就来不及。
-3. 需要读档时，等 2～4 帧让 `SaveManager` 完成加载，再 `SaveManager.set("_read_only", true)`；探针自己不要在战斗/拖拽中调用 `save_now()`。
-4. 需要 `TestAPI` 找窗口时，在探针里 `add_child(load("res://Main/control.tscn").instantiate())`；探针场景本身就是 `SceneTree.current_scene`，`TestAPI` 从它往下找。
-5. 运行并过滤输出：
-
-```text
-"U:/Godot_ver/Godot_v4.7.2-stable_win64.exe/Godot_v4.7.2-stable_win64.exe" --headless --path . --quit-after 600 res://_probe_xxx.tscn
-```
+2. 运行前把 `APPDATA` 指到临时目录（Windows 上 Godot 的 `user://` 会跟着走），避免写到真实存档；探针结束删掉该目录。
+3. 探针里 `add_child(load("res://Main/Cube/Scenes/main.tscn").instantiate())` 后再操作；启动不再自动读档，需要先用 `TestAPI.new_game()` 或 `TestAPI.load_save_slot(slot)` 建立会话。
+4. `--quit-after 600` 结束后过滤输出；探针自己负责在失败时 `quit(1)`。
+5. 运行命令示例：
 
 ```bash
-... 2>&1 | rg -i "PROBE|script error|parse error|invalid"
+APPDATA="C:/Users/<you>/AppData/Local/Temp/idle_around_probe" \
+"U:/Godot_ver/Godot_v4.7.2-stable_win64.exe/Godot_v4.7.2-stable_win64.exe" \
+  --headless --path . res://_probe_xxx.tscn 2>&1 | rg -i "PROBE|script error|parse error|invalid"
 ```
 
-6. 跑完删除探针 `.gd` / `.tscn` / `.uid`，确认 `git status` 只剩预期改动。
+6. 跑完删除探针 `.gd` / `.tscn` / `.uid` 和临时 `APPDATA` 目录，确认 `git status` 只剩预期改动。
 
 ## 3. 报告
 

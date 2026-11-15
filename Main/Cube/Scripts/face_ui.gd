@@ -38,6 +38,10 @@ func setup(index: int, display_name: String, accent: Color) -> void:
 		_apply_visuals()
 
 
+func content_id() -> StringName:
+	return &"face_ui"
+
+
 func _apply_visuals() -> void:
 	_index_label.text = "面 %02d" % (face_index + 1)
 	_face_button.text = face_name

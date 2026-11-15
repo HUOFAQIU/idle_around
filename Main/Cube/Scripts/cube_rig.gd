@@ -4,8 +4,8 @@ extends Node3D
 ## 并把指针事件转发给对应的面内 UI。
 ##
 ## 普通面沿用「按住可拖拽旋转、松手点击面内按钮」的分流；ui_capture 面
-## （面 02 主菜单）按控件优先：指针下有可交互控件时，整个按下-拖动-松开
-## 周期都交给面内容，不进入旋转。
+## （01 存档位 / 02 主菜单 / 04 角色选择）按控件优先：指针下有可交互控件时，
+## 整个按下-拖动-松开周期都交给面内容，不进入旋转。
 
 signal face_identified(face_index: int, face_name: String, accent_color: Color)
 
@@ -102,6 +102,19 @@ func _notification(what: int) -> void:
 ## 主场景装配：屏幕锚定和位置持久化统一交给 CubePlacement
 func setup_placement(placement : CubePlacement) -> void:
 	_placement = placement
+
+
+## 平滑翻到指定面；开局/存档流程用
+func flip_to_face(face_index: int) -> bool:
+	return _orientation.rotate_to_face(face_index)
+
+
+func get_faces() -> Array[Face3D]:
+	var faces: Array[Face3D] = []
+	for child in _orientation.get_children():
+		if child is Face3D:
+			faces.append(child as Face3D)
+	return faces
 
 
 ## 指针离开立方体输入代理时清掉悬停；正在拖动/转发 UI 时不打断

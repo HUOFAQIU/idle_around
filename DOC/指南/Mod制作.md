@@ -85,11 +85,11 @@ user://mods/example_souls/
 | 类型 | 规则 | 示例 |
 |---|---|---|
 | mod id | `^[a-z][a-z0-9_]{2,63}$` | `example_souls` |
-| core 魂灵 ID | `<name>_soul` | `xiao_lu_soul` |
-| core 怪物 ID | `<name>_monster` | `snake_monster` |
-| core 魂器 ID | `<name>_vessel` | `mei_you_deng_vessel` |
+| core 魂灵 ID | `<name>_soul` | `<name>_soul` |
+| core 怪物 ID | `<name>_monster` | `<name>_monster` |
+| core 魂器 ID | `<name>_vessel` | `<name>_vessel` |
 | 第三方魂灵/怪物/魂器 ID | `<mod_id>:<name>_<kind>` | `example_souls:fire_wolf_soul` |
-| core 技能 ID | 魂灵 ID 去掉 `_soul` 后转 PascalCase | `XiaoLu` → `Skill.XiaoLu` |
+| core 技能 ID | 魂灵 ID 去掉 `_soul` 后转 PascalCase | `<PascalName>` → `Skill.<PascalName>` |
 | 第三方技能 ID | `Mod.<PascalModId>.<PascalName>` | `Mod.ExampleSouls.FireWolf` → `Skill.Mod.ExampleSouls.FireWolf` |
 | core Cue | `Cue.<Category>.<Name>` | `Cue.Status.Burn` |
 | 第三方 Cue | `Cue.Mod.<PascalModId>.<Name>` | `Cue.Mod.ExampleSouls.Fire` |

@@ -742,32 +742,60 @@ static func _shop_window() -> BaseWindow:
 
 #region 存档
 
-## 立即写档；返回是否成功
+## 立即写当前槽；没有活动槽时返回 false
 static func save_now() -> bool:
 	return SaveManager.save_now()
 
 
-## 从磁盘读档；会清空并重建容器，不要在战斗中调用
-static func load_save() -> bool:
-	return SaveManager.load_game()
+## 完整流程读档：更新 GameFlow、锁定面和立方体朝向；空槽返回 false
+static func load_save_slot(slot: int) -> bool:
+	return GameFlow.request_load_slot(slot)
 
 
-## 只删除磁盘存档，不改变当前内存状态
-static func delete_save() -> bool:
-	return SaveManager.delete_save()
+## 直接读档，不改变 GameFlow 状态；用于存档格式/迁移测试
+static func load_save_slot_raw(slot: int) -> bool:
+	return SaveManager.load_slot(slot)
 
 
-## 是否存在可读存档
+## 新游戏：走 01 面新游戏 → 04 面选角 → 02 面完整流程
+static func new_game(character_id: StringName = &"small_coal_lamp") -> bool:
+	GameFlow.request_new_game()
+	if GameFlow.get_state() != GameFlow.State.CHARACTER_SELECT:
+		return false
+	return GameFlow.create_new_game(character_id)
+
+
+## 直接删除指定槽的磁盘存档（绕过 UI 二次确认）；删活动槽会断开活动槽
+static func delete_save_slot(slot: int) -> bool:
+	return SaveManager.delete_slot(slot)
+
+
+## 是否存在任意可读存档
 static func has_save() -> bool:
-	return SaveManager.has_save()
+	return SaveManager.has_any_save()
 
 
-## 存档文件路径（user://）
-static func get_save_path() -> String:
-	return SaveManager.get_save_path()
+## 六个槽的视图数据：slot / occupied / character_name / active
+static func get_save_slots() -> Array[Dictionary]:
+	return GameFlow.get_slot_summaries()
 
 
-## 存档状态：ready / read_only / missing_containers
+## 当前活动槽；没有活动槽返回 -1
+static func get_active_slot() -> int:
+	return SaveManager.get_active_slot()
+
+
+## 会话状态快照：state / active_slot / character_id / character_name
+static func get_game_flow_state() -> Dictionary:
+	return GameFlow.get_state_snapshot()
+
+
+## 指定槽的存档文件路径（user://）
+static func get_save_path(slot: int) -> String:
+	return SaveManager.get_save_path(slot)
+
+
+## 存档状态：ready / read_only / missing_containers / active_slot
 static func get_save_status() -> Dictionary:
 	return SaveManager.get_save_status()
 
@@ -1038,7 +1066,7 @@ static func get_cube_state() -> Dictionary:
 	}
 
 
-## 立方体层级：CubeView 压住 GameUI/HUD，Tooltip 与拖拽幽灵仍在上面
+## 立方体层级：CubeView 压住 GameUI；HUD Toast 提到立方体之上，Tooltip 与拖拽幽灵仍在最上
 static func get_cube_layering_state() -> Dictionary:
 	var surface := CubeInputSurface.instance
 	if surface == null:
@@ -1050,6 +1078,7 @@ static func get_cube_layering_state() -> Dictionary:
 	var tree := Engine.get_main_loop() as SceneTree
 	if tree == null:
 		return {}
+	var cube_view := tree.root.find_child("CubeView", true, false) as CanvasLayer
 	var game_ui := tree.root.find_child("GameUI", true, false) as CanvasLayer
 	var hud := tree.root.find_child("HUD", true, false) as CanvasLayer
 	var tooltip := tree.root.find_child("TooltipLayer", true, false) as CanvasLayer
@@ -1064,6 +1093,16 @@ static func get_cube_layering_state() -> Dictionary:
 		"drag_layer": drag.layer if drag != null else -1,
 		"above_game_ui": game_ui != null and cube_layer > game_ui.layer,
 		"above_hud": hud != null and cube_layer > hud.layer,
+		"hud_above_cube": (
+			hud != null and cube_view != null
+			and (
+				hud.layer > cube_view.layer
+				or (
+					hud.layer == cube_view.layer
+					and hud.get_index() > cube_view.get_index()
+				)
+			)
+		),
 		"below_tooltip": tooltip != null and cube_layer < tooltip.layer,
 		"below_drag_ghost": drag != null and cube_layer < drag.layer,
 		"input_ready": surface.is_ready(),
@@ -1084,32 +1123,57 @@ static func set_cube_face_front(face_index : int) -> bool:
 	return orientation.snap_face_to_camera(face_index)
 
 
-## 面内容类型：face_ui / pet_panel / unknown
+## 面内容类型：face_ui / pet_panel / save_slots / character_select / unknown
 static func get_cube_face_content(face_index : int) -> String:
-	var face := _cube_face(face_index)
-	if face == null:
-		return "unknown"
-	var viewport := face.get_node_or_null("Viewport") as SubViewport
-	if viewport == null:
-		return "unknown"
-	for child in viewport.get_children():
-		if child is PetPanelContent:
-			return "pet_panel"
-		if child is FaceUI:
-			return "face_ui"
-	return "unknown"
+	var content := _cube_face_content(face_index)
+	return String(content.content_id()) if content != null else "unknown"
 
 
-## 触发普通面的识别按钮，走与点击一致的信号链；面 02 主菜单返回 false
+## 面是否锁定；02 只在游戏中解锁，04 只在角色选择时解锁
+static func get_cube_face_lock_state(face_index : int) -> bool:
+	return GameFlow.get_face_lock_state(face_index)
+
+
+## 触发普通面的识别按钮，走与点击一致的信号链；非 FaceUI 面返回 false
 static func click_cube_face_button(face_index : int) -> bool:
-	var viewport := _cube_face_viewport(face_index)
-	if viewport == null:
-		return false
-	var face_ui := viewport.find_child("FaceUI", true, false) as FaceUI
+	var face_ui := _cube_face_content(face_index) as FaceUI
 	if face_ui == null:
 		return false
 	face_ui.identify_requested.emit()
 	return true
+
+
+## 点击 01 面「新游戏」按钮
+static func click_cube_new_game() -> bool:
+	var content := _cube_face_content(0) as SaveSlotsContent
+	if content == null:
+		return false
+	content.activate_new_game()
+	return true
+
+
+## 点击 01 面指定存档位（0..5）
+static func click_cube_save_slot(slot: int) -> bool:
+	var content := _cube_face_content(0) as SaveSlotsContent
+	if content == null:
+		return false
+	return content.activate_slot(slot)
+
+
+## 点击 01 面指定存档位的删除按钮（0..5）；两段式，调用两次才真正删除
+static func click_cube_delete_save_slot(slot: int) -> bool:
+	var content := _cube_face_content(0) as SaveSlotsContent
+	if content == null:
+		return false
+	return content.activate_delete(slot)
+
+
+## 点击 04 面指定角色
+static func click_cube_character(character_id: StringName) -> bool:
+	var content := _cube_face_content(3) as CharacterSelectContent
+	if content == null:
+		return false
+	return content.activate_character(character_id)
 
 
 ## 触发面 02 主菜单按钮（按 panel_id，如 "inventory"），走完整信号链
@@ -1168,6 +1232,16 @@ static func _cube_face_viewport(face_index : int) -> SubViewport:
 	if face == null:
 		return null
 	return face.get_node_or_null("Viewport") as SubViewport
+
+
+static func _cube_face_content(face_index : int) -> FaceContent:
+	var viewport := _cube_face_viewport(face_index)
+	if viewport == null:
+		return null
+	for child in viewport.get_children():
+		if child is FaceContent:
+			return child as FaceContent
+	return null
 
 
 static func _ui_face_viewport() -> SubViewport:
@@ -1229,7 +1303,7 @@ static func start_battle(monster_id : StringName = &"") -> bool:
 		return false
 	if not window.visible:
 		window.open_window()
-	window.start_battle_for_test(monster_id)
+	window.start_battle(monster_id)
 	return true
 
 
@@ -1237,7 +1311,7 @@ static func start_battle(monster_id : StringName = &"") -> bool:
 static func stop_battle() -> void:
 	var window := _battle_window()
 	if window != null:
-		window.stop_battle_for_test()
+		window.stop_battle()
 
 
 ## 在远处空位刷一只指定怪物

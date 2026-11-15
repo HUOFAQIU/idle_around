@@ -12,3 +12,8 @@ signal identify_requested
 ## 把面索引、名称和强调色传给内容；子类按需覆盖
 func setup(_index: int, _display_name: String, _accent: Color) -> void:
 	pass
+
+
+## 面内容类型标识；TestAPI 和调试窗口用它判断当前面承载什么
+func content_id() -> StringName:
+	return &"face_content"

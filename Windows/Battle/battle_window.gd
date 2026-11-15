@@ -55,7 +55,7 @@ func _ready() -> void:
 
 	# ☰ 开关战斗信息窗口；▶ 才是开战
 	info_button.pressed.connect(_on_info_pressed)
-	start_button.pressed.connect(_start_battle)
+	start_button.pressed.connect(start_battle)
 
 	# 关窗（标题栏 × 或主界面的切换按钮）＝ 这场战斗结束，下次打开回到初始状态
 	visibility_changed.connect(_on_visibility_changed)
@@ -115,9 +115,15 @@ func _physics_process(_delta: float) -> void:
 
 # ▶：开打。跑起来之后这个按钮是「重开」，点了就把整场推倒重来
 # —— 开始和重开是同一件事：清场 + 重建
-func _start_battle(monster_id : StringName = &"") -> void:
+func start_battle(monster_id : StringName = &"") -> void:
 	InfoWindow.instance.clear_log()
+	_session.player_profile = GameFlow.get_player_profile()
 	_session.start(_equipped_souls(), monster_id)
+
+
+## 流程切档/新游戏前结束当前战斗
+func stop_battle() -> void:
+	_end_battle()
 
 
 ## 事件总线的观察者：遥测、战斗信息窗、控制台。
@@ -318,15 +324,7 @@ func _fps_color(fps : int) -> Color:
 
 
 #region 测试接口（TestAPI 调用）
-
-## 测试：开战；monster_id 非空时首只必刷该怪
-func start_battle_for_test(monster_id : StringName = &"") -> void:
-	_start_battle(monster_id)
-
-
-## 测试：结束当前战斗
-func stop_battle_for_test() -> void:
-	_end_battle()
+# start_battle() / stop_battle() 本身是公开接口，TestAPI 直接调用。
 
 
 ## 测试：立刻在远处空位刷一只指定怪物

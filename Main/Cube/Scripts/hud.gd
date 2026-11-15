@@ -1,10 +1,21 @@
 class_name CubeHud
 extends CanvasLayer
-## 屏幕上的「面识别」反馈条。
+## 立方体反馈条：面识别提示和靠近立方体的流程提示。
+##
+## HUD 层级高于 CubeView，保证提示不被立方体盖住；所有控件都不接收鼠标，
+## 可见 Toast 的矩形仍会交给 WindowPassthrough 计入点击区域。
 
 signal overlay_regions_changed
 
+const NEAR_CUBE_OFFSET: float = 14.0
+## 底部提示距屏幕底边的距离，沿用旧 ToastAnchor 的下边距
+const BOTTOM_MARGIN: float = 38.0
+const SCREEN_MARGIN: float = 8.0
+
+## 当前 Toast 是否跟随立方体
+var _near_cube: bool = false
 var _toast_tween: Tween
+var _placement: CubePlacement
 
 @onready var _toast: PanelContainer = $Root/ToastAnchor/Toast
 @onready var _toast_dot: Label = $Root/ToastAnchor/Toast/Content/Dot
@@ -14,24 +25,22 @@ var _toast_tween: Tween
 func _ready() -> void:
 	_toast.hide()
 	_toast.modulate.a = 0.0
+	_placement = CubeScenePaths.resolve(
+			self, CubeScenePaths.PLACEMENT) as CubePlacement
+	if _placement != null:
+		_placement.screen_center_changed.connect(_on_cube_screen_center_changed)
 
 
 func show_face_identified(face_name: String, accent_color: Color) -> void:
-	_toast_message.text = "这是：%s" % face_name
-	_toast_dot.add_theme_color_override("font_color", accent_color)
-	_apply_toast_accent(accent_color)
+	_show_toast("这是：%s" % face_name, accent_color, false)
 
-	if _toast_tween != null and _toast_tween.is_valid():
-		_toast_tween.kill()
 
-	_toast.show()
-	overlay_regions_changed.emit()
-	_toast.modulate.a = 0.0
-	_toast_tween = create_tween()
-	_toast_tween.tween_property(_toast, "modulate:a", 1.0, 0.15)
-	_toast_tween.tween_interval(1.45)
-	_toast_tween.tween_property(_toast, "modulate:a", 0.0, 0.3)
-	_toast_tween.tween_callback(_hide_toast)
+## 流程提示：显示在立方体上方，跟随拖动
+func show_near_cube(text: String, accent_color: Color = Color.TRANSPARENT) -> void:
+	var accent := accent_color
+	if accent.a <= 0.0:
+		accent = GameColors.to_color(GameColors.WARNING)
+	_show_toast(text, accent, true)
 
 
 func get_overlay_rects() -> Array[Rect2]:
@@ -41,8 +50,59 @@ func get_overlay_rects() -> Array[Rect2]:
 	return rects
 
 
+func _show_toast(text: String, accent_color: Color, near_cube: bool) -> void:
+	_toast_message.text = text
+	_toast_dot.add_theme_color_override("font_color", accent_color)
+	_apply_toast_accent(accent_color)
+	_near_cube = near_cube
+
+	if _toast_tween != null and _toast_tween.is_valid():
+		_toast_tween.kill()
+
+	_toast.show()
+	_layout_toast()
+	overlay_regions_changed.emit()
+	_toast.modulate.a = 0.0
+	_toast_tween = create_tween()
+	_toast_tween.tween_property(_toast, "modulate:a", 1.0, 0.15)
+	_toast_tween.tween_interval(1.45)
+	_toast_tween.tween_property(_toast, "modulate:a", 0.0, 0.3)
+	_toast_tween.tween_callback(_hide_toast)
+
+
+func _layout_toast() -> void:
+	_toast.reset_size()
+	var toast_size := _toast.get_combined_minimum_size()
+	if toast_size.x <= 0.0:
+		return
+	_toast.size = toast_size
+	var viewport_size := get_viewport().get_visible_rect().size
+	var target := Vector2.ZERO
+	if _near_cube and _placement != null:
+		var center := _placement.get_screen_center()
+		target.x = center.x - toast_size.x * 0.5
+		target.y = center.y - CubePlacement.TARGET_FACE_PX * 0.5 \
+				- toast_size.y - NEAR_CUBE_OFFSET
+	else:
+		target.x = (viewport_size.x - toast_size.x) * 0.5
+		target.y = viewport_size.y - BOTTOM_MARGIN - toast_size.y
+	target.x = clampf(
+			target.x, SCREEN_MARGIN, viewport_size.x - toast_size.x - SCREEN_MARGIN)
+	target.y = clampf(
+			target.y, SCREEN_MARGIN, viewport_size.y - toast_size.y - SCREEN_MARGIN)
+	_toast.position = target
+
+
+func _on_cube_screen_center_changed() -> void:
+	if not _near_cube or not _toast.visible:
+		return
+	_layout_toast()
+	overlay_regions_changed.emit()
+
+
 func _hide_toast() -> void:
 	_toast.hide()
+	_near_cube = false
 	overlay_regions_changed.emit()
 
 

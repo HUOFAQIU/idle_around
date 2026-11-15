@@ -2,4 +2,7 @@
 set -eu
 
 ROOT="$(git rev-parse --show-toplevel)"
-exec "$ROOT/tools/check.sh" --all
+if command -v bash >/dev/null 2>&1; then
+	exec bash "$ROOT/tools/check.sh" --all
+fi
+exec sh "$ROOT/tools/check.sh" --all

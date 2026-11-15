@@ -8,10 +8,11 @@ extends RefCounted
 ## 用 preload 而不是全局类名，保证 modkit 的 --script 无头模式能解析
 const CONTENT_NAMING: GDScript = preload("res://Scripts/mod/content_naming.gd")
 const CONTENT_KIND_SPEC: GDScript = preload("res://Scripts/mod/content_kind_spec.gd")
+const MOD_PATHS: GDScript = preload("res://Scripts/mod/mod_paths.gd")
 
 const CORE_ID: String = "core"
-const CORE_ROOT: String = "res://base_mods/core"
-const MANIFEST_PATH: String = CORE_ROOT + "/mod.json"
+const CORE_ROOT: String = MOD_PATHS.CORE_ROOT
+const MANIFEST_PATH: String = CORE_ROOT + "/" + MOD_PATHS.MANIFEST_FILE
 ## 资源不应设置中文 resource_name；这里做文本扫描，避免 modkit 的 --script 模式加载资源
 const RESOURCE_NAME_PATTERN: String = "(?m)^\\s*resource_name\\s*=\\s*\"(.*)\"\\s*$"
 

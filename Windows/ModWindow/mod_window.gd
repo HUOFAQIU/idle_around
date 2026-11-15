@@ -4,7 +4,8 @@ class_name ModWindow extends BaseWindow
 ## 只读 ModLoader 的概况；启用状态写入 user://mods.cfg，运行期不卸载/重载，
 ## 需要重启游戏生效。界面用代码搭建，和 DebugWindow 保持一致。
 
-const MODS_DIR: String = "user://mods"
+const MOD_PATHS: GDScript = preload("res://Scripts/mod/mod_paths.gd")
+const MODS_DIR: String = MOD_PATHS.USER_MODS_DIR
 
 var _tabs: TabContainer
 var _summary_label: Label
@@ -317,11 +318,11 @@ func _add_global_errors(mods: Array[Dictionary]) -> void:
 	if leftovers.is_empty():
 		return
 
-	var title := Label.new()
-	title.text = "加载器错误"
-	title.add_theme_font_size_override("font_size", 14)
-	title.add_theme_color_override("font_color", GameColors.to_color(GameColors.DAMAGE))
-	_list_box.add_child(title)
+	var heading := Label.new()
+	heading.text = "加载器错误"
+	heading.add_theme_font_size_override("font_size", 14)
+	heading.add_theme_color_override("font_color", GameColors.to_color(GameColors.DAMAGE))
+	_list_box.add_child(heading)
 	for message in leftovers:
 		var label := Label.new()
 		label.text = "! " + message
@@ -343,11 +344,11 @@ func _add_global_warnings(mods: Array[Dictionary]) -> void:
 	if leftovers.is_empty():
 		return
 
-	var title := Label.new()
-	title.text = "加载器警告"
-	title.add_theme_font_size_override("font_size", 14)
-	title.add_theme_color_override("font_color", GameColors.to_color(GameColors.WARNING))
-	_list_box.add_child(title)
+	var heading := Label.new()
+	heading.text = "加载器警告"
+	heading.add_theme_font_size_override("font_size", 14)
+	heading.add_theme_color_override("font_color", GameColors.to_color(GameColors.WARNING))
+	_list_box.add_child(heading)
 	for message in leftovers:
 		var label := Label.new()
 		label.text = "? " + message

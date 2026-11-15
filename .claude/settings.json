@@ -1,0 +1,18 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python -X utf8 -I \"$CLAUDE_PROJECT_DIR/tools/claude_hook.py\"",
+            "shell": "bash",
+            "timeout": 30,
+            "statusMessage": "Running lint"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -98,6 +98,7 @@ func _on_visible_changed() -> void:
 	if is_visible_in_tree():
 		if not GBIS.opened_equipment_slots.has(slot_name):
 			GBIS.opened_equipment_slots.append(slot_name)
+		@warning_ignore("missing_await")
 		_sync_after_show()
 	else:
 		GBIS.opened_equipment_slots.erase(slot_name)

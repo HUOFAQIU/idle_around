@@ -1,2 +1,6 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# 版本库里的脚本和 hook 必须保持 LF，否则 Windows 检出的 sh 会跑不了
+*.sh text eol=lf
+tools/** text eol=lf

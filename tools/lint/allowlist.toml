@@ -1,0 +1,7 @@
+# 例外必须写原因和过期日期；过期或未命中都会让检查失败。
+#
+# [[allow]]
+# rule = "commented-code"
+# path = "Scripts/example.gd"
+# reason = "这里保留旧实现对照，2027 年前删除"
+# expires = "2027-01-01"

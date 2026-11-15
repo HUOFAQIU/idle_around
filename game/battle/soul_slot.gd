@@ -19,16 +19,16 @@ var width: int = 1
 ## 魂灵不再分部位，所有魂灵按列从左到右排。
 static func virtual_slots(soul_list: Array[SoulData]) -> Array[SoulSlot]:
 	var slots: Array[SoulSlot] = []
-	var column := 0
-	for soul in soul_list:
-		if soul == null:
+	var next_column := 0
+	for soul_data in soul_list:
+		if soul_data == null:
 			slots.append(null)
 			continue
 		var slot := SoulSlot.new()
-		slot.soul = soul
+		slot.soul = soul_data
 		slot.container_name = "virtual"
-		slot.column = column
-		slot.width = maxi(soul.get_shape().x, 1)
-		column += slot.width
+		slot.column = next_column
+		slot.width = maxi(soul_data.get_shape().x, 1)
+		next_column += slot.width
 		slots.append(slot)
 	return slots

@@ -15,3 +15,10 @@ export_credentials.cfg
 data_*/
 mono_crash.*.json
 Tests
+
+# Python lint tool caches
+__pycache__/
+*.pyc
+
+# Office 锁文件
+~$*

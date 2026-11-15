@@ -56,5 +56,6 @@ func execute(ctx: SkillCastContext) -> SkillStepResult:
 			and not target.is_frozen()
 			and target.can_activate_now()
 		):
+			@warning_ignore("missing_await")
 			target.try_activate(ctx.trace)
 	return SkillStepResult.hit_result()

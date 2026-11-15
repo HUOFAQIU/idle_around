@@ -69,10 +69,10 @@ static func compare_versions(a: String, b: String) -> int:
 
 
 ## min / max 都包含边界；空字符串表示不限制
-static func version_in_range(version: String, min_version: String, max_version: String) -> bool:
-	if not min_version.is_empty() and compare_versions(version, min_version) < 0:
+static func version_in_range(target_version: String, min_version: String, max_version: String) -> bool:
+	if not min_version.is_empty() and compare_versions(target_version, min_version) < 0:
 		return false
-	if not max_version.is_empty() and compare_versions(version, max_version) > 0:
+	if not max_version.is_empty() and compare_versions(target_version, max_version) > 0:
 		return false
 	return true
 

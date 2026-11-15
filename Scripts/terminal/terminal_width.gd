@@ -71,9 +71,9 @@ static func columns(code: int) -> int:
 
 
 static func _in_ranges(code: int, ranges: Array[Vector2i]) -> bool:
-	for range in ranges:
-		if code < range.x:
+	for allowed_range in ranges:
+		if code < allowed_range.x:
 			continue
-		if code <= range.y:
+		if code <= allowed_range.y:
 			return true
 	return false

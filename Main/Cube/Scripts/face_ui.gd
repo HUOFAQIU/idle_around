@@ -77,11 +77,11 @@ func _apply_button_styles() -> void:
 
 
 func _apply_backdrop_accent() -> void:
-	var material := _backdrop.material as ShaderMaterial
-	if material == null:
+	var source_material := _backdrop.material as ShaderMaterial
+	if source_material == null:
 		return
 	if _backdrop_material == null:
-		_backdrop_material = material.duplicate() as ShaderMaterial
+		_backdrop_material = source_material.duplicate() as ShaderMaterial
 		_backdrop.material = _backdrop_material
 	_backdrop_material.set_shader_parameter("accent_color", accent_color)
 

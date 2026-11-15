@@ -5,6 +5,8 @@
 ## 未知容器的原始记录原样保留，避免后续写档丢物品。
 class_name ContainerSaveParticipant extends SaveParticipant
 
+const WAREHOUSE_SCRIPT: GDScript = preload("res://Scripts/warehouse.gd")
+
 ## 本次读档从磁盘带回来的孤儿记录数；只重试这些，不重试本次新产生的
 var _restore_count: int = 0
 ## 因 mod 缺失/容器缺失/容器满而暂时放不进世界的物品记录；写档时原样保留
@@ -15,7 +17,7 @@ var _orphaned_records: Array[Dictionary] = []
 func expected_containers() -> Array[String]:
 	var names: Array[String] = []
 	for page in Warehouse.PAGE_COUNT:
-		names.append(Warehouse.page_name(page))
+		names.append(WAREHOUSE_SCRIPT.page_name(page))
 	names.append(ContainerIds.VESSEL_GRID)
 	return names
 

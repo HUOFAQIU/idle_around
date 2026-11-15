@@ -241,7 +241,7 @@ func _backspace() -> void:
 
 
 func _tab_forward() -> void:
-	var target := mini(((cursor_col / TAB_WIDTH) + 1) * TAB_WIDTH, cols - 1)
+	var target := mini((floori(cursor_col / float(TAB_WIDTH)) + 1) * TAB_WIDTH, cols - 1)
 	var base := get_row_base(cursor_row)
 	if target > 0 and _chars[base + target] == WIDE_CONTINUATION:
 		target -= 1

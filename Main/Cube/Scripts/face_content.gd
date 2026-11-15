@@ -6,6 +6,7 @@ extends Control
 ## FaceUI（六面识别按钮）和 PetPanelContent（面 02 主菜单）都继承本类。
 
 ## 内容需要向立方体外壳报告「面被识别/点击」时发出
+@warning_ignore("unused_signal")
 signal identify_requested
 
 

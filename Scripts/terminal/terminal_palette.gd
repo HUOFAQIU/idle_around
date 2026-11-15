@@ -27,8 +27,8 @@ static func color_256(index: int) -> Color:
 		return color(index)
 	if index < 232:
 		var value := index - 16
-		var red := value / 36
-		var green := (value % 36) / 6
+		var red := floori(value / 36.0)
+		var green := floori((value % 36) / 6.0)
 		var blue := value % 6
 		return Color8(_cube_level(red), _cube_level(green), _cube_level(blue))
 	if index < 256:

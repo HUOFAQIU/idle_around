@@ -13,6 +13,7 @@ const TITLE_BAR_HEIGHT : int = 28
 const TITLE_BUTTON_SIZE : Vector2i = Vector2i(24, 22)
 const TITLE_BUTTON_MARGIN : int = 4
 const TITLE_FONT_SIZE : int = 12
+const DEFAULT_BG_COLOR : Color = Color(0.1, 0.1, 0.1, 1.0)
 
 ## 标题变化；子类直接给 title 赋值即可
 signal title_changed
@@ -85,7 +86,7 @@ func _build_background() -> void:
 	var style := _background.get_theme_stylebox("panel").duplicate() as StyleBoxFlat
 	if style == null:
 		style = StyleBoxFlat.new()
-		style.bg_color = Color(0.1, 0.1, 0.1, 1.0)
+		style.bg_color = DEFAULT_BG_COLOR
 	else:
 		style.bg_color = Color(style.bg_color, 1.0)
 	_background.add_theme_stylebox_override("panel", style)

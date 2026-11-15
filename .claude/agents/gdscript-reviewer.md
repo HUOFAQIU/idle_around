@@ -9,6 +9,7 @@ tools: Read, Grep, Glob, Bash
 ## 输入
 
 - 调用方通常给出审查范围（某个 diff、分支或文件）。没给时先用 `git status --short` 和 `git diff` 确定改动。
+- 先跑 `bash tools/check.sh --all`；工具已经覆盖的机械项不要再重复报告。
 - 先读 `DOC/INDEX.md` 的路由表，再按需读相关文档的命中小节；不要整篇读超过 200 行的文档。
 
 ## 审查清单（按严重度找问题，不报风格洁癖）
@@ -25,14 +26,14 @@ tools: Read, Grep, Glob, Bash
 
 - 静态数据放 `SoulData`，运行期状态放 `SoulRuntime`；不要把运行期字段写回共享资源。
 - 直接伤害挂 `SoulDamageExecution`；灼烧/剧毒/生命再生周期本身不挂直接伤害 execution。
-- 状态显示名和颜色从 `GameColors.STATUS_*` / `GameColors.STATUS` 取，不要在代码里另写中文字面量。
-- 容器名走 `ContainerIds` / `Warehouse.page_name()`；mod 路径走 `Scripts/mod/mod_paths.gd`；不要硬编码 `user://mods`、`res://base_mods` 等。
-- 新资源不设中文 `resource_name`，文件名不带固定数值；数值走数据/SetByCaller。
+- 状态显示名和颜色优先从 `GameColors.STATUS_*` / `GameColors.STATUS` 取；中文 `resource_name` 已由 lint 覆盖。
+- 容器名走 `ContainerIds` / `Warehouse.page_name()`；mod 根路径已由 `mod-path-root` 规则覆盖。
+- 数值走数据/SetByCaller，不要在运行期写死。
 - 内容 ID、技能 ID、Cue 标签遵守 `DOC/指南/Mod制作.md` §3.1；已发布的内容 ID 不改名。
 
 ### 3. DRY 与性能
 
-- 同一常量、类型、校验规则或逻辑块在两处以上出现时，指出应复用的共享辅助（优先检查是否已有 `GameColors`、`ContainerIds`、`ModPaths`、`StatusAttributes`、`CombatNames` 等现成入口）。
+- 同一常量、类型、校验规则或逻辑块在两处以上出现时，指出应复用的共享辅助（优先检查是否已有 `GameColors`、`ContainerIds`、`ModPaths`、`CombatNames` 等现成入口）。
 - 背包/仓库：避免显示时无条件全量重建；关注 624 格控件、每件物品的 Label/徽章/材质副本创建。
 - 窗口：单窗口模式（`embed_subwindows=true`）；嵌入子窗口坐标是主视口局部坐标，Tooltip/Item 在 `CanvasLayer` 1025+。不要让面板使用屏幕绝对坐标或原生 topmost/transient 补丁。
 - 战斗：避免每帧全量扫描怪物；确认使用了空间索引/分片移动等现有机制。
@@ -42,6 +43,10 @@ tools: Read, Grep, Glob, Bash
 - 改代码是否同步更新对应文档头的「核对」日期。
 - 新增功能/内容是否在 `Scripts/test_api.gd` 暴露测试方法，并更新 `DOC/指南/AI测试接口.md`。
 - 新增/删除文档是否更新 `DOC/INDEX.md`。
+
+## 已由工具覆盖
+
+`bash tools/check.sh --all` 已覆盖：注释标记/注释代码、中文 `resource_name`、`FileAccess` 边界、mod 根路径、内联 `Color(...)`、Godot 警告、全量脚本编译检查。工具能报的项不在这里重复；本清单只留语义判断。
 
 ## 输出格式
 

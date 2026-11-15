@@ -37,6 +37,7 @@
 | 制作/打包/发布 mod、看示例 | `指南/Mod制作.md` | `Scripts/mod/`、`mods/example_souls/`、`modkit/` |
 | 确认功能是否已实现/已知坑 | `架构/现状与注意.md` | — |
 | AI/自动化测试、构造战斗或背包场景 | `指南/AI测试接口.md` | `Scripts/test_api.gd` |
+| 提交前检查、新增 lint 规则、判断规范该放代码还是文档 | `指南/代码检查.md`、`指导文件.md` | `tools/check.sh`、`tools/lint/` |
 | 按症状排查战斗（不放技能/不触发/没伤害/Cue 不播/卡顿） | `指南/调试窗口.md` §常见排查、`架构/现状与注意.md` | `Windows/Debug/`、`game/battle/` |
 | 新增调试事件或理解遥测数据 | `架构/调试与遥测.md` | `game/battle/battle_event.gd`、`game/battle/battle_event_bus.gd`、`Scripts/debug/`、`Windows/Debug/` |
 | 改魂灵冷却/充能/冻结/主动效果 | `魂灵/主动魂灵.md` | `base_mods/core/souls/`、`game/content/`、`game/battle/charged_ability.gd` |
@@ -71,6 +72,8 @@
 | `archive/souls.xlsx` | 数据 | 归档（二进制，Claude 不可读） | — |
 | `特效/effects.md` | 指南 | 有效 | 2026-11-15 |
 | `指南/AI测试接口.md` | 指南 | 有效 | 2026-11-15 |
+| `指南/代码检查.md` | 指南 | 有效 | 2026-11-15 |
+| `指导文件.md` | 指南 | 有效 | 2026-11-15 |
 | `指南/存档排查.md` | 指南 | 有效 | 2026-11-15 |
 | `指南/调试窗口.md` | 指南 | 有效 | 2026-11-14 |
 | `架构/调试与遥测.md` | 实现 | 有效 | 2026-11-15 |

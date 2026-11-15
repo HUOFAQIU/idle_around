@@ -10,8 +10,10 @@ class_name BattleEventBus extends RefCounted
 ## 通用战斗事件
 signal emitted(event: BattleEvent)
 ## 单位 ASC 已就绪、技能尚未授予：观察者从这里开始监听该单位的 GAS 信号
+@warning_ignore("unused_signal")
 signal unit_asc_ready(unit: BattleUnit)
 ## 一颗魂灵的运行期状态与技能已建好：观察者从这里开始监听技能信号
+@warning_ignore("unused_signal")
 signal soul_runtime_created(unit: BattleUnit, ability: ChargedAbility, runtime: SoulRuntime)
 
 

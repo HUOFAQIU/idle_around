@@ -51,10 +51,10 @@ func write(slot: int, data: Dictionary, keep_backup: bool = false) -> bool:
 	var file_name := slot_file(slot)
 	var backup_name := file_name + ".bak"
 	var temp_name := file_name + ".tmp"
-	var temp_path := SAVE_DIR + "/" + temp_name
-	var file := FileAccess.open(temp_path, FileAccess.WRITE)
+	var temp_file_path := SAVE_DIR + "/" + temp_name
+	var file := FileAccess.open(temp_file_path, FileAccess.WRITE)
 	if file == null:
-		push_warning("存档：无法写入临时文件 %s（%s）" % [temp_path, error_string(FileAccess.get_open_error())])
+		push_warning("存档：无法写入临时文件 %s（%s）" % [temp_file_path, error_string(FileAccess.get_open_error())])
 		return false
 	file.store_string(JSON.stringify(data, "\t"))
 	file.flush()

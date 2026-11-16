@@ -109,7 +109,6 @@ func write_text(text: String, style: TerminalStyle = null) -> void:
 		_write_codepoint(text.unicode_at(i), cell_style)
 
 
-## 写一行并换行
 func write_line(text: String, style: TerminalStyle = null) -> void:
 	write_text(text, style)
 	newline()

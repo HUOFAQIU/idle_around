@@ -13,7 +13,6 @@ static var instance : SoulVesselWindow
 
 @onready var inventory_view: InventoryView = $VBox/Contents
 
-## 当前显示的魂器
 var _vessel: SoulVesselData
 ## 当前显示的内部容器名；魂器被移走后清空
 var _contents_name: String = ""

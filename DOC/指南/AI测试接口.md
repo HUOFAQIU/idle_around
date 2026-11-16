@@ -1,8 +1,8 @@
 # AI 测试接口 TestAPI
 
-> 类型：指南 | 状态：有效 | 核对：2026-11-15
+> 类型：指南 | 状态：有效 | 核对：2026-11-16
 > 何时读：写自动化测试/探针、构造战斗或背包场景、验证新功能
-> 关键词：测试 TestAPI 探针 自动化 战斗快照 魂灵 魂器 vessel 仓库 见闻 商店 冷却 冻结 触发器 类型 标签 尺寸 充能 卡面 tooltip 伤害缩放 动态伤害 静态预览 SoulDamagePreview get_equipped_soul_damage_preview is_dynamic has_runtime 多重触发 cast_times releases 颜色 色板 色板目录 分组 别名 主屏幕 六槽 存档位 角色选择 GameFlow 锁定 锁图 存档 save 删档 删除存档 确认 爪痕 play_claw_cue mod ModLoader ModWindow 加载顺序 order mod_cue_registrar cue Cue 特效 manifest 创意工坊 内置 core content_id validate_core_manifest manifest 校验 技能 ID ability_tag 命名 主窗口置顶 单窗口 浮层 CanvasLayer PetPanel 主菜单 位置持久化 CubePlacement PanelManager 激活面板 遮挡 穿透 mouse_passthrough WindowPassthrough 立方体 cube 面 02 背面 层级 CubeView CubeInputSurface CubeProjection CubeScenePaths get_cube_layering_state view_layer 终端 字符网格 TerminalView TerminalBuffer TerminalSpan 跨格大字 ANSI SGR 回看 scrollback auto_scroll
+> 关键词：测试 TestAPI 探针 自动化 战斗快照 魂灵 魂器 vessel 仓库 见闻 商店 冷却 冻结 触发器 类型 标签 尺寸 充能 卡面 tooltip 伤害缩放 动态伤害 静态预览 SoulDamagePreview get_equipped_soul_damage_preview is_dynamic has_runtime 多重触发 cast_times releases 颜色 色板 色板目录 分组 别名 主屏幕 六槽 存档位 角色选择 GameFlow 锁定 锁图 存档 save 删档 删除存档 确认 爪痕 play_claw_cue mod ModLoader ModWindow 加载顺序 order mod_cue_registrar cue Cue 特效 manifest 创意工坊 内置 core content_id validate_core_manifest manifest 校验 技能 ID ability_tag 命名 主窗口置顶 单窗口 浮层 CanvasLayer PetPanel 主菜单 位置不持久化 CubePlacement PanelManager 激活面板 遮挡 穿透 mouse_passthrough WindowPassthrough 立方体 cube 面 02 背面 层级 CubeView CubeInputSurface CubeProjection CubeScenePaths get_cube_layering_state view_layer 终端 字符网格 TerminalView TerminalBuffer TerminalSpan 跨格大字 ANSI SGR 回看 scrollback auto_scroll
 > 代码：`Scripts/test_api.gd`、`Windows/Battle/battle_window.gd`、`Scripts/collection_db.gd`、`Scripts/save/`、`Scripts/mod/`、`base_mods/core/mod.json`
 > 约定：新增功能/内容时，同步补 TestAPI 方法并更新本文。
 
@@ -183,7 +183,7 @@ print(TestAPI.get_mod_load_order())
 | `is_window_pinned(window_name) -> bool` | 查询主窗口置顶状态；其他名字返回 false |
 | `get_window_pin_states() -> Dictionary` | 主窗口置顶状态：`{"MainWindow": bool}` |
 | `get_cube_screen_position() -> Vector2` | 立方体中心的屏幕像素坐标；找不到返回 `(-1, -1)` |
-| `set_cube_screen_position(position) -> bool` | 把立方体移到指定屏幕坐标并写入 `user://Settings.cfg` 的 `[cube]`；找不到返回 `false` |
+| `set_cube_screen_position(position) -> bool` | 把立方体移到指定屏幕坐标（仅本次运行有效，不写盘）；找不到返回 `false` |
 | `get_active_panel_name() -> String` | 当前激活面板的节点名；没有返回 `""` |
 | `get_visible_panel_rects() -> Array[Rect2]` | 所有可见 `BaseWindow` 面板的矩形（主视口坐标），给遮挡/穿透测试用 |
 | `set_cube_passthrough_enabled(enabled) -> bool` | 开关透明覆盖层点击穿透；找不到模块返回 `false` |
@@ -202,7 +202,7 @@ print(TestAPI.set_cube_passthrough_enabled(true))
 print(TestAPI.get_cube_passthrough_state())
 ```
 
-窗口置顶状态存在 `user://Settings.cfg` 的 `[window_pins]` 段，只有 `main_window` 一个键。立方体位置存在同一文件的 `[cube]` 段，键 `screen_position`（立方体中心的屏幕像素坐标）；拖动圆点或调用 `set_cube_screen_position()` 时写入，启动时读取并夹回视口。面板置顶/激活由 `Main/panel_manager.gd` 统一管理：打开或点击面板时 `move_to_front()`，`get_active_panel_name()` 读当前激活面板。透明区域点击穿透由 `Main/Cube/Scripts/window_passthrough.gd` 管理：用 `mouse_passthrough_polygon` 把立方体投影凸包 + 可见游戏面板 + Tooltip/Item + HUD Toast + 拖动圆点合成一个窗口区域，区域外点击落到桌面；`get_cube_passthrough_state()` 返回当前开关、是否处于拖动锁定、矩形数量和区域多边形顶点数。单窗口模式下面板没有独立系统置顶；`BaseWindow` 的标题栏只负责拖动和关闭。`TooltipWindow` / `ItemWindow` 是主视口内的浮层（CanvasLayer 1026 / 1025），不参与置顶。
+窗口置顶状态存在 `user://Settings.cfg` 的 `[window_pins]` 段，只有 `main_window` 一个键。立方体位置不持久化：拖动圆点或调用 `set_cube_screen_position()` 只改内存坐标，重启回到屏幕中心，`Settings.cfg` 不再有 `[cube]` 段。面板置顶/激活由 `Main/panel_manager.gd` 统一管理：打开或点击面板时 `move_to_front()`，`get_active_panel_name()` 读当前激活面板。透明区域点击穿透由 `Main/Cube/Scripts/window_passthrough.gd` 管理：用 `mouse_passthrough_polygon` 把立方体投影凸包 + 可见游戏面板 + Tooltip/Item + HUD Toast + 拖动圆点合成一个窗口区域，区域外点击落到桌面；`get_cube_passthrough_state()` 返回当前开关、是否处于拖动锁定、矩形数量和区域多边形顶点数。单窗口模式下面板没有独立系统置顶；`BaseWindow` 的标题栏只负责拖动和关闭。`TooltipWindow` / `ItemWindow` 是主视口内的浮层（CanvasLayer 1026 / 1025），不参与置顶。
 
 ## 立方体外壳
 

@@ -57,7 +57,6 @@ const WIDE_RANGES: Array[Vector2i] = [
 ]
 
 
-## 返回该码点占用的终端列数
 static func columns(code: int) -> int:
 	if code < 0x0300:
 		return 1

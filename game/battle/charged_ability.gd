@@ -64,7 +64,6 @@ func tick_activation_lock(base_units: int) -> void:
 		activation_lock_units = maxi(activation_lock_units - base_units, 0)
 
 
-## 激活锁是否已经走完
 func can_activate_now() -> bool:
 	return activation_lock_units <= 0
 

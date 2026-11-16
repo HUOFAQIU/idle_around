@@ -12,7 +12,6 @@ var underline: bool = false
 var reverse: bool = false
 
 
-## 回到默认样式
 func reset() -> void:
 	fg = TerminalPalette.default_fg()
 	bg = TerminalPalette.default_bg()
@@ -37,6 +36,5 @@ func set_ansi_fg(index: int) -> void:
 	fg = TerminalPalette.color(index)
 
 
-## 按 ANSI 背景色索引设置颜色
 func set_ansi_bg(index: int) -> void:
 	bg = TerminalPalette.color(index)

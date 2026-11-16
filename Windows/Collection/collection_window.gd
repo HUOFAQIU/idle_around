@@ -21,7 +21,6 @@ const FLY_END_MARGIN: float = 24.0
 ## 飞入动画层；必须在 BaseWindow 把 Root 挪进内容区之前解析，之后按绝对路径会找不到
 @onready var fly_layer: Control = $Root/FlyLayer
 
-## 当前分类：ContentKind.Kind
 var _kind: int = ContentKind.Kind.MONSTER
 ## 标题栏“全解锁”按钮：永久写入全部见闻
 var _unlock_all_button: Button
@@ -41,7 +40,6 @@ func _ready() -> void:
 	_select_kind(ContentKind.Kind.MONSTER)
 
 
-## 切换怪物 / 魂灵 / 魂器页签
 func _select_kind(kind: int) -> void:
 	_kind = kind
 	monster_button.button_pressed = kind == ContentKind.Kind.MONSTER
@@ -51,7 +49,6 @@ func _select_kind(kind: int) -> void:
 	_refresh()
 
 
-## 底部提示跟着页签走
 func _update_hint() -> void:
 	match _kind:
 		ContentKind.Kind.MONSTER:
@@ -259,7 +256,6 @@ func _on_entry_unlocked(kind: int, _id: StringName) -> void:
 		_refresh()
 
 
-## 读档整体替换已遇见状态后刷新当前页
 func _on_state_reloaded() -> void:
 	_refresh()
 

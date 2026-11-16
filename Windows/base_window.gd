@@ -8,7 +8,6 @@ extends Control
 ## 打开时摆在主视口哪儿；x 或 y 是负数表示「居中」
 @export var open_position : Vector2i = Vector2i(-1, -1)
 
-## 顶部标题栏
 const TITLE_BAR_HEIGHT : int = 28
 const TITLE_BUTTON_SIZE : Vector2i = Vector2i(24, 22)
 const TITLE_BUTTON_MARGIN : int = 4
@@ -33,9 +32,7 @@ var _title_bar_box : HBoxContainer
 var _title_label : Label
 var _close_button : Button
 var _content_root : Control
-## 原内容是否已经挪进 _content_root
 var _wrapped : bool = false
-## 标题栏拖动
 var _drag : ControlDrag
 
 

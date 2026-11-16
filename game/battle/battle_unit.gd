@@ -69,7 +69,6 @@ var max_health_attr: AttributeData
 var shield_attr: AttributeData
 
 
-## 与指定阵营敌对的阵营
 static func opposing_team(team_id: Team) -> Team:
 	return Team.ENEMY if team_id == Team.PLAYER else Team.PLAYER
 

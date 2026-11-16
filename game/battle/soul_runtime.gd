@@ -18,7 +18,6 @@ var ability: ChargedAbility
 var triggers: Array[SoulTriggerAbility] = []
 var owner_unit: BattleUnit
 
-## 显示状态
 var scanline_progress: float = 0.0
 var haste_seconds: float = 0.0
 var slow_seconds: float = 0.0

@@ -90,7 +90,6 @@ func write_text(text: String, style: TerminalStyle = null) -> void:
 	_after_write(history_before)
 
 
-## 写一行并换行
 func write_line(text: String, style: TerminalStyle = null) -> void:
 	if buffer == null:
 		return
@@ -110,7 +109,6 @@ func write_ansi(text: String) -> void:
 	_after_write(history_before)
 
 
-## 写一行 ANSI 文本
 func write_ansi_line(text: String) -> void:
 	write_ansi(text + "\n")
 
@@ -242,7 +240,6 @@ func set_spans(spans: Array[TerminalSpan]) -> void:
 	queue_redraw()
 
 
-## 清掉所有跨格大字
 func clear_spans() -> void:
 	_spans.clear()
 	_span_rects.clear()
@@ -618,7 +615,6 @@ func _span_font_size(rows: int) -> int:
 	return maxi(scaled_size, 1)
 
 
-## 跨格大字在网格里占多少列
 func _measure_span_columns(text: String, scaled_size: int, style: TerminalStyle) -> int:
 	var columns := 0
 	var bold := style != null and style.bold

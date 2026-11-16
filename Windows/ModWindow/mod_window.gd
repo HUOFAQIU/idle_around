@@ -14,7 +14,6 @@ var _order_box: VBoxContainer
 var _status_label: Label
 ## 启动时的启用状态，用来判断是否还有未生效的改动
 var _startup_enabled: Dictionary[StringName, bool] = {}
-## 启动时的基础加载顺序
 var _startup_order: Array[StringName] = []
 
 

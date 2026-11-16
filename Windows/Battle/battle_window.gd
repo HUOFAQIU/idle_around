@@ -33,7 +33,6 @@ var _telemetry_adapter : CombatTelemetryAdapter
 var _info_log_adapter : BattleLogAdapter
 var _console_log_adapter : CombatConsoleAdapter
 var _narrator : CombatNarrator
-## FPS 文本刷新计数
 var _fps_frames : int = 0
 ## 上一帧鼠标在不在本窗口里（用来判断"刚离开"这一下）
 var _mouse_was_inside : bool = false

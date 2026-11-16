@@ -32,7 +32,6 @@ func log_color() -> String:
 	return StatusText.log_color(status_attribute())
 
 
-## 飘字样式
 func popup_style() -> PopupStyle:
 	return PopupStyle.DAMAGE
 

@@ -13,7 +13,6 @@ static var instance : ItemWindow
 
 ## 幽灵左上角相对鼠标的偏移（像素）—— 抓着物品的哪一格，就偏多少
 var _grab_offset : Vector2 = Vector2.ZERO
-## 现在装着的物品视图
 var _view : ItemView
 ## 上次同步过的尺寸（变了才去写浮层尺寸）
 var _last_size : Vector2i = Vector2i.ZERO
@@ -42,7 +41,6 @@ func hold(view: ItemView, grab_offset_cells: Vector2i, base_size: int) -> void:
 	_reposition()
 
 
-## 放下 / 取消
 func clear() -> void:
 	for child in get_children():
 		child.queue_free()

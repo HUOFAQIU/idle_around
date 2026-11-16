@@ -17,7 +17,7 @@
 | 改开局/新游戏/存档位/角色选择/面锁定 | `架构/开局流程.md`、`架构/存档.md` | `game/flow/game_flow.gd`、`game/content/Characters/`、`Main/Cube/Scenes/UI/save_slots_content.tscn`、`character_select_content.tscn`、`face_lock_overlay.tscn` |
 | 改透明区域点击穿透/mouse_passthrough | `架构/立方体外壳.md` §4 | `Main/Cube/Scripts/window_passthrough.gd`、`Scripts/ui/ui_region.gd` |
 | 改主窗口置顶、T 按钮、置顶持久化 | `架构/窗口与场景.md` §1.6 | `Main/status_bar_container.gd`、`Scripts/window_pin_settings.gd` |
-| 改立方体位置/拖动/位置持久化 | `架构/窗口与场景.md` §1.5、`架构/立方体外壳.md` §2.1 | `Main/Cube/Scripts/cube_placement.gd`、`Main/Cube/Scripts/cube_settings.gd`、`Main/Cube/Scripts/drag_handle.gd`、`Scripts/settings_file.gd` |
+| 改立方体位置/拖动圆点 | `架构/窗口与场景.md` §1.5、`架构/立方体外壳.md` §2.1 | `Main/Cube/Scripts/cube_placement.gd`、`Main/Cube/Scripts/drag_handle.gd` |
 | 主窗口置顶失效/置顶设置丢失 | `架构/窗口与场景.md` §3（常见排查） | `Main/status_bar_container.gd`、`Scripts/window_pin_settings.gd` |
 | 改终端字符网格/ANSI/输入/命令/性能 | `窗口/终端.md` | `Scripts/terminal/`、`Windows/Terminal/` |
 | 改战斗单位、施法、冷却/扫描线 | `架构/战斗运行时_施法与冷却.md` | `game/battle/`、`Windows/Battle/` |

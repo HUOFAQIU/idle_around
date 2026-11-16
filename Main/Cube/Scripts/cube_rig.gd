@@ -310,8 +310,6 @@ func _finish_handle_drag() -> void:
 	_moving_handle = false
 	if _drag_handle != null:
 		_drag_handle.set_active(false)
-	if _placement != null:
-		_placement.save_position()
 
 
 func _finish_drag() -> void:

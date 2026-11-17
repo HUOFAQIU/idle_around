@@ -1,6 +1,6 @@
 # AI 测试接口 TestAPI
 
-> 类型：指南 | 状态：有效 | 核对：2026-11-16
+> 类型：指南 | 状态：有效 | 核对：2026-11-17
 > 何时读：写自动化测试/探针、构造战斗或背包场景、验证新功能
 > 关键词：测试 TestAPI 探针 自动化 战斗快照 魂灵 魂器 vessel 仓库 见闻 商店 冷却 冻结 触发器 类型 标签 尺寸 充能 卡面 tooltip 伤害缩放 动态伤害 静态预览 SoulDamagePreview get_equipped_soul_damage_preview is_dynamic has_runtime 多重触发 cast_times releases 颜色 色板 色板目录 分组 别名 主屏幕 六槽 存档位 角色选择 GameFlow 锁定 锁图 存档 save 删档 删除存档 确认 爪痕 play_claw_cue mod ModLoader ModWindow 加载顺序 order mod_cue_registrar cue Cue 特效 manifest 创意工坊 内置 core content_id validate_core_manifest manifest 校验 技能 ID ability_tag 命名 主窗口置顶 单窗口 浮层 CanvasLayer PetPanel 主菜单 位置不持久化 CubePlacement PanelManager 激活面板 遮挡 穿透 mouse_passthrough WindowPassthrough 立方体 cube 面 02 背面 层级 CubeView CubeInputSurface CubeProjection CubeScenePaths get_cube_layering_state view_layer 终端 字符网格 TerminalView TerminalBuffer TerminalSpan 跨格大字 ANSI SGR 回看 scrollback auto_scroll
 > 代码：`Scripts/test_api.gd`、`Windows/Battle/battle_window.gd`、`Scripts/collection_db.gd`、`Scripts/save/`、`Scripts/mod/`、`base_mods/core/mod.json`
@@ -392,5 +392,5 @@ print(TestAPI.get_battle_state()["player_souls"])
 - `player.souls` 是场景配置（玩家通常为空）；玩家装备的魂灵看 `player_souls`。
 - `start_battle` 会显示战斗窗口；找不到 `BattleWindow` 时返回 `false`。
 - 游戏已移除倍速功能，`TestAPI` 不再提供 `set_time_scale`；需要验证长流程时用真实时间等待或多跑几帧。
-- 新增全局类后，如果 headless 直接跑提示 `TestAPI` 未声明，先用编辑器打开一次项目（或 `--headless --editor --quit`）刷新全局类缓存。
+- 新增全局类后，如果 headless 直接跑提示 `TestAPI` 未声明，先跑一次 `--headless --path . --import` 刷新全局类缓存。
 - 新增魂灵/怪物/技能/窗口时，先看这里要不要补方法。

@@ -22,10 +22,10 @@ description: Verify GDScript changes in this Godot 4.7 project — headless pars
 
 ## 2. 运行期探针（需要时才做）
 
-不要用 `--headless --script`：该模式不注册 autoload 全局名，脚本里出现 `GBIS`、`SaveManager`、`TestAPI` 等会直接编译失败。用临时探针场景，并把用户目录隔离：
+不要用 `--headless --script`：该模式不注册 autoload 全局名，脚本里出现 `GBIS`、`SaveManager`、`TestAPI` 等会直接编译失败。只有完全不碰 autoload、只依赖 `class_name` 和资源加载的探针才可以用 `--script`；其余一律用临时探针场景，并把用户目录隔离：
 
 1. 新建 `res://_probe_xxx.tscn` + `res://_probe_xxx.gd`。
-2. 运行前把 `APPDATA` 指到临时目录（Windows 上 Godot 的 `user://` 会跟着走），避免写到真实存档；探针结束删掉该目录。
+2. 运行前把 `APPDATA` 指到临时目录（Windows 上 Godot 的 `user://` 会跟着走），避免写到真实存档；探针结束删掉该目录。如果必须使用真实用户目录，测试前后用哈希/时间戳对比 `user://saves/`，确认未被写入。
 3. 探针里 `add_child(load("res://Main/Cube/Scenes/main.tscn").instantiate())` 后再操作；启动不再自动读档，需要先用 `TestAPI.new_game()` 或 `TestAPI.load_save_slot(slot)` 建立会话。
 4. `--quit-after 600` 结束后过滤输出；探针自己负责在失败时 `quit(1)`。
 5. 运行命令示例：

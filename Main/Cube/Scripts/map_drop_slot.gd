@@ -6,8 +6,8 @@ extends Control
 
 signal clicked
 
-## ItemView 的单格大小；地图是 2×2，所以卡面是 96×96
-const ITEM_BASE_SIZE: int = 48
+## ItemView 的单格大小；地图是 2×2，所以卡面是 64×64
+const ITEM_BASE_SIZE: int = 32
 const SLOT_BG: Color = Color(0.043, 0.067, 0.098, 0.85)
 const DEFAULT_ACCENT: Color = Color("#4fb8ff")
 

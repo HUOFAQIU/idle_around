@@ -540,6 +540,10 @@ static func terminal_snapshot() -> Dictionary:
 	return TERMINAL.terminal_snapshot()
 
 
+static func complete_command(line : String, caret : int = -1) -> Dictionary:
+	return TERMINAL.complete_command(line, caret)
+
+
 static func tooltip_snapshot() -> Dictionary:
 	return TERMINAL.tooltip_snapshot()
 

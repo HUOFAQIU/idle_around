@@ -10,6 +10,9 @@ extends Node
 const REGION_PADDING: float = 28.0
 ## 游戏 UI 面板外扩比立方体小，避免窗口周围出现太宽的拦截区
 const UI_REGION_PADDING: float = 8.0
+## Windows 上区域切换后 DWM 还会用上一帧内容裁剪合成约 1~2 帧；
+## 区域收缩先保持旧区域，等新画面提交几帧后再裁，避免关窗时留下面板残影。
+const SHRINK_HOLD_FRAMES: int = 3
 
 static var instance: WindowPassthrough
 
@@ -47,6 +50,9 @@ var _last_ui_rects: Array[Rect2] = []
 var _last_viewport_size := Vector2i.ZERO
 var _last_window_size := Vector2i.ZERO
 var _last_cube_viewport_size := Vector2i.ZERO
+## 等待应用的新区域；只在收缩时设置，扩张和旋转仍立即生效
+var _held_region := PackedVector2Array()
+var _held_frames: int = 0
 
 
 func _ready() -> void:
@@ -89,6 +95,8 @@ func _process(_delta: float) -> void:
 		return
 	if _window == null:
 		return
+
+	_flush_held_region()
 
 	var viewport_size := Vector2i(get_viewport().get_visible_rect().size)
 	var window_size := _window.size
@@ -201,6 +209,7 @@ func _lock_full_region() -> void:
 	if _locked or _window == null:
 		return
 	_locked = true
+	_cancel_held_region()
 	_apply_polygon(UiRegion.full_window(Vector2(_window.size)))
 
 
@@ -246,7 +255,52 @@ func _refresh_region() -> void:
 	if not window_size.is_equal_approx(viewport_size):
 		region = _scale_region(region, window_size / viewport_size)
 
+	if _should_hold_shrink(region):
+		if region != _held_region:
+			_held_region = region
+			_held_frames = SHRINK_HOLD_FRAMES
+		return
+	_cancel_held_region()
 	_apply_polygon(region)
+
+
+## 收缩先保持旧区域；新画面提交后再裁，DWM 不会把上一帧面板裁成残影。
+## 新区域必须完全落在旧区域内，否则新面板/新位置会被旧区域裁掉，应立即应用。
+func _should_hold_shrink(region: PackedVector2Array) -> bool:
+	if region.size() < 3 or _last_polygon.size() < 3:
+		return false
+	var region_area := _polygon_area(region)
+	if region_area >= _polygon_area(_last_polygon) - 1.0:
+		return false
+	var overlap_area := 0.0
+	for piece in Geometry2D.intersect_polygons(_last_polygon, region):
+		overlap_area += _polygon_area(piece)
+	return overlap_area >= region_area - 1.0
+
+
+func _flush_held_region() -> void:
+	if _held_region.is_empty():
+		return
+	_held_frames -= 1
+	if _held_frames > 0:
+		return
+	var region := _held_region
+	_cancel_held_region()
+	_apply_polygon(region)
+
+
+func _cancel_held_region() -> void:
+	_held_region = PackedVector2Array()
+	_held_frames = 0
+
+
+func _polygon_area(polygon: PackedVector2Array) -> float:
+	var area := 0.0
+	for index in polygon.size():
+		var current := polygon[index]
+		var next := polygon[(index + 1) % polygon.size()]
+		area += current.x * next.y - next.x * current.y
+	return absf(area) * 0.5
 
 
 func _project_cube_hull(camera: Camera3D) -> PackedVector2Array:
@@ -276,6 +330,7 @@ func _apply_polygon(polygon: PackedVector2Array) -> void:
 func _clear_region() -> void:
 	_last_polygon = PackedVector2Array()
 	_last_rects.clear()
+	_cancel_held_region()
 	if _window == null:
 		return
 	_window.mouse_passthrough = false

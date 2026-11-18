@@ -4,7 +4,7 @@ extends Node3D
 ## 并把 CubeRig 计算出的指针事件转发给该 SubViewport。
 ##
 ## 普通 FaceUI 面沿用「按下即转发、拖动超阈值取消」的交互；
-## ui_capture 面（01 存档位 / 02 主菜单 / 04 角色选择）按控件优先分流：
+## ui_capture 面（01 存档位 / 02 主菜单 / 04 角色选择 / 05 地图板）按控件优先分流：
 ## 指针下有可交互控件时整个按下-拖动-松开周期都交给内容，不参与立方体旋转。
 
 signal face_identified(face_index: int, face_name: String, accent_color: Color)
@@ -18,7 +18,7 @@ const OFFSCREEN_POINTER := Vector2(-96.0, -96.0)
 @export var ui_capture: bool = false
 ## 该面承载的 2D 内容场景，实例化到 Viewport 下；所有面共用同一个 Face3D 模板
 @export var content_scene: PackedScene
-## 子视口尺寸；普通面 512，主菜单/存档/角色选择用 300 与屏幕投影 1:1
+## 子视口尺寸；普通面 512，存档/主菜单/角色选择/地图板用 300 与屏幕投影 1:1
 @export var viewport_size: Vector2i = Vector2i(512, 512)
 
 var _content_size: Vector2 = Vector2(1.9, 1.9)

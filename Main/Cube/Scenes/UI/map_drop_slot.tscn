@@ -3,11 +3,11 @@
 [ext_resource type="Script" path="res://Main/Cube/Scripts/map_drop_slot.gd" id="1_slot"]
 
 [node name="MapDropSlot" type="Control"]
-custom_minimum_size = Vector2(112, 112)
+custom_minimum_size = Vector2(80, 80)
 layout_mode = 3
 anchors_preset = 0
-offset_right = 112.0
-offset_bottom = 112.0
+offset_right = 80.0
+offset_bottom = 80.0
 mouse_filter = 0
 script = ExtResource("1_slot")
 

@@ -19,7 +19,8 @@
 | 改主窗口置顶、T 按钮、置顶持久化 | `架构/窗口与场景.md` §1.6 | `Main/status_bar_container.gd`、`Scripts/window_pin_settings.gd` |
 | 改立方体位置/拖动圆点 | `架构/窗口与场景.md` §1.5、`架构/立方体外壳.md` §2.1 | `Main/Cube/Scripts/cube_placement.gd`、`Main/Cube/Scripts/drag_handle.gd` |
 | 主窗口置顶失效/置顶设置丢失 | `架构/窗口与场景.md` §3（常见排查） | `Main/status_bar_container.gd`、`Scripts/window_pin_settings.gd` |
-| 改终端字符网格/ANSI/输入/命令/性能 | `窗口/终端窗口.md` | `Scripts/terminal/`、`Windows/Terminal/` |
+| 改终端字符网格/ANSI/输入/命令/性能 | `窗口/终端窗口.md`、`指南/命令控制台.md` | `Scripts/terminal/`、`Windows/Terminal/`、`Scripts/commands/` |
+| 改命令补全/Tab 候选/候选来源 | `指南/命令控制台.md` §3、`窗口/终端窗口.md` §2 | `Scripts/commands/command_completion.gd`、`command_completers.gd`、`Windows/Terminal/completion_panel.gd` |
 | 改战斗单位、施法、冷却/扫描线 | `架构/战斗运行时_施法与冷却.md` | `game/battle/`、`Windows/Battle/` |
 | 改移动、攻击范围门控、刷怪、空间索引、投射物 | `架构/战斗运行时_移动与投射物.md` | `game/battle/`、`Windows/Battle/` |
 | 改暴击/伤害/异常、开战关窗、玩家怪物场景 | `架构/战斗运行时_伤害与流程.md` | `game/battle/`、`Windows/Battle/` |
@@ -36,7 +37,7 @@
 | 查/改内容 ID、技能 ID、Cue 标签命名 | `指南/Mod制作.md` §3.1、`架构/Mod系统.md` §6 | `Scripts/mod/content_naming.gd`、`Scripts/mod/mod_loader.gd` |
 | 制作/打包/发布 mod、看示例 | `指南/Mod制作.md` | `Scripts/mod/`、`mods/example_souls/`、`modkit/` |
 | 确认功能是否已实现/已知坑 | `架构/现状与注意.md` | — |
-| AI/自动化测试、构造战斗或背包场景 | `指南/AI测试接口.md` | `Scripts/test_api.gd`、`Scripts/test_api/` |
+| AI/自动化测试、构造战斗或背包场景 | `指南/AI测试接口.md`、`指南/命令控制台.md` | `Scripts/test_api.gd`、`Scripts/test_api/`、`Scripts/commands/` |
 | 提交前检查、新增 lint 规则、判断规范该放代码还是文档 | `指南/代码检查.md`、`指导文件.md` | `tools/check.sh`、`tools/lint/` |
 | 按症状排查战斗（不放技能/不触发/没伤害/Cue 不播/卡顿） | `指南/调试窗口.md` §常见排查、`架构/现状与注意.md` | `Windows/Debug/`、`game/battle/` |
 | 新增调试事件或理解遥测数据 | `架构/调试与遥测.md` | `game/battle/battle_event.gd`、`game/battle/battle_event_bus.gd`、`Scripts/debug/`、`Windows/Debug/` |
@@ -66,7 +67,7 @@
 | `怪物/怪物.md` | 设计 | 部分实现 | 2026-11-18 |
 | `窗口/仓库窗口.md` | 设计 | 部分实现 | 2026-11-18 |
 | `窗口/见闻窗口.md` | 实现 | 已实现 | 2026-11-15 |
-| `窗口/终端窗口.md` | 实现 | 部分实现 | 2026-11-15 |
+| `窗口/终端窗口.md` | 实现 | 部分实现 | 2026-11-18 |
 | `魂灵/魂灵.md` | 设计 | 部分实现 | 2026-11-15 |
 | `魂灵/魂器.md` | 设计 | 已实现 | 2026-11-15 |
 | `魂灵/主动魂灵.md` | 设计 | 部分实现 | 2026-11-15 |
@@ -74,6 +75,7 @@
 | `archive/souls.xlsx` | 数据 | 归档（二进制，Claude 不可读） | — |
 | `特效/effects.md` | 指南 | 有效 | 2026-11-15 |
 | `指南/AI测试接口.md` | 指南 | 有效 | 2026-11-18 |
+| `指南/命令控制台.md` | 指南 | 有效 | 2026-11-18 |
 | `指南/代码检查.md` | 指南 | 有效 | 2026-11-15 |
 | `指导文件.md` | 指南 | 有效 | 2026-11-15 |
 | `指南/存档排查.md` | 指南 | 有效 | 2026-11-15 |
@@ -82,7 +84,7 @@
 | `背景故事/背景故事.md` | 设计 | 占位 | 2026-10-31 |
 | `archive/给AI玩的游戏.md` | 记录 | 归档 | 2026-10-31 |
 | `架构/00_总览.md` | 实现 | 有效 | 2026-11-18 |
-| `架构/窗口与场景.md` | 实现 | 有效 | 2026-11-15 |
+| `架构/窗口与场景.md` | 实现 | 有效 | 2026-11-18 |
 | `架构/立方体外壳.md` | 实现 | 有效 | 2026-11-18 |
 | `架构/开局流程.md` | 实现 | 有效 | 2026-11-15 |
 | `架构/战斗运行时_施法与冷却.md` | 实现 | 有效 | 2026-11-18 |

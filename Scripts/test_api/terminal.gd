@@ -5,6 +5,7 @@ extends RefCounted
 
 const COMMON: GDScript = preload("res://Scripts/test_api/common.gd")
 const INVENTORY: GDScript = preload("res://Scripts/test_api/inventory.gd")
+const COMMANDS: GDScript = preload("res://Scripts/commands/command_registry.gd")
 
 static func terminal_write_line(text : String) -> bool:
 	var view := _terminal_view()
@@ -84,6 +85,11 @@ static func terminal_snapshot() -> Dictionary:
 		"auto_scroll": view.auto_scroll,
 		"spans": view.get_span_rects(),
 	}
+
+
+## 命令补全候选；终端和 AI 共用同一套补全逻辑
+static func complete_command(line : String, caret : int = -1) -> Dictionary:
+	return COMMANDS.complete(line, caret)
 
 
 static func tooltip_snapshot() -> Dictionary:

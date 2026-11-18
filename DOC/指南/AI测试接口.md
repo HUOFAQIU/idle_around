@@ -2,8 +2,8 @@
 
 > 类型：指南 | 状态：有效 | 核对：2026-11-18
 > 何时读：写自动化测试/探针、构造战斗或背包场景、验证新功能
-> 关键词：测试 TestAPI 探针 自动化 战斗快照 地图 map MapCatalog MapBoard 地图板 数量石 魂灵 魂器 vessel 仓库 见闻 商店 冷却 冻结 触发器 类型 标签 尺寸 充能 卡面 tooltip 伤害缩放 动态伤害 静态预览 SoulDamagePreview get_equipped_soul_damage_preview is_dynamic has_runtime 多重触发 cast_times releases 颜色 色板 色板目录 分组 别名 主屏幕 六槽 存档位 角色选择 GameFlow 锁定 锁图 存档 save 删档 删除存档 确认 爪痕 play_claw_cue mod ModLoader ModWindow 加载顺序 order mod_cue_registrar cue Cue 特效 manifest 创意工坊 内置 core content_id validate_core_manifest manifest 校验 技能 ID ability_tag 命名 主窗口置顶 单窗口 浮层 CanvasLayer PetPanel 主菜单 位置不持久化 CubePlacement PanelManager 激活面板 遮挡 穿透 mouse_passthrough WindowPassthrough 立方体 cube 面 02 背面 层级 CubeView CubeInputSurface CubeProjection CubeScenePaths get_cube_layering_state view_layer 终端 字符网格 TerminalView TerminalBuffer TerminalSpan 跨格大字 ANSI SGR 回看 scrollback auto_scroll
-> 代码：`Scripts/test_api.gd`（门面）、`Scripts/test_api/`（按域实现）、`Windows/Battle/battle_window.gd`、`Scripts/collection_db.gd`、`Scripts/save/`、`Scripts/mod/`、`base_mods/core/mod.json`
+> 关键词：测试 TestAPI 探针 自动化 战斗快照 地图 map MapCatalog MapBoard 地图板 数量石 魂灵 魂器 vessel 仓库 见闻 商店 冷却 冻结 触发器 类型 标签 尺寸 充能 卡面 tooltip 伤害缩放 动态伤害 静态预览 SoulDamagePreview get_equipped_soul_damage_preview is_dynamic has_runtime 多重触发 cast_times releases 颜色 色板 色板目录 分组 别名 主屏幕 六槽 存档位 角色选择 GameFlow 锁定 锁图 存档 save 删档 删除存档 确认 爪痕 play_claw_cue mod ModLoader ModWindow 加载顺序 order mod_cue_registrar cue Cue 特效 manifest 创意工坊 内置 core content_id validate_core_manifest manifest 校验 技能 ID ability_tag 命名 主窗口置顶 单窗口 浮层 CanvasLayer PetPanel 主菜单 位置不持久化 CubePlacement PanelManager 激活面板 遮挡 穿透 mouse_passthrough WindowPassthrough 立方体 cube 面 02 背面 层级 CubeView CubeInputSurface CubeProjection CubeScenePaths get_cube_layering_state view_layer 终端 字符网格 TerminalView TerminalBuffer TerminalSpan 跨格大字 ANSI SGR 回看 scrollback auto_scroll CommandRegistry 命令控制台 run
+> 代码：`Scripts/test_api.gd`（门面）、`Scripts/test_api/`（按域实现）、`Scripts/commands/`、`Windows/Battle/battle_window.gd`、`Scripts/collection_db.gd`、`Scripts/save/`、`Scripts/mod/`、`base_mods/core/mod.json`
 > 约定：新增功能/内容时，在对应域模块实现并在门面补转发，同时更新本文。
 
 ## 用法
@@ -29,6 +29,8 @@ TestAPI.stop_battle()
 魂灵/怪物 ID 用 `TestAPI.get_soul_ids()`、`TestAPI.get_monster_ids()` 查，必须是 `content_id`（core 不带前缀；第三方带 `<mod_id>:` 前缀）。技能标签用 `TestAPI.get_skill_tags()` 查：core 形如 `Skill.<PascalName>`，第三方形如 `Skill.Mod.<PascalModId>.<PascalName>`（示例 mod 为 `Skill.Mod.ExampleSouls.FireWolf`）。
 
 调用入口始终是 `TestAPI`。实现按域放在 `Scripts/test_api/`（`inventory` / `map` / `save` / `mod` / `window` / `cube` / `colors` / `terminal` / `battle` / `debug`），`Scripts/test_api.gd` 只做一行转发；新增方法时改对应域模块，再在门面补转发。
+
+需要文本命令或给终端/AI 共用入口时，用 `CommandRegistry.run(line)`，返回 `{ok, value, error}`；补全用 `CommandRegistry.complete(line, caret)`。命令表和扩展步骤见 `指南/命令控制台.md`。命令 handler 调同一批 `Scripts/test_api/` 域模块，不重复业务逻辑。
 
 ## 背包 / 见闻
 
@@ -203,7 +205,7 @@ print(TestAPI.set_cube_passthrough_enabled(true))
 print(TestAPI.get_cube_passthrough_state())
 ```
 
-窗口置顶状态存在 `user://Settings.cfg` 的 `[window_pins]` 段，只有 `main_window` 一个键。立方体位置不持久化：拖动圆点或调用 `set_cube_screen_position()` 只改内存坐标，重启回到屏幕中心，`Settings.cfg` 不再有 `[cube]` 段。面板置顶/激活由 `Main/panel_manager.gd` 统一管理：打开或点击面板时 `move_to_front()`，`get_active_panel_name()` 读当前激活面板。透明区域点击穿透由 `Main/Cube/Scripts/window_passthrough.gd` 管理：用 `mouse_passthrough_polygon` 把立方体投影凸包 + 可见游戏面板 + Tooltip/Item + HUD Toast + 拖动圆点合成一个窗口区域，区域外点击落到桌面；`get_cube_passthrough_state()` 返回当前开关、是否处于拖动锁定、矩形数量和区域多边形顶点数。单窗口模式下面板没有独立系统置顶；`BaseWindow` 的标题栏只负责拖动和关闭。`TooltipWindow` / `ItemWindow` 是主视口内的浮层（CanvasLayer 1026 / 1025），不参与置顶。
+窗口置顶状态存在 `user://Settings.cfg` 的 `[window_pins]` 段，只有 `main_window` 一个键。立方体位置不持久化：拖动圆点或调用 `set_cube_screen_position()` 只改内存坐标，重启回到屏幕中心，`Settings.cfg` 不再有 `[cube]` 段。面板置顶/激活由 `Main/panel_manager.gd` 统一管理：打开或点击面板时 `move_to_front()`，`get_active_panel_name()` 读当前激活面板。透明区域点击穿透由 `Main/Cube/Scripts/window_passthrough.gd` 管理：用 `mouse_passthrough_polygon` 把立方体投影凸包 + 可见游戏面板 + Tooltip/Item + HUD Toast + 拖动圆点合成一个窗口区域，区域外点击落到桌面；区域收缩会延迟 3 帧应用（避免 Windows 合成残影），这几帧内 `get_cube_passthrough_state()` 的 `polygon_points` 仍是旧区域。`get_cube_passthrough_state()` 返回当前开关、是否处于拖动锁定、矩形数量和区域多边形顶点数。单窗口模式下面板没有独立系统置顶；`BaseWindow` 的标题栏只负责拖动和关闭。`TooltipWindow` / `ItemWindow` 是主视口内的浮层（CanvasLayer 1026 / 1025），不参与置顶。
 
 ## 立方体外壳
 
@@ -233,7 +235,7 @@ print(TestAPI.click_cube_pet_button(&"inventory"))
 ```
 
 - 面索引：0 正面（存档位）、1 背面（主菜单）、2 左面（FaceUI）、3 右面（角色选择）、4 上面、5 下面；启动正对 01 面。
-- 01/02/04 面是 300×300 子视口，03/05/06 仍是 512×512；`get_cube_state().ui_face_index` 仍指面 02 主菜单视口。
+- 01/02/04/05 面是 300×300 子视口，03/06 仍是 512×512；`get_cube_state().ui_face_index` 仍指面 02 主菜单视口。
 - 立方体渲染在 `CubeView`（layer 1024）的透明子视口里；HUD 也在 1024 但树中更靠后，Toast 压在立方体上。`get_cube_layering_state()` 应返回 `above_game_ui=true`、`above_hud=false`、`hud_above_cube=true`、`below_tooltip=true`、`below_drag_ghost=true`；`input_ready=true` 表示子视口、相机、朝向、CubeRig 和拖动圆点都解析成功。
 - 锁定面仍可拖动旋转；`Face3D` 的指针方法全部被拦，锁图覆盖在内容上。
 - `set_cube_face_front(1)` 后可直接点击/测试主菜单；启动/读档流程应使用 `new_game()` / `load_save_slot()`，让 `GameFlow` 负责解锁和翻面。
@@ -261,6 +263,7 @@ print(TestAPI.click_cube_pet_button(&"inventory"))
 | `terminal_clear() -> bool` | 清空当前 `TerminalView`（屏幕 + 历史）；找不到返回 `false` |
 | `terminal_set_grid(enabled) -> bool` | 开关当前 `TerminalView` 的调试网格；找不到返回 `false` |
 | `terminal_snapshot() -> Dictionary` | 返回 `{cols, rows, cell, cursor, history, view_offset, auto_scroll, spans}`；`spans` 是跨格大字矩形数组；找不到返回 `{}` |
+| `complete_command(line, caret := -1) -> Dictionary` | 命令补全；返回 `{ok, start, end, prefix, token_index, candidates, common_prefix, usage, summary, error}`，`usage`/`summary` 只在参数阶段有值；带引号的 token `ok=false`。`caret` 为负时按行尾 |
 | `tooltip_snapshot() -> Dictionary` | 浮动 `TooltipWindow` 内容终端状态（标题 span + 正文）：`{grid, debug_grid, body_visible, tooltip_size, spans}`；未显示返回 `{}` |
 | `show_terminal() -> bool` | 打开终端窗口；找不到窗口返回 `false` |
 | `is_terminal_open() -> bool` | 终端窗口当前是否可见；找不到窗口返回 `false` |

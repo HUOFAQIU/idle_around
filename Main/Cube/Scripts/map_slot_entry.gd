@@ -7,9 +7,9 @@ extends Control
 signal pressed
 signal eject_requested
 
-const EJECT_HEIGHT: float = 20.0
-const EJECT_MARGIN: float = 3.0
-const EJECT_WIDTH: float = 20.0
+const EJECT_HEIGHT: float = 16.0
+const EJECT_MARGIN: float = 2.0
+const EJECT_WIDTH: float = 16.0
 const BUTTON_BASE_COLOR: Color = Color("#0b1119")
 const DEFAULT_ACCENT: Color = Color("#4fb8ff")
 
@@ -104,7 +104,7 @@ func _apply_styles() -> void:
 	_eject_button.add_theme_color_override("font_color", text_color)
 	_eject_button.add_theme_color_override("font_hover_color", text_color)
 	_eject_button.add_theme_color_override("font_pressed_color", text_color)
-	_eject_button.add_theme_font_size_override("font_size", 13)
+	_eject_button.add_theme_font_size_override("font_size", 11)
 
 
 func _make_style(fill_ratio: float, border_alpha: float) -> StyleBoxFlat:

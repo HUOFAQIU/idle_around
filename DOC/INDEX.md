@@ -36,7 +36,7 @@
 | 查/改内容 ID、技能 ID、Cue 标签命名 | `指南/Mod制作.md` §3.1、`架构/Mod系统.md` §6 | `Scripts/mod/content_naming.gd`、`Scripts/mod/mod_loader.gd` |
 | 制作/打包/发布 mod、看示例 | `指南/Mod制作.md` | `Scripts/mod/`、`mods/example_souls/`、`modkit/` |
 | 确认功能是否已实现/已知坑 | `架构/现状与注意.md` | — |
-| AI/自动化测试、构造战斗或背包场景 | `指南/AI测试接口.md` | `Scripts/test_api.gd` |
+| AI/自动化测试、构造战斗或背包场景 | `指南/AI测试接口.md` | `Scripts/test_api.gd`、`Scripts/test_api/` |
 | 提交前检查、新增 lint 规则、判断规范该放代码还是文档 | `指南/代码检查.md`、`指导文件.md` | `tools/check.sh`、`tools/lint/` |
 | 按症状排查战斗（不放技能/不触发/没伤害/Cue 不播/卡顿） | `指南/调试窗口.md` §常见排查、`架构/现状与注意.md` | `Windows/Debug/`、`game/battle/` |
 | 新增调试事件或理解遥测数据 | `架构/调试与遥测.md` | `game/battle/battle_event.gd`、`game/battle/battle_event_bus.gd`、`Scripts/debug/`、`Windows/Debug/` |
@@ -125,7 +125,7 @@
 5. 设计文档写「应该怎样」，架构文档写「现在怎样」；冲突时以代码为准并标注差异。
 6. 过期内容移到 `DOC/archive/` 或删除，不留在正文。
 7. 改代码时同步更新文档头的核对日期；新增/删除文档时更新本页。
-8. 新增功能/内容时，同步在 `Scripts/test_api.gd` 暴露测试方法，并更新 `指南/AI测试接口.md`。
+8. 新增功能/内容时，在 `Scripts/test_api/` 对应域模块实现测试方法，在 `Scripts/test_api.gd` 补转发，并更新 `指南/AI测试接口.md`。
 
 ## 检索协议（配合 CLAUDE.md）
 

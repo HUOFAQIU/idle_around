@@ -6,7 +6,7 @@
 > 代码：`Scripts/mod/`、`Scripts/collection_db.gd`、`Scripts/save/`、`project.godot`、`base_mods/core/mod.json`
 > 相关：`架构/存档.md`、`架构/扩展点.md`、`指南/Mod制作.md`
 > 不覆盖：Steamworks 后台配置、GodotSteam 完整 API
-> 核对：2026-11-14
+> 核对：2026-11-18
 
 ## 1. 目标与边界
 
@@ -148,7 +148,7 @@ res://mods/example_souls/content/monsters/fire_wolf_monster.tres
 - 已做：`mod.json` schema、`content_namespace` / `content_root`、`ModLoader`、内置 `res://base_mods` 与 `user://mods` 双来源发现、PCK/loose 挂载、两段式挂载与内容加载、依赖排序、冲突检测、`CollectionDB` 统一目录、`content_id`、`orphaned` 存档保护、core/mod Cue 注册（`ModCueRegistrar`）、`ModWindow` 管理窗口、加载顺序调整、core manifest 校验。
 - 已删除：`addons/yard/`、`game/content/Collection/soul_registry.tres`、`monster_registry.tres`。
 - 未做：Steam 订阅与发布。
-- 新增功能后按项目约定同步 `Scripts/test_api.gd` 和 `DOC/指南/AI测试接口.md`。
+- 新增功能后按项目约定同步 `Scripts/test_api/`（对应域）、`Scripts/test_api.gd` 门面和 `DOC/指南/AI测试接口.md`。
 
 ### 8.1 Mod 管理窗口
 

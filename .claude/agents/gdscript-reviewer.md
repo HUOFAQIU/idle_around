@@ -41,7 +41,7 @@ tools: Read, Grep, Glob, Bash
 ### 4. 文档与测试
 
 - 改代码是否同步更新对应文档头的「核对」日期。
-- 新增功能/内容是否在 `Scripts/test_api.gd` 暴露测试方法，并更新 `DOC/指南/AI测试接口.md`。
+- 新增功能/内容是否在 `Scripts/test_api/` 对应域实现并在 `Scripts/test_api.gd` 门面暴露测试方法，并更新 `DOC/指南/AI测试接口.md`。
 - 新增/删除文档是否更新 `DOC/INDEX.md`。
 
 ## 已由工具覆盖

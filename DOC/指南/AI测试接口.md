@@ -3,8 +3,8 @@
 > 类型：指南 | 状态：有效 | 核对：2026-11-18
 > 何时读：写自动化测试/探针、构造战斗或背包场景、验证新功能
 > 关键词：测试 TestAPI 探针 自动化 战斗快照 地图 map MapCatalog MapBoard 地图板 数量石 魂灵 魂器 vessel 仓库 见闻 商店 冷却 冻结 触发器 类型 标签 尺寸 充能 卡面 tooltip 伤害缩放 动态伤害 静态预览 SoulDamagePreview get_equipped_soul_damage_preview is_dynamic has_runtime 多重触发 cast_times releases 颜色 色板 色板目录 分组 别名 主屏幕 六槽 存档位 角色选择 GameFlow 锁定 锁图 存档 save 删档 删除存档 确认 爪痕 play_claw_cue mod ModLoader ModWindow 加载顺序 order mod_cue_registrar cue Cue 特效 manifest 创意工坊 内置 core content_id validate_core_manifest manifest 校验 技能 ID ability_tag 命名 主窗口置顶 单窗口 浮层 CanvasLayer PetPanel 主菜单 位置不持久化 CubePlacement PanelManager 激活面板 遮挡 穿透 mouse_passthrough WindowPassthrough 立方体 cube 面 02 背面 层级 CubeView CubeInputSurface CubeProjection CubeScenePaths get_cube_layering_state view_layer 终端 字符网格 TerminalView TerminalBuffer TerminalSpan 跨格大字 ANSI SGR 回看 scrollback auto_scroll
-> 代码：`Scripts/test_api.gd`、`Windows/Battle/battle_window.gd`、`Scripts/collection_db.gd`、`Scripts/save/`、`Scripts/mod/`、`base_mods/core/mod.json`
-> 约定：新增功能/内容时，同步补 TestAPI 方法并更新本文。
+> 代码：`Scripts/test_api.gd`（门面）、`Scripts/test_api/`（按域实现）、`Windows/Battle/battle_window.gd`、`Scripts/collection_db.gd`、`Scripts/save/`、`Scripts/mod/`、`base_mods/core/mod.json`
+> 约定：新增功能/内容时，在对应域模块实现并在门面补转发，同时更新本文。
 
 ## 用法
 
@@ -27,6 +27,8 @@ TestAPI.stop_battle()
 ```
 
 魂灵/怪物 ID 用 `TestAPI.get_soul_ids()`、`TestAPI.get_monster_ids()` 查，必须是 `content_id`（core 不带前缀；第三方带 `<mod_id>:` 前缀）。技能标签用 `TestAPI.get_skill_tags()` 查：core 形如 `Skill.<PascalName>`，第三方形如 `Skill.Mod.<PascalModId>.<PascalName>`（示例 mod 为 `Skill.Mod.ExampleSouls.FireWolf`）。
+
+调用入口始终是 `TestAPI`。实现按域放在 `Scripts/test_api/`（`inventory` / `map` / `save` / `mod` / `window` / `cube` / `colors` / `terminal` / `battle` / `debug`），`Scripts/test_api.gd` 只做一行转发；新增方法时改对应域模块，再在门面补转发。
 
 ## 背包 / 见闻
 

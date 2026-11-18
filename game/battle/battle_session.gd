@@ -187,8 +187,8 @@ func get_state() -> Dictionary:
 	return state
 
 
-## 每帧推进地图刷怪；完成判定放在刷怪之后
-func _process(delta: float) -> void:
+## 每物理帧推进地图刷怪；完成判定放在刷怪之后
+func _physics_process(delta: float) -> void:
 	if battle == null or not battle.is_running or _map_run == null or _map_finished:
 		return
 	_enqueue_spawns(_map_run.tick(delta))

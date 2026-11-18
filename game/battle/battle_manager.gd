@@ -15,10 +15,12 @@
 
 class_name BattleManager extends Node
 
-## 移动按实例 ID 分片：每帧最多只驱动 MOVE_BUDGET_PER_FRAME 个移动体；
-## 怪物少时不分片（逐帧移动，视觉顺滑），多了才分片；速度按同样的倍数补偿。
-## 每帧最多驱动多少个怪物的移动
+## 移动按实例 ID 分片：每物理帧最多只驱动 MOVE_BUDGET_PER_FRAME 个移动体；
+## 怪物少时不分片（逐物理帧移动，视觉顺滑），多了才分片；速度按同样的倍数补偿。
+## 每物理帧最多驱动多少个怪物的移动
 const MOVE_BUDGET_PER_FRAME : int = 200
+## tick 末阶段的物理处理优先级；必须晚于单位大脑和投射物（默认 0）
+const TICK_END_PHYSICS_PRIORITY : int = 128
 
 ## 单位坐标 → 像素坐标要用的地图
 var map: TileMapLayer
@@ -56,14 +58,17 @@ var cell_size_px: float:
 		return grid.cell_size_px if grid != null else 32.0
 
 var _loot: LootRoller
-var _start_msec: int = 0
+## 已完成的物理 tick 数；战斗仿真的唯一时间基准
+var _tick_count: int = 0
 var _move_slice: int = 0
 ## 广播型触发器事件的监听者：事件标签 → 确实带该触发器的单位
 var _trigger_listeners: Dictionary = {}
 
 
 func setup() -> void:
-	_start_msec = Time.get_ticks_msec()
+	# 固定 tick 末阶段：必须晚于单位大脑和投射物，才能在同一 tick 内统一 flush 触发器
+	process_physics_priority = TICK_END_PHYSICS_PRIORITY
+	_tick_count = 0
 	grid = BattleGrid.new(map)
 	_loot = LootRoller.new(events, loot_sink)
 
@@ -117,7 +122,7 @@ func trigger_listeners(event_tag: StringName) -> Array[BattleUnit]:
 
 func start_battle() -> void:
 	is_running = true
-	_start_msec = Time.get_ticks_msec()
+	_tick_count = 0
 
 	# 开局：所有能力从 0 开始充能
 	for unit in units:
@@ -138,6 +143,21 @@ func _physics_process(delta: float) -> void:
 		if unit.get_instance_id() % slices != _move_slice:
 			continue
 		_tick_enemy_movement(unit, delta, slices)
+
+	_tick_count += 1
+	_flush_brain_activations()
+
+
+## 跨单位触发器在本 tick 末统一释放；单位自己的 Brain 已在它的物理帧末 flush 过。
+## 必须在所有单位大脑之后运行，否则本 tick 新充能的能力会被拖到下一 tick。
+func _flush_brain_activations() -> void:
+	for unit in registry.units.duplicate():
+		if not is_running:
+			return
+		if unit == null or not is_instance_valid(unit) or unit.is_dead:
+			continue
+		if unit.brain != null:
+			unit.brain.flush_pending_activations()
 
 
 ## 一个怪物的移动拍：进范围就停并唤醒大脑，否则朝角色直线走。
@@ -169,7 +189,7 @@ func _tick_enemy_movement(unit: BattleUnit, _delta: float, slices: int) -> void:
 	if distance <= 0.001:
 		return
 
-	# 时间分片：本帧一次走 slices 拍的距离
+	# 时间分片：本 tick 一次走 slices 拍的距离
 	unit.velocity = to_player / distance * unit.move_speed * float(slices)
 	unit.move_and_slide()
 	spatial.update(unit)
@@ -222,11 +242,28 @@ func spawn_one() -> void:
 #endregion
 
 
-#region 日志
+#region 时间
+## 已完成的物理 tick 数
+func tick_count() -> int:
+	return _tick_count
+
+
+## 一个战斗物理 tick 的秒数；战斗内所有固定时长都按它换算
+static func tick_seconds() -> float:
+	return 1.0 / float(Engine.physics_ticks_per_second)
+
+
+## 秒 → 物理 tick 数（向上取整，至少 1）
+static func ticks_for_seconds(seconds: float) -> int:
+	return maxi(1, ceili(seconds * Engine.physics_ticks_per_second))
+
+
 func elapsed_seconds() -> float:
-	return (Time.get_ticks_msec() - _start_msec) / 1000.0
+	return float(_tick_count) * tick_seconds()
+#endregion
 
 
+#region 日志
 func log_line(text: String, color: String = "white") -> void:
 	var line := "[%5.2fs] %s" % [elapsed_seconds(), text]
 	events.emit_event(

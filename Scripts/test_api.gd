@@ -629,6 +629,10 @@ static func get_battle_state() -> Dictionary:
 	return BATTLE.get_battle_state()
 
 
+static func get_battle_tick() -> int:
+	return BATTLE.get_battle_tick()
+
+
 static func get_enemy_count() -> int:
 	return BATTLE.get_enemy_count()
 

@@ -4,6 +4,8 @@
 ## 它不算伤害。命中后只把"打到了谁"报回去，结算仍然走 GAS 的效果管线
 ## （技能那边拿到结果再建 Spec 结算）。
 ##
+## 飞行与命中按物理 tick 推进，不依赖渲染帧。
+##
 ## 外观（贴图/区域）配在 soul_projectile.tscn 上；颜色统一从 GameColors 取。
 
 class_name SoulProjectile extends Sprite2D
@@ -46,7 +48,7 @@ func _ready() -> void:
 	modulate = GameColors.to_color(GameColors.PROJECTILE)
 
 
-func _process(delta: float) -> void:
+func _physics_process(delta: float) -> void:
 	if _done:
 		return
 	# 战斗结束/重开时 BattleManager 可能已释放；箭自毁，避免访问失效引用
@@ -59,7 +61,7 @@ func _process(delta: float) -> void:
 		_finish(null)
 		return
 	
-	# 一小步一小步往前挪着查命中：一帧能飞出去好几像素，
+	# 一小步一小步往前挪着查命中：一个物理 tick 能飞出去好几像素，
 	# 分步查才不会直接从单位身上穿过去
 	var distance := _speed * delta
 	while distance > 0.0:

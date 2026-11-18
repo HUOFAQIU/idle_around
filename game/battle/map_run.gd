@@ -3,7 +3,7 @@ extends RefCounted
 ## 一张地图的运行期刷怪状态。
 ##
 ## 只决定「什么时候该刷哪只怪」，不碰节点、不选格：
-## BattleSession 每帧把 tick()/on_monster_killed() 返回的怪物 id 入队，
+## BattleSession 每物理帧把 tick()/on_monster_killed() 返回的怪物 id 入队，
 ## 再通过 BattleManager.spawn_one() 消费。完成判定只看时间条目配额刷完。
 ## 击杀条目没有独立配额，由击杀进度驱动。
 
@@ -44,7 +44,7 @@ func take_initial_spawns() -> Array[StringName]:
 	return due
 
 
-## 推进时间条目；返回这一帧到期的怪物 id
+## 推进时间条目；返回这一 tick 到期的怪物 id
 func tick(delta: float) -> Array[StringName]:
 	var due: Array[StringName] = []
 	for runtime in _entries:

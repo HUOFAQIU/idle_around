@@ -37,8 +37,6 @@ var abilities: Array[GameplayAbility] = []
 var _pending_activations: Array[ChargedAbility] = []
 ## 待释放能力对应的因果链（能力实例 id → CombatTrace）
 var _pending_traces: Dictionary = {}
-## 是否已经排了 deferred flush（触发可能发生在 BattleBrain 的物理帧之外）
-var _flush_scheduled : bool = false
 ## 正在 flush，防止 flush 中再次调度
 var _flushing : bool = false
 
@@ -55,7 +53,6 @@ func add_ability(ability: GameplayAbility) -> void:
 func begin_charge() -> void:
 	_pending_activations.clear()
 	_pending_traces.clear()
-	_flush_scheduled = false
 	for ability in abilities:
 		var charged := ability as ChargedAbility
 		if charged:
@@ -64,7 +61,7 @@ func begin_charge() -> void:
 
 
 ## 外部（触发器）充能满足条件后，登记到本帧待释放队列。
-## 真正的释放统一在 _flush_pending_activations() 里做，保持确定顺序。
+## 真正的释放由本 Brain 的物理帧末或 BattleManager 的 tick 末统一 flush，保持确定顺序。
 func request_activation(ability: ChargedAbility, trace: CombatTrace = null) -> void:
 	if ability == null or not abilities.has(ability):
 		return
@@ -90,17 +87,14 @@ func request_activation(ability: ChargedAbility, trace: CombatTrace = null) -> v
 			break
 	if trace != null:
 		_pending_traces[ability.get_instance_id()] = trace
-	# flush 过程中新入队的由 while 循环直接处理，不再排 deferred
-	if _flushing or _flush_scheduled:
-		return
-	_flush_scheduled = true
-	call_deferred("_flush_pending_activations")
+	# 真正释放由本 Brain 的物理帧末或 BattleManager 的 tick 末统一 flush；
+	# flush 过程中新入队的由 while 循环直接处理，不需要再调度。
 
 
 ## 本帧待释放队列：按入队顺序释放，期间新触发的继续往后接。
+## 由本 Brain 的物理帧末或 BattleManager 的 tick 末调用；后者覆盖跨单位触发器。
 ## 20 刻激活锁负责防止同一颗魂灵无限连发；这里的上限只防异常递归。
-func _flush_pending_activations() -> void:
-	_flush_scheduled = false
+func flush_pending_activations() -> void:
 	if _pending_activations.is_empty() or _flushing:
 		return
 	if unit == null or not is_instance_valid(unit) or unit.is_dead:
@@ -202,4 +196,4 @@ func _physics_process(_delta: float) -> void:
 			ability.try_activate()  # 开火即忘，技能内部自己 await
 
 	# 第三段：本帧触发充能满的魂灵同帧释放（保持入队顺序）
-	_flush_pending_activations()
+	flush_pending_activations()

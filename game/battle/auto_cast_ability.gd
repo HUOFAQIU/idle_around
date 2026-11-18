@@ -179,6 +179,28 @@ func _wait_for_next_release(battle: BattleManager) -> WaitResult:
 	return WaitResult.CANCELLED if not is_active else WaitResult.STOPPED
 
 
+## 吟唱按物理 tick 等待：不读渲染帧 delta，也不占用 GAS 的 SceneTreeTimer。
+## 每个 tick 检查技能/战斗/施法者状态，被打断时尽快返回。
+func _wait_cast_ticks(battle: BattleManager, seconds: float) -> WaitResult:
+	var remaining := BattleManager.ticks_for_seconds(seconds)
+	while remaining > 0:
+		var state := _cast_wait_state(battle)
+		if state != WaitResult.READY:
+			return state
+		await get_tree().physics_frame
+		remaining -= 1
+	return _cast_wait_state(battle)
+
+
+func _cast_wait_state(battle: BattleManager) -> WaitResult:
+	if not is_active:
+		return WaitResult.CANCELLED
+	var caster := caster_unit()
+	if not battle.is_running or caster == null or caster.is_dead:
+		return WaitResult.STOPPED
+	return WaitResult.READY
+
+
 ## 执行一次释放：先结算自身效果，再按 steps 顺序执行。
 func _release_once(
 	battle: BattleManager,
@@ -197,16 +219,15 @@ func _release_once(
 			"release_index": release_index,
 			"release_count": release_count,
 		})
-		await task_wait_delay(skill.cast_time)
-		if not is_active:
+		var wait_result: WaitResult = await _wait_cast_ticks(battle, skill.cast_time)
+		if wait_result == WaitResult.CANCELLED:
 			_record_cast("cancelled", trace, {
 				"detail": "吟唱被打断",
 				"release_index": release_index,
 				"release_count": release_count,
 			})
 			return ReleaseResult.CANCELLED
-		var caster := caster_unit()
-		if not battle.is_running or caster == null or caster.is_dead:
+		if wait_result == WaitResult.STOPPED:
 			return ReleaseResult.STOPPED
 
 	var ctx := SkillCastContext.new(self, battle, trace, release_index, release_count)

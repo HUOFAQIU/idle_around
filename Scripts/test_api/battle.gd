@@ -134,6 +134,12 @@ static func get_battle_state() -> Dictionary:
 	return window.get_test_state()
 
 
+## 当前战斗已完成的物理 tick 数；没有战斗时返回 0
+static func get_battle_tick() -> int:
+	var battle := _active_battle()
+	return 0 if battle == null else battle.tick_count()
+
+
 static func get_enemy_count() -> int:
 	var battle := _active_battle()
 	return 0 if battle == null else battle.enemy_count()

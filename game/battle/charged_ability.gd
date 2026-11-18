@@ -102,7 +102,7 @@ func add_charge_units(units: int) -> void:
 		became_ready.emit()
 
 
-## 每物理帧自然充能；base_units 是 1x 下的每帧刻度（60 FPS 为 2）
+## 每物理帧自然充能；base_units 是 1x 下的每 tick 刻度（60 FPS 为 2）
 func tick_charge(base_units: int) -> void:
 	if cooldown <= 0.0 or base_units <= 0:
 		return

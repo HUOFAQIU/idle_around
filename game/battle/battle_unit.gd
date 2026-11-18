@@ -93,7 +93,7 @@ func setup_from_scene(
 	brain = get_node("BattleBrain")
 	brain.unit = self
 	# 场景里的能力节点挂在 ASC 下，入树时已经由框架自动授予；
-	# 这里只把它们登记给大脑，供每帧轮询
+	# 这里只把它们登记给大脑，供每物理帧轮询
 	for child in asc.get_children():
 		if child is GameplayAbility:
 			brain.abilities.append(child as GameplayAbility)

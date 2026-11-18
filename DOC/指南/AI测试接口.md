@@ -295,11 +295,12 @@ print(TestAPI.click_cube_pet_button(&"inventory"))
 | `apply_freeze(target := "player", seconds := 3.0) -> bool` | 对战斗单位施加冻结（测试冻结 Cue 与 `State.Frozen`）；会广播 `Event.Combat.FreezeApplied` |
 | `play_claw_cue(target := "enemy", direction := 1) -> bool` | 在单位身上播放爪痕 Cue；`direction` 1 = 左→右，-1 = 右→左 |
 | `apply_soul_freeze(soul_name, seconds := 1.0, target := "player") -> bool` | 对已装备的指定魂灵施加魂灵级冻结（测试冰霜 shader 与徽章） |
-| `simulate_soul_used(soul_name, target := "player") -> bool` | 模拟“魂灵被使用”（不动冷却），确定性验证 `Event.Combat.SoulUsed` 触发器；触发充能满时会走同帧待释放队列，调用后等一帧再读状态 |
+| `simulate_soul_used(soul_name, target := "player") -> bool` | 模拟“魂灵被使用”（不动冷却），确定性验证 `Event.Combat.SoulUsed` 触发器；触发充能满时会走当 tick 待释放队列，调用后等一个物理帧再读状态 |
 | `charge_soul(soul_name, seconds, target := "player") -> bool` | 给已装备魂灵直接充能，用于快速触发主动技能；不经过触发器队列 |
 | `damage_unit(target := "player", amount := 1.0) -> bool` | 对单位造成伤害，用于把生命值打到阈值以下（测半血触发）；`amount` 先向下取整，不足 1 点不生效 |
 | `has_status(tag, target := "player") -> bool` | 单位是否拥有某个状态标签 |
 | `get_battle_state() -> Dictionary` | 战斗快照；含 `map_id` / `map_finished` / `map` / `map_kills` / `pending_spawns` |
+| `get_battle_tick() -> int` | 当前战斗已完成的物理 tick 数；没有战斗时返回 0，用于验证固定 tick 时序 |
 | `get_enemy_count() -> int` | 当前存活敌人数 |
 | `get_nearest_enemy_distance() -> float` | 最近敌人到角色的像素距离；没有敌人返回 -1 |
 | `get_enemies_in_attack_range() -> int` | 当前在角色攻击范围内的敌人数（即时制下只有这些怪才充能） |

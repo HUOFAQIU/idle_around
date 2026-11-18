@@ -16,7 +16,7 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 
 config/name="idle_around"
 config/version="0.1.0"
-config/tags=PackedStringArray("doing", "开发中")
+config/tags=PackedStringArray("ai", "doing", "main", "开发中")
 run/main_scene="res://Main/Cube/Scenes/main.tscn"
 config/features=PackedStringArray("4.7", "Forward Plus")
 run/max_fps=60
@@ -32,6 +32,7 @@ CollectionDB="*uid://b76qj7km7m8ad"
 CombatTelemetry="*res://Scripts/debug/combat_telemetry.gd"
 SoulRuntimeDB="*res://game/battle/soul_runtime_db.gd"
 Warehouse="*res://Scripts/warehouse.gd"
+MapBoard="*res://Scripts/map_board.gd"
 SaveManager="*res://Scripts/save/save_manager.gd"
 GameFlow="*res://game/flow/game_flow.gd"
 

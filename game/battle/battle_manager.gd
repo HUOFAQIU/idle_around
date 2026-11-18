@@ -4,13 +4,14 @@
 ##   UnitRegistry      单位名册与阵营分桶
 ##   UnitSpatialIndex  附近单位查询
 ##   BattleGrid        格子 ↔ 像素换算
-##   EnemySpawner      刷怪计时与回调
 ##   LootRoller        掉落判定（入包动作由 BattleSession 注入）
+##
+## 刷怪时机由地图会话（MapRun）决定，本类只保留 spawn_one() 门面。
 ##
 ## 实时制：怪物由本类统一驱动，向角色直线移动；跨入新格子时发 moved 事件。
 ## 只有角色进入怪物的攻击范围后，怪物大脑才开始跑（魂灵才开始充能）。
 ##
-## 没有胜负：怪一直刷，角色倒下就发信号，由外面决定怎么重来。
+## 本类不判断地图完成；完成/自动重开由 BattleSession 和 MapRun 处理。
 
 class_name BattleManager extends Node
 
@@ -38,7 +39,6 @@ var rng := RandomNumberGenerator.new()
 var registry: UnitRegistry = UnitRegistry.new()
 var spatial: UnitSpatialIndex = UnitSpatialIndex.new()
 var grid: BattleGrid
-var spawner: EnemySpawner
 
 ## 单位名册与单元格尺寸的只读视图；供外部代码查询
 var units: Array[BattleUnit]:
@@ -65,8 +65,6 @@ var _trigger_listeners: Dictionary = {}
 func setup() -> void:
 	_start_msec = Time.get_ticks_msec()
 	grid = BattleGrid.new(map)
-	spawner = EnemySpawner.new()
-	spawner.spawn_enemy = spawn_enemy
 	_loot = LootRoller.new(events, loot_sink)
 
 
@@ -124,13 +122,6 @@ func start_battle() -> void:
 	# 开局：所有能力从 0 开始充能
 	for unit in units:
 		unit.brain.begin_charge()
-
-
-## 战斗心跳：推进刷怪计时（怪物移动在 _physics_process）
-func _process(delta: float) -> void:
-	if not is_running:
-		return
-	spawner.tick(delta)
 
 
 func _physics_process(delta: float) -> void:
@@ -224,9 +215,10 @@ func units_near(pos: Vector2, radius: float) -> Array[BattleUnit]:
 
 
 #region 刷怪
-## 立刻在远处刷一只（挑得到位置才刷）
+## 立刻刷一只；具体刷谁、刷在哪由会话注入的 spawn_enemy 决定
 func spawn_one() -> void:
-	spawner.spawn_one()
+	if spawn_enemy.is_valid():
+		spawn_enemy.call()
 #endregion
 
 

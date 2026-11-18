@@ -10,6 +10,7 @@
 [ext_resource type="PackedScene" path="res://Main/Cube/Scenes/UI/save_slots_content.tscn" id="8_save_slots"]
 [ext_resource type="PackedScene" path="res://Main/Cube/Scenes/UI/pet_panel_content.tscn" id="9_pet_panel"]
 [ext_resource type="PackedScene" path="res://Main/Cube/Scenes/UI/character_select_content.tscn" id="10_character_select"]
+[ext_resource type="PackedScene" path="res://Main/Cube/Scenes/UI/map_board_content.tscn" id="11_map_board"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_body"]
 albedo_color = Color(0.045, 0.06, 0.083, 1)
@@ -165,10 +166,12 @@ viewport_size = Vector2i(300, 300)
 [node name="Top" parent="CubeRig/OrientationPivot" instance=ExtResource("4_face")]
 position = Vector3(0, 1.005, 0)
 rotation_degrees = Vector3(-90, 0, 0)
-content_scene = ExtResource("7_face_ui")
+content_scene = ExtResource("11_map_board")
 face_index = 4
 face_name = "上面"
 accent_color = Color(0.72, 0.58, 1, 1)
+ui_capture = true
+viewport_size = Vector2i(512, 512)
 
 [node name="Bottom" parent="CubeRig/OrientationPivot" instance=ExtResource("4_face")]
 position = Vector3(0, -1.005, 0)

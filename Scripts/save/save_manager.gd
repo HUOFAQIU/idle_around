@@ -17,6 +17,7 @@ var _storage := SaveStorage.new()
 var _scheduler := SaveScheduler.new()
 var _containers := ContainerSaveParticipant.new()
 var _collection := CollectionSaveParticipant.new()
+var _map_board := MapBoardSaveParticipant.new()
 var _participants: Array[SaveParticipant] = []
 
 var _loading: bool = false
@@ -32,6 +33,7 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_participants.append(_containers)
 	_participants.append(_collection)
+	_participants.append(_map_board)
 	_connect_signals()
 	refresh_slot_summaries()
 	# 仓库页由 Warehouse autoload 预注册，魂器网格由 CharacterWindow 里的 InventoryView._ready() 注册；
@@ -337,6 +339,7 @@ func _connect_signals() -> void:
 	GBIS.sig_inv_item_updated.connect(_on_inv_item_updated)
 	GBIS.sig_inv_refresh.connect(_on_inv_refresh)
 	CollectionDB.entry_unlocked.connect(_on_collection_unlocked)
+	MapBoard.board_changed.connect(_on_map_board_changed)
 
 
 func _on_inv_item_added(_inv_name: String, _item_data: ItemData, _grids: Array[Vector2i]) -> void:
@@ -358,4 +361,8 @@ func _on_inv_refresh() -> void:
 ## 见闻解锁不可再生，立即写盘
 func _on_collection_unlocked(_kind: int, _id: StringName) -> void:
 	mark_dirty(true)
+
+
+func _on_map_board_changed() -> void:
+	mark_dirty()
 #endregion

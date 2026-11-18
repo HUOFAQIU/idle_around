@@ -11,6 +11,8 @@ extends RefCounted
 
 const KIND_SOUL: String = "soul"
 const KIND_VESSEL: String = "vessel"
+const KIND_MAP: String = "map"
+const KIND_STONE: String = "stone"
 
 
 ## 物品 -> 存档记录；不认识的类型返回空字典
@@ -41,6 +43,28 @@ static func encode_item(item: ItemData) -> Dictionary:
 			"name": vessel.item_name,
 			"contents": _encode_contents(vessel),
 		}
+	if item is MapItemData:
+		var map_item := item as MapItemData
+		var map_id: StringName = map_item.map_id()
+		if map_id.is_empty():
+			push_warning("存档：地图没有 content_id「%s」" % map_item.item_name)
+			return {}
+		return {
+			"kind": KIND_MAP,
+			"id": String(map_id),
+			"name": map_item.item_name,
+		}
+	if item is QuantityStoneData:
+		var stone := item as QuantityStoneData
+		var stone_id: StringName = stone.content_id
+		if stone_id.is_empty():
+			push_warning("存档：数量石没有 content_id「%s」" % stone.item_name)
+			return {}
+		return {
+			"kind": KIND_STONE,
+			"id": String(stone_id),
+			"name": stone.item_name,
+		}
 	push_warning("存档：未知物品类型「%s」" % item.item_name)
 	return {}
 
@@ -64,6 +88,21 @@ static func decode_item(record: Dictionary, orphans: Array = []) -> ItemData:
 		var instance := vessel.make_instance() as SoulVesselData
 		_decode_contents(instance, record.get("contents", []), orphans)
 		return instance
+	if kind == KIND_MAP:
+		var map_item := MapCatalog.make_map_item(id)
+		if map_item == null:
+			push_warning("存档：找不到地图「%s」" % id)
+			return null
+		return map_item
+	if kind == KIND_STONE:
+		if id != MapCatalog.QUANTITY_STONE_ID:
+			push_warning("存档：找不到数量石「%s」" % id)
+			return null
+		var stone := MapCatalog.make_quantity_stone()
+		if stone == null:
+			push_warning("存档：数量石资源缺失")
+			return null
+		return stone
 	push_warning("存档：未知物品 kind「%s」" % kind)
 	return null
 

@@ -22,7 +22,7 @@
 - `CollectionDB` 不再 `preload` registry，完全读取 `ModLoader.get_soul_entries()` / `get_monster_entries()`。
 - 官方内容清单在 `base_mods/core/mod.json`；新增魂灵/怪物/魂器/Cue 时改 manifest，不再依赖编辑器扫描。
 - `content_namespace = "global"` 让 core 保留原 ID（不带前缀）。
-- 对外 API 不变：`get_soul()`、`get_soul_ids()`、`get_monster()`、`pick_random_monster()` 仍由 `CollectionDB` 提供。
+- 对外 API 不变：`get_soul()`、`get_soul_ids()`、`get_monster()`、`get_monster_ids()` 仍由 `CollectionDB` 提供；刷怪由地图配置驱动，不再有随机刷怪池 API。
 
 ## 3. 架构
 

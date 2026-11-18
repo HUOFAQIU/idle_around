@@ -22,6 +22,7 @@ enum State {
 const FACE_ENTRY: int = 0
 const FACE_MENU: int = 1
 const FACE_CHARACTER: int = 3
+const FACE_MAP: int = 4
 
 var _state: State = State.NO_SESSION
 var _active_character: CharacterDefinition
@@ -112,10 +113,10 @@ func request_delete_slot(slot: int) -> bool:
 	return true
 
 
-## 面是否锁定：02 只在游戏中解锁，04 只在角色选择时解锁
+## 面是否锁定：02/05 只在游戏中解锁，04 只在角色选择时解锁
 func get_face_lock_state(face_index: int) -> bool:
 	match face_index:
-		FACE_MENU:
+		FACE_MENU, FACE_MAP:
 			return _state != State.IN_GAME
 		FACE_CHARACTER:
 			return _state != State.CHARACTER_SELECT

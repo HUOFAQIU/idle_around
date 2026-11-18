@@ -19,11 +19,14 @@ const FPS_UPDATE_FRAMES : int = 15
 @onready var player_burn_bar: PlayerStatusBar = $UiOverlay/Control/PlayerBurnBar
 @onready var player_poison_bar: PlayerStatusBar = $UiOverlay/Control/PlayerPoisonBar
 @onready var info_button: Button = $UiOverlay/Control/GridContainer/InfoButton
-@onready var start_button: Button = $UiOverlay/Control/GridContainer/StartButton
 @onready var fps_label: Label = $UiOverlay/Control/FpsLabel
 
-## 本场会话：创建/销毁 BattleManager、生成单位、稀有队列、复活重开
+## 本场会话：创建/销毁 BattleManager、生成单位、地图刷怪、复活重开
 var _session : BattleSession
+## 当前战斗对应的地图；开战只从地图按钮进入
+var _map_item : MapItemData
+## 当前地图在地图板上的槽位；TestAPI 临时地图为 -1
+var _map_slot : int = -1
 ## 现在这一场；TestAPI 与快照通过它读取战斗，实际由会话持有
 var _battle : BattleManager:
 	get:
@@ -52,9 +55,9 @@ func _ready() -> void:
 	fps_label.add_theme_color_override("font_color", GameColors.to_color(GameColors.SUCCESS))
 	_apply_status_bar_colors()
 
-	# ☰ 开关战斗信息窗口；▶ 才是开战
+	# ☰ 开关战斗信息窗口；开战由 05 面的地图按钮触发
 	info_button.pressed.connect(_on_info_pressed)
-	start_button.pressed.connect(start_battle)
+	MapBoard.item_removed.connect(_on_map_board_item_removed)
 
 	# 关窗（标题栏 × 或主界面的切换按钮）＝ 这场战斗结束，下次打开回到初始状态
 	visibility_changed.connect(_on_visibility_changed)
@@ -112,17 +115,29 @@ func _physics_process(_delta: float) -> void:
 
 # ---------------------------------------------------------------- 战斗
 
-# ▶：开打。跑起来之后这个按钮是「重开」，点了就把整场推倒重来
-# —— 开始和重开是同一件事：清场 + 重建
-func start_battle(monster_id : StringName = &"") -> void:
+## 地图按钮进入：窗口显示并立刻按这张图开战；换图会清掉上一场
+func start_map_battle(map_item: MapItemData, slot_index: int = -1) -> void:
+	if map_item == null or map_item.map_data == null:
+		return
+	if not visible:
+		open_window()
+	_map_item = map_item
+	_map_slot = slot_index
 	InfoWindow.instance.clear_log()
 	_session.player_profile = GameFlow.get_player_profile()
-	_session.start(_equipped_souls(), monster_id)
+	_session.start(_equipped_souls(), map_item)
+
+
+## 当前是否正在打指定槽位的地图；同一张图再次点击时只置顶
+func is_battling_slot(slot_index: int) -> bool:
+	return visible and _map_slot == slot_index and _map_item != null
 
 
 ## 流程切档/新游戏前结束当前战斗
 func stop_battle() -> void:
 	_end_battle()
+	_map_item = null
+	_map_slot = -1
 
 
 ## 事件总线的观察者：遥测、战斗信息窗、控制台。
@@ -136,7 +151,6 @@ func _attach_battle_observers(battle: BattleManager) -> void:
 
 func _on_battle_started(_battle_manager: BattleManager) -> void:
 	_set_scanlines(true)
-	start_button.text = "重开"
 
 
 func _on_battle_ended() -> void:
@@ -150,7 +164,6 @@ func _on_battle_ended() -> void:
 	player_burn_bar.visible = false
 	player_poison_bar.visible = false
 	_set_scanlines(false)
-	start_button.text = "▷"
 
 
 ## 玩家生成后由窗口绑血条；会话不碰 UI
@@ -244,6 +257,14 @@ func _on_visibility_changed() -> void:
 		if TooltipWindow.instance != null:
 			TooltipWindow.instance.hide_tip(self)
 		_end_battle()
+		_map_item = null
+		_map_slot = -1
+
+
+## 当前地图被 ⬇ 退回仓库：先停战再关窗
+func _on_map_board_item_removed(slot_index: int) -> void:
+	if slot_index == _map_slot:
+		hide()
 
 
 func _on_info_pressed() -> void:
@@ -323,7 +344,7 @@ func _fps_color(fps : float) -> Color:
 
 
 #region 测试接口（TestAPI 调用）
-# start_battle() / stop_battle() 本身是公开接口，TestAPI 直接调用。
+# start_map_battle() / stop_battle() 本身是公开接口，TestAPI 直接调用。
 
 
 ## 测试：立刻在远处空位刷一只指定怪物
@@ -340,8 +361,11 @@ func get_test_state() -> Dictionary:
 			"player": {},
 			"enemies": [],
 			"player_souls": [],
-			"normal_kills": 0,
-			"pending_rare_spawns": 0,
+			"map_id": "",
+			"map_finished": false,
+			"map": {},
+			"map_kills": {},
+			"pending_spawns": 0,
 		}
 	return _session.get_state()
 

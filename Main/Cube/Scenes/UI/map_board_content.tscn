@@ -1,0 +1,96 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://Main/Cube/Scripts/map_board_content.gd" id="1_content"]
+[ext_resource type="Theme" path="res://Main/Cube/Resources/UI/cube_theme.tres" id="2_theme"]
+[ext_resource type="PackedScene" path="res://Main/Cube/Scenes/UI/map_slot_entry.tscn" id="3_slot"]
+[ext_resource type="PackedScene" path="res://Main/Cube/Scenes/UI/map_drop_slot.tscn" id="4_drop"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
+bg_color = Color(0.117647, 0.129412, 0.152941, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.290196, 0.309804, 0.341176, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[node name="MapBoardContent" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme = ExtResource("2_theme")
+script = ExtResource("1_content")
+
+[node name="Background" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="Title" type="Label" parent="."]
+layout_mode = 0
+mouse_filter = 2
+offset_left = 12.0
+offset_top = 8.0
+offset_right = 80.0
+offset_bottom = 28.0
+theme_override_colors/font_color = Color(0.55, 0.63, 0.73, 1)
+theme_override_font_sizes/font_size = 14
+text = "地图"
+
+[node name="Grid" type="GridContainer" parent="."]
+custom_minimum_size = Vector2(352, 352)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -176.0
+offset_top = -176.0
+offset_right = 176.0
+offset_bottom = 176.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 8
+columns = 3
+
+[node name="Cell0" parent="Grid" instance=ExtResource("3_slot")]
+layout_mode = 2
+
+[node name="Cell1" parent="Grid" instance=ExtResource("3_slot")]
+layout_mode = 2
+
+[node name="Cell2" parent="Grid" instance=ExtResource("3_slot")]
+layout_mode = 2
+
+[node name="Cell3" parent="Grid" instance=ExtResource("3_slot")]
+layout_mode = 2
+
+[node name="Cell4" parent="Grid" instance=ExtResource("4_drop")]
+layout_mode = 2
+
+[node name="Cell5" parent="Grid" instance=ExtResource("3_slot")]
+layout_mode = 2
+
+[node name="Cell6" parent="Grid" instance=ExtResource("3_slot")]
+layout_mode = 2
+
+[node name="Cell7" parent="Grid" instance=ExtResource("3_slot")]
+layout_mode = 2
+
+[node name="Cell8" parent="Grid" instance=ExtResource("3_slot")]
+layout_mode = 2

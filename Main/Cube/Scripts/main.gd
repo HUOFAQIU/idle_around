@@ -12,6 +12,7 @@ extends Node3D
 @onready var _character_select: CharacterSelectContent = get_node(
 		CubeScenePaths.CHARACTER_SELECT)
 @onready var _pet_menu: PetPanelContent = get_node(CubeScenePaths.PET_MENU)
+@onready var _map_board: MapBoardContent = get_node(CubeScenePaths.MAP_BOARD)
 @onready var _placement: CubePlacement = $CubePlacement
 
 
@@ -19,6 +20,8 @@ func _ready() -> void:
 	_cube_rig.face_identified.connect(_on_face_identified)
 	_cube_rig.setup_placement(_placement)
 	_pet_menu.panel_requested.connect(_game_ui.open_panel)
+	_map_board.battle_requested.connect(_on_map_battle_requested)
+	_map_board.toast_requested.connect(_on_toast_requested)
 	_save_slots.new_game_requested.connect(GameFlow.request_new_game)
 	_save_slots.slot_requested.connect(GameFlow.request_load_slot)
 	_save_slots.delete_requested.connect(GameFlow.request_delete_slot)
@@ -57,6 +60,19 @@ func _apply_face_locks() -> void:
 
 func _on_face_focus_requested(face_index: int) -> void:
 	_cube_rig.flip_to_face(face_index)
+
+
+## 05 面地图按钮：同一张图正在打就置顶，否则直接开战/换图
+func _on_map_battle_requested(slot_index: int) -> void:
+	var map_item := MapBoard.get_slot(slot_index)
+	if map_item == null:
+		return
+	var battle := _game_ui.battle_window
+	if battle.is_battling_slot(slot_index):
+		_game_ui.panel_manager.raise(battle)
+		return
+	battle.start_map_battle(map_item, slot_index)
+	_game_ui.panel_manager.raise(battle)
 
 
 func _on_toast_requested(text: String) -> void:

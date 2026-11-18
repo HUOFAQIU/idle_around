@@ -13,6 +13,7 @@ const KEY_PLAYER: String = "player"
 const KEY_CONTAINERS: String = "containers"
 const KEY_DETACHED: String = "detached"
 const KEY_COLLECTION: String = "collection"
+const KEY_MAP_BOARD: String = "map_board"
 const KEY_ORPHANED: String = "orphaned"
 
 ## v1 没有角色段；迁移时按当时唯一的角色补上
@@ -30,6 +31,7 @@ static func empty() -> Dictionary:
 		KEY_CONTAINERS: {},
 		KEY_DETACHED: [],
 		KEY_COLLECTION: {"souls": [], "monsters": []},
+		KEY_MAP_BOARD: {"slots": [], "pending": null},
 	}
 
 

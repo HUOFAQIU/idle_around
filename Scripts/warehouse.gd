@@ -10,7 +10,7 @@ const PAGE_COUNT: int = 10
 const PAGE_COLUMNS: int = 26
 const PAGE_ROWS: int = 24
 ## 每页允许的物品大类
-const PAGE_TYPES: Array[String] = ["SOUL", "VESSEL"]
+const PAGE_TYPES: Array[String] = ["SOUL", "VESSEL", "MAP", "STONE"]
 ## 用 preload 而不是全局类名，保证 --script 无头模式也能解析
 const CONTAINER_IDS: GDScript = preload("res://Scripts/container_ids.gd")
 

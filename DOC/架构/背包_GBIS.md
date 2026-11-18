@@ -1,10 +1,10 @@
 # 背包 / 仓库系统（GBIS）
 
-> 类型：实现 | 状态：有效 | 核对：2026-11-15
+> 类型：实现 | 状态：有效 | 核对：2026-11-18
 > 何时读：改背包/仓库/魂器容器/魂器网格、拖拽、商店容器、存档
-> 关键词：GBIS 背包 仓库 inventory container 物品大类 category 魂器 vessel vessel_cells 魂器网格 拖拽 Tooltip 存档 分页 Warehouse 商店 Shop
+> 关键词：GBIS 背包 仓库 inventory container 物品大类 category 魂器 vessel vessel_cells 魂器网格 地图 MAP STONE 数量石 拖拽 Tooltip 存档 分页 Warehouse 商店 Shop
 > 代码：Windows/Inventory/grid_base_inventory_system/、Scripts/warehouse.gd
-> 不覆盖：仓库玩法设计（见 DOC/窗口/仓库.md）
+> 不覆盖：仓库玩法设计（见 DOC/窗口/仓库窗口.md）
 
 ## 1. 背包 / 仓库系统（GBIS）
 
@@ -48,7 +48,7 @@ core/
 
 `SoulData.triggers` 在 `soul_data.gd` 基类上，主动/被动魂灵通用；`PassiveSoulData`（`game/content/passive_soul_data.gd`）只额外新增 `passive_effects`。`PassiveTrigger` 位于 `game/content/passive_trigger.gd`。它们属于游戏内容层，不修改 GBIS 框架本身。
 
-`ItemView` 对 `SoulData` 会额外创建 `SoulNameLabel`：铺满图标区域、居中显示 `item_name`，字号随卡面宽度缩放并自动换行。背包、装备槽、拖拽幽灵共用同一个 `ItemView`，三处显示一致；见闻窗口和调试窗口各自已有名字文本，不重复加。
+`ItemView` 对魂灵、魂器、地图和数量石会额外创建 `ItemNameLabel`：铺满图标区域、居中显示 `item_name`，字号随卡面宽度缩放并自动换行。背包、装备槽、拖拽幽灵共用同一个 `ItemView`，三处显示一致；见闻窗口和调试窗口各自已有名字文本，不重复加。
 
 ### 1.3 GBIS 信号
 
@@ -66,7 +66,7 @@ core/
 - `InventoryView`：`sig_inv_item_added/removed/updated` 做增量更新，`sig_inv_refresh` 只置脏；
 - `ShopView`：`sig_inv_refresh` 只置脏；
 - `EquipmentSlotView`：`sig_slot_refresh` 只置脏。
-- `TooltipWindow`：`sig_item_focused` / `sig_item_focus_lost`，用来显示/隐藏 `ITEM` 层；`SoulData` 和 `SoulVesselData` 分别由 `SoulTooltip.build()` / `VesselTooltip.build()` 生成正文，其他物品只有标题。仓库、角色魂器网格、魂器窗口共用这一套悬停提示。
+- `TooltipWindow`：`sig_item_focused` / `sig_item_focus_lost`，用来显示/隐藏 `ITEM` 层；`SoulData` / `SoulVesselData` / `MapItemData` / `QuantityStoneData` 分别由 `SoulTooltip.build()` / `VesselTooltip.build()` / `MapTooltip.build()` / `QuantityStoneTooltip.build()` 生成正文，其他物品只有标题。仓库、角色魂器网格、魂器窗口、05 面地图按钮共用这一套悬停提示。
 
 ### 1.4 数据流
 
@@ -152,7 +152,7 @@ GBIS.add_item(inv_name, item_data)
 |---|---|---|---|---|
 | `vessel_cells` | `CharacterWindow/.../VesselGrid` | 9×3 | `VESSEL` + `COMBAT` | 角色装备战斗魂器；能放几件由格子和魂器占格决定 |
 | 魂器内部容器 | 运行时按 `vessel_<id>` 注册 | 由魂器数据决定（示例 6×2） | `SOUL` | 魂器窗口里的实际容器；内容随魂器物品存档 |
-| `inventory_0..inventory_9` | `InventoryWindow/InventoryView`（只挂当前页） | 26×24 | `SOUL` + `VESSEL` | 仓库 10 页；掉落和见闻右键入仓从第 1 页开始找空位 |
+| `inventory_0..inventory_9` | `InventoryWindow/InventoryView`（只挂当前页） | 26×24 | `SOUL` + `VESSEL` + `MAP` + `STONE` | 仓库 10 页；掉落和见闻右键入仓从第 1 页开始找空位；地图/数量石也放这里 |
 
 仓库页由 `Warehouse` autoload 启动时预注册，未翻到的页也在 `GBIS.inventory_names` 里，因此存档会覆盖全部页。`inventory_0` 仍是第 1 页。
 

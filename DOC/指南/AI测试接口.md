@@ -1,8 +1,8 @@
 # AI 测试接口 TestAPI
 
-> 类型：指南 | 状态：有效 | 核对：2026-11-17
+> 类型：指南 | 状态：有效 | 核对：2026-11-18
 > 何时读：写自动化测试/探针、构造战斗或背包场景、验证新功能
-> 关键词：测试 TestAPI 探针 自动化 战斗快照 魂灵 魂器 vessel 仓库 见闻 商店 冷却 冻结 触发器 类型 标签 尺寸 充能 卡面 tooltip 伤害缩放 动态伤害 静态预览 SoulDamagePreview get_equipped_soul_damage_preview is_dynamic has_runtime 多重触发 cast_times releases 颜色 色板 色板目录 分组 别名 主屏幕 六槽 存档位 角色选择 GameFlow 锁定 锁图 存档 save 删档 删除存档 确认 爪痕 play_claw_cue mod ModLoader ModWindow 加载顺序 order mod_cue_registrar cue Cue 特效 manifest 创意工坊 内置 core content_id validate_core_manifest manifest 校验 技能 ID ability_tag 命名 主窗口置顶 单窗口 浮层 CanvasLayer PetPanel 主菜单 位置不持久化 CubePlacement PanelManager 激活面板 遮挡 穿透 mouse_passthrough WindowPassthrough 立方体 cube 面 02 背面 层级 CubeView CubeInputSurface CubeProjection CubeScenePaths get_cube_layering_state view_layer 终端 字符网格 TerminalView TerminalBuffer TerminalSpan 跨格大字 ANSI SGR 回看 scrollback auto_scroll
+> 关键词：测试 TestAPI 探针 自动化 战斗快照 地图 map MapCatalog MapBoard 地图板 数量石 魂灵 魂器 vessel 仓库 见闻 商店 冷却 冻结 触发器 类型 标签 尺寸 充能 卡面 tooltip 伤害缩放 动态伤害 静态预览 SoulDamagePreview get_equipped_soul_damage_preview is_dynamic has_runtime 多重触发 cast_times releases 颜色 色板 色板目录 分组 别名 主屏幕 六槽 存档位 角色选择 GameFlow 锁定 锁图 存档 save 删档 删除存档 确认 爪痕 play_claw_cue mod ModLoader ModWindow 加载顺序 order mod_cue_registrar cue Cue 特效 manifest 创意工坊 内置 core content_id validate_core_manifest manifest 校验 技能 ID ability_tag 命名 主窗口置顶 单窗口 浮层 CanvasLayer PetPanel 主菜单 位置不持久化 CubePlacement PanelManager 激活面板 遮挡 穿透 mouse_passthrough WindowPassthrough 立方体 cube 面 02 背面 层级 CubeView CubeInputSurface CubeProjection CubeScenePaths get_cube_layering_state view_layer 终端 字符网格 TerminalView TerminalBuffer TerminalSpan 跨格大字 ANSI SGR 回看 scrollback auto_scroll
 > 代码：`Scripts/test_api.gd`、`Windows/Battle/battle_window.gd`、`Scripts/collection_db.gd`、`Scripts/save/`、`Scripts/mod/`、`base_mods/core/mod.json`
 > 约定：新增功能/内容时，同步补 TestAPI 方法并更新本文。
 
@@ -19,7 +19,7 @@ TestAPI.add_soul(soul_id)
 TestAPI.add_vessel(vessel_id)
 TestAPI.equip_vessel(vessel_id)
 TestAPI.vessel_add_soul(soul_id, 0)
-TestAPI.start_battle(TestAPI.get_monster_ids()[0])
+TestAPI.start_battle()
 await get_tree().physics_frame
 var state := TestAPI.get_battle_state()
 print(state)
@@ -56,7 +56,6 @@ TestAPI.stop_battle()
 | `get_seen_ids(kind) -> Array[StringName]` | 真实已解锁 ID |
 | `is_seen(kind, id) -> bool` | 单个条目是否解锁 |
 | `get_soul_ids()` / `get_monster_ids()` | 列出内容条目（core + 第三方 mod） |
-| `get_rare_monster_ids() -> Array[StringName]` | 标记为 `is_rare` 的怪物 content_id |
 | `get_monster_spawn_distances(id) -> Array[int]` | 怪物的可选刷新距离（格），默认 `[3]` |
 | `get_soul_types(id) -> Array[StringName]` | 魂灵类型，如 `Soul.types.Wolf`、`Soul.types.Animal` |
 | `get_soul_tags(id) -> Array[StringName]` | 魂灵见闻标签，如 `Soul.tags.Small`、`Soul.tags.Burn` |
@@ -267,11 +266,25 @@ print(TestAPI.click_cube_pet_button(&"inventory"))
 | `terminal_show_vessel_tooltip(id, grid := true) -> bool` | 把魂器模板 tooltip 写进终端并打开窗口；`grid` 默认打开调试网格 |
 | `terminal_show_equipped_vessel_tooltip(slot := 0, grid := true) -> bool` | 把魂器网格里第 `slot` 个魂器的 tooltip 写进终端并打开窗口；`grid` 默认打开调试网格 |
 
+## 地图 / 数量石
+
+| 方法 | 说明 |
+|---|---|
+| `get_map_ids() -> Array[StringName]` | 硬编码地图 id；当前只有 `forest_map` |
+| `validate_maps() -> Array[String]` | 校验地图配置、怪物 id 和数量石资源；空数组表示通过 |
+| `add_map_to_warehouse(map_id := &"forest_map") -> bool` | 生成一张地图并放进仓库 |
+| `add_quantity_stone_to_warehouse() -> bool` | 生成一颗数量石并放进仓库 |
+| `get_map_board_state() -> Dictionary` | 05 面快照：8 个槽位的 `occupied/map_id/name` + `pending` |
+| `add_map_to_board(map_id := &"forest_map", slot_index := -1) -> int` | 直接往地图板放一张图；返回槽位，失败 `-1` |
+| `eject_map_from_board(slot_index) -> bool` | 走地图按钮右上角 ⬇ 的退回仓库流程 |
+| `start_map_battle_from_board(slot_index) -> bool` | 走 05 面按钮点击：打开战斗窗口并按这张图开战 |
+| `click_map_drop_slot() -> bool` | 模拟点击中心槽；先把地图拿在手上，再调用它 |
+
 ## 战斗
 
 | 方法 | 说明 |
 |---|---|
-| `start_battle(monster_id := &"") -> bool` | 显示战斗窗口并开战；首只必刷指定怪 |
+| `start_battle(map_id := &"forest_map") -> bool` | 用指定地图打开战斗窗口并开战；没有地图资源返回 `false` |
 | `stop_battle() -> void` | 结束当前战斗 |
 | `spawn_monster(monster_id) -> bool` | 在远处空位刷一只指定怪 |
 | `apply_burn(target := "player") -> bool` | 对战斗单位施加灼烧（测试状态与火焰 Cue） |
@@ -284,7 +297,7 @@ print(TestAPI.click_cube_pet_button(&"inventory"))
 | `charge_soul(soul_name, seconds, target := "player") -> bool` | 给已装备魂灵直接充能，用于快速触发主动技能；不经过触发器队列 |
 | `damage_unit(target := "player", amount := 1.0) -> bool` | 对单位造成伤害，用于把生命值打到阈值以下（测半血触发）；`amount` 先向下取整，不足 1 点不生效 |
 | `has_status(tag, target := "player") -> bool` | 单位是否拥有某个状态标签 |
-| `get_battle_state() -> Dictionary` | 战斗快照；含刷怪进度 `normal_kills` / `pending_rare_spawns` |
+| `get_battle_state() -> Dictionary` | 战斗快照；含 `map_id` / `map_finished` / `map` / `map_kills` / `pending_spawns` |
 | `get_enemy_count() -> int` | 当前存活敌人数 |
 | `get_nearest_enemy_distance() -> float` | 最近敌人到角色的像素距离；没有敌人返回 -1 |
 | `get_enemies_in_attack_range() -> int` | 当前在角色攻击范围内的敌人数（即时制下只有这些怪才充能） |
@@ -333,7 +346,7 @@ print(TestAPI.get_soul_damage_scaling(soul_id))
 print(TestAPI.get_equipped_soul_damage_preview(soul_id))
 
 # 直接充能触发主动技能；替换成一颗有主动技能的魂灵
-TestAPI.start_battle(TestAPI.get_monster_ids()[0])
+TestAPI.start_battle()
 # 战斗中优先运行期值；tooltip 的伤害数值带 * 前缀
 print(TestAPI.get_equipped_soul_damage_preview(soul_id))
 print(TestAPI.get_equipped_soul_tooltip_text(soul_id))
@@ -359,8 +372,19 @@ print(TestAPI.get_battle_state()["player_souls"])
                "cell", "position", "distance_to_player", "in_attack_range", "souls"}],
   "player_souls": [{"name", "cooldown", "charge_ratio", "charge_seconds", "haste", "slow",
                     "freeze", "frozen", "active", "activation_lock"}],
-  "normal_kills": 3,
-  "pending_rare_spawns": 0
+  "map_id": "forest_map",
+  "map_finished": false,
+  "map": {
+	"map_id": "forest_map",
+	"entries": [
+	  {"monster_id": "snake_monster", "condition": "time", "spawned": 12,
+	   "count": 200, "kill_progress": 0, "kill_threshold": 1},
+	  {"monster_id": "fu_monster", "condition": "kill", "spawned": 0,
+	   "count": 0, "kill_progress": 3, "kill_threshold": 10}
+	]
+  },
+  "map_kills": {"snake_monster": 10},
+  "pending_spawns": 0
 }
 ```
 
@@ -390,7 +414,8 @@ print(TestAPI.get_battle_state()["player_souls"])
 - `set_unlock_all(false)` 后，`add_soul` 仍会走正常入包流程，并打上存档脏标记，由 `SaveManager` 写入当前活动槽。
 - `set_unlock_all` 只改判定，不会自动刷新已打开的见闻窗口；切页签或重开窗口即可。
 - `player.souls` 是场景配置（玩家通常为空）；玩家装备的魂灵看 `player_souls`。
-- `start_battle` 会显示战斗窗口；找不到 `BattleWindow` 时返回 `false`。
+- `start_battle` 会显示战斗窗口并按指定地图开战；找不到 `BattleWindow` 或地图资源时返回 `false`。战斗窗口不能空开，必须先有地图。
+- 地图刷怪进度只在运行期；探针里验证完成/重开需要真实等待 5 秒，或用 `TestAPI.damage_unit("enemy", 大数字)` 快速清场。
 - 游戏已移除倍速功能，`TestAPI` 不再提供 `set_time_scale`；需要验证长流程时用真实时间等待或多跑几帧。
 - 新增全局类后，如果 headless 直接跑提示 `TestAPI` 未声明，先跑一次 `--headless --path . --import` 刷新全局类缓存。
 - 新增魂灵/怪物/技能/窗口时，先看这里要不要补方法。

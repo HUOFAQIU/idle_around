@@ -14,7 +14,7 @@ signal sig_refresh
 ## 物品显示名；只用于 UI/日志，不参与 ID、存档查找或唯一性约束
 @export var item_name: String = "Item Name"
 ## 物品大类，值为“ANY”表示所有大类
-@export_enum("ANY", "SOUL", "VESSEL") var category: String = "ANY"
+@export_enum("ANY", "SOUL", "VESSEL", "MAP", "STONE") var category: String = "ANY"
 @export_group("Display Settings")
 ## 物品图标
 @export var icon: Texture2D
@@ -30,6 +30,11 @@ signal sig_refresh
 ## 获取货品形状
 func get_shape() -> Vector2i:
 	return Vector2i(columns, rows)
+
+
+## tooltip 标题；卡面文字用 item_name，需要显示不同标题的物品覆盖此方法
+func tooltip_title() -> String:
+	return item_name
 
 
 ## 复制一份可进入容器的物品实例。

@@ -26,6 +26,10 @@ const PET_MENU := NodePath(
 		"CubeView/ViewportContainer/CubeViewport/Cube/CubeRig/OrientationPivot/Back/"
 		+ "Viewport/PetPanelContent"
 )
+const MAP_BOARD := NodePath(
+		"CubeView/ViewportContainer/CubeViewport/Cube/CubeRig/OrientationPivot/Top/"
+		+ "Viewport/MapBoardContent"
+)
 
 
 ## 从 main.tscn 里的任意节点解析路径；动态实例用 current_scene 兜底

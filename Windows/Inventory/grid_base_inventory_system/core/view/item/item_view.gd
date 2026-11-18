@@ -11,11 +11,11 @@ const BADGE_TOP : int = 0
 const BADGE_CENTER : int = 1
 const BADGE_BOTTOM : int = 2
 
-## 魂灵名称标签：字号按卡面宽度缩放，最小 12 保证可读
-const SOUL_NAME_FONT_RATIO : float = 0.2
-const SOUL_NAME_MIN_FONT_SIZE : int = 12
-const SOUL_NAME_MAX_FONT_SIZE : int = 20
-const SOUL_NAME_OUTLINE_SIZE : int = 2
+## 物品名称标签：字号按卡面宽度缩放，最小 12 保证可读
+const ITEM_NAME_FONT_RATIO : float = 0.2
+const ITEM_NAME_MIN_FONT_SIZE : int = 12
+const ITEM_NAME_MAX_FONT_SIZE : int = 20
+const ITEM_NAME_OUTLINE_SIZE : int = 2
 
 ## 堆叠数字的字体
 var stack_num_font: Font
@@ -35,8 +35,8 @@ var base_size: int:
 			return
 		base_size = value
 		call_deferred("recalculate_size")
-## 魂灵名称标签（只对 SoulData 创建）
-var _soul_name_label: Label
+## 物品名称标签（魂灵、魂器、地图、数量石）
+var _name_label: Label
 ## 状态徽章（只对 SoulData 创建）
 var _haste_badge: Control
 var _slow_badge: Control
@@ -70,8 +70,8 @@ func _init(data: ItemData, base_size: int, stack_num_font: Font = null, stack_nu
 ## 入树后创建名称标签，并尝试绑定战斗运行期状态；徽章等真有运行期状态再建
 func _ready() -> void:
 	if _shows_name_label():
-		_soul_name_label = _make_soul_name_label()
-		_refresh_soul_name_label()
+		_name_label = _make_name_label()
+		_refresh_name_label()
 	if data is SoulData:
 		SoulRuntimeDB.runtime_registered.connect(_on_runtime_registered)
 		SoulRuntimeDB.runtime_unregistered.connect(_on_runtime_unregistered)
@@ -91,7 +91,7 @@ func _exit_tree() -> void:
 func recalculate_size() -> void:
 	size = Vector2(data.columns * base_size, data.rows * base_size)
 	queue_redraw()
-	_refresh_soul_name_label()
+	_refresh_name_label()
 	_refresh_status_badges()
 
 ## 绘制物品
@@ -114,7 +114,7 @@ func _draw() -> void:
 
 func _on_data_refresh() -> void:
 	queue_redraw()
-	_refresh_soul_name_label()
+	_refresh_name_label()
 	_refresh_status_badges()
 	_apply_freeze_shader()
 
@@ -168,15 +168,20 @@ func _apply_freeze_shader() -> void:
 	(material as ShaderMaterial).set_shader_parameter("freeze", 1.0 if frozen else 0.0)
 
 
-## 魂灵和魂器都显示卡面名称；状态徽章仍然只属于魂灵
+## 魂灵、魂器、地图和数量石都显示卡面名称；状态徽章仍然只属于魂灵
 func _shows_name_label() -> bool:
-	return data is SoulData or data is SoulVesselData
+	return (
+		data is SoulData
+		or data is SoulVesselData
+		or data is MapItemData
+		or data is QuantityStoneData
+	)
 
 
 ## 创建盖在卡面图标上的名称标签；父节点就是卡面，铺满即可
-func _make_soul_name_label() -> Label:
+func _make_name_label() -> Label:
 	var label := Label.new()
-	label.name = "SoulNameLabel"
+	label.name = "ItemNameLabel"
 	label.text = data.item_name
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -185,22 +190,22 @@ func _make_soul_name_label() -> Label:
 	label.clip_text = true
 	label.add_theme_color_override("font_color", GameColors.to_color(GameColors.SOUL_NAME))
 	label.add_theme_color_override("font_outline_color", GameColors.to_color(GameColors.SOUL_NAME_OUTLINE))
-	label.add_theme_constant_override("outline_size", SOUL_NAME_OUTLINE_SIZE)
+	label.add_theme_constant_override("outline_size", ITEM_NAME_OUTLINE_SIZE)
 	add_child(label)
 	label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	return label
 
 
 ## 字号跟着卡面宽度走：1×2 小卡用小字，3×2 大卡用大字
-func _refresh_soul_name_label() -> void:
-	if _soul_name_label == null:
+func _refresh_name_label() -> void:
+	if _name_label == null:
 		return
 	var font_size := clampi(
-		roundi(size.x * SOUL_NAME_FONT_RATIO), SOUL_NAME_MIN_FONT_SIZE, SOUL_NAME_MAX_FONT_SIZE
+		roundi(size.x * ITEM_NAME_FONT_RATIO), ITEM_NAME_MIN_FONT_SIZE, ITEM_NAME_MAX_FONT_SIZE
 	)
-	_soul_name_label.add_theme_font_size_override("font_size", font_size)
-	if _soul_name_label.text != data.item_name:
-		_soul_name_label.text = data.item_name
+	_name_label.add_theme_font_size_override("font_size", font_size)
+	if _name_label.text != data.item_name:
+		_name_label.text = data.item_name
 
 
 ## 状态徽章只在魂灵有运行期状态（装备/战斗中）时创建；仓库副本没有运行期状态，不建徽章

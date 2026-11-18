@@ -1,7 +1,8 @@
-## 一场战斗的会话：创建/销毁 BattleManager、生成玩家与怪物、稀有队列、复活重开。
+## 一场战斗的会话：创建/销毁 BattleManager、生成玩家与怪物、地图刷怪、复活重开。
 ##
-## BattleWindow 只负责 UI：会话通过信号通知它什么时候该切按钮、绑血条、开关扫描线。
+## BattleWindow 只负责 UI：会话通过信号通知它什么时候该绑血条、开关扫描线。
 ## 场景节点、地图、观察者挂载都由窗口注入，避免会话反向依赖窗口。
+## 刷怪由 MapRun 按地图配置产生，本类只负责把怪物 id 变成战斗单位。
 class_name BattleSession extends Node
 
 ## 新一场开始（单位已生成、刷怪已启动）
@@ -13,8 +14,8 @@ signal player_spawned(unit: BattleUnit)
 
 ## 角色倒下后多久重开一整场
 const REVIVE_DELAY: float = 3.0
-## 每击杀这么多只常规怪，下一只改用怪物数据里的 is_rare 标记
-const RARE_SPAWN_EVERY_KILLS: int = 10
+## 地图全清后多久自动重开
+const MAP_RESTART_DELAY: float = 5.0
 ## 玩家单位：配置好的场景，开战时直接实例化
 const PLAYER_SCENE := preload("res://game/content/Player/player.tscn")
 
@@ -25,7 +26,7 @@ var map: TileMapLayer
 ## 观察者挂载回调，签名 func(battle: BattleManager)；必须在生成单位之前调用
 var attach_observers: Callable = Callable()
 
-## 当前场次；重开/关窗时自增，用来作废还没执行的复活等待
+## 当前场次；重开/关窗时自增，用来作废还没执行的复活/重开等待
 var run_id: int = 0
 ## 本场使用的角色档案；为空时由 GameFlow 提供当前会话角色
 var player_profile: PlayerProfile
@@ -35,26 +36,35 @@ var slots: Array[SoulSlot] = []
 ## 与 slots 同下标的魂灵
 var souls: Array[SoulData] = []
 
+## 本场地图；为空时不会刷怪
+var _map_item: MapItemData
+## 地图刷怪进度
+var _map_run: MapRun
+## 已产生、等 BattleManager.spawn_one() 消费的怪物 id
+var _pending_spawn_ids: Array[StringName] = []
+## 地图完成标记；完成后等待 5 秒重开
+var _map_finished: bool = false
+## 本场按 content_id 统计的击杀数（测试/调试用）
+var _map_kills: Dictionary = {}
 ## 测试接口：下一次刷怪强制使用这个 ID，刷出后清空
 var _test_monster_id: StringName = &""
-## 常规怪击杀计数；每满 RARE_SPAWN_EVERY_KILLS，排队一只稀有怪
-var _normal_kills: int = 0
-## 已排队、等下一拍刷出的稀有怪数量
-var _pending_rare_spawns: int = 0
+## 本次取怪是否来自测试接口；测试怪不计入地图击杀
+var _next_spawn_is_test: bool = false
 ## 距离 → 该环的已使用格子；开战时按玩家所在格缓存一次
 var _spawn_cells_by_distance: Dictionary = {}
 
 
-## ▶ / 重开：清掉上一场，按给定槽位重新开一场。
-## test_monster_id 非空时首只必刷该怪（测试接口用）。
-func start(p_slots: Array[SoulSlot], test_monster_id: StringName = &"") -> void:
+## 清掉上一场，按地图配置重新开一场
+func start(p_slots: Array[SoulSlot], map_item: MapItemData) -> void:
 	stop()
 	run_id += 1
-	_test_monster_id = test_monster_id
 	slots = p_slots
+	_map_item = map_item
+	_map_run = MapRun.new(map_item.map_data) if map_item != null else null
 	souls.clear()
 	for slot in slots:
-		souls.append(slot.soul)
+		if slot != null:
+			souls.append(slot.soul)
 
 	battle = BattleManager.new()
 	battle.name = "BattleManager"
@@ -75,7 +85,9 @@ func start(p_slots: Array[SoulSlot], test_monster_id: StringName = &"") -> void:
 	battle.log_line("========== 战斗开始 ==========", "yellow")
 	for unit in battle.units:
 		battle.log_line("%s  HP %.0f" % [unit.unit_name, unit.health_attr.current_value], "white")
-	# 立刻先来一只，不然点完还得对着空场等第一拍
+	# 立刻先来一只，不然开战还得对着空场等第一拍
+	if _map_run != null:
+		_enqueue_spawns(_map_run.take_initial_spawns())
 	battle.spawn_one()
 	battle_started.emit(battle)
 
@@ -92,9 +104,13 @@ func stop() -> void:
 	if battle != null:
 		battle.queue_free()
 		battle = null
-	_normal_kills = 0
-	_pending_rare_spawns = 0
+	_map_item = null
+	_map_run = null
+	_pending_spawn_ids.clear()
+	_map_finished = false
+	_map_kills.clear()
 	_test_monster_id = &""
+	_next_spawn_is_test = false
 	battle_ended.emit()
 
 
@@ -121,8 +137,11 @@ func get_state() -> Dictionary:
 		"player": {},
 		"enemies": [],
 		"player_souls": [],
-		"normal_kills": _normal_kills,
-		"pending_rare_spawns": _pending_rare_spawns,
+		"map_id": "",
+		"map_finished": false,
+		"map": {},
+		"map_kills": {},
+		"pending_spawns": 0,
 	}
 	if battle == null:
 		return state
@@ -130,6 +149,14 @@ func get_state() -> Dictionary:
 	state["running"] = battle.is_running
 	state["elapsed"] = battle.elapsed_seconds()
 	state["player"] = _unit_state(battle.player)
+	state["map_id"] = _map_run.state().get("map_id", "") if _map_run != null else ""
+	state["map_finished"] = _map_finished
+	state["map"] = _map_run.state() if _map_run != null else {}
+	state["pending_spawns"] = _pending_spawn_ids.size()
+	var kills := {}
+	for id in _map_kills:
+		kills[String(id)] = _map_kills[id]
+	state["map_kills"] = kills
 
 	var enemies : Array = []
 	for unit in battle.units:
@@ -158,6 +185,16 @@ func get_state() -> Dictionary:
 			})
 	state["player_souls"] = player_souls
 	return state
+
+
+## 每帧推进地图刷怪；完成判定放在刷怪之后
+func _process(delta: float) -> void:
+	if battle == null or not battle.is_running or _map_run == null or _map_finished:
+		return
+	_enqueue_spawns(_map_run.tick(delta))
+	while not _pending_spawn_ids.is_empty():
+		battle.spawn_one()
+	_check_map_finished()
 
 
 #region 生成
@@ -189,11 +226,12 @@ func _spawn_player() -> BattleUnit:
 	return unit
 
 
-## 怪物：场景只负责战斗表现；先选怪，再按这只怪的 spawn_distances 选格
+## 怪物：场景只负责战斗表现；先取地图队列里的怪，再按它的 spawn_distances 选格
 func _spawn_enemy() -> void:
-	var monster := _pick_monster_for_spawn()
+	var monster := _take_next_monster()
 	if monster == null:
 		return
+	var is_test := _next_spawn_is_test
 	var cells := _pick_spawn_cell(monster)
 	if cells.is_empty():
 		return
@@ -218,8 +256,29 @@ func _spawn_enemy() -> void:
 	# 同一格刷出来的怪加一点随机偏移，避免完全重叠；碰撞体负责其余的推开
 	unit.position += Vector2.from_angle(battle.rng.randf() * TAU) * battle.rng.randf_range(0.0, 12.0)
 	battle.add_unit(unit)
-	unit.died.connect(_on_enemy_died.bind(monster))
+	unit.died.connect(_on_enemy_died.bind(monster, is_test))
 	CollectionDB.mark_monster_seen(monster)
+
+
+## 取下一只怪：测试强制 ID 优先，其次地图待刷队列
+func _take_next_monster() -> MonsterData:
+	_next_spawn_is_test = false
+	if not _test_monster_id.is_empty():
+		var forced := CollectionDB.get_monster(_test_monster_id)
+		_test_monster_id = &""
+		_next_spawn_is_test = true
+		return forced
+	while not _pending_spawn_ids.is_empty():
+		var monster_id: StringName = _pending_spawn_ids.pop_front()
+		var monster := CollectionDB.get_monster(monster_id)
+		if monster != null:
+			return monster
+	return null
+
+
+func _enqueue_spawns(monster_ids: Array[StringName]) -> void:
+	for monster_id in monster_ids:
+		_pending_spawn_ids.append(monster_id)
 
 
 ## 开战时按玩家所在格把地图格子按距离分环，之后每次刷怪直接查表
@@ -265,33 +324,47 @@ func _nearest_spawn_cells(wanted: Array[int]) -> Array[Vector2i]:
 	var result: Array[Vector2i] = []
 	result.append_array(_spawn_cells_by_distance[best_distance])
 	return result
+#endregion
 
 
-## 选怪优先级：测试强制 ID > 已排队的稀有怪 > 常规随机池
-func _pick_monster_for_spawn() -> MonsterData:
-	if not _test_monster_id.is_empty():
-		var forced := CollectionDB.get_monster(_test_monster_id)
-		_test_monster_id = &""
-		return forced
-	if _pending_rare_spawns > 0:
-		var rare := CollectionDB.pick_rare_monster()
-		if rare != null:
-			_pending_rare_spawns -= 1
-			return rare
-	return CollectionDB.pick_random_monster()
+#region 地图击杀与完成
 
-
-## 常规怪死亡计数；每满阈值，把下一只刷怪换成稀有怪
-func _on_enemy_died(_unit: BattleUnit, monster: MonsterData) -> void:
-	if battle == null or not battle.is_running:
+## 地图刷出的怪死亡：按 content_id 计数，并检查击杀条件是否要刷新怪。
+## 测试刷出的怪不计入，避免干扰地图完成。
+func _on_enemy_died(_unit: BattleUnit, monster: MonsterData, is_test: bool) -> void:
+	if is_test or battle == null or not battle.is_running or _map_run == null:
 		return
-	if monster == null or monster.is_rare or monster.spawn_weight <= 0.0:
+	if monster == null:
 		return
-	_normal_kills += 1
-	if _normal_kills < RARE_SPAWN_EVERY_KILLS:
+	var monster_id: StringName = monster.content_id
+	_map_kills[monster_id] = int(_map_kills.get(monster_id, 0)) + 1
+	_enqueue_spawns(_map_run.on_monster_killed(monster_id))
+
+
+## 时间配额刷完、没有待刷怪、场上没有存活怪 → 地图完成，5 秒后重开
+func _check_map_finished() -> void:
+	if _map_finished or _map_run == null or battle == null:
 		return
-	_normal_kills -= RARE_SPAWN_EVERY_KILLS
-	_pending_rare_spawns += 1
+	if not _map_run.is_finished() or not _pending_spawn_ids.is_empty():
+		return
+	for unit in battle.enemies:
+		if unit != null and not unit.is_dead:
+			return
+	_map_finished = true
+	battle.log_line("地图完成，%.0f 秒后重新开始……" % MAP_RESTART_DELAY, "yellow")
+	var current_run := run_id
+	get_tree().create_timer(MAP_RESTART_DELAY).timeout.connect(
+		_on_map_restart_timeout.bind(current_run), CONNECT_ONE_SHOT
+	)
+
+
+func _on_map_restart_timeout(current_run: int) -> void:
+	if current_run != run_id or _map_item == null:
+		return
+	var next_slots: Array[SoulSlot] = []
+	next_slots.append_array(slots)
+	start(next_slots, _map_item)
+
 #endregion
 
 
@@ -301,10 +374,11 @@ func _on_player_died(_unit: BattleUnit) -> void:
 	var current_run := run_id
 	var next_slots: Array[SoulSlot] = []
 	next_slots.append_array(slots)
+	var map_item := _map_item
 	await get_tree().create_timer(REVIVE_DELAY).timeout
 	if current_run != run_id:
 		return
-	start(next_slots)
+	start(next_slots, map_item)
 
 
 func _unit_state(unit: BattleUnit) -> Dictionary:

@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="QuantityStoneData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://game/content/quantity_stone_data.gd" id="1_data"]
+[ext_resource type="Texture2D" path="res://Assets/item_11.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_data")
+item_name = "数量石"
+category = "STONE"
+icon = ExtResource("2_icon")
+columns = 1
+rows = 1
+content_id = &"quantity_stone"
+tooltip_blocks = Array[String](["怪物数量 +50%"])

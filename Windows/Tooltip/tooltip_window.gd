@@ -115,7 +115,7 @@ func _set_text(title_text: String, body_text: String) -> void:
 	reset_size()
 
 
-## 物品焦点：魂灵和魂器有正文，其他物品只有标题（标题同样由终端 span 绘制）
+## 物品焦点：魂灵、魂器、地图和数量石有正文，其他物品只有标题
 func _on_item_focused(item_data: ItemData, container_name: String) -> void:
 	var body := ""
 	if item_data is SoulData:
@@ -125,7 +125,13 @@ func _on_item_focused(item_data: ItemData, container_name: String) -> void:
 		)
 	elif item_data is SoulVesselData:
 		body = VesselTooltip.build(item_data as SoulVesselData, TooltipText.Format.PLAIN)
-	show_tip(self, Layer.ITEM, item_data.item_name, body)
+	elif item_data is MapItemData:
+		body = MapTooltip.build(item_data as MapItemData, TooltipText.Format.PLAIN)
+	elif item_data is QuantityStoneData:
+		body = QuantityStoneTooltip.build(
+			item_data as QuantityStoneData, TooltipText.Format.PLAIN
+		)
+	show_tip(self, Layer.ITEM, item_data.tooltip_title(), body)
 
 
 ## 魂器窗口内的 COMBAT 魂灵带当前装备预览；魂器外的物品、见闻保持基础值。

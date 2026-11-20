@@ -89,9 +89,12 @@ static func _build_entries() -> Dictionary:
 		},
 		"soul.add": {
 			"usage": "soul.add <soul_id> [container]",
-			"summary": "把魂灵放进容器；container 为空时放仓库",
+			"summary": "把魂灵放进容器；container 为空时从仓库第 1 页找空位",
 			"handler": Callable(INVENTORY, "soul_add"),
-			"complete": [Callable(COMPLETERS, "soul_ids")],
+			"complete": [
+				Callable(COMPLETERS, "soul_ids"),
+				Callable(COMPLETERS, "container_names"),
+			],
 		},
 		"map.list": {
 			"usage": "map.list",

@@ -41,7 +41,7 @@ static func unit_summary(unit: BattleUnit, battle: BattleManager = null) -> Dict
 	var result: Dictionary = {
 		"id": unit.get_instance_id(),
 		"name": unit.unit_name,
-		"team": CombatEvent.team_name(unit.team),
+		"team": CombatTelemetrySchema.team_name(unit.team),
 		"dead": unit.is_dead,
 		"hp": _attr_value(unit.asc, "health"),
 		"max_hp": _attr_value(unit.asc, "max_health"),
@@ -187,7 +187,7 @@ static func soul_runtime(runtime: SoulRuntime) -> Dictionary:
 		data["owner"] = {
 			"id": runtime.owner_unit.get_instance_id(),
 			"name": runtime.owner_unit.unit_name,
-			"team": CombatEvent.team_name(runtime.owner_unit.team),
+			"team": CombatTelemetrySchema.team_name(runtime.owner_unit.team),
 		}
 	return data
 

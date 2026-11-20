@@ -165,6 +165,8 @@ func _run_releases(battle: BattleManager, trace: CombatTrace, total: int) -> boo
 ## 等激活锁走完再放下一次；冻结、战斗结束、施法者倒下时不释放。
 ## 激活锁由 BattleBrain 的物理帧推进，所以这里按物理帧轮询。
 func _wait_for_next_release(battle: BattleManager) -> WaitResult:
+	if battle.clock == null:
+		return WaitResult.STOPPED
 	var caster := _caster_unit()
 	while (
 		is_active
@@ -175,19 +177,21 @@ func _wait_for_next_release(battle: BattleManager) -> WaitResult:
 	):
 		if not is_frozen() and can_activate_now():
 			return WaitResult.READY
-		await get_tree().physics_frame
+		await battle.clock.wait_ticks(1)
 	return WaitResult.CANCELLED if not is_active else WaitResult.STOPPED
 
 
 ## 吟唱按物理 tick 等待：不读渲染帧 delta，也不占用 GAS 的 SceneTreeTimer。
 ## 每个 tick 检查技能/战斗/施法者状态，被打断时尽快返回。
 func _wait_cast_ticks(battle: BattleManager, seconds: float) -> WaitResult:
-	var remaining := BattleManager.ticks_for_seconds(seconds)
+	if battle.clock == null:
+		return WaitResult.STOPPED
+	var remaining := battle.ticks_for_seconds(seconds)
 	while remaining > 0:
 		var state := _cast_wait_state(battle)
 		if state != WaitResult.READY:
 			return state
-		await get_tree().physics_frame
+		await battle.clock.wait_ticks(1)
 		remaining -= 1
 	return _cast_wait_state(battle)
 

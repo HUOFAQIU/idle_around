@@ -150,7 +150,16 @@ func flush_pending_activations() -> void:
 
 
 func _physics_process(_delta: float) -> void:
-	if unit.is_dead or unit.battle == null or not unit.battle.is_running:
+	if unit == null or unit.battle == null or unit.battle.clock == null:
+		return
+	if unit.battle.clock.manual:
+		return
+	advance()
+
+
+## 推进一个固定 tick：状态/充能、释放与当帧待释放队列。
+func advance() -> void:
+	if unit == null or unit.is_dead or unit.battle == null or not unit.battle.is_running:
 		return
 	# 兜底：怪物在攻击范围外不跑大脑（正常由 BattleManager 直接关掉物理帧）
 	if unit.team == BattleUnit.Team.ENEMY and unit.battle.player != null:
@@ -158,11 +167,10 @@ func _physics_process(_delta: float) -> void:
 			return
 
 	var frozen := unit.asc.has_tag(FROZEN_TAG)
-	# 不用 _delta：物理帧是固定步长，掉帧时引擎会补跑多个 tick；
-	# 这里显式按 tick 频率算“每 tick 固定刻度”。
+	# 步长来自 BattleClock，不读渲染/物理 delta；
+	# 掉帧时引擎补跑的 tick 也按同一 tick_seconds 计算刻度。
 	var base_units := int(round(
-		float(ChargedAbility.UNITS_PER_SECOND)
-		/ float(Engine.physics_ticks_per_second)
+		float(ChargedAbility.UNITS_PER_SECOND) * unit.battle.tick_seconds()
 	))
 
 	# 第一段：所有魂灵先结算状态和自然充能。

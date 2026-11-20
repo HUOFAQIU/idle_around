@@ -35,6 +35,9 @@ var is_running: bool = false
 ## 战斗事件总线：模拟层只发事件，遥测/日志/控制台各自订阅
 var events: BattleEventBus = BattleEventBus.new()
 
+## 战斗时钟：固定 tick 与测试步进的唯一时间源
+var clock: BattleClock
+
 ## 全局随机数：选目标、刷怪、掉落都走它
 var rng := RandomNumberGenerator.new()
 
@@ -69,6 +72,9 @@ func setup() -> void:
 	# 固定 tick 末阶段：必须晚于单位大脑和投射物，才能在同一 tick 内统一 flush 触发器
 	process_physics_priority = TICK_END_PHYSICS_PRIORITY
 	_tick_count = 0
+	clock = BattleClock.new()
+	clock.name = "BattleClock"
+	add_child(clock)
 	grid = BattleGrid.new(map)
 	_loot = LootRoller.new(events, loot_sink)
 
@@ -90,6 +96,9 @@ func add_unit(unit: BattleUnit) -> void:
 	# 怪物在攻击范围外不跑大脑：魂灵不充能、不施放（即时制设计）
 	if unit.team == BattleUnit.Team.ENEMY and unit.brain != null:
 		unit.brain.set_physics_process(false)
+	# 手动时间模式下，新刷出的单位也不能让 ASC 自己按渲染帧推进
+	if clock != null and unit.asc != null:
+		unit.asc.manual_time = clock.manual
 
 
 ## 只在有监听者时派发“敌方移动”，不再让所有单位各接一次全局信号
@@ -130,6 +139,13 @@ func start_battle() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	if clock != null and clock.manual:
+		return
+	advance(delta)
+
+
+## 推进一个固定 tick：敌方移动、tick 计数、跨单位触发器 flush。
+func advance(delta: float) -> void:
 	if not is_running or player == null or player.is_dead:
 		return
 	var slices := maxi(
@@ -146,6 +162,17 @@ func _physics_process(delta: float) -> void:
 
 	_tick_count += 1
 	_flush_brain_activations()
+
+
+## 手动步进：推进本 tick 的 GAS 持续效果与单位大脑。
+func advance_units(delta: float) -> void:
+	for unit in registry.units.duplicate():
+		if unit == null or not is_instance_valid(unit):
+			continue
+		if unit.asc != null and unit.asc.manual_time:
+			unit.asc.advance_time(delta)
+		if not unit.is_dead and unit.brain != null:
+			unit.brain.advance()
 
 
 ## 跨单位触发器在本 tick 末统一释放；单位自己的 Brain 已在它的物理帧末 flush 过。
@@ -249,13 +276,13 @@ func tick_count() -> int:
 
 
 ## 一个战斗物理 tick 的秒数；战斗内所有固定时长都按它换算
-static func tick_seconds() -> float:
-	return 1.0 / float(Engine.physics_ticks_per_second)
+func tick_seconds() -> float:
+	return clock.tick_seconds
 
 
 ## 秒 → 物理 tick 数（向上取整，至少 1）
-static func ticks_for_seconds(seconds: float) -> int:
-	return maxi(1, ceili(seconds * Engine.physics_ticks_per_second))
+func ticks_for_seconds(seconds: float) -> int:
+	return clock.ticks_for_seconds(seconds)
 
 
 func elapsed_seconds() -> float:

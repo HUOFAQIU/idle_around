@@ -42,6 +42,14 @@ static func add_soul(id : StringName, container : String = "") -> bool:
 	return INVENTORY.add_soul(id, container)
 
 
+static func has_container(container: String) -> bool:
+	return INVENTORY.has_container(container)
+
+
+static func get_container_names() -> PackedStringArray:
+	return INVENTORY.get_container_names()
+
+
 static func add_soul_to_warehouse(id : StringName) -> bool:
 	return INVENTORY.add_soul_to_warehouse(id)
 
@@ -258,6 +266,14 @@ static func add_map_to_board(
 	return MAP.add_map_to_board(map_id, slot_index)
 
 
+static func submit_map_to_board(map_id : StringName = MapCatalog.FOREST_MAP_ID) -> Dictionary:
+	return MAP.submit_map_to_board(map_id)
+
+
+static func settle_pending_map() -> Dictionary:
+	return MAP.settle_pending_map()
+
+
 static func eject_map_from_board(slot_index : int) -> bool:
 	return MAP.eject_map_from_board(slot_index)
 
@@ -321,6 +337,10 @@ static func get_save_status() -> Dictionary:
 
 static func dump_save() -> Dictionary:
 	return SAVE.dump_save()
+
+
+static func check_save_pipeline() -> Dictionary:
+	return SAVE.check_save_pipeline()
 
 
 #endregion
@@ -454,6 +474,10 @@ static func get_cube_face_content(face_index : int) -> String:
 	return CUBE.get_cube_face_content(face_index)
 
 
+static func get_cube_face_number(face_index : int) -> String:
+	return CUBE.get_cube_face_number(face_index)
+
+
 static func get_cube_face_lock_state(face_index : int) -> bool:
 	return CUBE.get_cube_face_lock_state(face_index)
 
@@ -464,6 +488,10 @@ static func click_cube_face_button(face_index : int) -> bool:
 
 static func click_cube_new_game() -> bool:
 	return CUBE.click_cube_new_game()
+
+
+static func click_cube_quit() -> bool:
+	return CUBE.click_cube_quit()
 
 
 static func click_cube_save_slot(slot: int) -> bool:
@@ -635,6 +663,22 @@ static func get_battle_state() -> Dictionary:
 
 static func get_battle_tick() -> int:
 	return BATTLE.get_battle_tick()
+
+
+static func pause_battle() -> bool:
+	return BATTLE.pause_battle()
+
+
+static func resume_battle() -> bool:
+	return BATTLE.resume_battle()
+
+
+static func step_battle(ticks : int = 1) -> bool:
+	return BATTLE.step_battle(ticks)
+
+
+static func get_battle_clock() -> Dictionary:
+	return BATTLE.get_battle_clock()
 
 
 static func get_enemy_count() -> int:

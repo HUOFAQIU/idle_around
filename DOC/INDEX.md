@@ -39,13 +39,15 @@
 | 确认功能是否已实现/已知坑 | `架构/现状与注意.md` | — |
 | AI/自动化测试、构造战斗或背包场景 | `指南/AI测试接口.md`、`指南/命令控制台.md` | `Scripts/test_api.gd`、`Scripts/test_api/`、`Scripts/commands/` |
 | 提交前检查、新增 lint 规则、判断规范该放代码还是文档 | `指南/代码检查.md`、`指导文件.md` | `tools/check.sh`、`tools/lint/` |
+| 改 Claude Code 配置（CLAUDE.md/settings/hooks/skills/agents/workflows）、查加载与权限行为 | `指南/Claude Code 项目结构.md` | — |
 | 按症状排查战斗（不放技能/不触发/没伤害/Cue 不播/卡顿） | `指南/调试窗口.md` §常见排查、`架构/现状与注意.md` | `Windows/Debug/`、`game/battle/` |
-| 新增调试事件或理解遥测数据 | `架构/调试与遥测.md` | `game/battle/battle_event.gd`、`game/battle/battle_event_bus.gd`、`Scripts/debug/`、`Windows/Debug/` |
+| 新增调试事件、理解遥测数据或看启动耗时 | `架构/调试与遥测.md` | `game/battle/battle_event.gd`、`game/battle/battle_event_bus.gd`、`Scripts/debug/`、`Windows/Debug/` |
 | 改魂灵冷却/充能/冻结/主动效果 | `魂灵/主动魂灵.md` | `base_mods/core/souls/`、`game/content/`、`game/battle/charged_ability.gd` |
 | 改被动魂灵/触发效果 | `魂灵/被动魂灵.md` | `base_mods/core/souls/`、`game/content/passive_soul_data.gd`、`game/content/passive_effect.gd`、`game/content/passive_trigger.gd` |
 | 确认魂灵尺寸/魂器/角色魂器网格 | `魂灵/魂灵.md`、`魂灵/魂器.md` | `Windows/Inventory/grid_base_inventory_system/core/model/item/soul_data.gd`、`soul_vessel_data.gd`、`Windows/Vessel/`、`Windows/Character/` |
 | 改怪物魂灵/掉落/刷新距离 | `怪物/怪物.md` | `base_mods/core/monsters/`、`game/content/monster_data.gd`、`game/content/monster_soul_entry.gd` |
 | 改地图物品/05 面地图板/地图刷怪/完成重开/数量石 | `战斗/地图.md` | `game/content/map_*.gd`、`Scripts/map_board.gd`、`Main/Cube/Scripts/map_board_content.gd`、`game/battle/map_run.gd` |
+| 改模块边界/拆分或深化模块/收敛入口/判断该不该加 seam | `架构/边界与seam.md` | `Scripts/`、`game/`、`Windows/`、`Main/` |
 | 改魂灵/魂器 tooltip 内容/格式 | `魂灵/魂灵.md`、`魂灵/魂器.md`、`架构/窗口与场景.md` | `Windows/Tooltip/` |
 | 改颜色/色板（战斗状态/UI/场景/特效） | `架构/颜色与主题.md` | `Scripts/game_colors.gd`、`Scripts/game_color_catalog.gd`、`addons/color_catalog/` |
 | 改见闻/图鉴/解锁（怪物/魂灵/魂器） | `窗口/见闻窗口.md` | `Scripts/collection_db.gd`、`Windows/Collection/` |
@@ -62,7 +64,7 @@
 | 文档 | 类型 | 状态 | 最后核对/整理 |
 |---|---|---|---|
 | `战斗/战斗逻辑.md` | 设计 | 有效 | 2026-11-18 |
-| `战斗/地图.md` | 设计 | 已实现 | 2026-11-18 |
+| `战斗/地图.md` | 设计 | 已实现 | 2026-11-21 |
 | `属性/人物属性.md` | 设计 | 设计 | 2026-11-14 |
 | `怪物/怪物.md` | 设计 | 部分实现 | 2026-11-18 |
 | `窗口/仓库窗口.md` | 设计 | 部分实现 | 2026-11-18 |
@@ -74,32 +76,34 @@
 | `魂灵/被动魂灵.md` | 设计 | 已实现 | 2026-11-15 |
 | `archive/souls.xlsx` | 数据 | 归档（二进制，Claude 不可读） | — |
 | `特效/effects.md` | 指南 | 有效 | 2026-11-15 |
-| `指南/AI测试接口.md` | 指南 | 有效 | 2026-11-18 |
-| `指南/命令控制台.md` | 指南 | 有效 | 2026-11-18 |
+| `指南/AI测试接口.md` | 指南 | 有效 | 2026-11-21 |
+| `指南/命令控制台.md` | 指南 | 有效 | 2026-11-19 |
 | `指南/代码检查.md` | 指南 | 有效 | 2026-11-15 |
 | `指导文件.md` | 指南 | 有效 | 2026-11-15 |
 | `指南/存档排查.md` | 指南 | 有效 | 2026-11-15 |
 | `指南/调试窗口.md` | 指南 | 有效 | 2026-11-14 |
-| `架构/调试与遥测.md` | 实现 | 有效 | 2026-11-15 |
+| `架构/调试与遥测.md` | 实现 | 有效 | 2026-11-21 |
 | `背景故事/背景故事.md` | 设计 | 占位 | 2026-10-31 |
 | `archive/给AI玩的游戏.md` | 记录 | 归档 | 2026-10-31 |
-| `架构/00_总览.md` | 实现 | 有效 | 2026-11-18 |
+| `架构/00_总览.md` | 实现 | 有效 | 2026-11-21 |
 | `架构/窗口与场景.md` | 实现 | 有效 | 2026-11-18 |
-| `架构/立方体外壳.md` | 实现 | 有效 | 2026-11-18 |
-| `架构/开局流程.md` | 实现 | 有效 | 2026-11-15 |
-| `架构/战斗运行时_施法与冷却.md` | 实现 | 有效 | 2026-11-18 |
-| `架构/战斗运行时_移动与投射物.md` | 实现 | 有效 | 2026-11-18 |
-| `架构/战斗运行时_伤害与流程.md` | 实现 | 有效 | 2026-11-18 |
+| `架构/立方体外壳.md` | 实现 | 有效 | 2026-11-20 |
+| `架构/开局流程.md` | 实现 | 有效 | 2026-11-20 |
+| `架构/战斗运行时_施法与冷却.md` | 实现 | 有效 | 2026-11-21 |
+| `架构/战斗运行时_移动与投射物.md` | 实现 | 有效 | 2026-11-21 |
+| `架构/战斗运行时_伤害与流程.md` | 实现 | 有效 | 2026-11-21 |
 | `架构/战斗数据与魂灵.md` | 实现 | 有效 | 2026-11-18 |
 | `架构/GAS.md` | 实现 | 有效 | 2026-11-15 |
 | `架构/背包_GBIS.md` | 实现 | 有效 | 2026-11-18 |
-| `架构/存档.md` | 实现 | 已实现 | 2026-11-18 |
+| `架构/存档.md` | 实现 | 已实现 | 2026-11-21 |
 | `架构/关键流程.md` | 实现 | 有效 | 2026-11-15 |
 | `架构/扩展点.md` | 指南 | 有效 | 2026-11-18 |
 | `架构/颜色与主题.md` | 实现 | 有效 | 2026-11-15 |
-| `架构/现状与注意.md` | 实现 | 有效 | 2026-11-18 |
+| `架构/现状与注意.md` | 实现 | 有效 | 2026-11-21 |
+| `架构/边界与seam.md` | 实现 | 有效 | 2026-11-21 |
 | `架构/Mod系统.md` | 设计 | 部分实现（内置 core mod 已接入） | 2026-11-18 |
 | `指南/Mod制作.md` | 指南 | 部分实现（内置 core 已接入） | 2026-11-15 |
+| `指南/Claude Code 项目结构.md` | 指南 | 有效 | 2026-11-20 |
 
 > `archive/souls.xlsx` 是旧计划表，文本工具读不了；要引用其中内容时先转成 Markdown 表格。
 >

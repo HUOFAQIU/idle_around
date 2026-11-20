@@ -111,6 +111,11 @@ static func get_cube_face_content(face_index : int) -> String:
 	return String(content.content_id()) if content != null else "unknown"
 
 
+static func get_cube_face_number(face_index : int) -> String:
+	var content := face_content(face_index)
+	return content.face_number_text() if content != null else ""
+
+
 static func get_cube_face_lock_state(face_index : int) -> bool:
 	return GameFlow.get_face_lock_state(face_index)
 
@@ -128,6 +133,15 @@ static func click_cube_new_game() -> bool:
 	if content == null:
 		return false
 	content.activate_new_game()
+	return true
+
+
+## 走真实退出流程：保存活动槽后结束进程
+static func click_cube_quit() -> bool:
+	var content := face_content(0) as SaveSlotsContent
+	if content == null:
+		return false
+	content.activate_quit()
 	return true
 
 

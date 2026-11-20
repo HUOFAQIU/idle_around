@@ -21,6 +21,8 @@ const DEFAULT_SPEED : float = 420.0
 const HIT_RADIUS : float = 20.0
 ## 飞这么久还没打中就自己消失
 const MAX_LIFE : float = 3.0
+## 手动步进时 BattleSession 用它找到所有投射物
+const GROUP : StringName = &"soul_projectiles"
 
 var _direction : Vector2 = Vector2.ZERO
 var _caster : BattleUnit
@@ -45,10 +47,18 @@ func setup(caster: BattleUnit, aim_position: Vector2, speed: float = DEFAULT_SPE
 
 
 func _ready() -> void:
+	add_to_group(GROUP)
 	modulate = GameColors.to_color(GameColors.PROJECTILE)
 
 
 func _physics_process(delta: float) -> void:
+	if _battle != null and is_instance_valid(_battle) and _battle.clock != null and _battle.clock.manual:
+		return
+	advance(delta)
+
+
+## 推进一个固定 tick：寿命、飞行与命中。
+func advance(delta: float) -> void:
 	if _done:
 		return
 	# 战斗结束/重开时 BattleManager 可能已释放；箭自毁，避免访问失效引用

@@ -2,7 +2,6 @@ class_name FaceUI
 extends FaceContent
 ## 单个立方体面的 2D 界面：展示面名，按钮被点击后发出识别请求。
 
-const FACE_COUNT := 6
 const BUTTON_BASE_COLOR := Color("#0b1119")
 const MUTED_TEXT_COLOR := Color(0.55, 0.63, 0.73, 1.0)
 
@@ -15,14 +14,12 @@ var _feedback_tween: Tween
 
 @onready var _backdrop: ColorRect = $Backdrop
 @onready var _frame: Panel = $Frame
-@onready var _index_label: Label = $ContentMargin/Layout/Header/IndexLabel
 @onready var _state_label: Label = $ContentMargin/Layout/Header/StateLabel
 @onready var _header_rule: ColorRect = $ContentMargin/Layout/HeaderRule
 @onready var _face_button: Button = $ContentMargin/Layout/FaceButton
 @onready var _hint_label: Label = $ContentMargin/Layout/HintLabel
 @onready var _accent_line: ColorRect = $ContentMargin/Layout/Footer/AccentLine
 @onready var _footer_label: Label = $ContentMargin/Layout/Footer/FooterLabel
-@onready var _footer_index_label: Label = $ContentMargin/Layout/Footer/FooterIndexLabel
 
 
 func _ready() -> void:
@@ -34,6 +31,7 @@ func setup(index: int, display_name: String, accent: Color) -> void:
 	face_index = index
 	face_name = display_name
 	accent_color = accent
+	super.setup(index, display_name, accent)
 	if is_node_ready():
 		_apply_visuals()
 
@@ -43,15 +41,10 @@ func content_id() -> StringName:
 
 
 func _apply_visuals() -> void:
-	_index_label.text = "面 %02d" % (face_index + 1)
 	_face_button.text = face_name
-	_footer_index_label.text = "%02d / %02d" % [face_index + 1, FACE_COUNT]
-
-	_index_label.add_theme_color_override("font_color", accent_color)
 	_state_label.add_theme_color_override("font_color", MUTED_TEXT_COLOR)
 	_hint_label.add_theme_color_override("font_color", MUTED_TEXT_COLOR)
 	_footer_label.add_theme_color_override("font_color", MUTED_TEXT_COLOR)
-	_footer_index_label.add_theme_color_override("font_color", _with_alpha(accent_color, 0.72))
 
 	_accent_line.color = accent_color
 	_header_rule.color = _with_alpha(accent_color, 0.22)

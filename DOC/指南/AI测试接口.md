@@ -1,8 +1,8 @@
 # AI 测试接口 TestAPI
 
-> 类型：指南 | 状态：有效 | 核对：2026-11-18
+> 类型：指南 | 状态：有效 | 核对：2026-11-21
 > 何时读：写自动化测试/探针、构造战斗或背包场景、验证新功能
-> 关键词：测试 TestAPI 探针 自动化 战斗快照 地图 map MapCatalog MapBoard 地图板 数量石 魂灵 魂器 vessel 仓库 见闻 商店 冷却 冻结 触发器 类型 标签 尺寸 充能 卡面 tooltip 伤害缩放 动态伤害 静态预览 SoulDamagePreview get_equipped_soul_damage_preview is_dynamic has_runtime 多重触发 cast_times releases 颜色 色板 色板目录 分组 别名 主屏幕 六槽 存档位 角色选择 GameFlow 锁定 锁图 存档 save 删档 删除存档 确认 爪痕 play_claw_cue mod ModLoader ModWindow 加载顺序 order mod_cue_registrar cue Cue 特效 manifest 创意工坊 内置 core content_id validate_core_manifest manifest 校验 技能 ID ability_tag 命名 主窗口置顶 单窗口 浮层 CanvasLayer PetPanel 主菜单 位置不持久化 CubePlacement PanelManager 激活面板 遮挡 穿透 mouse_passthrough WindowPassthrough 立方体 cube 面 02 背面 层级 CubeView CubeInputSurface CubeProjection CubeScenePaths get_cube_layering_state view_layer 终端 字符网格 TerminalView TerminalBuffer TerminalSpan 跨格大字 ANSI SGR 回看 scrollback auto_scroll CommandRegistry 命令控制台 run
+> 关键词：测试 TestAPI 探针 自动化 战斗快照 地图 map MapCatalog MapBoard 地图板 数量石 魂灵 魂器 vessel 仓库 见闻 商店 冷却 冻结 触发器 类型 标签 尺寸 充能 卡面 tooltip 伤害缩放 动态伤害 静态预览 SoulDamagePreview get_equipped_soul_damage_preview is_dynamic has_runtime 多重触发 cast_times releases 颜色 色板 色板目录 分组 别名 主屏幕 六槽 存档位 角色选择 退出 关闭游戏 GameFlow 锁定 锁图 存档 save 删档 删除存档 确认 爪痕 play_claw_cue mod ModLoader ModWindow 加载顺序 order mod_cue_registrar cue Cue 特效 manifest 创意工坊 内置 core content_id validate_core_manifest manifest 校验 技能 ID ability_tag 命名 主窗口置顶 单窗口 浮层 CanvasLayer PetPanel 主菜单 位置不持久化 CubePlacement PanelManager 激活面板 遮挡 穿透 mouse_passthrough WindowPassthrough 立方体 cube 面号 水印 FaceNumberLabel get_cube_face_number 面 02 背面 层级 CubeView CubeInputSurface CubeProjection CubeScenePaths get_cube_layering_state view_layer 终端 字符网格 TerminalView TerminalBuffer TerminalSpan 跨格大字 ANSI SGR 回看 scrollback auto_scroll CommandRegistry 命令控制台 run
 > 代码：`Scripts/test_api.gd`（门面）、`Scripts/test_api/`（按域实现）、`Scripts/commands/`、`Windows/Battle/battle_window.gd`、`Scripts/collection_db.gd`、`Scripts/save/`、`Scripts/mod/`、`base_mods/core/mod.json`
 > 约定：新增功能/内容时，在对应域模块实现并在门面补转发，同时更新本文。
 
@@ -36,7 +36,9 @@ TestAPI.stop_battle()
 
 | 方法 | 说明 |
 |---|---|
-| `add_soul(id, container := "") -> bool` | 按 content_id 放入指定容器；`container` 为空时放仓库第 1 页 |
+| `add_soul(id, container := "") -> bool` | 按 content_id 放入指定容器；`container` 为空时从仓库第 1 页开始找空位；容器不存在返回 `false` |
+| `has_container(container) -> bool` | 容器名是否已注册 |
+| `get_container_names() -> PackedStringArray` | 已注册容器名（仓库页 / 魂器网格 / 商店），命令补全共用 |
 | `add_soul_to_warehouse(id) -> bool` | 按 content_id 放入仓库，从第 1 页开始找空位 |
 | `show_shop() -> bool` | 显示商店窗口；找不到窗口返回 `false` |
 | `shop_add_soul(id) -> bool` | 按 content_id 往 `shop_0` 追加一颗魂灵；清空用 `clear_container("shop_0")` |
@@ -117,6 +119,7 @@ TestAPI.drop_moving_item("inventory_0", Vector2i(5, 0))  # 放到指定格
 | `get_save_path(slot) -> String` | 指定槽的 `user://saves/slot_N.json`；绝对路径用 `ProjectSettings.globalize_path()` |
 | `get_save_status() -> Dictionary` | `ready` / `read_only` / `missing_containers` / `active_slot`；缺容器时只读，不读也不写 |
 | `dump_save() -> Dictionary` | 当前内存状态的存档快照，不写盘；用于检查序列化结果 |
+| `check_save_pipeline() -> Dictionary` | 用内存 storage + fake participant 验证存档管线（写/读/备份回退/只读/迁移/摘要）；返回 `ok` 与逐项 `checks`，不碰真实存档 |
 
 ```gdscript
 TestAPI.new_game()                       # 占第一个空槽并进入 IN_GAME
@@ -132,6 +135,7 @@ print(TestAPI.get_container_items("inventory_0"))
 TestAPI.delete_save_slot(0)
 ```
 
+- `check_save_pipeline()` 不依赖活动槽和容器注册，启动后可直接调用；适合在改完存档策略后先跑一遍，不需要准备真实存档。
 - 启动不再自动读档：先 `new_game()` 或 `load_save_slot(0)` 才有活动槽；否则 `save_now()` 返回 false。
 - `delete_save_slot()` 是绕过 UI 的后端直删；游戏内删除走 `click_cube_delete_save_slot()`，第一次确认、第二次才删，活动槽不可删。
 - 读档会保留物品的左上角格子，所以验证魂器网格相邻关系时可以直接比较读档前后的锚点。
@@ -215,9 +219,11 @@ print(TestAPI.get_cube_passthrough_state())
 | `get_cube_layering_state() -> Dictionary` | `cube_layer` / `game_ui_layer` / `hud_layer` / `tooltip_layer` / `drag_layer`、`above_game_ui` / `above_hud` / `hud_above_cube` / `below_tooltip` / `below_drag_ghost`、`input_ready` / `hull_points` / `viewport_size` |
 | `set_cube_face_front(index) -> bool` | 立即把指定面转到正对相机（测试用，跳过动画） |
 | `get_cube_face_content(index) -> String` | `save_slots` / `pet_panel` / `character_select` / `face_ui` / `unknown` |
+| `get_cube_face_number(index) -> String` | 面号水印实际文本（`"01"`～`"06"`）；面内容未就绪返回空串 |
 | `get_cube_face_lock_state(index) -> bool` | 面是否锁定；02 只在 `IN_GAME` 解锁，04 只在 `CHARACTER_SELECT` 解锁 |
 | `click_cube_face_button(index) -> bool` | 触发普通 FaceUI 面的识别按钮；非 FaceUI 面返回 false |
 | `click_cube_new_game() -> bool` | 点击 01 面「新游戏」按钮 |
+| `click_cube_quit() -> bool` | 点击 01 面「退出」按钮；先保存活动槽再结束进程 |
 | `click_cube_save_slot(slot) -> bool` | 点击 01 面指定存档位（0..5） |
 | `click_cube_delete_save_slot(slot) -> bool` | 点击 01 面指定存档位的删除按钮；第一次确认、第二次才删；活动槽返回 false |
 | `click_cube_character(character_id) -> bool` | 点击 04 面指定角色（当前 `&"small_coal_lamp"`） |
@@ -241,6 +247,7 @@ print(TestAPI.click_cube_pet_button(&"inventory"))
 - `set_cube_face_front(1)` 后可直接点击/测试主菜单；启动/读档流程应使用 `new_game()` / `load_save_slot()`，让 `GameFlow` 负责解锁和翻面。
 - 面板坐标和 `get_visible_panel_rects()` 返回的是主视口像素坐标。
 - 面内容的信号链与锁定规则见 `架构/开局流程.md`；翻面动画在 `CubeOrientation.rotate_to_face()`，`set_cube_face_front()` 是瞬移版本。
+- `click_cube_quit()` 走真实退出流程并结束测试进程，只适合放在脚本最后一步；可用它验证「退出前保存活动槽」。
 
 ## 颜色
 
@@ -281,6 +288,8 @@ print(TestAPI.click_cube_pet_button(&"inventory"))
 | `add_quantity_stone_to_warehouse() -> bool` | 生成一颗数量石并放进仓库 |
 | `get_map_board_state() -> Dictionary` | 05 面快照：8 个槽位的 `occupied/map_id/name` + `pending` |
 | `add_map_to_board(map_id := &"forest_map", slot_index := -1) -> int` | 直接往地图板放一张图；返回槽位，失败 `-1` |
+| `submit_map_to_board(map_id := &"forest_map") -> Dictionary` | 走 `MapBoard.submit`：`status` 为 `placed/queued/rejected`，附 `slot` |
+| `settle_pending_map() -> Dictionary` | 中心待放地图进场；返回同上 |
 | `eject_map_from_board(slot_index) -> bool` | 走地图按钮右上角 ⬇ 的退回仓库流程 |
 | `start_map_battle_from_board(slot_index) -> bool` | 走 05 面按钮点击：打开战斗窗口并按这张图开战 |
 | `click_map_drop_slot() -> bool` | 模拟点击中心槽；先把地图拿在手上，再调用它 |
@@ -304,6 +313,10 @@ print(TestAPI.click_cube_pet_button(&"inventory"))
 | `has_status(tag, target := "player") -> bool` | 单位是否拥有某个状态标签 |
 | `get_battle_state() -> Dictionary` | 战斗快照；含 `map_id` / `map_finished` / `map` / `map_kills` / `pending_spawns` |
 | `get_battle_tick() -> int` | 当前战斗已完成的物理 tick 数；没有战斗时返回 0，用于验证固定 tick 时序 |
+| `pause_battle() -> bool` | 暂停战斗仿真：物理帧不再推进，改用 `step_battle()` |
+| `resume_battle() -> bool` | 恢复战斗仿真 |
+| `step_battle(ticks := 1) -> bool` | 手动推进固定 tick；只在 `pause_battle()` 后有效 |
+| `get_battle_clock() -> Dictionary` | 时钟快照：`manual` / `tick_seconds` / `ticks_per_second` |
 | `get_enemy_count() -> int` | 当前存活敌人数 |
 | `get_nearest_enemy_distance() -> float` | 最近敌人到角色的像素距离；没有敌人返回 -1 |
 | `get_enemies_in_attack_range() -> int` | 当前在角色攻击范围内的敌人数（即时制下只有这些怪才充能） |
@@ -361,6 +374,12 @@ TestAPI.charge_soul(soul_name, 6.5)
 await get_tree().physics_frame
 print(TestAPI.get_battle_state()["player_souls"])
 
+# 确定性推进：暂停后按 tick 步进（GAS 持续效果也一起走）
+TestAPI.pause_battle()
+TestAPI.step_battle(120)   # 2 秒
+print(TestAPI.get_battle_tick())
+TestAPI.resume_battle()
+
 # 模拟“魂灵被使用”事件；当前没有魂灵配置 SoulUsed 触发器，接口保留
 TestAPI.simulate_soul_used(soul_name)
 print(TestAPI.get_battle_state()["player_souls"])
@@ -402,7 +421,7 @@ print(TestAPI.get_battle_state()["player_souls"])
 
 | 方法 | 说明 |
 |---|---|
-| `get_debug_events(category := "", limit := 200) -> Array` | 最近调试事件；`category` 见 `CombatEvent`（`battle`/`cast`/`soul`/`trigger`/`effect`/`attribute`/`tag`/`cue`/`log`/`system`） |
+| `get_debug_events(category := "", limit := 200) -> Array` | 最近调试事件；`category` 见 `CombatTelemetrySchema`（`battle`/`cast`/`soul`/`trigger`/`effect`/`attribute`/`tag`/`cue`/`log`/`system`） |
 | `get_debug_stats() -> Dictionary` | 缓冲大小、丢失数、场次、关注单位、文件录制状态 |
 | `get_debug_snapshot() -> Dictionary` | 当前战斗快照（玩家完整详情、敌人摘要） |
 | `get_soul_runtime(soul_name, target := "player") -> Dictionary` | 某颗已装备魂灵的运行期状态（冷却/充能/状态/统计/触发器） |
@@ -421,7 +440,7 @@ print(TestAPI.get_battle_state()["player_souls"])
 - `set_unlock_all` 只改判定，不会自动刷新已打开的见闻窗口；切页签或重开窗口即可。
 - `player.souls` 是场景配置（玩家通常为空）；玩家装备的魂灵看 `player_souls`。
 - `start_battle` 会显示战斗窗口并按指定地图开战；找不到 `BattleWindow` 或地图资源时返回 `false`。战斗窗口不能空开，必须先有地图。
-- 地图刷怪进度只在运行期；探针里验证完成/重开需要真实等待 5 秒，或用 `TestAPI.damage_unit("enemy", 大数字)` 快速清场。
-- 游戏已移除倍速功能，`TestAPI` 不再提供 `set_time_scale`；需要验证长流程时用真实时间等待或多跑几帧。
+- 地图刷怪进度只在运行期；探针里可用 `pause_battle()` + `step_battle(300)` 推进 5 秒完成/重开，或用 `TestAPI.damage_unit("enemy", 大数字)` 快速清场。
+- 游戏没有倍速；需要确定性验证长流程用 `pause_battle()` + `step_battle()`，正常游玩仍按真实物理时间。
 - 新增全局类后，如果 headless 直接跑提示 `TestAPI` 未声明，先跑一次 `--headless --path . --import` 刷新全局类缓存。
 - 新增魂灵/怪物/技能/窗口时，先看这里要不要补方法。

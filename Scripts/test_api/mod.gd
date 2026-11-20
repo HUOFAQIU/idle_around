@@ -79,7 +79,7 @@ static func get_mod_load_order() -> Array[StringName]:
 
 
 static func get_mod_order() -> Array[StringName]:
-	return ModLoader.get_order_ids()
+	return ModLoader.get_user_order()
 
 
 static func set_mod_order(ids : Array[StringName]) -> bool:

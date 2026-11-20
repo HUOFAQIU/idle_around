@@ -15,6 +15,10 @@ static func soul_ids() -> PackedStringArray:
 	return _to_packed(INVENTORY.get_soul_ids())
 
 
+static func container_names() -> PackedStringArray:
+	return INVENTORY.get_container_names()
+
+
 static func monster_ids() -> PackedStringArray:
 	return _to_packed(INVENTORY.get_monster_ids())
 

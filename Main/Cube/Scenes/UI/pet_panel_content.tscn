@@ -12,6 +12,7 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("1_content")
+backdrop_path = NodePath("PetPanel/Background")
 
 [node name="PetPanel" parent="." instance=ExtResource("2_pet_panel")]
 layout_mode = 1

@@ -25,7 +25,7 @@ func _ready() -> void:
 	_build_ui()
 	for mod in ModLoader.get_mod_list():
 		_startup_enabled[StringName(mod.get("id", ""))] = bool(mod.get("enabled", true))
-	_startup_order = ModLoader.get_order_ids()
+	_startup_order = ModLoader.get_user_order()
 	refresh()
 
 
@@ -83,7 +83,7 @@ func get_test_state() -> Dictionary:
 		if _has_pending(mod):
 			pending += 1
 	var order_ids: Array[String] = []
-	for mod_id in ModLoader.get_order_ids():
+	for mod_id in ModLoader.get_user_order():
 		order_ids.append(String(mod_id))
 	var load_ids: Array[String] = []
 	for mod_id in ModLoader.get_load_order():
@@ -362,7 +362,7 @@ func _rebuild_order() -> void:
 		_order_box.remove_child(child)
 		child.queue_free()
 
-	var order := ModLoader.get_order_ids()
+	var order := ModLoader.get_user_order()
 	for index in order.size():
 		var mod := ModLoader.get_mod(order[index])
 		if mod != null:
@@ -394,7 +394,7 @@ func _add_order_row(index: int, mod: ModInfo, count: int) -> void:
 	row.add_child(state)
 
 	var builtin := mod.is_builtin()
-	var order := ModLoader.get_order_ids()
+	var order := ModLoader.get_user_order()
 	var previous_builtin := index > 0 and ModLoader.get_mod(order[index - 1]).is_builtin()
 	var up := Button.new()
 	up.text = "↑"
@@ -414,7 +414,7 @@ func _add_order_row(index: int, mod: ModInfo, count: int) -> void:
 
 
 func _move_order(index: int, delta: int) -> void:
-	var order := ModLoader.get_order_ids()
+	var order := ModLoader.get_user_order()
 	if index < 0 or index >= order.size():
 		return
 	var target := index + delta
@@ -501,7 +501,7 @@ func _has_pending(mod: Dictionary) -> bool:
 
 ## 基础加载顺序是否和启动时不同
 func _order_pending() -> bool:
-	return ModLoader.get_order_ids() != _startup_order
+	return ModLoader.get_user_order() != _startup_order
 
 
 func _update_status(pending: int) -> void:

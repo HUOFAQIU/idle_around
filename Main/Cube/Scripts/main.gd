@@ -5,6 +5,8 @@ extends Node3D
 ## 因此它始终压在游戏 UI 面板之上；面内容的请求在这里接到 GameFlow，
 ## GameFlow 的锁定/翻面/提示再回到立方体和 HUD。
 
+const STARTUP_TIMING: GDScript = preload("res://Scripts/debug/startup_timing.gd")
+
 @onready var _cube_rig: CubeRig = get_node(CubeScenePaths.RIG)
 @onready var _hud: CubeHud = $HUD
 @onready var _game_ui: GameUI = $GameUI/GameControl
@@ -25,6 +27,7 @@ func _ready() -> void:
 	_save_slots.new_game_requested.connect(GameFlow.request_new_game)
 	_save_slots.slot_requested.connect(GameFlow.request_load_slot)
 	_save_slots.delete_requested.connect(GameFlow.request_delete_slot)
+	_save_slots.quit_requested.connect(_on_quit_requested)
 	_character_select.character_requested.connect(GameFlow.create_new_game)
 	GameFlow.state_changed.connect(_on_flow_state_changed)
 	GameFlow.slots_changed.connect(_refresh_slots)
@@ -34,6 +37,9 @@ func _ready() -> void:
 	_placement.apply_now()
 	_refresh_slots()
 	_apply_face_locks()
+	STARTUP_TIMING.mark("主场景就绪")
+	await RenderingServer.frame_post_draw
+	STARTUP_TIMING.mark("首帧绘制")
 
 
 func _on_face_identified(
@@ -82,3 +88,9 @@ func _on_toast_requested(text: String) -> void:
 func _on_session_will_change() -> void:
 	_game_ui.close_all_panels()
 	_game_ui.battle_window.stop_battle()
+
+
+## 01 面「退出」：先落盘再关进程，和系统关闭窗口时的保存行为一致
+func _on_quit_requested() -> void:
+	SaveManager.save_now()
+	get_tree().quit()

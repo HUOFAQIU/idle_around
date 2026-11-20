@@ -347,6 +347,16 @@ func _fps_color(fps : float) -> Color:
 # start_map_battle() / stop_battle() 本身是公开接口，TestAPI 直接调用。
 
 
+## 测试：当前会话；没有时返回 null
+func get_battle_session() -> BattleSession:
+	return _session
+
+
+## 测试：当前战斗；没有时返回 null
+func get_battle() -> BattleManager:
+	return _battle
+
+
 ## 测试：立刻在远处空位刷一只指定怪物
 func spawn_monster_for_test(monster_id : StringName) -> bool:
 	return _session.spawn_monster_for_test(monster_id)

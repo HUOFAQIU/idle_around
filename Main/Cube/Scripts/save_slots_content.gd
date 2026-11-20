@@ -1,22 +1,26 @@
 class_name SaveSlotsContent
 extends FaceContent
-## 面 01 内容：6 个存档位 + 新游戏入口。
+## 面 01 内容：6 个存档位 + 新游戏入口 + 左上角退出。
 ##
-## 只负责显示和转交点击；读档/新游戏/删档/满槽提示由 GameFlow 决定。
+## 只负责显示和转交点击；读档/新游戏/删档/满槽提示由 GameFlow 决定，
+## 退出由 main.gd 保存活动槽后关闭进程。
 ## 槽位摘要通过 set_slots() 注入，避免面内容直接依赖 SaveManager。
 
 signal new_game_requested
 signal slot_requested(slot: int)
 signal delete_requested(slot: int)
+signal quit_requested
 
 const SLOT_COUNT: int = SaveStorage.SLOT_COUNT
 
 var _slot_entries: Array[SaveSlotEntry] = []
 
+@onready var _quit_button: Button = $Grid/QuitButton
 @onready var _new_game_button: Button = $Grid/NewGameButton
 
 
 func _ready() -> void:
+	_quit_button.pressed.connect(_on_quit_pressed)
 	_new_game_button.pressed.connect(_on_new_game_pressed)
 	for index in SLOT_COUNT:
 		var entry := get_node("Grid/Slot%d" % (index + 1)) as SaveSlotEntry
@@ -46,6 +50,11 @@ func set_slots(slots: Array) -> void:
 		_slot_entries[index].set_slot(index, occupied, character_name, active)
 
 
+## 测试/调试：走与鼠标点击相同的按钮信号；调用后会结束游戏进程
+func activate_quit() -> void:
+	_quit_button.pressed.emit()
+
+
 ## 测试/调试：走与鼠标点击相同的按钮信号
 func activate_new_game() -> void:
 	_new_game_button.pressed.emit()
@@ -68,6 +77,10 @@ func _cancel_delete_confirmations(except_slot: int = -1) -> void:
 	for index in _slot_entries.size():
 		if index != except_slot:
 			_slot_entries[index].set_confirming(false)
+
+
+func _on_quit_pressed() -> void:
+	quit_requested.emit()
 
 
 func _on_new_game_pressed() -> void:

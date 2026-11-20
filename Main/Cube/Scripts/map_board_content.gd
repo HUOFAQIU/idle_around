@@ -36,7 +36,8 @@ func _ready() -> void:
 	_rebuild()
 
 
-func setup(_index: int, _display_name: String, accent: Color) -> void:
+func setup(index: int, display_name: String, accent: Color) -> void:
+	super.setup(index, display_name, accent)
 	_accent_color = accent
 	for entry in _slot_entries:
 		entry.set_accent(accent)
@@ -86,17 +87,11 @@ func _rebuild() -> void:
 func _auto_place_pending() -> void:
 	if _auto_placing:
 		return
-	var pending := MapBoard.get_pending()
-	if pending == null or not MapBoard.can_place():
-		return
 	_auto_placing = true
-	var item := MapBoard.take_pending()
-	var slot_index := MapBoard.place(item)
+	var result := MapBoard.settle_pending()
 	_auto_placing = false
-	if slot_index >= 0:
-		_play_fly_animation(item, slot_index)
-	else:
-		MapBoard.set_pending(item)
+	if result.status == MapPlaceResult.Status.PLACED:
+		_play_fly_animation(result.item, result.slot_index)
 
 
 func _on_drop_slot_clicked() -> void:
@@ -116,20 +111,16 @@ func _on_drop_slot_clicked() -> void:
 ## 手上有地图时点中心槽：有空格就放按钮，满了就留在中心槽
 func _try_place_map(item: MapItemData) -> void:
 	var moving := GBIS.moving_item_service
-	if not MapBoard.can_place():
-		if MapBoard.get_pending() != null:
+	var result := MapBoard.submit(item)
+	match result.status:
+		MapPlaceResult.Status.PLACED:
+			moving.finish()
+			_play_fly_animation(result.item, result.slot_index)
+		MapPlaceResult.Status.QUEUED:
+			moving.finish()
 			toast_requested.emit("地图集已满")
-			return
-		moving.finish()
-		MapBoard.set_pending(item)
-		toast_requested.emit("地图集已满")
-		return
-	moving.finish()
-	var slot_index := MapBoard.place(item)
-	if slot_index >= 0:
-		_play_fly_animation(item, slot_index)
-	else:
-		MapBoard.set_pending(item)
+		MapPlaceResult.Status.REJECTED:
+			toast_requested.emit("地图集已满")
 
 
 func _on_map_pressed(slot_index: int) -> void:

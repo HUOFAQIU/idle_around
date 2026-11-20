@@ -21,6 +21,7 @@ const GAME_VERSION_SETTING: String = "application/config/version"
 const CONTENT_NAMING: GDScript = preload("res://Scripts/mod/content_naming.gd")
 const CONTENT_KIND_SPEC: GDScript = preload("res://Scripts/mod/content_kind_spec.gd")
 const MOD_PATHS: GDScript = preload("res://Scripts/mod/mod_paths.gd")
+const STARTUP_TIMING: GDScript = preload("res://Scripts/debug/startup_timing.gd")
 
 var _mods: Array[ModInfo] = []
 ## 按依赖/加载顺序排好、本次真正要加载的 mod
@@ -53,6 +54,7 @@ var _game_version: String = ""
 
 
 func _init() -> void:
+	STARTUP_TIMING.mark("首个 autoload")
 	_game_version = String(ProjectSettings.get_setting(GAME_VERSION_SETTING, "0.0.0"))
 	_load_config()
 	_load_order()
@@ -64,6 +66,7 @@ func _init() -> void:
 		push_warning("ModLoader: " + message)
 	for message in _warnings:
 		push_warning("ModLoader: " + message)
+	STARTUP_TIMING.mark("mod 加载完成")
 
 
 #region 查询
@@ -119,7 +122,7 @@ func get_load_order() -> Array[StringName]:
 
 
 ## 用户指定的基础加载顺序；内置 mod 固定在最前，未列出的追加在末尾
-func get_order_ids() -> Array[StringName]:
+func get_user_order() -> Array[StringName]:
 	var result: Array[StringName] = []
 	for mod in _mods:
 		if mod.is_builtin():

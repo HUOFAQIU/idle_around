@@ -71,7 +71,7 @@ func begin_run(run_id: int, battle: BattleManager, loadout: Array = []) -> void:
 				),
 				"column": entry.slot.column if entry.slot != null else -1,
 			})
-	record(CombatEvent.BATTLE, "start", {"souls": souls, "enemy_count": battle.enemy_count()})
+	record(CombatTelemetrySchema.BATTLE, "start", {"souls": souls, "enemy_count": battle.enemy_count()})
 	if record_to_file:
 		_open_file()
 	run_started.emit(run_id)
@@ -81,7 +81,7 @@ func begin_run(run_id: int, battle: BattleManager, loadout: Array = []) -> void:
 func end_run(reason: String = "") -> void:
 	if current_run_id == 0:
 		return
-	record(CombatEvent.BATTLE, "end", {"reason": reason})
+	record(CombatTelemetrySchema.BATTLE, "end", {"reason": reason})
 	var run_id := current_run_id
 	_close_file()
 	current_battle = null
@@ -120,19 +120,19 @@ func record(
 	category: String,
 	type: String,
 	fields: Dictionary = {},
-	importance: String = CombatEvent.IMPORTANT
+	importance: String = CombatTelemetrySchema.IMPORTANT
 ) -> Dictionary:
 	if not enabled:
 		return {}
 	# 详细事件在没有任何关注对象时直接丢弃，不做 duplicate / 归一化
-	if importance == CombatEvent.DETAIL and not record_detail_globally and watch_unit_id == 0:
+	if importance == CombatTelemetrySchema.DETAIL and not record_detail_globally and watch_unit_id == 0:
 		return {}
 
 	var event: Dictionary = fields.duplicate()
 	_normalize_units(event)
 	_normalize_trace(event)
 
-	if importance == CombatEvent.DETAIL and not _detail_allowed(event):
+	if importance == CombatTelemetrySchema.DETAIL and not _detail_allowed(event):
 		return {}
 
 	_seq += 1
@@ -144,7 +144,7 @@ func record(
 	event["type"] = type
 	event["importance"] = importance
 	if not event.has("color"):
-		event["color"] = CombatEvent.category_color(category)
+		event["color"] = CombatTelemetrySchema.category_color(category)
 
 	events.append(event)
 	if events.size() > max_events:
@@ -206,12 +206,12 @@ func bind_unit(unit: BattleUnit) -> void:
 	asc.ability_activation_failed.connect(_on_ability_activation_failed.bind(unit))
 	asc.gameplay_event_received.connect(_on_gameplay_event_received.bind(unit))
 
-	record(CombatEvent.BATTLE, "unit_bound", {
+	record(CombatTelemetrySchema.BATTLE, "unit_bound", {
 		"actor_unit": unit,
 		"max_health": unit.max_health,
 		"souls": _soul_names(unit),
 		"loadout_size": unit.loadout.size(),
-	}, CombatEvent.DETAIL)
+	}, CombatTelemetrySchema.DETAIL)
 
 
 ## 绑定一颗主动魂灵信号；需要在 SoulRuntime 建好后调用。
@@ -328,32 +328,32 @@ func get_stats() -> Dictionary:
 #region GAS 回调
 func _on_unit_died(unit: BattleUnit) -> void:
 	_bound_units.erase(unit.get_instance_id())
-	record(CombatEvent.BATTLE, "died", {
+	record(CombatTelemetrySchema.BATTLE, "died", {
 		"actor_unit": unit,
 		"hp": unit.health_attr.current_value if unit.health_attr != null else 0.0,
-	}, CombatEvent.IMPORTANT)
+	}, CombatTelemetrySchema.IMPORTANT)
 
 
 func _on_tag_added(tag: StringName, unit: BattleUnit) -> void:
-	record(CombatEvent.TAG, "added", {
+	record(CombatTelemetrySchema.TAG, "added", {
 		"actor_unit": unit,
 		"tag": String(tag),
-	}, CombatEvent.DETAIL)
+	}, CombatTelemetrySchema.DETAIL)
 
 
 func _on_tag_count_changed(tag: StringName, new_count: int, unit: BattleUnit) -> void:
-	record(CombatEvent.TAG, "count", {
+	record(CombatTelemetrySchema.TAG, "count", {
 		"actor_unit": unit,
 		"tag": String(tag),
 		"count": new_count,
-	}, CombatEvent.DETAIL)
+	}, CombatTelemetrySchema.DETAIL)
 
 
 func _on_tag_removed(tag: StringName, unit: BattleUnit) -> void:
-	record(CombatEvent.TAG, "removed", {
+	record(CombatTelemetrySchema.TAG, "removed", {
 		"actor_unit": unit,
 		"tag": String(tag),
-	}, CombatEvent.DETAIL)
+	}, CombatTelemetrySchema.DETAIL)
 
 
 func _on_attribute_changed(
@@ -369,7 +369,7 @@ func _on_attribute_changed(
 	fields["old"] = old_value
 	fields["new"] = new_value
 	fields["delta"] = new_value - old_value
-	record(CombatEvent.ATTRIBUTE, "changed", fields, CombatEvent.DETAIL)
+	record(CombatTelemetrySchema.ATTRIBUTE, "changed", fields, CombatTelemetrySchema.DETAIL)
 
 
 func _on_effect_applied_to_target(
@@ -381,7 +381,7 @@ func _on_effect_applied_to_target(
 	fields["actor_unit"] = source_unit
 	if target_asc != null and target_asc.get_parent() is BattleUnit:
 		fields["target_unit"] = target_asc.get_parent()
-	record(CombatEvent.EFFECT, "applied", fields, CombatEvent.DETAIL)
+	record(CombatTelemetrySchema.EFFECT, "applied", fields, CombatTelemetrySchema.DETAIL)
 
 
 func _on_effect_received(
@@ -403,10 +403,10 @@ func _on_effect_received(
 	fields["shield_delta"] = float(spec.calculated_deltas.get("shield", 0.0))
 	var important := target_unit.team == BattleUnit.Team.PLAYER or bool(fields.get("crit", false))
 	record(
-		CombatEvent.EFFECT,
+		CombatTelemetrySchema.EFFECT,
 		"received",
 		fields,
-		CombatEvent.IMPORTANT if important else CombatEvent.DETAIL
+		CombatTelemetrySchema.IMPORTANT if important else CombatTelemetrySchema.DETAIL
 	)
 
 
@@ -426,7 +426,7 @@ func _on_active_effect_added(active_effect: ActiveGameplayEffect, unit: BattleUn
 	fields["effect_tags"] = _string_array(active_effect.get_effect_def().granted_tags)
 	fields["persistent_cues"] = _string_array(active_effect.get_effect_def().persistent_cue_tags)
 	record(
-		CombatEvent.EFFECT,
+		CombatTelemetrySchema.EFFECT,
 		"added",
 		fields,
 		_event_importance(unit, source_unit)
@@ -443,7 +443,7 @@ func _on_active_effect_removed(active_effect: ActiveGameplayEffect, unit: Battle
 	fields["target_unit"] = unit
 	fields["stacks"] = active_effect.stack_count
 	record(
-		CombatEvent.EFFECT,
+		CombatTelemetrySchema.EFFECT,
 		"removed",
 		fields,
 		_event_importance(unit, source_unit)
@@ -464,23 +464,23 @@ func _on_periodic_effect_ticked(
 	fields["health_delta"] = float(spec.calculated_deltas.get("health", 0.0))
 	fields["shield_delta"] = float(spec.calculated_deltas.get("shield", 0.0))
 	fields["burn_delta"] = float(spec.calculated_deltas.get("burn", 0.0))
-	record(CombatEvent.EFFECT, "tick", fields, CombatEvent.DETAIL)
+	record(CombatTelemetrySchema.EFFECT, "tick", fields, CombatTelemetrySchema.DETAIL)
 
 
 func _on_ability_granted(ability: GameplayAbility, unit: BattleUnit) -> void:
-	record(CombatEvent.CAST, "granted", {
+	record(CombatTelemetrySchema.CAST, "granted", {
 		"actor_unit": unit,
 		"ability": CombatNames.ability_name(ability),
 		"ability_tag": String(ability.ability_tag),
-	}, CombatEvent.DETAIL)
+	}, CombatTelemetrySchema.DETAIL)
 
 
 func _on_ability_removed(ability: GameplayAbility, unit: BattleUnit) -> void:
-	record(CombatEvent.CAST, "removed", {
+	record(CombatTelemetrySchema.CAST, "removed", {
 		"actor_unit": unit,
 		"ability": CombatNames.ability_name(ability),
 		"ability_tag": String(ability.ability_tag),
-	}, CombatEvent.DETAIL)
+	}, CombatTelemetrySchema.DETAIL)
 
 
 func _on_ability_activation_failed(
@@ -489,13 +489,13 @@ func _on_ability_activation_failed(
 	payload: Dictionary,
 	unit: BattleUnit
 ) -> void:
-	record(CombatEvent.CAST, "blocked", {
+	record(CombatTelemetrySchema.CAST, "blocked", {
 		"actor_unit": unit,
 		"ability": CombatNames.ability_name(ability),
 		"ability_tag": String(ability.ability_tag) if ability != null else "",
 		"reason": _activation_error_name(reason),
 		"detail": _payload_summary(payload),
-	}, CombatEvent.IMPORTANT)
+	}, CombatTelemetrySchema.IMPORTANT)
 
 
 func _on_gameplay_event_received(
@@ -509,11 +509,11 @@ func _on_gameplay_event_received(
 		or tag.contains("FreezeApplied")
 		or tag.contains("BelowPercent")
 	)
-	record(CombatEvent.TRIGGER, "event", {
+	record(CombatTelemetrySchema.TRIGGER, "event", {
 		"actor_unit": unit,
 		"event": tag,
 		"detail": _payload_summary(payload),
-	}, CombatEvent.IMPORTANT if important else CombatEvent.DETAIL)
+	}, CombatTelemetrySchema.IMPORTANT if important else CombatTelemetrySchema.DETAIL)
 
 
 func _on_ability_became_ready(
@@ -521,7 +521,7 @@ func _on_ability_became_ready(
 	unit: BattleUnit,
 	runtime: SoulRuntime
 ) -> void:
-	record(CombatEvent.SOUL, "ready", _ability_event_fields(ability, unit, runtime), CombatEvent.DETAIL)
+	record(CombatTelemetrySchema.SOUL, "ready", _ability_event_fields(ability, unit, runtime), CombatTelemetrySchema.DETAIL)
 
 
 func _on_ability_charge_added(
@@ -541,10 +541,10 @@ func _on_ability_charge_added(
 	if trace != null:
 		fields["trace"] = trace
 	record(
-		CombatEvent.SOUL,
+		CombatTelemetrySchema.SOUL,
 		"charge",
 		fields,
-		CombatEvent.IMPORTANT if unit.team == BattleUnit.Team.PLAYER else CombatEvent.DETAIL
+		CombatTelemetrySchema.IMPORTANT if unit.team == BattleUnit.Team.PLAYER else CombatTelemetrySchema.DETAIL
 	)
 
 
@@ -562,10 +562,10 @@ func _on_ability_status_applied(
 	if trace != null:
 		fields["trace"] = trace
 	record(
-		CombatEvent.SOUL,
+		CombatTelemetrySchema.SOUL,
 		"status",
 		fields,
-		CombatEvent.IMPORTANT if unit.team == BattleUnit.Team.PLAYER else CombatEvent.DETAIL
+		CombatTelemetrySchema.IMPORTANT if unit.team == BattleUnit.Team.PLAYER else CombatTelemetrySchema.DETAIL
 	)
 
 
@@ -578,10 +578,10 @@ func _on_ability_status_expired(
 	var fields := _ability_event_fields(ability, unit, runtime)
 	fields["status"] = status_name
 	record(
-		CombatEvent.SOUL,
+		CombatTelemetrySchema.SOUL,
 		"status_end",
 		fields,
-		CombatEvent.IMPORTANT if unit.team == BattleUnit.Team.PLAYER else CombatEvent.DETAIL
+		CombatTelemetrySchema.IMPORTANT if unit.team == BattleUnit.Team.PLAYER else CombatTelemetrySchema.DETAIL
 	)
 #endregion
 
@@ -628,9 +628,9 @@ func _source_unit(spec: GameplayEffectSpec) -> BattleUnit:
 ## 目标玩家 → 全局重要事件；其余 → 详细事件（关注玩家/该单位时记录）
 func _event_importance(target: BattleUnit, _source: BattleUnit) -> String:
 	return (
-		CombatEvent.IMPORTANT
+		CombatTelemetrySchema.IMPORTANT
 		if target != null and target.team == BattleUnit.Team.PLAYER
-		else CombatEvent.DETAIL
+		else CombatTelemetrySchema.DETAIL
 	)
 
 
@@ -714,13 +714,13 @@ func _payload_summary(payload: Variant) -> String:
 
 func _normalize_units(event: Dictionary) -> void:
 	if event.has("actor_unit"):
-		event["actor"] = CombatEvent.unit_info(event["actor_unit"])
+		event["actor"] = CombatTelemetrySchema.unit_info(event["actor_unit"])
 		event.erase("actor_unit")
 	if event.has("target_unit"):
-		event["target"] = CombatEvent.unit_info(event["target_unit"])
+		event["target"] = CombatTelemetrySchema.unit_info(event["target_unit"])
 		event.erase("target_unit")
 	if event.has("unit_unit"):
-		event["unit"] = CombatEvent.unit_info(event["unit_unit"])
+		event["unit"] = CombatTelemetrySchema.unit_info(event["unit_unit"])
 		event.erase("unit_unit")
 
 

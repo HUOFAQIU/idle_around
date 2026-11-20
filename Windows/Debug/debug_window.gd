@@ -13,16 +13,16 @@ const LOG_MAX_LINES: int = 1200
 const SOUL_STATUS_ROW := preload("res://Windows/Debug/soul_status_row.gd")
 
 const CATEGORY_NAMES := {
-	CombatEvent.BATTLE: "战斗",
-	CombatEvent.CAST: "施法",
-	CombatEvent.SOUL: "魂灵",
-	CombatEvent.TRIGGER: "触发器",
-	CombatEvent.EFFECT: "效果",
-	CombatEvent.ATTRIBUTE: "属性",
-	CombatEvent.TAG: "标签",
-	CombatEvent.CUE: "特效",
-	CombatEvent.LOG: "日志",
-	CombatEvent.SYSTEM: "系统",
+	CombatTelemetrySchema.BATTLE: "战斗",
+	CombatTelemetrySchema.CAST: "施法",
+	CombatTelemetrySchema.SOUL: "魂灵",
+	CombatTelemetrySchema.TRIGGER: "触发器",
+	CombatTelemetrySchema.EFFECT: "效果",
+	CombatTelemetrySchema.ATTRIBUTE: "属性",
+	CombatTelemetrySchema.TAG: "标签",
+	CombatTelemetrySchema.CUE: "特效",
+	CombatTelemetrySchema.LOG: "日志",
+	CombatTelemetrySchema.SYSTEM: "系统",
 }
 
 const TYPE_NAMES := {
@@ -571,7 +571,7 @@ func _on_unlock_all_toggled(on: bool) -> void:
 
 #region 事件流
 func _on_event_recorded(event: Dictionary) -> void:
-	if String(event.get("category", "")) == CombatEvent.LOG:
+	if String(event.get("category", "")) == CombatTelemetrySchema.LOG:
 		_append_log_event(event)
 	if not visible:
 		return
@@ -690,9 +690,9 @@ func _matches_filter(event: Dictionary) -> bool:
 		if int(event.get("run_id", 0)) != CombatTelemetry.current_run_id:
 			return false
 	var importance := _importance_option.selected
-	if importance == 1 and String(event.get("importance", "")) != CombatEvent.IMPORTANT:
+	if importance == 1 and String(event.get("importance", "")) != CombatTelemetrySchema.IMPORTANT:
 		return false
-	if importance == 2 and String(event.get("importance", "")) != CombatEvent.DETAIL:
+	if importance == 2 and String(event.get("importance", "")) != CombatTelemetrySchema.DETAIL:
 		return false
 	var needle := _search_edit.text.strip_edges().to_lower()
 	if needle.is_empty():
@@ -816,7 +816,7 @@ func _clear_soul_rows() -> void:
 
 func _format_recent_events() -> String:
 	var lines: Array[String] = []
-	var filter: Dictionary = {"importance": CombatEvent.IMPORTANT}
+	var filter: Dictionary = {"importance": CombatTelemetrySchema.IMPORTANT}
 	if CombatTelemetry.current_run_id != 0:
 		filter["run_id"] = CombatTelemetry.current_run_id
 	for event in CombatTelemetry.query(filter, 12):
@@ -968,7 +968,7 @@ func _soul_contribution(soul_name: String) -> Dictionary:
 		if not _event_belongs_to_soul(event, soul_name):
 			continue
 		result["events"] = int(result["events"]) + 1
-		if String(event.get("category", "")) != CombatEvent.EFFECT:
+		if String(event.get("category", "")) != CombatTelemetrySchema.EFFECT:
 			continue
 		var health_delta := float(event.get("health_delta", 0.0))
 		var shield_delta := float(event.get("shield_delta", 0.0))
@@ -1214,7 +1214,7 @@ func _refresh_gas() -> void:
 	if CombatTelemetry.current_run_id != 0:
 		run_filter["run_id"] = CombatTelemetry.current_run_id
 	var blocked_filter := run_filter.duplicate()
-	blocked_filter["category"] = CombatEvent.CAST
+	blocked_filter["category"] = CombatTelemetrySchema.CAST
 	blocked_filter["type"] = "blocked"
 	var blocked := CombatTelemetry.query(blocked_filter, 10)
 	if blocked.is_empty():
@@ -1229,7 +1229,7 @@ func _refresh_gas() -> void:
 	lines.append("")
 	lines.append("[b]最近 GAS 事件[/b]")
 	var gas_filter := run_filter.duplicate()
-	gas_filter["category"] = CombatEvent.TRIGGER
+	gas_filter["category"] = CombatTelemetrySchema.TRIGGER
 	gas_filter["type"] = "event"
 	for event in CombatTelemetry.query(gas_filter, 10):
 		lines.append("%.2fs %s  %s" % [
@@ -1260,7 +1260,7 @@ func _rebuild_log() -> void:
 	_log_rebuilding = true
 	_log_text.clear()
 	_log_line_count = 0
-	for event in CombatTelemetry.query({"category": CombatEvent.LOG}, 800):
+	for event in CombatTelemetry.query({"category": CombatTelemetrySchema.LOG}, 800):
 		_log_text.append_text("[color=%s]%s[/color]\n" % [
 			String(event.get("color", "white")),
 			String(event.get("text", "")),

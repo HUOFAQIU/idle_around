@@ -12,6 +12,8 @@ signal entry_unlocked(kind: int, id: StringName)
 ## 读档整体替换“已遇见”状态后发出；图鉴窗口用它整体刷新
 signal state_reloaded
 
+const STARTUP_TIMING: GDScript = preload("res://Scripts/debug/startup_timing.gd")
+
 ## 测试开关：见闻条目是否全部按已解锁显示；默认关闭。
 ## 只影响显示，不写存档；调试窗口/TestAPI 可以临时切换。
 var unlock_all_for_testing: bool = false
@@ -25,6 +27,7 @@ var _seen: Dictionary = {}
 
 
 func _ready() -> void:
+	STARTUP_TIMING.mark("GBIS 等前置 autoload 完成")
 	_reset_seen()
 	_load_catalog()
 	GBIS.sig_inv_item_added.connect(_on_inv_item_added)

@@ -23,6 +23,7 @@ const FACE_ENTRY: int = 0
 const FACE_MENU: int = 1
 const FACE_CHARACTER: int = 3
 const FACE_MAP: int = 4
+const STARTUP_TIMING: GDScript = preload("res://Scripts/debug/startup_timing.gd")
 
 var _state: State = State.NO_SESSION
 var _active_character: CharacterDefinition
@@ -30,6 +31,7 @@ var _profile: PlayerProfile
 
 
 func _ready() -> void:
+	STARTUP_TIMING.mark("autoload 全部就绪")
 	SaveManager.slot_list_changed.connect(_on_slot_list_changed)
 	SaveManager.active_slot_changed.connect(_on_active_slot_changed)
 
@@ -96,7 +98,7 @@ func request_load_slot(slot: int) -> bool:
 
 ## 01 面删除非活动存档；活动槽不显示删除按钮，这里再拦一次
 func request_delete_slot(slot: int) -> bool:
-	if slot < 0 or slot >= SaveManager.SLOT_COUNT:
+	if slot < 0 or slot >= SaveStorage.SLOT_COUNT:
 		return false
 	if slot == SaveManager.get_active_slot():
 		toast_requested.emit("当前存档正在使用，无法删除")

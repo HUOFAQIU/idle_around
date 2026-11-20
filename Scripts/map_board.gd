@@ -70,6 +70,34 @@ func place_at(slot_index: int, item: MapItemData) -> bool:
 	return true
 
 
+## 提交一张地图：有空槽放第一个空槽，满则进中心待放槽；
+## 中心已有待放时拒绝，物品仍归调用方。
+func submit(item: MapItemData) -> MapPlaceResult:
+	if item == null:
+		return MapPlaceResult.rejected()
+	var slot_index := place(item)
+	if slot_index >= 0:
+		return MapPlaceResult.placed(item, slot_index)
+	if _pending != null:
+		return MapPlaceResult.rejected(item)
+	set_pending(item)
+	return MapPlaceResult.queued(item)
+
+
+## 中心待放地图进场：有空槽就原子地放入并清空中心槽。
+func settle_pending() -> MapPlaceResult:
+	if _pending == null:
+		return MapPlaceResult.rejected()
+	var slot_index := first_empty_slot()
+	if slot_index < 0:
+		return MapPlaceResult.queued(_pending)
+	var item := _pending
+	_pending = null
+	_slots[slot_index] = item
+	board_changed.emit()
+	return MapPlaceResult.placed(item, slot_index)
+
+
 func set_pending(item: MapItemData) -> void:
 	if _pending == item:
 		return

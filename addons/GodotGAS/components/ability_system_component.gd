@@ -90,6 +90,9 @@ var _active_tags: Dictionary = {}
 ## Array tracking all active gameplay effects currently applied to this component.
 var _active_effects: Array[ActiveGameplayEffect] = []
 
+## 项目扩展：手动时间模式。为 true 时 _process 不推进，由 BattleClock 调 advance_time()。
+var manual_time: bool = false
+
 ## Recursion-guard flags to safely cascade suppression evaluations when tags change.
 var _is_evaluating_suppression: bool = false
 var _suppression_queued: bool = false
@@ -156,6 +159,13 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
+	if manual_time:
+		return
+	advance_time(delta)
+
+
+## 项目扩展：显式推进持续效果；手动时间模式与正常 _process 共用同一段逻辑。
+func advance_time(delta: float) -> void:
 	for i in range(_active_effects.size() - 1, -1, -1):
 		var active_effect = _active_effects[i]
 		

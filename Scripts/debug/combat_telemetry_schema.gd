@@ -2,7 +2,7 @@
 ##
 ## 事件本身用 Dictionary 存，方便直接写 JSONL；这里只放常量和
 ## “单位 → 可序列化字段”的转换，避免把 Node 引用写进事件缓冲。
-class_name CombatEvent extends RefCounted
+class_name CombatTelemetrySchema extends RefCounted
 
 ## 分类与重要度沿用模拟层事件总线的词表，保证两边字符串永远一致。
 

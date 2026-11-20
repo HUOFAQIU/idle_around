@@ -9,13 +9,33 @@ const COMMON: GDScript = preload("res://Scripts/test_api/common.gd")
 const CONTAINER_IDS: GDScript = preload("res://Scripts/container_ids.gd")
 
 static func add_soul(id : StringName, container : String = "") -> bool:
-	if container.is_empty():
-		container = CONTAINER_IDS.MAIN_INVENTORY
 	var soul := CollectionDB.get_soul(id)
 	if soul == null:
 		push_warning("TestAPI：魂灵不存在 %s" % id)
 		return false
+	if container.is_empty():
+		return Warehouse.add_item(soul)
+	if not has_container(container):
+		push_warning("TestAPI：容器不存在 %s" % container)
+		return false
 	return GBIS.add_item(container, soul)
+
+
+static func has_container(container: String) -> bool:
+	return ContainerRepository.instance.get_container(container) != null
+
+
+## 已注册容器名：仓库页、魂器网格、商店；命令补全和参数校验共用
+static func get_container_names() -> PackedStringArray:
+	var names := PackedStringArray()
+	for name in GBIS.inventory_names:
+		if not names.has(name):
+			names.append(name)
+	for name in GBIS.shop_names:
+		if not names.has(name):
+			names.append(name)
+	names.sort()
+	return names
 
 
 static func add_soul_to_warehouse(id : StringName) -> bool:

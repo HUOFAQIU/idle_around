@@ -38,30 +38,20 @@ grow_vertical = 2
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
 
-[node name="Title" type="Label" parent="."]
-layout_mode = 0
-mouse_filter = 2
-offset_left = 12.0
-offset_top = 8.0
-offset_right = 80.0
-offset_bottom = 28.0
-theme_override_colors/font_color = Color(0.55, 0.63, 0.73, 1)
-theme_override_font_sizes/font_size = 14
-text = "地图"
-
 [node name="Grid" type="GridContainer" parent="."]
 custom_minimum_size = Vector2(248, 248)
 layout_mode = 1
-anchors_preset = 7
+anchors_preset = 8
 anchor_left = 0.5
-anchor_top = 1.0
+anchor_top = 0.5
 anchor_right = 0.5
-anchor_bottom = 1.0
+anchor_bottom = 0.5
 offset_left = -124.0
-offset_top = -248.0
+offset_top = -124.0
 offset_right = 124.0
+offset_bottom = 124.0
 grow_horizontal = 2
-grow_vertical = 0
+grow_vertical = 2
 mouse_filter = 2
 theme_override_constants/h_separation = 4
 theme_override_constants/v_separation = 4

@@ -16,6 +16,8 @@ static func soul_add(args: PackedStringArray) -> Dictionary:
 	if not check.ok:
 		return check
 	var container := args[1] if args.size() > 1 else ""
+	if not container.is_empty() and not INVENTORY.has_container(container):
+		return CommandResult.fail("容器不存在：%s" % container)
 	if not INVENTORY.add_soul(StringName(args[0]), container):
 		return CommandResult.fail("放入失败：魂灵不存在或容器放不下")
 	return CommandResult.ok(true)

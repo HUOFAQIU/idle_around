@@ -44,6 +44,8 @@ var _map_run: MapRun
 var _pending_spawn_ids: Array[StringName] = []
 ## 地图完成标记；完成后等待 5 秒重开
 var _map_finished: bool = false
+## 手动时间模式；重开地图时新会话沿用
+var _manual_time: bool = false
 ## 本场按 content_id 统计的击杀数（测试/调试用）
 var _map_kills: Dictionary = {}
 ## 测试接口：下一次刷怪强制使用这个 ID，刷出后清空
@@ -56,7 +58,10 @@ var _spawn_cells_by_distance: Dictionary = {}
 
 ## 清掉上一场，按地图配置重新开一场
 func start(p_slots: Array[SoulSlot], map_item: MapItemData) -> void:
+	# 内部重开沿用当前时间模式；外部 stop() 会退回正常速度
+	var manual := _manual_time
 	stop()
+	_manual_time = manual
 	run_id += 1
 	slots = p_slots
 	_map_item = map_item
@@ -73,6 +78,7 @@ func start(p_slots: Array[SoulSlot], map_item: MapItemData) -> void:
 	battle.spawn_enemy = _spawn_enemy
 	battle.loot_sink = Warehouse.add_item
 	battle.setup()
+	battle.clock.manual = _manual_time
 	if attach_observers.is_valid():
 		attach_observers.call(battle)
 
@@ -95,6 +101,7 @@ func start(p_slots: Array[SoulSlot], map_item: MapItemData) -> void:
 ## 关窗/重开：作废复活等待，清掉所有单位和运行时状态
 func stop() -> void:
 	run_id += 1
+	_manual_time = false
 	CombatTelemetry.end_run("clear")
 	SoulRuntimeDB.clear()
 	for child in units_root.get_children():
@@ -127,6 +134,34 @@ func spawn_monster_for_test(monster_id: StringName) -> bool:
 		return true
 	_test_monster_id = &""
 	return false
+
+
+## 测试：切换手动时间模式；新刷出的单位会沿用当前模式
+func set_manual_time(enabled: bool) -> bool:
+	if battle == null or battle.clock == null or not battle.is_running:
+		return false
+	_manual_time = enabled
+	battle.clock.manual = enabled
+	for unit in battle.units:
+		if unit != null and unit.asc != null:
+			unit.asc.manual_time = enabled
+	return true
+
+
+## 测试：手动推进固定 tick；只在 set_manual_time(true) 后有效
+func step_ticks(count: int) -> bool:
+	if battle == null or battle.clock == null or not battle.clock.manual:
+		return false
+	var delta := battle.clock.tick_seconds
+	for _index in maxi(count, 0):
+		if battle == null or not is_instance_valid(battle) or not battle.is_running:
+			return false
+		battle.clock.advance(delta)
+		advance(delta)
+		battle.advance_units(delta)
+		_advance_projectiles(delta)
+		battle.advance(delta)
+	return true
 
 
 ## 当前战斗快照；没有战斗时 running = false
@@ -189,12 +224,25 @@ func get_state() -> Dictionary:
 
 ## 每物理帧推进地图刷怪；完成判定放在刷怪之后
 func _physics_process(delta: float) -> void:
+	if battle == null or battle.clock == null or battle.clock.manual:
+		return
+	advance(delta)
+
+
+## 推进一个固定 tick 的地图刷怪；完成判定放在刷怪之后
+func advance(delta: float) -> void:
 	if battle == null or not battle.is_running or _map_run == null or _map_finished:
 		return
-	_enqueue_spawns(_map_run.tick(delta))
+	_enqueue_spawns(_map_run.advance(delta))
 	while not _pending_spawn_ids.is_empty():
 		battle.spawn_one()
 	_check_map_finished()
+
+
+func _advance_projectiles(delta: float) -> void:
+	for projectile in get_tree().get_nodes_in_group(SoulProjectile.GROUP):
+		if projectile is SoulProjectile and is_instance_valid(projectile):
+			projectile.advance(delta)
 
 
 #region 生成
@@ -353,9 +401,8 @@ func _check_map_finished() -> void:
 	_map_finished = true
 	battle.log_line("地图完成，%.0f 秒后重新开始……" % MAP_RESTART_DELAY, "yellow")
 	var current_run := run_id
-	get_tree().create_timer(MAP_RESTART_DELAY).timeout.connect(
-		_on_map_restart_timeout.bind(current_run), CONNECT_ONE_SHOT
-	)
+	@warning_ignore("missing_await")
+	_restart_map_later(battle.clock, current_run)
 
 
 func _on_map_restart_timeout(current_run: int) -> void:
@@ -364,6 +411,12 @@ func _on_map_restart_timeout(current_run: int) -> void:
 	var next_slots: Array[SoulSlot] = []
 	next_slots.append_array(slots)
 	start(next_slots, _map_item)
+
+
+## 用战斗时钟等待；手动步进时也能推进，不再依赖真实计时器
+func _restart_map_later(clock: BattleClock, current_run: int) -> void:
+	await clock.wait_seconds(MAP_RESTART_DELAY)
+	_on_map_restart_timeout(current_run)
 
 #endregion
 
@@ -375,7 +428,8 @@ func _on_player_died(_unit: BattleUnit) -> void:
 	var next_slots: Array[SoulSlot] = []
 	next_slots.append_array(slots)
 	var map_item := _map_item
-	await get_tree().create_timer(REVIVE_DELAY).timeout
+	var clock := battle.clock
+	await clock.wait_seconds(REVIVE_DELAY)
 	if current_run != run_id:
 		return
 	start(next_slots, map_item)

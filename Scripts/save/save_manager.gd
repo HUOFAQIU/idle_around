@@ -1,8 +1,9 @@
 extends Node
 ## 存档管理（Autoload：SaveManager）。
 ##
-## 六槽 JSON 存档门面：顶层文档见 SaveDocument，文件读写见 SaveStorage，
-## 去抖/心跳见 SaveScheduler，容器与见闻各是一个 SaveParticipant。
+## 组合根 + 会话状态：把磁盘 storage、三个生产 participant 组装成 SavePipeline，
+## 自己只管活动槽、游戏时长、信号和 autoload 副作用（GBIS / SoulRuntimeDB / UI 刷新）。
+## 版本、主备回退与 participant 顺序在 SavePipeline；文件格式在 SaveDocument。
 ## 只保存玩家进度：容器里的物品、见闻和角色身份；战斗运行期状态和静态资源数据不存。
 ## 启动只扫描槽位摘要，不自动读档；没有活动槽时不累计时长、不写盘。
 
@@ -11,9 +12,8 @@ signal slot_loaded(slot: int)
 signal slot_saved(slot: int)
 signal active_slot_changed(slot: int)
 
-const SLOT_COUNT: int = SaveStorage.SLOT_COUNT
-
-var _storage := SaveStorage.new()
+var _storage: SaveStorage = DiskSaveStorage.new()
+var _pipeline: SavePipeline
 var _scheduler := SaveScheduler.new()
 var _containers := ContainerSaveParticipant.new()
 var _collection := CollectionSaveParticipant.new()
@@ -34,6 +34,7 @@ func _ready() -> void:
 	_participants.append(_containers)
 	_participants.append(_collection)
 	_participants.append(_map_board)
+	_pipeline = SavePipeline.new(_storage, _participants)
 	_connect_signals()
 	refresh_slot_summaries()
 	# 仓库页由 Warehouse autoload 预注册，魂器网格由 CharacterWindow 里的 InventoryView._ready() 注册；
@@ -52,7 +53,7 @@ func _process(delta: float) -> void:
 	if _active_slot < 0:
 		return
 	_play_time_sec += delta
-	if _loading or _storage.is_read_only():
+	if _loading or _pipeline.is_read_only():
 		return
 	if _scheduler.tick(delta):
 		save_now()
@@ -71,13 +72,13 @@ func save_now() -> bool:
 	if _active_slot < 0:
 		return false
 	_scheduler.begin_save()
-	if _loading or _storage.is_read_only():
+	if _loading or _pipeline.is_read_only():
 		return false
 	if not _containers.containers_ready():
 		push_error("存档：容器尚未注册，不能写档")
 		return false
 	var keep_backup := _keep_backup_next_save
-	var ok := _storage.write(_active_slot, collect_save_data(), keep_backup)
+	var ok := _pipeline.save(_active_slot, _play_time_sec, _player_data, keep_backup)
 	if ok:
 		_keep_backup_next_save = false
 		_scheduler.on_saved()
@@ -97,30 +98,13 @@ func load_slot(slot: int) -> bool:
 		push_warning("存档：正在拖拽物品，先放下再读档")
 		return false
 
-	var data := _storage.read_primary(slot)
-	var write_back := false
-	var keep_backup := false
-	if data.is_empty():
-		data = _storage.read_backup(slot)
-		if not data.is_empty():
-			push_warning("存档：槽 %d 主文件不可用，已回退到备份" % (slot + 1))
-			write_back = true
-			keep_backup = true
-	if data.is_empty():
+	var result := _pipeline.load(slot)
+	if result.status == SaveLoadResult.Status.EMPTY:
 		return false
 
-	var version := SaveDocument.version_of(data)
-	var read_only := false
-	if version > SaveDocument.VERSION:
-		push_warning("存档：版本 %d 高于当前 %d，只读不覆盖" % [version, SaveDocument.VERSION])
-		read_only = true
-	elif version != SaveDocument.VERSION:
-		data = SaveDocument.migrate(data, version)
-		write_back = true
-
-	_keep_backup_next_save = keep_backup
-	write_back = _apply_data(data, true, slot, read_only) or write_back
-	if write_back and not read_only:
+	_keep_backup_next_save = result.keep_backup
+	var write_back := _apply_data(result.data, true, slot, result.read_only) or result.write_back
+	if write_back and not result.read_only:
 		save_now()
 	slot_loaded.emit(slot)
 	return true
@@ -140,12 +124,12 @@ func create_new_game(slot: int, player_data: Dictionary) -> bool:
 	if is_slot_occupied(slot):
 		return false
 	# 文件存在但解析失败：按空槽处理；写盘会把旧主文件轮换成 .bak
-	if _storage.has_save(slot):
+	if _pipeline.has_save(slot):
 		push_warning("存档：槽 %d 文件不可读，按空槽覆盖" % (slot + 1))
 	_keep_backup_next_save = false
 	# 先写盘成功，再清空内存并切换活动槽；写失败时旧会话保持原样
-	var document := SaveDocument.build(0.0, player_data)
-	if not _storage.write(slot, document):
+	var document := _pipeline.create(slot, player_data)
+	if document.is_empty():
 		return false
 	_apply_data(document, false, slot, false, player_data)
 	slot_saved.emit(slot)
@@ -155,10 +139,7 @@ func create_new_game(slot: int, player_data: Dictionary) -> bool:
 
 ## 当前内存状态的存档快照（不写盘）
 func collect_save_data() -> Dictionary:
-	var document := SaveDocument.build(_play_time_sec, _player_data)
-	for participant in _participants:
-		participant.collect_into(document)
-	return document
+	return _pipeline.collect(_play_time_sec, _player_data)
 
 
 ## 六个槽的摘要：slot / occupied / player / saved_at / play_time
@@ -223,21 +204,21 @@ func get_orphaned_records() -> Array[Dictionary]:
 func get_save_status() -> Dictionary:
 	return {
 		"ready": _containers.containers_ready(),
-		"read_only": _storage.is_read_only(),
+		"read_only": _pipeline.is_read_only(),
 		"missing_containers": _containers.missing_containers(),
 		"active_slot": _active_slot,
 	}
 
 
 func get_save_path(slot: int) -> String:
-	return _storage.path(slot)
+	return _pipeline.path(slot)
 
 
 ## 删除磁盘文件；删的是活动槽时停止计时、清掉只读态并断开活动槽
 func delete_slot(slot: int) -> bool:
 	if not SaveStorage.is_valid_slot(slot):
 		return false
-	var ok := _storage.delete(slot)
+	var ok := _pipeline.delete(slot)
 	if not ok:
 		return false
 	if slot == _active_slot:
@@ -246,7 +227,7 @@ func delete_slot(slot: int) -> bool:
 		_play_time_sec = 0.0
 		_keep_backup_next_save = false
 		_scheduler.reset()
-		_storage.set_read_only(false)
+		_pipeline.set_read_only(false)
 		active_slot_changed.emit(-1)
 	refresh_slot_summaries()
 	return true
@@ -254,20 +235,14 @@ func delete_slot(slot: int) -> bool:
 
 ## 外部系统（见闻、未来的 progression）在状态变化时调用
 func mark_dirty(urgent: bool = false) -> void:
-	if _active_slot < 0 or _loading or _storage.is_read_only():
+	if _active_slot < 0 or _loading or _pipeline.is_read_only():
 		return
 	_scheduler.mark_dirty(urgent)
 
 
 ## 重新扫描六个槽的摘要；槽位列表 UI 监听 slot_list_changed
 func refresh_slot_summaries() -> void:
-	var summaries: Array[Dictionary] = []
-	for slot in SLOT_COUNT:
-		var data := _storage.read_primary(slot)
-		if data.is_empty():
-			data = _storage.read_backup(slot)
-		summaries.append(_make_summary(slot, data))
-	_slot_summaries = summaries
+	_slot_summaries = _pipeline.summaries()
 	slot_list_changed.emit()
 #endregion
 
@@ -283,15 +258,9 @@ func _apply_data(
 ) -> bool:
 	_loading = true
 	_scheduler.reset()
-	_storage.set_read_only(read_only)
+	_pipeline.set_read_only(read_only)
 	SoulRuntimeDB.clear()
-	var write_back := false
-	for participant in _participants:
-		if participant.apply_from(data, has_disk_data):
-			write_back = true
-	for participant in _participants:
-		if participant.finish_load():
-			write_back = true
+	var write_back := _pipeline.apply(data, has_disk_data)
 	_play_time_sec = float(data.get(SaveDocument.KEY_PLAY_TIME, 0.0))
 	_player_data = (
 		player_override.duplicate(true)
@@ -307,27 +276,9 @@ func _apply_data(
 	return write_back
 
 
-func _make_summary(slot: int, data: Dictionary) -> Dictionary:
-	if data.is_empty():
-		return {
-			"slot": slot,
-			"occupied": false,
-			"player": {},
-			"saved_at": 0,
-			"play_time": 0.0,
-		}
-	return {
-		"slot": slot,
-		"occupied": true,
-		"player": SaveDocument.player_of(data),
-		"saved_at": int(data.get(SaveDocument.KEY_SAVED_AT, 0)),
-		"play_time": float(data.get(SaveDocument.KEY_PLAY_TIME, 0.0)),
-	}
-
-
 ## 进入只读：不读档也不写档，避免容器不齐时覆盖存档
 func _enter_read_only(reason: String, report_error: bool) -> void:
-	_storage.set_read_only(true)
+	_pipeline.set_read_only(true)
 	set_process(false)
 	if report_error:
 		push_error("存档：%s；本次不读档也不写档" % reason)

@@ -66,6 +66,20 @@ static func add_map_to_board(
 	return slot_index if MapBoard.place_at(slot_index, item) else -1
 
 
+## 走 MapBoard.submit：有空槽放入，满则进中心待放槽
+static func submit_map_to_board(map_id : StringName = MapCatalog.FOREST_MAP_ID) -> Dictionary:
+	var item := MapCatalog.make_map_item(map_id)
+	if item == null:
+		push_warning("TestAPI：地图不存在 %s" % map_id)
+		return {"status": "rejected", "slot": -1, "map_id": String(map_id)}
+	return _place_result_dict(MapBoard.submit(item))
+
+
+## 中心待放地图进场；返回状态与槽位
+static func settle_pending_map() -> Dictionary:
+	return _place_result_dict(MapBoard.settle_pending())
+
+
 ## 走 ⬇ 的退回仓库流程；仓库满时返回 false 且地图留在板上
 static func eject_map_from_board(slot_index : int) -> bool:
 	return MapBoard.eject(slot_index)
@@ -89,3 +103,21 @@ static func click_map_drop_slot() -> bool:
 		return false
 	content.activate_drop_slot()
 	return true
+
+
+static func _place_result_dict(result: MapPlaceResult) -> Dictionary:
+	return {
+		"status": _place_status_name(result.status),
+		"slot": result.slot_index,
+		"map_id": String(result.item.map_id()) if result.item != null else "",
+	}
+
+
+static func _place_status_name(status: MapPlaceResult.Status) -> String:
+	match status:
+		MapPlaceResult.Status.PLACED:
+			return "placed"
+		MapPlaceResult.Status.QUEUED:
+			return "queued"
+		_:
+			return "rejected"

@@ -140,6 +140,37 @@ static func get_battle_tick() -> int:
 	return 0 if battle == null else battle.tick_count()
 
 
+## 暂停战斗仿真：引擎物理帧不再推进，改用 step_battle()
+static func pause_battle() -> bool:
+	var session := _active_session()
+	return session != null and session.set_manual_time(true)
+
+
+## 恢复战斗仿真
+static func resume_battle() -> bool:
+	var session := _active_session()
+	return session != null and session.set_manual_time(false)
+
+
+## 手动推进战斗 tick；只在 pause_battle() 之后有效
+static func step_battle(ticks : int = 1) -> bool:
+	var session := _active_session()
+	return session != null and session.step_ticks(ticks)
+
+
+## 战斗时钟快照
+static func get_battle_clock() -> Dictionary:
+	var session := _active_session()
+	if session == null or session.battle == null or session.battle.clock == null:
+		return {}
+	var clock := session.battle.clock
+	return {
+		"manual": clock.manual,
+		"tick_seconds": clock.tick_seconds,
+		"ticks_per_second": clock.ticks_per_second,
+	}
+
+
 static func get_enemy_count() -> int:
 	var battle := _active_battle()
 	return 0 if battle == null else battle.enemy_count()
@@ -207,7 +238,12 @@ static func _apply_dot(
 
 static func _active_battle() -> BattleManager:
 	var window := _battle_window()
-	return window._battle if window != null else null
+	return window.get_battle() if window != null else null
+
+
+static func _active_session() -> BattleSession:
+	var window := _battle_window()
+	return window.get_battle_session() if window != null else null
 
 
 ## 按显示名找某个单位已装备的魂灵技能

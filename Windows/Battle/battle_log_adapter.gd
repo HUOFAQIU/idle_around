@@ -1,6 +1,3 @@
-## 战斗日志事件 → UI 接收器（BattleWindow 传入 InfoWindow.append_line）。
-##
-## 与遥测/控制台适配器并列，都只订阅事件，模拟层不需要知道窗口存在。
 class_name BattleLogAdapter extends RefCounted
 
 var _sink: Callable

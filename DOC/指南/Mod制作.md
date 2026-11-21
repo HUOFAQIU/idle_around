@@ -1,6 +1,6 @@
 # Mod 制作与打包
 
-> 类型：指南 | 状态：部分实现（内置 core 已接入）
+> 类型：指南 | 状态：部分实现（内置 core 已接入） | 核对：2026-11-21
 > 何时读：制作、打包、调试 idle_around 的 mod，或新增官方内容
 > 关键词：mod.json content.pck modkit 示例 mod pack_example patch 导出 覆盖 加载顺序 内置 core content_root content_namespace validate_core_manifest manifest 校验 内容 ID 技能 ID 命名 PascalCase content_id 魂器 vessels
 > 代码：`Scripts/mod/`、`Scripts/collection_db.gd`、`base_mods/core/mod.json`
@@ -73,6 +73,8 @@ user://mods/example_souls/
 | `content.vessels` | 否 | 魂器条目：`id` + `path`（`SoulVesselData`） |
 | `content.cues` | 否 | Cue 条目：`tag` + `scene`；启动时由 `ModCueRegistrar` 注册到 `GameplayCueManager` |
 | `overrides` | 否 | 覆盖的原版 `res://` 路径，必须存在 |
+
+`game_version` 比较按点分段，缺省段按 0 处理（`0.2` 等价 `0.2.0`）。
 
 ## 3. 内容路径与 ID
 
@@ -184,6 +186,6 @@ user://mods/example_souls/
 - 官方 ID 保持原值，不要加 `core:` 前缀；存档以这些 ID 为键。
 - 内置 mod 只能 loose，不能把 `content.pck` 放进 `base_mods/`。
 - 导出：`include_filter` 必须包含 `base_mods/*/mod.json`；`exclude_filter` 用 `mods/*,modkit/*`，不要用 `*mods/*`。
-- 改完官方内容后跑 `modkit/validate_core_manifest.gd`，或调用 `TestAPI.validate_core_manifest()`，检查 manifest 是否漏登记、路径不存在和中文 `resource_name`。
+- 改完官方内容后跑 `modkit/validate_core_manifest.gd`，或调用 `TestAPI.validate_core_manifest()`，检查 manifest 是否漏登记、路径不存在和中文 `resource_name`。校验器读 `.tres` 文本而不是 `load()` 资源：`ItemData` 依赖 GBIS 等 autoload，modkit 的 `--script` 模式编译不了。
 - 技能由 `SkillDefinition.steps` 组成；步骤类型、`target_rule` 与字段不一致（例如 `UnitSkillStep` 配 `SoulTargetRule`、`SoulSkillStep` 没有任何时长）会在 ModLoader 加载时报错。执行器字段也会校验：`StatusApplyExecution.attribute_name` 必须是 `burn/poison/regen`，伤害/治疗/护盾数值不能为负。校验失败的条目不会注册（不进入图鉴/刷怪池，mod 内容计数也不增加）；看 `ModLoader.get_errors()` 或 ModWindow。未知 manifest 字段、`content.*` 未知段只记 warning（`ModLoader.get_warnings()`），不阻止加载。
 - 落地数值请写整数：`max_health`、`base_damage`、`bonus_per_matching_soul`、`base_heal`、`base_shield`、`base_amount`、`damage_per_stack`、`heal_per_stack`、`status_magnitude`、触发器 `magnitude`。写小数也能加载，但运行时会向下取整；每跳总量不足 1 点会变成 0，例如 `heal_per_stack = 0.5` + 1 层生命再生不产生治疗。暴击率/倍率、比例、冷却、概率、距离仍用小数。

@@ -1,8 +1,3 @@
-## 战斗窗口左下角的角色状态条。
-##
-## 护盾、生命再生、灼烧、剧毒共用这套显示：不按数值比例缩短，
-## 只要数值大于 0 就显示整条，中间显示当前数值；为 0 时隐藏。
-
 class_name PlayerStatusBar extends Control
 
 const BORDER : float = 1.0
@@ -28,7 +23,6 @@ func _draw() -> void:
 	draw_rect(Rect2(Vector2.ZERO, size), fill_color)
 
 
-## 接上角色属性；每场战斗重建角色后调用
 func bind(attribute : AttributeData, asc : AbilitySystemComponent) -> void:
 	if _asc != null and is_instance_valid(_asc) and _asc.attribute_changed.is_connected(_on_attribute_changed):
 		_asc.attribute_changed.disconnect(_on_attribute_changed)

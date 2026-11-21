@@ -1,5 +1,4 @@
 class_name UnitSkillStep extends SkillStep
-## 以战斗单位为目标的技能步骤。
 
 @export var target_rule: TargetRule
 ## 施加到每个目标的效果列表（可多个：例如"伤害 + 中毒"）
@@ -47,7 +46,6 @@ func execute(ctx: SkillCastContext) -> SkillStepResult:
 	return SkillStepResult.hit_result()
 
 
-## 对单个目标结算；投射物落地也走这里。
 func apply_to_target(ctx: SkillCastContext, target: BattleUnit) -> void:
 	if target == null or ctx.battle == null:
 		return

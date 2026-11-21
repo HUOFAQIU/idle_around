@@ -1,6 +1,5 @@
 class_name MapPlaceResult
 extends RefCounted
-## MapBoard 放置意图的结果；slot_index 仅在 PLACED 时有效。
 
 enum Status {
 	PLACED,

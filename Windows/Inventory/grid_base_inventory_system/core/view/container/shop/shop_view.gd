@@ -1,11 +1,9 @@
 @tool
 extends BaseContainerView
-## 背包视图，控制背包的绘制
 class_name ShopView
 
 @export var goods: Array[ItemData]
 
-## 格子高亮
 func grid_hover(grid_id: Vector2i) -> void:
 	if not GBIS.moving_item_service.is_dragging():
 		var data: ItemData = GBIS.inventory_service.find_item_data_by_grid(container_name, grid_id)
@@ -15,12 +13,10 @@ func grid_hover(grid_id: Vector2i) -> void:
 
 	_apply_drag_ghost_style()
 
-## 格子失去高亮
 func grid_lose_hover(_grid_id: Vector2i) -> void:
 	GBIS.item_focus_service.item_lose_focus()
 
 
-## 商店左键：拖拽中出售手中物品，否则购买该格货物
 func handle_grid_click(grid_id: Vector2i, _offset: Vector2i, _base_size: int) -> void:
 	if GBIS.moving_item_service.is_dragging():
 		GBIS.moving_item_service.sell_dragged()
@@ -28,7 +24,6 @@ func handle_grid_click(grid_id: Vector2i, _offset: Vector2i, _base_size: int) ->
 	var item := GBIS.shop_service.find_item_data_by_grid(container_name, grid_id)
 	GBIS.shop_service.buy(container_name, item)
 
-## 初始化
 func _ready() -> void:
 	if Engine.is_editor_hint():
 		call_deferred("_recalculate_size")
@@ -43,11 +38,9 @@ func _ready() -> void:
 	if is_visible_in_tree():
 		GBIS.opened_containers.append(container_name)
 	
-	# 使用已注册的信息覆盖View设置
 	container_columns = ret.columns
 	container_rows = ret.rows
 	
-	# 加载货物
 	GBIS.shop_service.get_container(container_name).clear()
 	GBIS.shop_service.load_goods(container_name, goods)
 	
@@ -64,7 +57,6 @@ func _ready() -> void:
 
 	mark_dirty()
 
-## 初始化格子View
 func _init_grids() -> void:
 	for row in container_rows:
 		for col in container_columns:

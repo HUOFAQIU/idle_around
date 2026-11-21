@@ -1,6 +1,6 @@
 # 背包 / 仓库系统（GBIS）
 
-> 类型：实现 | 状态：有效 | 核对：2026-11-18
+> 类型：实现 | 状态：有效 | 核对：2026-11-21
 > 何时读：改背包/仓库/魂器容器/魂器网格、拖拽、商店容器、存档
 > 关键词：GBIS 背包 仓库 inventory container 物品大类 category 魂器 vessel vessel_cells 魂器网格 地图 MAP STONE 数量石 拖拽 Tooltip 存档 分页 Warehouse 商店 Shop
 > 代码：Windows/Inventory/grid_base_inventory_system/、Scripts/warehouse.gd
@@ -15,7 +15,8 @@
   - `inventory_service`、`shop_service`、`equipment_slot_service`、`moving_item_service`、`item_focus_service`。
 - `ContainerRepository` / `EquipmentSlotRepository` 是 `Resource` 单例（`static var instance`），通过 `GBIS` 的 Service 访问。
 - 视图层通过 `GBIS` 的信号刷新，不直接互相引用。
-- 游戏层另有 `Warehouse` autoload（`Scripts/warehouse.gd`）：启动时预注册 `inventory_0..inventory_9` 十页仓库，并提供 `add_item()` 跨页找空位；它只调用 GBIS 的公开接口，不修改框架本身。
+- 游戏层另有 `Warehouse` autoload（`Scripts/warehouse.gd`）：启动时预注册 `inventory_0..inventory_9` 十页仓库，并提供 `add_item()` 跨页找空位；它只调用 GBIS 的公开接口，不修改框架本身。每页用独立数组，避免多个 `ContainerData` 共享同一只只读常量。
+- `Service` 不在场景树里，没有 `get_tree()`；需要取根时走 `GBIS.get_root()`。
 - 容器名常量集中在 `Scripts/container_ids.gd`（`inventory_0`、`shop_0`、`vessel_cells`）；场景 `.tscn` 里的 `container_name` 仍是字面量，改名时必须两边一起改。
 - 场景漂移校验：`--headless --script res://modkit/validate_container_ids.gd` 对比场景字面量与常量；运行中的主场景可用 `TestAPI.validate_container_ids()` 检查容器是否都已注册。
 
@@ -124,7 +125,14 @@ GBIS.add_item(inv_name, item_data)
 - `MovingItemService` 是拖拽状态的唯一入口：`pick_from_grid / pick_from_slot / begin_detached` 开始，`drop_on_grid / drop_on_slot / sell_dragged / drop_to_world / cancel` 结束；只有 `finish()` 清状态并发出 `drag_ended`。
 - `DragOrigin` 记录来源（GRID / SLOT / NONE）。右键取消时 GRID 放回原格，SLOT 放回原槽，NONE（分割等）保持原样；原格被占用则放同容器第一个空位，容器满则留在手上并 warning。
 - 能否放下由 `ContainerData.drop_state_at()`（BLOCKED / PLACE / STACK）和 `EquipmentSlotData.can_accept()` 判定，高亮预览、实际放置和装备共用同一套规则。
+- 堆叠要求同名、未满，且移动形状被同一颗物品完整覆盖（不能有空格）。
 - `DragPresenter` 只管幽灵视图、`ItemWindow` 和 `DropAreaView` 显隐；`MovingItemService` 不再直接碰这些视图。
+- 多格物品内部跨格会「先离格再进格」，焦点丢失延迟到本帧末结算；回到同一物品就撤销。窗口关闭时要手动调用焦点丢失，防止 tooltip 残留。
+- `auto_register = false` 的视图在绑定数据源前没有容器，显示时先留空。
+- `clear()` 只清显示，不动数据库；先摘出树再 `queue_free()`，翻页重建时新旧 `ItemView` 不会同帧叠在一起。
+- 没有 `ItemWindow` 时幽灵视图从未入树，需要自己释放，否则泄漏。
+- Godot 4 的 `Dictionary` 是引用类型，`duplicate()` 出来的物品共用 `shader_params`；改前必须先复制一份，否则会连带改掉所有同类实例和预制资源。
+- 运行期状态变化只改材质参数和徽章，不重绘整个 `ItemView`；冻结直接改材质参数，不依赖 `shader_params` 里是否登记 `freeze`。
 - 各 service 只做存储操作，不再自己清拖拽状态；`InventoryView` / `EquipmentSlotView` 收到 `drag_ended` 后清残留高亮。
 - `ItemWindow` 是主视口内的 `Control` 浮层（`DragLayer`，layer 1025），每帧跟主视口鼠标，整棵子树 `mouse_filter = IGNORE`，不会挡住放置/取消事件。单窗口模式下不再需要独立无边框窗口、topmost、屏幕外预热或焦点降级；幽灵只在主窗口内，拖出窗口会被裁掉。
 
@@ -180,6 +188,7 @@ GBIS.add_item(inv_name, item_data)
 - 点击货物：`ShopService.buy()` 检查 `ItemData.can_buy()`，把物品复制进第一个有空位的背包，再调 `cost()`；默认 `can_buy()` 恒为 `true`，`cost()` 只打警告。购买链路只在服务层，模型不再反向调用 `inventory_service`。
 - 拖着物品点商店格子：`MovingItemService.sell_dragged()` → `ShopService.sell_item()` → `ItemData.can_sell()` / `sold()`；默认 `can_sell()` 为 `true`，`sold()` 只打警告，物品从手上消失，拖拽由 `finish()` 统一结束。
 - Shift + 右键点仓库物品：`InventoryService.quick_sell()` 直接结算并移除原格物品；要求商店和该仓库页都在 `GBIS.opened_containers` 里，否则不生效。
+- 商店与背包共用数据源；保存背包时会一并保存商店，不需要单独保存商店。
 - 价格、货币、货物配置都还没定义。正式做买卖需要具体的 `ItemData` 子类重写 `can_buy()` / `cost()` / `can_sell()` / `sold()`，货物可填 `ShopView.goods` 或调 `ShopService.load_goods()`。
 
 ### 1.8 框架自带、当前未接入的部分

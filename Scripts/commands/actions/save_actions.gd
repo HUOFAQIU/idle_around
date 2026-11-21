@@ -1,5 +1,4 @@
 extends RefCounted
-## save.* 命令实现；调用 Scripts/test_api/save.gd，不重复逻辑。
 
 const SAVE: GDScript = preload("res://Scripts/test_api/save.gd")
 const ARGS: GDScript = preload("res://Scripts/commands/actions/action_args.gd")

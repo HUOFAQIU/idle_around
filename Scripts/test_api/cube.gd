@@ -1,7 +1,4 @@
 extends RefCounted
-## TestAPI 立方体外壳域：面内容、穿透、层级与交互。
-##
-## 对外入口仍是 res://Scripts/test_api.gd 的 TestAPI。
 
 const COMMON: GDScript = preload("res://Scripts/test_api/common.gd")
 const WINDOW: GDScript = preload("res://Scripts/test_api/window.gd")
@@ -136,7 +133,6 @@ static func click_cube_new_game() -> bool:
 	return true
 
 
-## 走真实退出流程：保存活动槽后结束进程
 static func click_cube_quit() -> bool:
 	var content := face_content(0) as SaveSlotsContent
 	if content == null:
@@ -204,7 +200,6 @@ static func _cube_face_viewport(face_index : int) -> SubViewport:
 	return face.get_node_or_null("Viewport") as SubViewport
 
 
-## 05 面等内容节点；map 模块也用它走真实按钮流程
 static func face_content(face_index : int) -> FaceContent:
 	var viewport := _cube_face_viewport(face_index)
 	if viewport == null:

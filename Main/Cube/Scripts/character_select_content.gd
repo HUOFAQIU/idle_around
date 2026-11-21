@@ -1,9 +1,5 @@
 class_name CharacterSelectContent
 extends FaceContent
-## 面 04 内容：角色选择网格。
-##
-## 角色列表来自 CharacterCatalog；空位保留为禁用按钮，点击角色只发出请求，
-## 创建存档和面切换由 GameFlow 决定。
 
 signal character_requested(character_id: StringName)
 
@@ -22,7 +18,6 @@ func content_id() -> StringName:
 	return &"character_select"
 
 
-## 测试/调试：走与鼠标点击相同的按钮信号
 func activate_character(character_id: StringName) -> bool:
 	var button := _buttons.get(character_id) as Button
 	if button == null:
@@ -54,7 +49,6 @@ func _build() -> void:
 			_buttons[character.id] = button
 		else:
 			button.disabled = true
-			# 空角色位只作视觉占位，不拦鼠标，拖动仍可旋转立方体
 			button.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		_grid.add_child(button)
 

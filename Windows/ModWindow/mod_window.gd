@@ -1,8 +1,4 @@
 class_name ModWindow extends BaseWindow
-## Mod 管理窗口。
-##
-## 只读 ModLoader 的概况；启用状态写入 user://mods.cfg，运行期不卸载/重载，
-## 需要重启游戏生效。界面用代码搭建，和 DebugWindow 保持一致。
 
 const MOD_PATHS: GDScript = preload("res://Scripts/mod/mod_paths.gd")
 const MODS_DIR: String = MOD_PATHS.USER_MODS_DIR
@@ -12,7 +8,6 @@ var _summary_label: Label
 var _list_box: VBoxContainer
 var _order_box: VBoxContainer
 var _status_label: Label
-## 启动时的启用状态，用来判断是否还有未生效的改动
 var _startup_enabled: Dictionary[StringName, bool] = {}
 var _startup_order: Array[StringName] = []
 
@@ -29,7 +24,6 @@ func _ready() -> void:
 	refresh()
 
 
-## 重新读取 ModLoader 状态并重建列表
 func refresh() -> void:
 	if _list_box == null:
 		return
@@ -72,7 +66,6 @@ func refresh() -> void:
 	_update_status(pending)
 
 
-## 供 TestAPI 查询窗口当前显示的内容
 func get_test_state() -> Dictionary:
 	var mods := ModLoader.get_mod_list()
 	var loaded := 0
@@ -102,7 +95,6 @@ func get_test_state() -> Dictionary:
 	}
 
 
-#region UI
 func _build_ui() -> void:
 	var root := Control.new()
 	root.name = "Root"
@@ -491,7 +483,6 @@ func _status_color(mod: Dictionary) -> Color:
 	return GameColors.to_color(GameColors.WARNING)
 
 
-## 当前启用状态是否和启动时不同；不同就要重启才生效
 func _has_pending(mod: Dictionary) -> bool:
 	var mod_id := StringName(mod.get("id", ""))
 	if not _startup_enabled.has(mod_id):
@@ -499,7 +490,6 @@ func _has_pending(mod: Dictionary) -> bool:
 	return bool(mod.get("enabled", true)) != bool(_startup_enabled[mod_id])
 
 
-## 基础加载顺序是否和启动时不同
 func _order_pending() -> bool:
 	return ModLoader.get_user_order() != _startup_order
 
@@ -538,4 +528,3 @@ func _open_mods_dir() -> void:
 	if err != OK:
 		_status_label.text = "无法打开目录：%s" % path
 		_status_label.add_theme_color_override("font_color", GameColors.to_color(GameColors.DAMAGE))
-#endregion

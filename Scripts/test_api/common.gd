@@ -1,9 +1,5 @@
 extends RefCounted
-## TestAPI 各域共用的场景树查询。
-##
-## 只给 Scripts/test_api/ 下的模块用，不对外转发。
 
-## 当前场景根；没有 current_scene 时退回树根
 static func scene_root() -> Node:
 	var tree := Engine.get_main_loop() as SceneTree
 	if tree == null:
@@ -11,7 +7,6 @@ static func scene_root() -> Node:
 	return tree.current_scene if tree.current_scene != null else tree.root
 
 
-## 在场景根下找第一个指定类型的节点；node_name 非空时同时匹配名字
 static func find_node_in_scene(type : Variant, node_name : StringName = &"") -> Node:
 	var root := scene_root()
 	if root == null:
@@ -25,7 +20,6 @@ static func find_node_in_scene(type : Variant, node_name : StringName = &"") -> 
 	return null
 
 
-## target："player" / "enemy" / 单位名
 static func find_unit(target : String) -> BattleUnit:
 	var root := scene_root()
 	if root == null:

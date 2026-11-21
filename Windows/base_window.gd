@@ -1,9 +1,5 @@
 class_name BaseWindow
 extends Control
-## Control 化的面板基类。类名和 open_window() 接口沿用原来的 Window 版本。
-##
-## 负责背景、标题栏、拖动、打开/关闭布局；子类只提供内容。
-## 子类内容在 _ready 后挪进 ContentRoot，外层 size.y 补上标题栏高度。
 
 ## 打开时摆在主视口哪儿；x 或 y 是负数表示「居中」
 @export var open_position : Vector2i = Vector2i(-1, -1)
@@ -14,7 +10,6 @@ const TITLE_BUTTON_MARGIN : int = 4
 const TITLE_FONT_SIZE : int = 12
 const DEFAULT_BG_COLOR : Color = Color(0.1, 0.1, 0.1, 1.0)
 
-## 标题变化；子类直接给 title 赋值即可
 signal title_changed
 
 var title : String = "":
@@ -24,7 +19,6 @@ var title : String = "":
 		title = value
 		title_changed.emit()
 
-## 背景 / 标题栏 + 内容区
 var _background : Panel
 var _ui_root : VBoxContainer
 var _title_bar : PanelContainer
@@ -41,12 +35,10 @@ func _ready() -> void:
 	_build_background()
 	_build_title_bar()
 	title_changed.connect(_sync_title)
-	# 子类 _ready() 在 super() 之后继续加内容，等本帧结束再统一挪进内容区。
 	call_deferred("_wrap_content")
 	_sync_title()
 
 
-## 打开：写了 open_position 就摆在那儿，没写就居中
 func open_window() -> void:
 	_wrap_content()
 	var target_size := _popup_size()
@@ -55,13 +47,10 @@ func open_window() -> void:
 		position = (Vector2(_parent_viewport_size()) - target_size) * 0.5
 	else:
 		position = _clamp_position(Vector2(open_position))
-	# 置顶/激活由 PanelManager 监听 visibility_changed 处理
 	visible = true
 	call_deferred("_grow_to_content")
 
 
-## 子类在 _ready() 的 super() 之后调用：把按钮加进标题栏，排在关闭按钮左侧。
-## 会自动套用关闭按钮的字号、高度、光标和按下高亮。
 func add_title_bar_button(button : Button) -> void:
 	if _title_bar == null:
 		push_warning("BaseWindow：标题栏尚未创建，add_title_bar_button 必须在 super() 之后调用")
@@ -71,15 +60,12 @@ func add_title_bar_button(button : Button) -> void:
 	_title_bar_box.move_child(button, _close_button.get_index())
 
 
-#region 标题栏与内容下移
 func _build_background() -> void:
 	_background = Panel.new()
 	_background.name = "WindowBackground"
 	_background.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_background.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_background)
-	# 默认 Panel 主题是半透明（alpha 0.6）；透明窗口下必须强制不透明，
-	# 否则整个面板会透出桌面。
 	var style := _background.get_theme_stylebox("panel").duplicate() as StyleBoxFlat
 	if style == null:
 		style = StyleBoxFlat.new()
@@ -107,7 +93,6 @@ func _build_title_bar() -> void:
 	_title_bar.add_theme_stylebox_override("panel", title_style)
 	_ui_root.add_child(_title_bar)
 
-	# 内层 HBox 只负责排版；忽略鼠标，事件落到外层 TitleBar 上给 ControlDrag。
 	_title_bar_box = HBoxContainer.new()
 	_title_bar_box.name = "TitleBarBox"
 	_title_bar_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -155,7 +140,6 @@ func _build_title_bar() -> void:
 	_ui_root.add_child(_content_root)
 
 
-## 标题栏按钮的统一外观：字号、手型光标、垂直居中和按下高亮
 func _style_title_bar_button(button : Button) -> void:
 	button.focus_mode = Control.FOCUS_NONE
 	button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
@@ -171,9 +155,6 @@ func _style_title_bar_button(button : Button) -> void:
 	button.add_theme_color_override("font_hover_pressed_color", GameColors.to_color(GameColors.ACCENT_TEXT))
 
 
-## 把窗口原有内容挪到标题栏下方，并给窗口补上这一行的高度。
-## 内容必须在 _ready() 里同步挂在面板根下；之后动态 add_child 的 Control
-## 不会被自动收纳，需要自己挂到 TitleUI/ContentRoot。
 func _wrap_content() -> void:
 	if _wrapped or _content_root == null:
 		return
@@ -186,12 +167,7 @@ func _wrap_content() -> void:
 	size.y += TITLE_BAR_HEIGHT
 
 
-## 打开后下一帧按内容最小尺寸向上撑（只增不减）。必须等窗口可见、内容
-## 完成布局后再量：RichTextLabel 的 fit_content 在宽度为 0 时会算出巨大的
-## 最小高度，提前量会把窗口错误地撑满整个工作区。
 func _grow_to_content() -> void:
-	# 再等一帧：刚打开的这一帧内容还没布局，RichTextLabel 在宽度 0 时
-	# 会报出巨大的最小高度，必须等宽度确定后再量。
 	await get_tree().process_frame
 	if not is_inside_tree() or not visible or _content_root == null:
 		return
@@ -207,7 +183,6 @@ func _grow_to_content() -> void:
 		position = _clamp_position(position)
 
 
-## 内容区所有 Control 子节点的最小尺寸并集
 func _content_min_size() -> Vector2:
 	var content_min := Vector2.ZERO
 	if _content_root == null:
@@ -229,8 +204,6 @@ func _sync_title() -> void:
 
 
 func _popup_size() -> Vector2:
-	# 这里只按场景/子类已经设好的尺寸夹取。内容最小尺寸要等可见并完成
-	# 布局后再量（_grow_to_content），否则 RichTextLabel 在宽度 0 时会报出巨大高度。
 	var bounds := Vector2(_parent_viewport_size())
 	return Vector2(minf(size.x, bounds.x), minf(size.y, bounds.y))
 
@@ -240,8 +213,6 @@ func _parent_viewport_size() -> Vector2i:
 	if viewport == null:
 		return Vector2i(1600, 960)
 	var visible_size := viewport.get_visible_rect().size
-	# 视口异常小（例如启动占位 1×1）时用设计基准兜底，
-	# 避免所有面板被夹成 1×1 并钉在 (0,0)。
 	if visible_size.x <= 1 or visible_size.y <= 1:
 		return Vector2i(1600, 960)
 	return Vector2i(visible_size)
@@ -249,4 +220,3 @@ func _parent_viewport_size() -> Vector2i:
 
 func _clamp_position(target : Vector2) -> Vector2:
 	return UiBounds.clamp_position(target, size, Vector2(_parent_viewport_size()))
-#endregion

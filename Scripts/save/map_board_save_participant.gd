@@ -1,12 +1,6 @@
 class_name MapBoardSaveParticipant
 extends SaveParticipant
-## 地图板存档域：8 个已放置地图和中心待放地图。
-##
-## 地图不在 GBIS 容器里，所以单独保存；读档时找不到地图的原始记录
-## 原样带回存档，下次读档再试，避免因为内容暂时缺失而丢地图。
-## 战斗内的刷怪进度不保存。
 
-## 读档时无法还原的原始记录；collect 时原样写回
 var _orphans: Array[Dictionary] = []
 
 
@@ -43,7 +37,6 @@ func apply_from(document: Dictionary, _has_disk_data: bool) -> bool:
 	return false
 
 
-## 物品 -> 记录；空物品返回 null
 static func _encode(item: MapItemData) -> Variant:
 	if item == null:
 		return null
@@ -53,7 +46,6 @@ static func _encode(item: MapItemData) -> Variant:
 	return record
 
 
-## 记录 -> 地图物品；失败时把原始记录收进 _orphans
 func _decode(record: Variant, slot_index: int, is_pending: bool) -> MapItemData:
 	if not record is Dictionary:
 		return null
@@ -73,7 +65,6 @@ func _collect_old_orphans(raw: Variant) -> void:
 			_orphans.append((entry as Dictionary).duplicate(true))
 
 
-## 上次读档留下的记录：能找到就放回空位，找不到继续保留
 func _restore_old_orphans(
 	slots: Array[MapItemData],
 	pending: MapItemData,

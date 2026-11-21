@@ -1,11 +1,5 @@
 class_name MapRun
 extends RefCounted
-## 一张地图的运行期刷怪状态。
-##
-## 只决定「什么时候该刷哪只怪」，不碰节点、不选格：
-## BattleSession 每物理帧把 advance()/on_monster_killed() 返回的怪物 id 入队，
-## 再通过 BattleManager.spawn_one() 消费。完成判定只看时间条目配额刷完。
-## 击杀条目没有独立配额，由击杀进度驱动。
 
 class EntryRuntime extends RefCounted:
 	var entry: MapSpawnEntry
@@ -30,7 +24,6 @@ func _init(p_map_data: MapData) -> void:
 		_entries.append(runtime)
 
 
-## 开战立刻刷的一只（沿用现有战斗的即时开怪）；只取第一个时间条目
 func take_initial_spawns() -> Array[StringName]:
 	var due: Array[StringName] = []
 	for runtime in _entries:
@@ -44,7 +37,6 @@ func take_initial_spawns() -> Array[StringName]:
 	return due
 
 
-## 推进时间条目；返回这一拍到期的怪物 id
 func advance(delta: float) -> Array[StringName]:
 	var due: Array[StringName] = []
 	for runtime in _entries:
@@ -64,7 +56,6 @@ func advance(delta: float) -> Array[StringName]:
 	return due
 
 
-## 记录一次怪物死亡；返回因此到期的怪物 id
 func on_monster_killed(monster_id: StringName) -> Array[StringName]:
 	var due: Array[StringName] = []
 	for runtime in _entries:
@@ -82,7 +73,6 @@ func on_monster_killed(monster_id: StringName) -> Array[StringName]:
 	return due
 
 
-## 时间条目全部刷完就完成；击杀条目不再产生新怪，不阻塞完成
 func is_finished() -> bool:
 	if map_data == null:
 		return true
@@ -94,7 +84,6 @@ func is_finished() -> bool:
 	return true
 
 
-## 测试/调试快照
 func state() -> Dictionary:
 	var entries: Array = []
 	for runtime in _entries:
@@ -116,6 +105,5 @@ func state() -> Dictionary:
 	}
 
 
-## 数量石以后只乘时间条目的总数量；当前固定返回配置值
 func _effective_count(entry: MapSpawnEntry) -> int:
 	return maxi(entry.count, 0)

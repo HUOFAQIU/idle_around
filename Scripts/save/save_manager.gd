@@ -1,11 +1,4 @@
 extends Node
-## 存档管理（Autoload：SaveManager）。
-##
-## 组合根 + 会话状态：把磁盘 storage、三个生产 participant 组装成 SavePipeline，
-## 自己只管活动槽、游戏时长、信号和 autoload 副作用（GBIS / SoulRuntimeDB / UI 刷新）。
-## 版本、主备回退与 participant 顺序在 SavePipeline；文件格式在 SaveDocument。
-## 只保存玩家进度：容器里的物品、见闻和角色身份；战斗运行期状态和静态资源数据不存。
-## 启动只扫描槽位摘要，不自动读档；没有活动槽时不累计时长、不写盘。
 
 signal slot_list_changed
 signal slot_loaded(slot: int)
@@ -25,7 +18,6 @@ var _active_slot: int = -1
 var _player_data: Dictionary = {}
 var _play_time_sec: float = 0.0
 var _slot_summaries: Array[Dictionary] = []
-## 从备份恢复后的第一次写盘不要覆盖那份备份
 var _keep_backup_next_save: bool = false
 
 
@@ -37,10 +29,7 @@ func _ready() -> void:
 	_pipeline = SavePipeline.new(_storage, _participants)
 	_connect_signals()
 	refresh_slot_summaries()
-	# 仓库页由 Warehouse autoload 预注册，魂器网格由 CharacterWindow 里的 InventoryView._ready() 注册；
-	# 等一帧确认容器齐全，但不自动读档。
 	await get_tree().process_frame
-	# --script/工具模式没有主场景，容器不会注册；不读也不写，避免写档时丢掉未恢复的容器。
 	if get_tree().current_scene == null:
 		_enter_read_only("没有主场景（工具模式）", false)
 		return
@@ -66,8 +55,6 @@ func _notification(what: int) -> void:
 		save_now()
 
 
-#region 公共接口
-## 立即写当前槽；没有活动槽、只读或容器未注册时返回 false
 func save_now() -> bool:
 	if _active_slot < 0:
 		return false
@@ -87,7 +74,6 @@ func save_now() -> bool:
 	return ok
 
 
-## 读取指定槽并重建容器；空槽返回 false，不创建新档
 func load_slot(slot: int) -> bool:
 	if _loading or not SaveStorage.is_valid_slot(slot):
 		return false
@@ -110,7 +96,6 @@ func load_slot(slot: int) -> bool:
 	return true
 
 
-## 在指定空槽创建新档并设为活动槽；player_data = {character_id, display_name}
 func create_new_game(slot: int, player_data: Dictionary) -> bool:
 	if _loading or not SaveStorage.is_valid_slot(slot):
 		return false
@@ -123,11 +108,9 @@ func create_new_game(slot: int, player_data: Dictionary) -> bool:
 	refresh_slot_summaries()
 	if is_slot_occupied(slot):
 		return false
-	# 文件存在但解析失败：按空槽处理；写盘会把旧主文件轮换成 .bak
 	if _pipeline.has_save(slot):
 		push_warning("存档：槽 %d 文件不可读，按空槽覆盖" % (slot + 1))
 	_keep_backup_next_save = false
-	# 先写盘成功，再清空内存并切换活动槽；写失败时旧会话保持原样
 	var document := _pipeline.create(slot, player_data)
 	if document.is_empty():
 		return false
@@ -137,12 +120,10 @@ func create_new_game(slot: int, player_data: Dictionary) -> bool:
 	return true
 
 
-## 当前内存状态的存档快照（不写盘）
 func collect_save_data() -> Dictionary:
 	return _pipeline.collect(_play_time_sec, _player_data)
 
 
-## 六个槽的摘要：slot / occupied / player / saved_at / play_time
 func get_slot_summaries() -> Array[Dictionary]:
 	if _slot_summaries.is_empty():
 		refresh_slot_summaries()
@@ -160,7 +141,6 @@ func get_slot_summary(slot: int) -> Dictionary:
 	return _slot_summaries[slot].duplicate(true)
 
 
-## 第一个空槽；全部占满返回 -1
 func first_empty_slot() -> int:
 	if _slot_summaries.is_empty():
 		refresh_slot_summaries()
@@ -195,12 +175,10 @@ func get_player_data() -> Dictionary:
 	return _player_data.duplicate(true)
 
 
-## 当前存档里因 mod 缺失/放不下而保留的原始记录
 func get_orphaned_records() -> Array[Dictionary]:
 	return _containers.get_orphaned_records()
 
 
-## 读档/写档是否可用；missing_containers 非空时只读
 func get_save_status() -> Dictionary:
 	return {
 		"ready": _containers.containers_ready(),
@@ -214,7 +192,6 @@ func get_save_path(slot: int) -> String:
 	return _pipeline.path(slot)
 
 
-## 删除磁盘文件；删的是活动槽时停止计时、清掉只读态并断开活动槽
 func delete_slot(slot: int) -> bool:
 	if not SaveStorage.is_valid_slot(slot):
 		return false
@@ -233,22 +210,17 @@ func delete_slot(slot: int) -> bool:
 	return true
 
 
-## 外部系统（见闻、未来的 progression）在状态变化时调用
 func mark_dirty(urgent: bool = false) -> void:
 	if _active_slot < 0 or _loading or _pipeline.is_read_only():
 		return
 	_scheduler.mark_dirty(urgent)
 
 
-## 重新扫描六个槽的摘要；槽位列表 UI 监听 slot_list_changed
 func refresh_slot_summaries() -> void:
 	_slot_summaries = _pipeline.summaries()
 	slot_list_changed.emit()
-#endregion
 
 
-#region 内部
-## 应用一份文档到内存；返回 participant 是否报告需要回写
 func _apply_data(
 		data: Dictionary,
 		has_disk_data: bool,
@@ -269,14 +241,12 @@ func _apply_data(
 	)
 	_active_slot = slot
 	_loading = false
-	# 一次性让所有 InventoryView 重建，避免逐件信号
 	GBIS.sig_inv_refresh.emit()
 	active_slot_changed.emit(slot)
 	refresh_slot_summaries()
 	return write_back
 
 
-## 进入只读：不读档也不写档，避免容器不齐时覆盖存档
 func _enter_read_only(reason: String, report_error: bool) -> void:
 	_pipeline.set_read_only(true)
 	set_process(false)
@@ -309,11 +279,9 @@ func _on_inv_refresh() -> void:
 	mark_dirty()
 
 
-## 见闻解锁不可再生，立即写盘
 func _on_collection_unlocked(_kind: int, _id: StringName) -> void:
 	mark_dirty(true)
 
 
 func _on_map_board_changed() -> void:
 	mark_dirty()
-#endregion

@@ -1,6 +1,5 @@
 class_name FloatingMotion
 extends Node3D
-## 立方体整体的漂浮运动，只影响位置，不参与旋转逻辑。
 
 @export var bob_height: float = 0.03
 @export var bob_speed: float = 1.15

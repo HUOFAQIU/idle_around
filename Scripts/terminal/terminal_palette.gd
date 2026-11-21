@@ -1,9 +1,5 @@
 class_name TerminalPalette
 extends RefCounted
-## 终端 16 色 ANSI 调色板与默认前景/背景。
-##
-## 颜色值与参考网页 how-terminals-work 保持一致；换主题只改这里。
-## 索引 0-7 是普通色，8-15 是亮色；bold 是否提亮由调用方决定。
 
 const DEFAULT_FG: String = "#e5e5e5"
 const DEFAULT_BG: String = "#0a0a0a"
@@ -16,12 +12,10 @@ const COLORS: Array[String] = [
 ]
 
 
-## 取 0-15 号 ANSI 颜色；越界自动夹到端点
 static func color(index: int) -> Color:
 	return Color.html(COLORS[clampi(index, 0, COLORS.size() - 1)])
 
 
-## 256 色扩展：0-15 用现有 16 色，16-231 是 6×6×6 色立方，232-255 是灰阶
 static func color_256(index: int) -> Color:
 	if index < 16:
 		return color(index)

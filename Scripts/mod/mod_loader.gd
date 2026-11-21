@@ -1,35 +1,16 @@
 extends Node
-## Mod 加载器（Autoload：ModLoader）。
-##
-## 在 _init() 里完成发现、校验、排序、PCK 挂载和内容加载；之后提供查询，以及写启用状态/加载顺序的配置接口。
-## 必须排在 CollectionDB 之前启动，否则 mod 内容赶不上内容目录构建。
-##
-## 内置 mod 目录：
-##   res://base_mods/<mod_id>/mod.json
-##   res://base_mods/<mod_id>/...       # 官方内容包只支持 loose 目录
-##
-## 第三方 mod 目录：
-##   user://mods/<mod_id>/mod.json
-##   user://mods/<mod_id>/content.pck   # 可选；没有则按 loose 目录加载
-##
-## mod.json 里的内容路径可以是相对路径，也可以是 res://mods/<mod_id>/...；
-## loose 模式会自动把 res://mods/<mod_id>/... 映射到 user://mods/<mod_id>/...。
 
 const PACK_FILE: String = "content.pck"
 const GAME_VERSION_SETTING: String = "application/config/version"
-## 用 preload 而不是全局类名，保证 --script 无头模式也能解析
 const CONTENT_NAMING: GDScript = preload("res://Scripts/mod/content_naming.gd")
 const CONTENT_KIND_SPEC: GDScript = preload("res://Scripts/mod/content_kind_spec.gd")
 const MOD_PATHS: GDScript = preload("res://Scripts/mod/mod_paths.gd")
 const STARTUP_TIMING: GDScript = preload("res://Scripts/debug/startup_timing.gd")
 
 var _mods: Array[ModInfo] = []
-## 按依赖/加载顺序排好、本次真正要加载的 mod
 var _sorted_enabled: Array[ModInfo] = []
-## 用户指定的基础加载顺序；运行期不改
 var _order: Array[StringName] = []
 var _order_index: Dictionary[StringName, int] = {}
-## 本次实际加载顺序的索引，-1 表示没加载
 var _load_index: Dictionary[StringName, int] = {}
 var _mods_by_id: Dictionary[StringName, ModInfo] = {}
 var _soul_entries: Array[ModContentEntry] = []
@@ -40,14 +21,10 @@ var _soul_ids: Dictionary[StringName, bool] = {}
 var _monster_ids: Dictionary[StringName, bool] = {}
 var _vessel_ids: Dictionary[StringName, bool] = {}
 var _cue_tags: Dictionary[StringName, bool] = {}
-## 内容路径 → 首次登记的 content_id；同一 .tres 不允许挂两个 ID
 var _content_paths: Dictionary[String, StringName] = {}
-## override 路径 -> 声明它的 mod
 var _overrides: Dictionary[String, StringName] = {}
 var _errors: Array[String] = []
-## 不阻止加载的诊断（未知字段、技能 ID 冲突等）
 var _warnings: Array[String] = []
-## 同一个效果可能被多颗魂灵引用，只校验一次
 var _validated_effect_ids: Dictionary = {}
 var _config := ConfigFile.new()
 var _game_version: String = ""
@@ -69,7 +46,6 @@ func _init() -> void:
 	STARTUP_TIMING.mark("mod 加载完成")
 
 
-#region 查询
 func get_mods() -> Array[ModInfo]:
 	var result: Array[ModInfo] = []
 	result.assign(_mods)
@@ -108,12 +84,10 @@ func get_errors() -> Array[String]:
 	return _errors.duplicate()
 
 
-## 不阻止加载的诊断（未知字段、技能 ID 冲突等）
 func get_warnings() -> Array[String]:
 	return _warnings.duplicate()
 
 
-## 本次实际加载顺序（只含已启用且未被阻止的 mod）
 func get_load_order() -> Array[StringName]:
 	var result: Array[StringName] = []
 	for mod in _sorted_enabled:
@@ -121,7 +95,6 @@ func get_load_order() -> Array[StringName]:
 	return result
 
 
-## 用户指定的基础加载顺序；内置 mod 固定在最前，未列出的追加在末尾
 func get_user_order() -> Array[StringName]:
 	var result: Array[StringName] = []
 	for mod in _mods:
@@ -136,7 +109,6 @@ func get_user_order() -> Array[StringName]:
 	return result
 
 
-## 写入基础加载顺序；内置 mod 始终排在最前，运行期不重排，重启后生效
 func set_mod_order(ids: Array[StringName]) -> bool:
 	var normalized: Array[StringName] = []
 	for mod in _mods:
@@ -162,13 +134,11 @@ func set_mod_order(ids: Array[StringName]) -> bool:
 	return true
 
 
-## 供内容合并阶段补充诊断（例如技能 ID 冲突）；不阻止加载
 func report_warning(message: String) -> void:
 	_warnings.append(message)
 	push_warning("ModLoader: " + message)
 
 
-## JSON 友好的概况，供 TestAPI 和 ModWindow 使用
 func get_mod_list() -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
 	for mod in _mods:
@@ -201,7 +171,6 @@ func is_mod_enabled(mod_id: StringName) -> bool:
 	return mod != null and mod.enabled
 
 
-## 写入启用状态；当前运行期不会卸载/重载，重启后生效
 func set_mod_enabled(mod_id: StringName, enabled: bool) -> bool:
 	var mod: ModInfo = _mods_by_id.get(mod_id)
 	if mod == null:
@@ -228,10 +197,8 @@ func _source_name(source: ModInfo.Source) -> String:
 			return "workshop"
 		_:
 			return "local"
-#endregion
 
 
-#region 发现与排序
 func _load_config() -> void:
 	var err := _config.load(MOD_PATHS.CONFIG_PATH)
 	if err != OK and err != ERR_FILE_NOT_FOUND:
@@ -291,7 +258,6 @@ func _discover_mod_root(root: String, source: ModInfo.Source) -> void:
 	dir.list_dir_end()
 
 
-## 内置优先；其余按用户顺序，没在配置里的 mod 按 id 排在后面
 func _sort_by_user_order(a: ModInfo, b: ModInfo) -> bool:
 	var a_builtin := a.is_builtin()
 	var b_builtin := b.is_builtin()
@@ -410,12 +376,8 @@ func _visit_mod(mod: ModInfo, states: Dictionary[StringName, int], sorted: Array
 			_visit_mod(target, states, sorted)
 	states[mod.id] = 2
 	sorted.append(mod)
-#endregion
 
 
-#region 挂载与内容
-## 两段式：先挂载全部 PCK，再统一加载内容。
-## 这样后挂载的 mod 覆盖 res:// 路径时，先加载的内置内容不会被资源缓存绕过。
 func _mount_and_load() -> void:
 	_mount_all()
 	_load_all_content()
@@ -512,7 +474,6 @@ func _load_content_entry(mod: ModInfo, spec: Dictionary, raw_entry: Dictionary) 
 			_validate_soul_vocabulary(mod, soul)
 			_validate_soul_tags(mod, soul)
 			_validate_skill_steps(mod, soul)
-			# 语义校验失败的内容不注册，避免“报错但已加载”的半坏状态
 			if _errors.size() > errors_before:
 				return
 			_soul_ids[content_id] = true
@@ -582,7 +543,6 @@ func _make_entry(
 	return entry
 
 
-## 校验内容 ID / Cue 标签的前缀、字符集和类型后缀；返回 false 表示该条目不加载
 func _validate_content_id(mod: ModInfo, spec: Dictionary, raw_id: String) -> bool:
 	var global_namespace := mod.manifest.content_namespace == "global"
 	if bool(spec.get("is_tag", false)):
@@ -611,7 +571,6 @@ func _validate_content_id(mod: ModInfo, spec: Dictionary, raw_id: String) -> boo
 	return true
 
 
-## 技能 ID 存的是 ability_tag 后缀：为空时按 content_id 派生，非空时校验格式与命名空间
 func _normalize_skill_id(mod: ModInfo, soul: SoulData) -> void:
 	var skill := soul.skill
 	if skill == null:
@@ -641,7 +600,6 @@ func _normalize_skill_id(mod: ModInfo, soul: SoulData) -> void:
 			_mod_error(mod, "core 技能 id 应与魂灵 ID 对应，应为 %s：%s" % [expected, skill.id])
 
 
-## mod 引用外部技能资源时只校验格式，不要求本 mod 命名空间
 func _validate_external_skill_id(mod: ModInfo, skill: SkillDefinition) -> void:
 	if skill.id.is_empty():
 		_mod_error(mod, "外部技能资源缺少 id：%s" % skill.resource_path)
@@ -649,7 +607,6 @@ func _validate_external_skill_id(mod: ModInfo, skill: SkillDefinition) -> void:
 		_mod_error(mod, "技能 id 不是合法 GAS 标签：%s" % skill.id)
 
 
-## 魂灵类型/标签使用固定前缀；拼错会让筛选和触发规则静默失效
 func _validate_soul_vocabulary(mod: ModInfo, soul: SoulData) -> void:
 	for type in soul.types:
 		if not _is_soul_type(type):
@@ -673,7 +630,6 @@ func _validate_soul_vocabulary(mod: ModInfo, soul: SoulData) -> void:
 				_mod_error(mod, "魂灵 %s 的触发条件类型应为 Soul.types.<PascalName>：%s" % [soul.content_id, type])
 
 
-## 怪物基础字段
 func _validate_monster_config(mod: ModInfo, monster: MonsterData) -> void:
 	if monster.display_name.is_empty():
 		_mod_error(mod, "怪物 %s 缺少 display_name" % monster.content_id)
@@ -692,7 +648,6 @@ func _validate_monster_config(mod: ModInfo, monster: MonsterData) -> void:
 		_mod_error(mod, "怪物 %s 缺少 battle_scene" % monster.content_id)
 
 
-## 魂器：物品占格、内部容器、类型、效果和 tooltip 必须完整
 func _validate_vessel_config(mod: ModInfo, vessel: SoulVesselData) -> void:
 	if vessel.category != "VESSEL":
 		_mod_error(mod, "魂器 %s 的 category 应为 VESSEL：%s" % [vessel.content_id, vessel.category])
@@ -724,7 +679,6 @@ func _is_soul_tag(value: StringName) -> bool:
 	return text.begins_with("Soul.tags.") and CONTENT_NAMING.is_valid_tag(text.trim_prefix("Soul.tags."))
 
 
-## 技能/触发器/效果里的标签引用：只校验格式和必要的命名空间，注册检查在 ModCueRegistrar
 func _validate_soul_tags(mod: ModInfo, soul: SoulData) -> void:
 	var skill := soul.skill
 	if skill != null:
@@ -747,7 +701,6 @@ func _validate_soul_tags(mod: ModInfo, soul: SoulData) -> void:
 		_validate_effects(mod, trigger.effects, soul.content_id)
 
 
-## 步骤类型、目标规则与字段必须一致；否则运行期会走错分支或没有任何效果。
 func _validate_skill_steps(mod: ModInfo, soul: SoulData) -> void:
 	var skill := soul.skill
 	if skill == null:
@@ -835,7 +788,6 @@ func _validate_effect_tags(mod: ModInfo, effect: GameplayEffect, mod_owner: Stri
 			_validate_effect_tags(mod, overflow, mod_owner)
 
 
-## 执行器字段校验：配错时运行期会静默无效果，尽量在加载期报出来。
 func _validate_execution_fields(mod: ModInfo, execution: Variant, mod_owner: StringName) -> void:
 	if execution is StatusApplyExecution:
 		var status := execution as StatusApplyExecution
@@ -909,7 +861,6 @@ func _is_protected_override(path: String) -> bool:
 	return false
 
 
-## Cue 标签命名空间：mod id（snake_case）转 PascalCase，例如 example_souls → Cue.Mod.ExampleSouls.
 func _cue_tag_prefix(mod: ModInfo) -> String:
 	return "Cue.Mod.%s." % CONTENT_NAMING.to_pascal(String(mod.id))
 
@@ -938,10 +889,8 @@ func _resolve_content_path(mod: ModInfo, raw_path: String) -> String:
 	if raw_path.begins_with("res://") or raw_path.begins_with("user://"):
 		return raw_path
 	return root.path_join(raw_path)
-#endregion
 
 
-#region 错误
 func _record_error(message: String) -> void:
 	_errors.append(message)
 
@@ -950,4 +899,3 @@ func _mod_error(mod: ModInfo, message: String) -> void:
 	var text := "%s: %s" % [mod.id, message]
 	mod.errors.append(text)
 	_errors.append(text)
-#endregion

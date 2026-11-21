@@ -1,10 +1,5 @@
 class_name TerminalAnsiParser
 extends RefCounted
-## ANSI 转义序列解析器：把 SGR（颜色/样式）转成 TerminalStyle，再交给 Buffer。
-##
-## 目前处理 SGR（...m）和 OSC 跳过；光标移动/擦除等 CSI 命令暂时整段吞掉，
-## 不会当普通文字显示，也不会改 Buffer。Parser 的 style 在多次 write() 之间保持，
-## 和真实终端一样是流式状态；未收完的 ESC 序列会挂到下一次 write() 继续解析。
 
 const ESC_CODE: int = 27
 const CSI_FINAL_MIN: int = 0x40
@@ -24,7 +19,6 @@ func _init(initial_style: TerminalStyle = null) -> void:
 		style = TerminalStyle.new()
 
 
-## 解析一段文本并写入 Buffer；SGR 样式跨调用保持
 func write(buffer: TerminalBuffer, text: String) -> void:
 	if buffer == null:
 		return
@@ -48,13 +42,11 @@ func write(buffer: TerminalBuffer, text: String) -> void:
 		index = next
 
 
-## 重置当前样式和未完成的转义序列
 func reset() -> void:
 	style.reset()
 	_pending = ""
 
 
-## 用指定样式作为起点（会复制，不影响调用方）
 func set_style(new_style: TerminalStyle) -> void:
 	if new_style != null:
 		style = new_style.duplicate_style()
@@ -66,21 +58,18 @@ func _write_plain(buffer: TerminalBuffer, text: String) -> void:
 		buffer.write_text(text, style)
 
 
-## 返回序列结束后的位置；-1 表示序列还没收完
 func _consume_escape(data: String, esc: int) -> int:
 	var length := data.length()
 	if esc + 1 >= length:
 		return -1
 	var kind := data.unicode_at(esc + 1)
-	if kind == 0x5B: # '['
+	if kind == 0x5B:
 		return _consume_csi(data, esc)
-	if kind == 0x5D: # ']'
+	if kind == 0x5D:
 		return _consume_osc(data, esc)
-	# 字符集设计符 ESC ( B / ESC ) B / ESC # 8 多吞一个字符
 	if kind == 0x28 or kind == 0x29 or kind == 0x23:
 		return mini(esc + 3, length)
-	# 其他 ESC 单字符序列：ESC c 重置，其余忽略
-	if kind == 0x63: # 'c'
+	if kind == 0x63:
 		style.reset()
 	return mini(esc + 2, length)
 
@@ -91,10 +80,9 @@ func _consume_csi(data: String, esc: int) -> int:
 	while index < length:
 		var code := data.unicode_at(index)
 		if code < 0x20:
-			# 控制字符出现在 CSI 中间：放弃这一小段，避免吞掉后面的正常文本
 			return index + 1
 		if code >= CSI_FINAL_MIN and code <= CSI_FINAL_MAX:
-			if code == 0x6D: # 'm'
+			if code == 0x6D:
 				_apply_sgr(data.substr(esc + 2, index - (esc + 2)))
 			return index + 1
 		index += 1
@@ -106,9 +94,9 @@ func _consume_osc(data: String, esc: int) -> int:
 	var length := data.length()
 	while index < length:
 		var code := data.unicode_at(index)
-		if code == 0x07: # BEL
+		if code == 0x07:
 			return index + 1
-		if code == ESC_CODE and index + 1 < length and data.unicode_at(index + 1) == 0x5C: # ST
+		if code == ESC_CODE and index + 1 < length and data.unicode_at(index + 1) == 0x5C:
 			return index + 2
 		index += 1
 	return -1
@@ -153,7 +141,6 @@ func _apply_sgr(param_text: String) -> void:
 		index += 1
 
 
-## 返回最后一个被消费的参数下标
 func _apply_extended_color(params: PackedStringArray, index: int, foreground: bool) -> int:
 	if index + 1 >= params.size():
 		return index

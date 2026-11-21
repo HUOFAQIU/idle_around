@@ -1,7 +1,3 @@
-## 战斗事件 → CombatTelemetry 的转接器。
-##
-## 只做转发与 GAS 信号绑定，不参与战斗判定；是否真正记录由
-## CombatTelemetry.enabled 决定，关掉录制后 record() 自己提前返回。
 class_name CombatTelemetryAdapter extends RefCounted
 
 var _bus: BattleEventBus

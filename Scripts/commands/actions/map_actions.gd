@@ -1,5 +1,4 @@
 extends RefCounted
-## map.* 命令实现；调用 Scripts/test_api/map.gd，不重复逻辑。
 
 const MAP: GDScript = preload("res://Scripts/test_api/map.gd")
 const ARGS: GDScript = preload("res://Scripts/commands/actions/action_args.gd")

@@ -1,13 +1,5 @@
 class_name SaveCodec
 extends RefCounted
-## 存档编解码：物品 <-> JSON 记录。
-##
-## 只存 content_id（core / mod manifest ID）和格子锚点；
-## 静态数据从资源重建。新增物品类型时在这里加 kind 分支，并保证能按 ID 找回原资源。
-##
-## 魂器额外保存内部魂灵：contents 数组里的记录和容器记录格式相同，
-## 但锚点是相对魂器内部容器的坐标。读档时按锚点放回；找不到的魂灵记录
-## 交给调用方保留到 orphaned，避免读档丢物品。
 
 const KIND_SOUL: String = "soul"
 const KIND_VESSEL: String = "vessel"
@@ -15,13 +7,11 @@ const KIND_MAP: String = "map"
 const KIND_STONE: String = "stone"
 
 
-## 物品 -> 存档记录；不认识的类型返回空字典
 static func encode_item(item: ItemData) -> Dictionary:
 	if item == null:
 		return {}
 	if item is SoulData:
 		var soul := item as SoulData
-		# content_id 在加载时写入并随 duplicate() 保留；name 只用于排查
 		var id: StringName = soul.content_id
 		if id.is_empty():
 			push_warning("存档：魂灵没有 content_id「%s」" % soul.item_name)
@@ -69,8 +59,6 @@ static func encode_item(item: ItemData) -> Dictionary:
 	return {}
 
 
-## 存档记录 -> 新的物品实例；找不到资源时返回 null。
-## orphans 非空时，魂器内部无法还原的魂灵记录会以原始 Dictionary 追加进去。
 static func decode_item(record: Dictionary, orphans: Array = []) -> ItemData:
 	var kind := String(record.get("kind", ""))
 	var id := StringName(String(record.get("id", "")))
@@ -107,7 +95,6 @@ static func decode_item(record: Dictionary, orphans: Array = []) -> ItemData:
 	return null
 
 
-## 整个容器 -> 按锚点排序的记录数组
 static func encode_container(container: ContainerData) -> Array:
 	var records: Array = []
 	for item in container.items:
@@ -124,7 +111,6 @@ static func encode_container(container: ContainerData) -> Array:
 	return records
 
 
-## 魂器内部容器 -> 记录数组；锚点相对内部容器
 static func _encode_contents(vessel: SoulVesselData) -> Array:
 	var records: Array = []
 	var contents := vessel.ensure_contents()
@@ -142,7 +128,6 @@ static func _encode_contents(vessel: SoulVesselData) -> Array:
 	return records
 
 
-## 把存档里的内部魂灵放回魂器；放不下的原始记录交给调用方保留
 static func _decode_contents(vessel: SoulVesselData, raw_records: Variant, orphans: Array) -> void:
 	if not raw_records is Array:
 		return
@@ -169,12 +154,10 @@ static func _append_orphan(orphans: Array, record: Dictionary) -> void:
 	orphans.append(record.duplicate(true))
 
 
-## 一组占用格 -> 左上角锚点；实际算法在 ContainerData，存档层只做转发
 static func anchor_of(grids: Array[Vector2i]) -> Vector2i:
 	return ContainerData.anchor_of(grids)
 
 
-## 存档记录 -> 锚点；格式不对时返回 (-1, -1)，让调用方走第一个空位兜底
 static func anchor_from_record(record: Dictionary) -> Vector2i:
 	var at: Variant = record.get("at", [])
 	if not at is Array or (at as Array).size() < 2:
@@ -182,7 +165,6 @@ static func anchor_from_record(record: Dictionary) -> Vector2i:
 	return Vector2i(int((at as Array)[0]), int((at as Array)[1]))
 
 
-## 读档顺序：先上后下、先左后右，保证多格物品在原布局里能依次放下
 static func sort_records(a: Dictionary, b: Dictionary) -> bool:
 	var a_anchor := anchor_from_record(a)
 	var b_anchor := anchor_from_record(b)

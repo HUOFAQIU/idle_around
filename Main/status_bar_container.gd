@@ -4,7 +4,6 @@ extends HBoxContainer
 
 
 func _ready() -> void:
-	# button_2：主窗口（整个应用）置顶
 	var main_pinned := WindowPinSettings.load_pin(WindowPinSettings.MAIN_WINDOW_ID)
 	get_window().always_on_top = main_pinned
 	button_2.toggle_mode = true

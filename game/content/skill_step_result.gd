@@ -1,5 +1,4 @@
 class_name SkillStepResult extends RefCounted
-## 一个技能步骤的执行结果。
 
 var hit: bool = false
 var empty_reason: String = ""

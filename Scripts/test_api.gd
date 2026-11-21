@@ -1,27 +1,15 @@
 class_name TestAPI
 extends RefCounted
-## AI 测试入口：集中暴露稳定的测试方法。
-##
-## 实现在 Scripts/test_api/ 下按域拆分；本文件只做转发，保持 TestAPI.xxx 入口稳定。
-## 约定：新增功能/内容时，在对应域模块补实现，在这里补转发，并更新 `DOC/指南/AI测试接口.md`。
-## 这些方法会改运行时状态，只在测试/探针里用，不要接入正式玩法。
 
-## 容器名集中定义；用 preload 而不是全局类名，保证 --script 无头模式也能解析
 const CONTAINER_IDS: GDScript = preload("res://Scripts/container_ids.gd")
-## 测试用灼烧效果：施加 + 周期
 const BURN_APPLY : GameplayEffect = preload("res://base_mods/core/effects/burn_apply.tres")
 const BURN_TICK : GameplayEffect = preload("res://base_mods/core/effects/burn_tick.tres")
-## 测试用剧毒效果：施加 + 周期
 const POISON_APPLY : GameplayEffect = preload("res://base_mods/core/effects/poison_apply.tres")
 const POISON_TICK : GameplayEffect = preload("res://base_mods/core/effects/poison_tick.tres")
-## 测试用生命再生效果：施加 + 周期
 const REGEN_APPLY : GameplayEffect = preload("res://base_mods/core/effects/regen_apply.tres")
 const REGEN_TICK : GameplayEffect = preload("res://base_mods/core/effects/regen_tick.tres")
-## 测试用单位冻结效果
 const FREEZE_UNIT : GameplayEffect = preload("res://base_mods/core/effects/freeze_unit.tres")
-## 色板脚本：用于按常量名取色
 const GAME_COLORS_SCRIPT : GDScript = preload("res://Scripts/game_colors.gd")
-## 色板目录：分组、别名、校验
 const GAME_COLOR_CATALOG : GDScript = preload("res://Scripts/game_color_catalog.gd")
 
 const INVENTORY: GDScript = preload("res://Scripts/test_api/inventory.gd")
@@ -35,8 +23,6 @@ const TERMINAL: GDScript = preload("res://Scripts/test_api/terminal.gd")
 const BATTLE: GDScript = preload("res://Scripts/test_api/battle.gd")
 const DEBUG: GDScript = preload("res://Scripts/test_api/debug.gd")
 
-
-#region 背包 / 见闻
 
 static func add_soul(id : StringName, container : String = "") -> bool:
 	return INVENTORY.add_soul(id, container)
@@ -234,11 +220,6 @@ static func get_monster_spawn_distances(id : StringName) -> Array[int]:
 	return INVENTORY.get_monster_spawn_distances(id)
 
 
-#endregion
-
-
-#region 地图 / 数量石
-
 static func get_map_ids() -> Array[StringName]:
 	return MAP.get_map_ids()
 
@@ -285,11 +266,6 @@ static func start_map_battle_from_board(slot_index : int) -> bool:
 static func click_map_drop_slot() -> bool:
 	return MAP.click_map_drop_slot()
 
-
-#endregion
-
-
-#region 存档与开局
 
 static func save_now() -> bool:
 	return SAVE.save_now()
@@ -342,11 +318,6 @@ static func dump_save() -> Dictionary:
 static func check_save_pipeline() -> Dictionary:
 	return SAVE.check_save_pipeline()
 
-
-#endregion
-
-
-#region Mod
 
 static func get_mod_list() -> Array[Dictionary]:
 	return MOD.get_mod_list()
@@ -408,11 +379,6 @@ static func get_orphaned_records() -> Array[Dictionary]:
 	return MOD.get_orphaned_records()
 
 
-#endregion
-
-
-#region 窗口
-
 static func set_window_pinned(window_name : String, pinned : bool) -> bool:
 	return WINDOW.set_window_pinned(window_name, pinned)
 
@@ -440,11 +406,6 @@ static func get_active_panel_name() -> String:
 static func get_visible_panel_rects() -> Array[Rect2]:
 	return WINDOW.get_visible_panel_rects()
 
-
-#endregion
-
-
-#region 立方体外壳
 
 static func set_cube_passthrough_enabled(enabled : bool) -> bool:
 	return CUBE.set_cube_passthrough_enabled(enabled)
@@ -510,11 +471,6 @@ static func click_cube_pet_button(panel_id: StringName) -> bool:
 	return CUBE.click_cube_pet_button(panel_id)
 
 
-#endregion
-
-
-#region 颜色
-
 static func get_game_color(constant_name : String) -> String:
 	return COLORS.get_game_color(constant_name)
 
@@ -526,11 +482,6 @@ static func get_color_catalog() -> Dictionary:
 static func validate_color_groups() -> Array[String]:
 	return COLORS.validate_color_groups()
 
-
-#endregion
-
-
-#region 终端
 
 static func terminal_write_line(text : String) -> bool:
 	return TERMINAL.terminal_write_line(text)
@@ -599,11 +550,6 @@ static func terminal_show_equipped_vessel_tooltip(
 ) -> bool:
 	return TERMINAL.terminal_show_equipped_vessel_tooltip(slot, grid)
 
-
-#endregion
-
-
-#region 战斗
 
 static func start_battle(map_id : StringName = MapCatalog.FOREST_MAP_ID) -> bool:
 	return BATTLE.start_battle(map_id)
@@ -705,11 +651,6 @@ static func get_fps_text() -> String:
 	return BATTLE.get_fps_text()
 
 
-#endregion
-
-
-#region 调试 / 遥测
-
 static func get_debug_events(category : String = "", limit : int = 200) -> Array:
 	return DEBUG.get_debug_events(category, limit)
 
@@ -744,6 +685,3 @@ static func set_debug_recording(enabled : bool) -> void:
 
 static func watch_unit_for_debug(target : String = "player") -> bool:
 	return DEBUG.watch_unit_for_debug(target)
-
-
-#endregion

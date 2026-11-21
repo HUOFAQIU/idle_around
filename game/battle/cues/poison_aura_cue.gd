@@ -1,6 +1,5 @@
 class_name PoisonAuraCue
 extends GameplayCueNotify
-## 剧毒状态光环：中毒期间持续冒墨绿气泡，效果结束后淡出回池。
 
 const FADE_TIME : float = 0.25
 

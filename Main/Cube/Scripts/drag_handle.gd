@@ -1,18 +1,12 @@
 class_name CubeDragHandle
 extends Node2D
-## 立方体上方的屏幕空间拖动圆点。
-##
-## 位置贴在立方体顶面上方，只负责显示、命中与悬停反馈；
-## 拖动位移由 CubeRig 写给 CubePlacement 的屏幕坐标。
 
 const CORE_RADIUS := 6.0
 const HIT_RADIUS := 16.0
 const HOVER_SCALE := 1.22
 const ACTIVE_SCALE := 1.32
 const CORE_COLOR := Color(0.82, 0.96, 1.0, 0.96)
-## 圆点浮在立方体顶面上方的屏幕间隙
 const SCREEN_GAP := 60.0
-## 圆点屏幕位置夹在视口内边距
 const SCREEN_MARGIN := 32.0
 
 @export var anchor_path: NodePath = ^"../.."

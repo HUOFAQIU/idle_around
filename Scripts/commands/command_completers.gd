@@ -1,7 +1,4 @@
 extends RefCounted
-## 命令补全候选来源：只枚举现有数据，不写业务。
-##
-## 加候选：在这里写静态方法，再在 command_catalog.gd 的 complete 数组里登记。
 
 const INVENTORY: GDScript = preload("res://Scripts/test_api/inventory.gd")
 const MAP: GDScript = preload("res://Scripts/test_api/map.gd")

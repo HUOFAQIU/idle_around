@@ -1,6 +1,5 @@
 class_name FaceUI
 extends FaceContent
-## 单个立方体面的 2D 界面：展示面名，按钮被点击后发出识别请求。
 
 const BUTTON_BASE_COLOR := Color("#0b1119")
 const MUTED_TEXT_COLOR := Color(0.55, 0.63, 0.73, 1.0)

@@ -1,9 +1,4 @@
 extends Resource
-## 地图刷怪条目：按时间配额刷，或按击杀另一种怪的条件刷。
-##
-## 时间条目（TIME_INTERVAL）按 interval_seconds 一只一只刷，总数由 count 限定；
-## 击杀条目（KILL_COUNT）没有独立配额，每累计击杀 kill_threshold 只
-## kill_monster_id，就刷出一只 monster_id。怪物名和 tooltip 文案由 MapData 解析。
 class_name MapSpawnEntry
 
 enum Condition {
@@ -25,7 +20,6 @@ enum Condition {
 @export var kill_threshold: int = 1
 
 
-## 把配置问题写进 problems；MapCatalog 和 TestAPI 共用
 func collect_problems(problems: Array[String]) -> void:
 	if monster_id.is_empty():
 		problems.append("刷怪条目缺少 monster_id")

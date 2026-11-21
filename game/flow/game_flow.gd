@@ -1,16 +1,10 @@
 extends Node
-## 当前游戏会话与立方体流程（Autoload：GameFlow）。
-##
-## 只管理「现在处于哪个阶段、活动槽、活动角色」和面锁定结果；
-## 存档读写交给 SaveManager，立方体翻面/面内容由 main.gd 按信号接线。
-## 启动不自动读档：默认 NO_SESSION，停在 01 面选档。
 
 signal state_changed(state: int)
 signal slots_changed
 signal active_character_changed(character: CharacterDefinition)
 signal face_focus_requested(face_index: int)
 signal toast_requested(text: String)
-## 切档/新游戏前发出；main.gd 用它结束当前战斗并关闭旧面板
 signal session_will_change
 
 enum State {
@@ -36,8 +30,6 @@ func _ready() -> void:
 	SaveManager.active_slot_changed.connect(_on_active_slot_changed)
 
 
-#region 公共接口
-## 01 面「新游戏」：满槽提示；已在游戏中则先保存当前档，再进角色选择
 func request_new_game() -> void:
 	if SaveManager.first_empty_slot() < 0:
 		toast_requested.emit("角色已满")
@@ -51,7 +43,6 @@ func request_new_game() -> void:
 	face_focus_requested.emit(FACE_CHARACTER)
 
 
-## 04 面选角：在第一个空槽创建新档并进入 02 面
 func create_new_game(character_id: StringName) -> bool:
 	if _state != State.CHARACTER_SELECT:
 		return false
@@ -76,7 +67,6 @@ func create_new_game(character_id: StringName) -> bool:
 	return true
 
 
-## 01 面读档：已在游戏中先保存当前档；点当前档只翻回 02 面
 func request_load_slot(slot: int) -> bool:
 	if not SaveManager.is_slot_occupied(slot):
 		return false
@@ -96,7 +86,6 @@ func request_load_slot(slot: int) -> bool:
 	return true
 
 
-## 01 面删除非活动存档；活动槽不显示删除按钮，这里再拦一次
 func request_delete_slot(slot: int) -> bool:
 	if slot < 0 or slot >= SaveStorage.SLOT_COUNT:
 		return false
@@ -115,7 +104,6 @@ func request_delete_slot(slot: int) -> bool:
 	return true
 
 
-## 面是否锁定：02/05 只在游戏中解锁，04 只在角色选择时解锁
 func get_face_lock_state(face_index: int) -> bool:
 	match face_index:
 		FACE_MENU, FACE_MAP:
@@ -126,7 +114,6 @@ func get_face_lock_state(face_index: int) -> bool:
 			return false
 
 
-## 01 面存档位视图数据：slot / occupied / character_name
 func get_slot_summaries() -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
 	for raw in SaveManager.get_slot_summaries():
@@ -147,7 +134,6 @@ func get_slot_summaries() -> Array[Dictionary]:
 	return result
 
 
-## 当前角色档案；没有会话时回退到默认角色，保证测试/工具模式可开战
 func get_player_profile() -> PlayerProfile:
 	if _profile != null:
 		return _profile
@@ -162,7 +148,6 @@ func get_state() -> State:
 	return _state
 
 
-## TestAPI/调试用快照
 func get_state_snapshot() -> Dictionary:
 	return {
 		"state": String(State.find_key(_state)),
@@ -174,11 +159,8 @@ func get_state_snapshot() -> Dictionary:
 			else ""
 		),
 	}
-#endregion
 
 
-#region 内部
-## 会话切换前统一收尾：放下拖拽物品、停战/关面板；失败则不切
 func _prepare_session_change() -> bool:
 	if GBIS.has_moving_item() and not GBIS.moving_item_service.cancel():
 		toast_requested.emit("无法放下拖拽中的物品")
@@ -187,7 +169,6 @@ func _prepare_session_change() -> bool:
 	return true
 
 
-## 保存当前活动槽；只读档跳过保存并继续切换
 func _save_current_before_switch() -> bool:
 	if bool(SaveManager.get_save_status().get("read_only", false)):
 		toast_requested.emit("当前存档只读，进度不会保存")
@@ -198,7 +179,6 @@ func _save_current_before_switch() -> bool:
 	return false
 
 
-## 活动槽被删除（TestAPI 等）：回到 01 面，结束旧会话
 func _on_active_slot_changed(slot: int) -> void:
 	if slot >= 0:
 		return
@@ -233,4 +213,3 @@ func _resolve_character(player_data: Dictionary) -> CharacterDefinition:
 
 func _on_slot_list_changed() -> void:
 	slots_changed.emit()
-#endregion

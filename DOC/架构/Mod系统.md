@@ -1,6 +1,6 @@
 # Mod 系统与创意工坊
 
-> 类型：设计 | 状态：部分实现（内置 core mod 已接入；Steam 后置）
+> 类型：设计 | 状态：部分实现（内置 core mod 已接入；Steam 后置） | 核对：2026-11-21
 > 何时读：改 mod 加载、内容注册、存档兼容，或准备接 Steam 创意工坊
 > 关键词：mod ModLoader manifest PCK 创意工坊 Workshop content_id orphaned 加载顺序 内置 core content_namespace content_root validate_core_manifest manifest 校验 技能 ID 命名 PascalCase 魂器 vessels 常见排查 排障 症状 未生效 未注册 顺序不生效
 > 代码：`Scripts/mod/`、`Scripts/collection_db.gd`、`Scripts/save/`、`project.godot`、`base_mods/core/mod.json`
@@ -128,6 +128,9 @@ res://mods/example_souls/content/monsters/fire_wolf_monster.tres
 - 第三方 mod 内容 ID：`<mod_id>:<local_id>`；技能 `SkillDefinition.id` 是 `ability_tag` 的后缀（不含 `Skill.`），格式 `Mod.<PascalModId>.<PascalName>`（如 `Mod.ExampleSouls.FireWolf`）；留空时由 `ModLoader` 按魂灵 content_id 自动派生。重复会互相顶掉。
 - 内容 ID / 技能 ID 的完整命名规则见 `指南/Mod制作.md` §3。
 - 第三方 Cue 标签：`Cue.Mod.<PascalModId>.<Name>`，例如 `example_souls` → `Cue.Mod.ExampleSouls.Fire`；不属于本 mod 命名空间的标签会被拒绝。`ModCueRegistrar` 把所有 ModLoader Cue 注册进 `GameplayCueManager`，场景根节点必须继承 `GameplayCueNotify`；已存在的标签不会被覆盖。
+- 第三方 mod 引用外部技能资源时只校验 GAS 标签格式，不要求落在本 mod 命名空间。
+- 魂灵 `types` / `tags` 必须用 `Soul.types.*` / `Soul.tags.*` 固定前缀；拼错不会报错，但筛选和触发规则会静默失效。
+- Cue 场景只实例化一次检查根节点是否实现 `execute_cue` / `cue_finished`；不加入场景树时只会触发 `_init`。
 - `content_namespace: "global"` 和 `content_root` 只允许内置来源；第三方写了会被拒绝并记入 `ModLoader.get_errors()`。
 - 加载顺序：内置 mod 固定在最前；第三方按用户在 Mod 窗口排的基础顺序，存在 `user://mods.cfg` 的 `[order]`。`dependencies` 是硬依赖，缺失/禁用时依赖方不加载；`load_after` 是软顺序。两者都会覆盖用户顺序，冲突时以依赖为准。
 - 路径覆盖：所有 PCK 先挂载，再加载内容；后挂载的 PCK 可以覆盖先挂载的资源。core 内容在 `res://base_mods/core/...`，第三方覆盖这些路径即可，但要在 `overrides` 里声明。

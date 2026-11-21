@@ -1,15 +1,10 @@
 class_name UiRegion
 extends RefCounted
-## 把立方体的屏幕投影凸包和可见 UI 矩形合成一个窗口鼠标区域多边形。
-##
-## Windows 的 mouse_passthrough_polygon 只接受一个多边形，而且区域外既不接收
-## 鼠标也可能不绘制。多个不相连的区域需要用细走廊连成一棵树，并统一为顺时针。
 
 const CORRIDOR_HALF_WIDTH: float = 1.0
 const MIN_RECT_SIZE: float = 1.0
 
 
-## rect_padding < 0 时沿用 padding；矩形和凸包可以用不同的外扩距离
 static func build(
 		base_polygon: PackedVector2Array,
 		rects: Array[Rect2],

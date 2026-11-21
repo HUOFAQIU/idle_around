@@ -1,25 +1,16 @@
 class_name CubePlacement
 extends Node
-## 把立方体锚定在屏幕坐标上，并按视口高度换算世界缩放，
-## 使面 02 的屏幕投影保持约 TARGET_FACE_PX 像素。
-##
-## 位置以「立方体中心的屏幕像素坐标」保存在内存里；拖动圆点只改这个坐标，
-## 世界位置和缩放每帧由本节点重算。位置不落盘，重启回到屏幕中心。
 
-## 屏幕中心变化；穿透区域等外部消费者据此刷新
 signal screen_center_changed
 
 const TARGET_FACE_PX : float = 300.0
-## 面片 QuadMesh 的边长，和 face_3d.tscn 保持一致
 const FACE_WORLD_SIZE : float = 1.9
-## 面片相对立方体中心的距离，用于按面片深度修正缩放
 const FACE_OFFSET : float = 1.005
 
 var _camera : Camera3D
 var _floating : FloatingMotion
 var _screen_center := Vector2.ZERO
 var _depth : float = 5.9
-## 用户拖动过圆点后为 true；窗口尺寸变化时保持当前坐标而不是回默认位
 var _has_custom_center : bool = false
 
 
@@ -43,7 +34,6 @@ func _process(_delta : float) -> void:
 	_apply()
 
 
-## 立即按当前视口应用一次；主场景装配时调，避免首帧停在场景默认位置
 func apply_now() -> void:
 	_apply()
 
@@ -57,7 +47,6 @@ func set_screen_center(value : Vector2) -> void:
 	_set_screen_center(value)
 
 
-## 等一帧让全屏/DPI 后的视口尺寸稳定，再重算默认位或夹取当前坐标
 func _refresh_center_after_frame() -> void:
 	await get_tree().process_frame
 	if is_inside_tree():
@@ -70,14 +59,12 @@ func _apply() -> void:
 	var viewport_size := get_viewport().get_visible_rect().size
 	if viewport_size.y < 2.0:
 		return
-	# 子视口由 SubViewportContainer 拉伸到主视口，布局稳定前先跳过一帧
 	if _camera.get_viewport().get_visible_rect().size.y < 2.0:
 		return
 	_floating.scale = Vector3.ONE * _compute_scale(viewport_size)
 	_floating.set_base_position(_camera.project_position(_screen_center, _depth))
 
 
-## 靠近相机的面按面片深度解出精确缩放，让面片投影保持约 300px
 func _compute_scale(viewport_size : Vector2) -> float:
 	var half_fov := deg_to_rad(_camera.fov * 0.5)
 	var k := TARGET_FACE_PX * 2.0 * tan(half_fov) / viewport_size.y

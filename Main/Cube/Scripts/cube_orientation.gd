@@ -1,7 +1,5 @@
 class_name CubeOrientation
 extends Node3D
-## 负责立方体的自由旋转、松手惯性；仅当某个面已接近正对玩家时，
-## 在惯性结束后把它平滑回正。
 
 signal settled
 
@@ -81,7 +79,6 @@ func stop_rotation() -> void:
 	_angular_velocity = Vector2.ZERO
 
 
-## 平滑翻到指定面；和拖拽后的自动回正共用 ALIGNING 状态
 func rotate_to_face(face_index: int) -> bool:
 	var camera := _get_camera()
 	if camera == null:
@@ -93,7 +90,6 @@ func rotate_to_face(face_index: int) -> bool:
 	return true
 
 
-## 立即把指定面转到正对相机；测试接口和初始化用
 func snap_face_to_camera(face_index: int) -> bool:
 	var camera := _get_camera()
 	if camera == null:

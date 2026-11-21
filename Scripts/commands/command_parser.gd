@@ -1,9 +1,6 @@
 extends RefCounted
-## 命令解析：空格分隔，支持单双引号和反斜杠转义。
 
 
-## 光标所在 token 的区间；token 含引号（含未闭合）时 quoted 为 true。
-## 返回 {start, end, index, quoted, text}；caret 为负时按行尾处理。
 static func token_at(line: String, caret: int = -1) -> Dictionary:
 	var length := line.length()
 	var pos := clampi(length if caret < 0 else caret, 0, length)

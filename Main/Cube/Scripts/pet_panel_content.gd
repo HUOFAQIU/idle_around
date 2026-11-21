@@ -1,8 +1,5 @@
 class_name PetPanelContent
 extends FaceContent
-## 面 02 内容：PetPanel 主菜单。
-##
-## 只把菜单的 panel_requested 往立方体外壳外转发；打开哪个窗口由主场景装配决定。
 
 signal panel_requested(panel_id: StringName)
 

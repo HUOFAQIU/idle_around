@@ -1,9 +1,5 @@
 class_name MapCatalog
 extends RefCounted
-## core 硬编码的地图和数量石清单；不进 mod manifest。
-##
-## 地图配置只存怪物 content_id，运行时由 CollectionDB 解析；
-## 需要加新地图时在这里登记 id 和资源路径。
 
 const FOREST_MAP_ID: StringName = &"forest_map"
 const QUANTITY_STONE_ID: StringName = &"quantity_stone"
@@ -16,7 +12,6 @@ static var _forest_map: MapData
 static var _quantity_stone: QuantityStoneData
 
 
-## 按 id 取地图配置；未登记返回 null
 static func get_map(id: StringName) -> MapData:
 	match id:
 		FOREST_MAP_ID:
@@ -30,7 +25,6 @@ static func get_map_ids() -> Array[StringName]:
 	return [FOREST_MAP_ID]
 
 
-## 生成一张新的地图物品实例；未登记返回 null
 static func make_map_item(id: StringName) -> MapItemData:
 	var map_data := get_map(id)
 	if map_data == null:
@@ -46,7 +40,6 @@ static func make_map_item(id: StringName) -> MapItemData:
 	return item
 
 
-## 生成一颗新的数量石实例；模板缺失返回 null
 static func make_quantity_stone() -> QuantityStoneData:
 	var template := _quantity_stone_template()
 	if template == null:
@@ -59,7 +52,6 @@ static func get_quantity_stone_ids() -> Array[StringName]:
 	return [QUANTITY_STONE_ID]
 
 
-## 检查所有硬编码地图：字段、怪物 id 和数量石模板
 static func collect_problems() -> Array[String]:
 	var problems: Array[String] = []
 	for id in get_map_ids():

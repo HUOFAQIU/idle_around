@@ -1,16 +1,9 @@
-## 魂灵触发规则：监听一个 GAS GameplayEvent，对指定范围施加一批效果。
-##
-## 被动魂灵和主动魂灵都可以配；主动魂灵还能在触发时给自己充能。
-## `event_tag` 由 `SoulTriggerAbility.trigger_event_tag` 使用，事件由
-## `AbilitySystemComponent.send_gameplay_event()` 广播；新增事件只需注册标签
-## 并在事件产生处发送，不需要改这里。
 class_name PassiveTrigger extends Resource
 
-## 效果施加范围
 enum TargetScope {
-	EVENT_TARGET,  ## 事件目标（例：移动的怪物、被冻结的单位）
-	SELF,          ## 触发器所属单位自己
-	ALL_ENEMIES,   ## 触发器所属单位的全体敌人
+	EVENT_TARGET,
+	SELF,
+	ALL_ENEMIES,
 }
 
 ## 触发事件标签（GAS GameplayEvent）

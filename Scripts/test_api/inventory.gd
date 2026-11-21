@@ -1,11 +1,7 @@
 extends RefCounted
-## TestAPI 背包 / 见闻域：魂灵、魂器、容器、tooltip 与见闻。
-##
-## 对外入口仍是 res://Scripts/test_api.gd 的 TestAPI。
 
 const COMMON: GDScript = preload("res://Scripts/test_api/common.gd")
 
-## 容器名集中定义；用 preload 而不是全局类名，保证 --script 无头模式也能解析
 const CONTAINER_IDS: GDScript = preload("res://Scripts/container_ids.gd")
 
 static func add_soul(id : StringName, container : String = "") -> bool:
@@ -25,7 +21,6 @@ static func has_container(container: String) -> bool:
 	return ContainerRepository.instance.get_container(container) != null
 
 
-## 已注册容器名：仓库页、魂器网格、商店；命令补全和参数校验共用
 static func get_container_names() -> PackedStringArray:
 	var names := PackedStringArray()
 	for name in GBIS.inventory_names:
@@ -395,7 +390,6 @@ static func get_monster_spawn_distances(id : StringName) -> Array[int]:
 	return monster.spawn_distances.duplicate()
 
 
-## tooltip 统一格式：ANSI 标题带样式，其余格式保持纯文本标题
 static func _format_tooltip(
 	title : String, body : String, format : TooltipText.Format
 ) -> String:
@@ -457,7 +451,6 @@ static func _shop_window() -> BaseWindow:
 	return COMMON.find_node_in_scene(BaseWindow, &"ShopWindow") as BaseWindow
 
 
-## 按内容 id 找玩家当前装备的魂灵运行期实例；同一 id 有多颗时取第一颗
 static func _player_runtime_for(id : StringName) -> SoulRuntime:
 	for runtime in SoulRuntimeDB.player_runtimes():
 		if runtime.soul != null and runtime.soul.content_id == id:
@@ -465,8 +458,6 @@ static func _player_runtime_for(id : StringName) -> SoulRuntime:
 	return null
 
 
-## 已装备魂灵的展示上下文：soul + preview；未装备返回 {}
-## 战斗中优先运行期值，否则按当前魂器网格做“装上后”静态预览。
 static func _equipped_soul_context(id : StringName) -> Dictionary:
 	var runtime := _player_runtime_for(id)
 	if runtime != null and runtime.soul != null:
@@ -488,7 +479,6 @@ static func _equipped_soul_context(id : StringName) -> Dictionary:
 	}
 
 
-## 在角色魂器网格里按内容 id 找魂灵实例和所在魂器；找不到返回 {}
 static func _equipped_soul_entry(id : StringName) -> Dictionary:
 	var grid := ContainerRepository.instance.get_container(CONTAINER_IDS.VESSEL_GRID)
 	if grid == null:

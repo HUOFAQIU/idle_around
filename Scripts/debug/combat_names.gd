@@ -1,7 +1,3 @@
-## 调试/日志用的统一显示名。
-##
-## 周期/状态效果优先用 execution 自己的状态元数据，其次 spec.display_name
-##（由技能/触发器写入），最后退回效果资源文件名。不要在别处再写一套。
 class_name CombatNames extends RefCounted
 
 
@@ -11,8 +7,6 @@ static func effect_name(spec: GameplayEffectSpec) -> String:
 	var effect := spec.effect_def
 	if effect == null:
 		return "未知效果"
-	# 周期/状态效果从 execution 自己的元数据取稳定名字；
-	# spec.display_name 是技能/魂灵名，留给普通伤害/治疗这类效果。
 	for execution in effect.executions:
 		if execution is PeriodicStatusTickExecution:
 			return (execution as PeriodicStatusTickExecution).status_display_name()
@@ -33,7 +27,6 @@ static func effect_name(spec: GameplayEffectSpec) -> String:
 	return "效果"
 
 
-## 效果来源单位名；周期效果可能比施加者活得久，先判有效。
 static func source_name(spec: GameplayEffectSpec) -> String:
 	if spec == null or spec.context == null:
 		return "未知来源"

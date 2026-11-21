@@ -1,9 +1,7 @@
 @tool
 extends RefreshableView
-## 装备槽视图
 class_name EquipmentSlotView
 
-## 装备槽的绘制状态：正常、可用、不可用
 enum State{
 	NORMAL, AVILABLE, INVILABLE
 }
@@ -43,18 +41,13 @@ enum State{
 ## 可以装备的物品大类，对应 ItemData.category
 @export_enum("WEAPON") var avilable_types: Array[String] = ["WEAPON"]
 
-## 物品容器
 var _item_container: Control
-## 物品视图
 var _item_view: ItemView
-## 当前绘制状态
 var _state: State = State.NORMAL
 
-## 是否为空
 func is_empty() -> bool:
 	return _item_view == null
 
-## 刷新装备槽显示
 func refresh() -> void:
 	super()
 	_clear_slot()
@@ -64,7 +57,6 @@ func refresh() -> void:
 		if item_data:
 			_on_item_equipped(slot_name, item_data)
 
-## 初始化
 func _ready() -> void:
 	if Engine.is_editor_hint():
 		call_deferred("_recalculate_size")
@@ -103,7 +95,6 @@ func _on_visible_changed() -> void:
 	else:
 		GBIS.opened_equipment_slots.erase(slot_name)
 
-## 高亮
 func _on_slot_hover() -> void:
 	var moving := GBIS.moving_item_service
 	if not moving.is_dragging():
@@ -121,18 +112,15 @@ func _on_slot_hover() -> void:
 	queue_redraw()
 
 
-## 拖拽结束：清掉悬停高亮
 func _on_drag_ended() -> void:
 	_state = State.NORMAL
 	queue_redraw()
 
-## 失去高亮
 func _on_slot_lose_hover() -> void:
 	_state = State.NORMAL
 	GBIS.item_focus_service.item_lose_focus()
 	queue_redraw()
 
-## 监听穿装备
 @warning_ignore("shadowed_variable")
 func _on_item_equipped(slot_name: String, item_data: ItemData):
 	if slot_name != self.slot_name:
@@ -143,7 +131,6 @@ func _on_item_equipped(slot_name: String, item_data: ItemData):
 	_state = State.NORMAL
 	queue_redraw()
 
-## 监听脱装备
 @warning_ignore("shadowed_variable")
 func _on_item_unequipped(slot_name: String, _item_data: ItemData):
 	if slot_name != self.slot_name:
@@ -151,25 +138,21 @@ func _on_item_unequipped(slot_name: String, _item_data: ItemData):
 	
 	_clear_slot()
 
-## 绘制装备
 func _draw_item(item_data: ItemData) -> ItemView:
 	var item = ItemView.new(item_data, base_size)
 	var center = size / 2 - item.size / 2
 	item.position = center
 	return item
 
-## 清空装备槽显示（仅清空显示，与数据无关）
 func _clear_slot() -> void:
 	if _item_view:
 		_item_view.queue_free()
 		_item_view = null
 
-## 初始化物品容器
 func _init_item_container() -> void:
 	_item_container = Control.new()
 	add_child(_item_container)
 
-## 绘制装备槽背景
 func _draw() -> void:
 	if background:
 		draw_texture_rect(background, Rect2(0, 0, columns * base_size, rows * base_size), false)
@@ -181,7 +164,6 @@ func _draw() -> void:
 	else:
 		draw_rect(Rect2(0, 0, columns * base_size, rows * base_size), INVILABLE_color * 10)
 
-## 重新计算大小
 func _recalculate_size() -> void:
 	var new_size = Vector2(columns * base_size, rows * base_size)
 	if size != new_size:
@@ -189,7 +171,6 @@ func _recalculate_size() -> void:
 		queue_redraw()
 
 func _gui_input(event: InputEvent) -> void:
-	# 点击动作处理
 	if event.is_action_pressed(GBIS.input_click):
 		GBIS.item_focus_service.item_lose_focus()
 		var moving := GBIS.moving_item_service
@@ -200,6 +181,5 @@ func _gui_input(event: InputEvent) -> void:
 			moving.pick_from_slot(slot_name, base_size)
 		_on_slot_hover()
 
-	# 使用动作处理
 	elif event.is_action_pressed(GBIS.input_use) and not is_empty():
 		GBIS.equipment_slot_service.unequip(slot_name)

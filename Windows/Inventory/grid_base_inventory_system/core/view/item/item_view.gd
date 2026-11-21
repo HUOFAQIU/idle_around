@@ -1,8 +1,6 @@
 extends Control
-## 物品视图，控制物品的绘制
 class_name ItemView
 
-## 魂灵状态徽章：加速在上、冻结在中、减速在下
 const HASTE_BADGE_SCENE := preload("res://game/content/Kits/jiasu.tscn")
 const SLOW_BADGE_SCENE := preload("res://game/content/Kits/jiansu.tscn")
 const FREEZE_BADGE_SCENE := preload("res://game/content/Kits/bingdong.tscn")
@@ -11,40 +9,29 @@ const BADGE_TOP : int = 0
 const BADGE_CENTER : int = 1
 const BADGE_BOTTOM : int = 2
 
-## 物品名称标签：字号按卡面宽度缩放，最小 12 保证可读
 const ITEM_NAME_FONT_RATIO : float = 0.2
 const ITEM_NAME_MIN_FONT_SIZE : int = 12
 const ITEM_NAME_MAX_FONT_SIZE : int = 20
 const ITEM_NAME_OUTLINE_SIZE : int = 2
 
-## 堆叠数字的字体
 var stack_num_font: Font
-## 堆叠数字的字体大小
 var stack_num_font_size: int
-## 堆叠数字的边距
 var stack_num_margin: int = 4
-## 堆叠数字的颜色
 var stack_num_color: Color = GameColors.STACK_NUM_COLOR
 
-## 物品数据
 var data: ItemData
-## 绘制基础大小（格子大小）；值没变时不重算尺寸
 var base_size: int:
 	set(value):
 		if base_size == value:
 			return
 		base_size = value
 		call_deferred("recalculate_size")
-## 物品名称标签（魂灵、魂器、地图、数量石）
 var _name_label: Label
-## 状态徽章（只对 SoulData 创建）
 var _haste_badge: Control
 var _slow_badge: Control
 var _freeze_badge: Control
-## 战斗运行期状态；仓库副本没有，只有正在装备/战斗中的魂灵才有
 var _runtime: SoulRuntime
 
-## 构造函数
 @warning_ignore("shadowed_variable")
 func _init(data: ItemData, base_size: int, stack_num_font: Font = null, stack_num_font_size: int = 16, stack_num_margin: int = 2, stack_num_color: Color = GameColors.STACK_NUM_COLOR) -> void:
 	self.data = data
@@ -55,19 +42,16 @@ func _init(data: ItemData, base_size: int, stack_num_font: Font = null, stack_nu
 	self.stack_num_color = stack_num_color
 	recalculate_size()
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	# 如果 material 不为空，则加上 material
 	if data.material:
 		material = data.material.duplicate()
 	elif GBIS.item_material:
 		material = GBIS.item_material.duplicate()
-	# 魂灵扫描线的固定色从 GameColors 写进副本；shader 默认值只作兜底
 	if data is SoulData and material is ShaderMaterial:
 		var shader_material := material as ShaderMaterial
 		shader_material.set_shader_parameter("line_color", GameColors.to_color(GameColors.SOUL_LINE))
 		shader_material.set_shader_parameter("freeze_color", GameColors.to_color(GameColors.SOUL_FREEZE))
 	data.sig_refresh.connect(_on_data_refresh)
 
-## 入树后创建名称标签，并尝试绑定战斗运行期状态；徽章等真有运行期状态再建
 func _ready() -> void:
 	if _shows_name_label():
 		_name_label = _make_name_label()
@@ -87,14 +71,12 @@ func _exit_tree() -> void:
 			SoulRuntimeDB.runtime_unregistered.disconnect(_on_runtime_unregistered)
 	_unbind_runtime()
 
-## 重写计算大小
 func recalculate_size() -> void:
 	size = Vector2(data.columns * base_size, data.rows * base_size)
 	queue_redraw()
 	_refresh_name_label()
 	_refresh_status_badges()
 
-## 绘制物品
 func _draw() -> void:
 	if data.icon:
 		draw_texture_rect(data.icon, Rect2(Vector2.ZERO, size), false)
@@ -119,7 +101,6 @@ func _on_data_refresh() -> void:
 	_apply_freeze_shader()
 
 
-## 战斗开始/结束时 SoulRuntimeDB 会广播注册/注销；只绑定同一份 SoulData
 func _on_runtime_registered(runtime: SoulRuntime) -> void:
 	if data is SoulData and runtime.soul == data:
 		_bind_runtime(runtime)
@@ -148,7 +129,6 @@ func _unbind_runtime() -> void:
 	_bind_runtime(null)
 
 
-## 运行期状态变化：只改材质参数和徽章，不重绘整个 ItemView
 func _on_runtime_changed() -> void:
 	_set_progress_param(_runtime.scanline_progress if _runtime != null else 0.0)
 	_refresh_status_badges()
@@ -160,7 +140,6 @@ func _set_progress_param(value: float) -> void:
 		(material as ShaderMaterial).set_shader_parameter("progress", value)
 
 
-## 冻结状态直接改材质参数：冰霜覆盖不依赖 shader_params 里有没有登记 freeze
 func _apply_freeze_shader() -> void:
 	if not data is SoulData or not material is ShaderMaterial:
 		return
@@ -168,7 +147,6 @@ func _apply_freeze_shader() -> void:
 	(material as ShaderMaterial).set_shader_parameter("freeze", 1.0 if frozen else 0.0)
 
 
-## 魂灵、魂器、地图和数量石都显示卡面名称；状态徽章仍然只属于魂灵
 func _shows_name_label() -> bool:
 	return (
 		data is SoulData
@@ -178,7 +156,6 @@ func _shows_name_label() -> bool:
 	)
 
 
-## 创建盖在卡面图标上的名称标签；父节点就是卡面，铺满即可
 func _make_name_label() -> Label:
 	var label := Label.new()
 	label.name = "ItemNameLabel"
@@ -196,7 +173,6 @@ func _make_name_label() -> Label:
 	return label
 
 
-## 字号跟着卡面宽度走：1×2 小卡用小字，3×2 大卡用大字
 func _refresh_name_label() -> void:
 	if _name_label == null:
 		return
@@ -208,7 +184,6 @@ func _refresh_name_label() -> void:
 		_name_label.text = data.item_name
 
 
-## 状态徽章只在魂灵有运行期状态（装备/战斗中）时创建；仓库副本没有运行期状态，不建徽章
 func _ensure_status_badges() -> void:
 	if not data is SoulData:
 		return
@@ -220,7 +195,6 @@ func _ensure_status_badges() -> void:
 		_freeze_badge = _make_status_badge(FREEZE_BADGE_SCENE, "FreezeBadge")
 
 
-## 实例化一个 Kits 徽章，尺寸固定 16×10，鼠标事件全部穿透
 func _make_status_badge(scene: PackedScene, badge_name: String) -> Control:
 	var badge := scene.instantiate() as Control
 	badge.name = badge_name
@@ -236,7 +210,6 @@ func _make_status_badge(scene: PackedScene, badge_name: String) -> Control:
 	return badge
 
 
-## 把 SoulRuntime 上的剩余秒数同步到三个徽章；仓库副本没有运行期状态就隐藏
 func _refresh_status_badges() -> void:
 	if not data is SoulData:
 		return

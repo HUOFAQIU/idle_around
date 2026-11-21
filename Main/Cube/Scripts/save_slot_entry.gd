@@ -1,13 +1,8 @@
 class_name SaveSlotEntry
 extends Control
-## 01 面单个存档位：主按钮 + 右上角删除按钮。
-##
-## 删除是两段式：第一次点 × 变成「确认」，再点一次才发 delete_requested；
-## 点主按钮、新游戏或其它槽的删除按钮会取消确认。活动槽不显示删除按钮。
 
 signal slot_requested
 signal delete_requested
-## 第一次点 × 进入确认态；父级用它取消其它槽的确认
 signal delete_confirmation_started
 
 const DELETE_HEIGHT: float = 20.0
@@ -48,7 +43,6 @@ func _ready() -> void:
 	set_slot(0, false, "", false)
 
 
-## 更新槽位显示；active 为当前正在玩的槽，不显示删除按钮并加绿底
 func set_slot(slot: int, occupied: bool, character_name: String, active: bool) -> void:
 	var was_active := _active
 	_slot = slot
@@ -70,7 +64,6 @@ func set_slot(slot: int, occupied: bool, character_name: String, active: bool) -
 		_apply_active_visual(active)
 
 
-## 测试/调试：模拟点击主按钮；空槽返回 false
 func activate() -> bool:
 	if not _occupied:
 		return false
@@ -78,7 +71,6 @@ func activate() -> bool:
 	return true
 
 
-## 测试/调试：模拟点击删除按钮；空槽和活动槽返回 false
 func activate_delete() -> bool:
 	if not _occupied or _active:
 		return false
@@ -86,12 +78,10 @@ func activate_delete() -> bool:
 	return true
 
 
-## 当前槽是否处于删除确认态
 func is_confirming() -> bool:
 	return _confirming
 
 
-## 进入/退出二次确认；退出时把按钮恢复成 ×
 func set_confirming(confirming: bool) -> void:
 	if _confirming == confirming:
 		return
@@ -117,7 +107,6 @@ func _on_delete_pressed() -> void:
 	delete_requested.emit()
 
 
-## 活动槽用置顶按钮同款绿底 + 深色文字；切走时恢复主题样式
 func _apply_active_visual(active: bool) -> void:
 	if active:
 		_main_button.add_theme_stylebox_override("normal", _accent_normal)

@@ -1,12 +1,7 @@
 extends BaseContainerService
-## 背包业务类
 class_name InventoryService
 
-## 向背包添加物品
-## 如果是可堆叠物品，如果当前数量大于可堆叠数量，会重置为允许的最大值，成功后发射信号 sig_inv_item_updated
-## 如果是不可堆叠物品，或堆叠后还有剩余，成功后发射 sig_inv_item_added
 func add_item(inv_name: String, item_data: ItemData) -> bool:
-	# 魂器需要在复制时连同内部魂灵一起复制，普通物品仍等价于 duplicate()
 	var new_item_data = item_data.make_instance()
 	if new_item_data is StackableData:
 		if new_item_data.current_amount > new_item_data.stack_size:
@@ -20,14 +15,12 @@ func add_item(inv_name: String, item_data: ItemData) -> bool:
 				GBIS.sig_inv_item_updated.emit(inv_name, new_item_grids[0])
 				if new_item_data.current_amount <= 0:
 					return true
-	# 增加不可堆叠物品，或堆叠后剩余的物品
 	var grids = _container_repository.get_container(inv_name).add_item(new_item_data)
 	if not grids.is_empty():
 		GBIS.sig_inv_item_added.emit(inv_name, new_item_data, grids)
 		return true
 	return false
 
-## 拖放预览与实际放置共用的判定
 func drop_state_at(container_name: String, item_data: ItemData, hovered_grid: Vector2i, grab_offset: Vector2i) -> ContainerData.DropState:
 	var container := _container_repository.get_container(container_name)
 	if container == null:
@@ -35,7 +28,6 @@ func drop_state_at(container_name: String, item_data: ItemData, hovered_grid: Ve
 	return container.drop_state_at(item_data, hovered_grid, grab_offset)
 
 
-## 尝试把正在移动的物品堆叠到指定格；完全合并返回 true，部分合并且手里还有剩余返回 false
 func stack_moving_item(inv_name: String, anchor_grid: Vector2i) -> bool:
 	var moving := GBIS.moving_item_service.moving_item
 	if moving == null:
@@ -51,12 +43,10 @@ func stack_moving_item(inv_name: String, anchor_grid: Vector2i) -> bool:
 	return amount_left <= 0
 
 
-## 尝试放置正在移动的物品到这个格子
 func place_moving_item(inv_name: String, grid_id: Vector2i) -> bool:
 	return place_to(inv_name, GBIS.moving_item_service.moving_item, grid_id)
 
 
-## 取消拖拽：优先放回原格，原格被占用时放同容器第一个空位
 func restore_to_grid(container_name: String, grid: Vector2i, moving: ItemData) -> bool:
 	var container := _container_repository.get_container(container_name)
 	if container == null:
@@ -72,7 +62,6 @@ func restore_to_grid(container_name: String, grid: Vector2i, moving: ItemData) -
 	GBIS.sig_inv_item_added.emit(container_name, moving, grids)
 	return true
 
-## 使用物品（默认：鼠标右键点击格子）
 func use_item(inv_name: String, grid_id: Vector2i) -> bool:
 	var item_data = find_item_data_by_grid(inv_name, grid_id)
 	if not item_data:
@@ -88,12 +77,10 @@ func use_item(inv_name: String, grid_id: Vector2i) -> bool:
 			GBIS.sig_inv_item_updated.emit(inv_name, grid_id)
 		return true
 	elif item_data.activate():
-		# 魂器等“打开自身窗口”的物品；具体窗口由 UI 层监听信号决定
 		GBIS.sig_item_activated.emit(item_data)
 		return true
 	return false
 
-## 分割物品
 func split_item(inv_name: String, grid_id: Vector2i, offset: Vector2i, base_size: int) -> ItemData:
 	var inv = _container_repository.get_container(inv_name)
 	if inv:
@@ -111,14 +98,12 @@ func split_item(inv_name: String, grid_id: Vector2i, offset: Vector2i, base_size
 			return new_item
 	return null
 
-## 快速移动（默认：Shift + 鼠标右键）
 func quick_move(inv_name: String, grid_id: Vector2i) -> void:
 	var target_inventories = _container_repository.get_quick_move_relations(inv_name)
 	var item_to_move = _container_repository.get_container(inv_name).find_item_data_by_grid(grid_id)
 	if target_inventories.is_empty() or not item_to_move:
 		return
 	for target_container in target_inventories:
-		# 目标背包必须打开
 		if not GBIS.opened_containers.has(target_container):
 			continue
 		if add_item(target_container, item_to_move):
@@ -127,7 +112,6 @@ func quick_move(inv_name: String, grid_id: Vector2i) -> void:
 		elif item_to_move is StackableData:
 			GBIS.sig_inv_item_updated.emit(inv_name, grid_id)
 
-## 快速出售：直接卖掉指定格子里的物品；商店和该容器都打开才生效
 func quick_sell(inv_name: String, grid_id: Vector2i) -> bool:
 	if not GBIS.opened_containers.has(inv_name) or not GBIS.has_opened_shop():
 		return false
@@ -139,20 +123,16 @@ func quick_sell(inv_name: String, grid_id: Vector2i) -> bool:
 	remove_item_by_data(inv_name, item)
 	return true
 
-## 增加背包间的快速移动关系
 func add_quick_move_relation(inv_name: String, target_inv_name: String) -> void:
 	_container_repository.add_quick_move_relation(inv_name, target_inv_name)
 
-## 删除背包间的快速移动关系
 func remove_quick_move_relation(inv_name: String, target_inv_name: String) -> void:
 	_container_repository.remove_quick_move_relation(inv_name, target_inv_name)
 
-## 删除背包中的物品，成功后触发 sig_inv_item_removed
 func remove_item_by_data(inv_name: String, item_data: ItemData) -> void:
 	if _container_repository.get_container(inv_name).remove_item(item_data):
 		GBIS.sig_inv_item_removed.emit(inv_name, item_data)
 
-## 只返回背包
 func get_container(container_name: String) -> ContainerData:
 	if GBIS.inventory_names.has(container_name):
 		return _container_repository.get_container(container_name)

@@ -1,51 +1,26 @@
-## 充能式能力：冷却按 1/120 秒的整数刻度累加，不用 delta。
-##
-## 60 FPS 下每物理帧基础 +2 刻度；加速 ×2、减速 ×0.5，两者同时存在时抵消。
-## 加速/减速/冻结持续时间也用同一刻度，避免浮点误差。
-## 外部充能直接调 add_charge(秒)，内部换算成刻度。
-## 冻结分两种来源：魂灵自身的 freeze_units 计时，或所属单位带 State.Frozen 标签。
-## 冻结期间由 BattleBrain 决定不充能、不释放，本类只提供 is_frozen() 查询。
-##
-## 连续激活的最小间隔是 ACTIVATION_LOCK_UNITS（20 刻 = 1/6 秒）：
-## 同一颗魂灵 1 秒最多激活 6 次，用来兜住“触发充能 → 满即放 → 再触发”的连环。
-## 正常冷却都远大于 20 刻，只有充能/触发链会撞到它。溢出仍然按设计丢弃。
-
 class_name ChargedAbility extends GameplayAbility
 
-## 魂灵刚充满（由未满 → 满时发一次）；调试窗口/时间线用
 signal became_ready
-## 外部充能；参数是秒数，不是每帧自然充能
 signal charge_added(seconds: float, old_seconds: float, new_seconds: float, trace: CombatTrace)
-## 加速/减速/冻结被施加
 signal status_applied(status_name: String, seconds: float, trace: CombatTrace)
-## 加速/减速/冻结到期
 signal status_expired(status_name: String)
 
-## 1 秒 = 120 刻度；60 FPS 下每帧基础 2 刻度，减速 1 刻度，加速 4 刻度
 const UNITS_PER_SECOND: int = 120
-## 连续激活的最小间隔：20 刻 = 1/6 秒，1 秒最多 6 次
 const ACTIVATION_LOCK_UNITS: int = 20
-## 冻结标签；单位级冻结由 Freeze 效果挂/摘，魂灵级冻结用 freeze_units 计时
 const FROZEN_TAG : StringName = GameplayTags.State_Frozen
 
 ## 冷却总时长（秒，数据仍用秒）
 @export var cooldown: float = 0.0
-## 当前充能（刻度）
 var charge_units: int = 0
-## 距离下次可激活还需要的刻度；>0 时拒绝激活
 var activation_lock_units: int = 0
 
-## 加速/减速剩余时间（刻度）；加速固定 2x、减速固定 0.5x，重复施加只累加时间
 var haste_units: int = 0
 var slow_units: int = 0
-## 魂灵自身冻结剩余时间（刻度）；重复施加只累加时间
 var freeze_units: int = 0
 
-## 魂灵位置（玩家来自魂器网格，怪物来自配置生成的虚拟魂灵栏；没有位置时为空 / -1）
 var soul_container: String = ""
 var soul_column: int = -1
 var soul_width: int = 1
-## 同一单位本场所有魂灵能力（含自己；用于左右/随机目标）
 var unit_soul_abilities: Array[ChargedAbility] = []
 
 
@@ -53,12 +28,10 @@ func reset_charge() -> void:
 	charge_units = 0
 
 
-## 开战/重开时清空激活锁
 func reset_activation_lock() -> void:
 	activation_lock_units = 0
 
 
-## 每物理帧推进激活锁；由 BattleBrain 第一段统一调用（冻结期间也走）
 func tick_activation_lock(base_units: int) -> void:
 	if activation_lock_units > 0 and base_units > 0:
 		activation_lock_units = maxi(activation_lock_units - base_units, 0)
@@ -68,13 +41,10 @@ func can_activate_now() -> bool:
 	return activation_lock_units <= 0
 
 
-## 真正开始一次激活时调用：从这一刻起锁 20 刻。
-## 自定义的 ChargedAbility 子类在 _activate_ability() 里也要先 can_activate_now() 再 mark_activated()。
 func mark_activated() -> void:
 	activation_lock_units = ACTIVATION_LOCK_UNITS
 
 
-## 外部充能：传入秒数，内部换算成刻度
 func add_charge(seconds: float, trace: CombatTrace = null) -> void:
 	var before := charge_seconds()
 	add_charge_units(_seconds_to_units(seconds))
@@ -84,12 +54,10 @@ func add_charge(seconds: float, trace: CombatTrace = null) -> void:
 		charge_added.emit(seconds, before, after, trace)
 
 
-## 子类钩子：外部充能实际生效后更新运行期统计；默认无操作
 func _on_charge_received(_seconds: float) -> void:
 	pass
 
 
-## 直接加刻度（内部/测试用）
 func add_charge_units(units: int) -> void:
 	if cooldown <= 0.0:
 		charge_units = 0
@@ -102,14 +70,12 @@ func add_charge_units(units: int) -> void:
 		became_ready.emit()
 
 
-## 每物理帧自然充能；base_units 是 1x 下的每 tick 刻度（60 FPS 为 2）
 func tick_charge(base_units: int) -> void:
 	if cooldown <= 0.0 or base_units <= 0:
 		return
 	add_charge_units(_charged_units_for_tick(base_units))
 
 
-## 施加加速；无冷却魂灵拒绝。已经在加速时只累加剩余时间，速率保持 2x。
 func apply_haste(seconds: float, trace: CombatTrace = null) -> bool:
 	if cooldown <= 0.0 or seconds <= 0.0:
 		return false
@@ -118,7 +84,6 @@ func apply_haste(seconds: float, trace: CombatTrace = null) -> bool:
 	return true
 
 
-## 施加减速；无冷却魂灵拒绝。已经在减速时只累加剩余时间，速率保持 0.5x。
 func apply_slow(seconds: float, trace: CombatTrace = null) -> bool:
 	if cooldown <= 0.0 or seconds <= 0.0:
 		return false
@@ -127,7 +92,6 @@ func apply_slow(seconds: float, trace: CombatTrace = null) -> bool:
 	return true
 
 
-## 施加魂灵冻结；无冷却魂灵拒绝。已经在冻结时只累加剩余时间。
 func apply_freeze(seconds: float, trace: CombatTrace = null) -> bool:
 	if cooldown <= 0.0 or seconds <= 0.0:
 		return false
@@ -136,8 +100,6 @@ func apply_freeze(seconds: float, trace: CombatTrace = null) -> bool:
 	return true
 
 
-## 状态计时：到期时发 status_expired，叙事由 CombatNarrator 订阅。
-## 冻结期间也照常倒计时，加速/减速不受冻结影响。
 func tick_status(base_units: int) -> void:
 	if base_units <= 0:
 		return
@@ -167,14 +129,12 @@ func is_ready() -> bool:
 	return cooldown <= 0.0 or charge_units >= _cooldown_units()
 
 
-## 是否处于冻结状态；魂灵自身冻结或所属单位冻结都算
 func is_frozen() -> bool:
 	if freeze_units > 0:
 		return true
 	return owner_asc != null and owner_asc.has_tag(FROZEN_TAG)
 
 
-## 0 = 刚开始充能，1 = 充满
 func charge_ratio() -> float:
 	if cooldown <= 0.0:
 		return 1.0
@@ -184,7 +144,6 @@ func charge_ratio() -> float:
 	return clampf(float(charge_units) / float(total), 0.0, 1.0)
 
 
-## 给 UI / 日志用的秒数
 func charge_seconds() -> float:
 	return float(charge_units) / float(UNITS_PER_SECOND)
 
@@ -201,7 +160,6 @@ func freeze_seconds() -> float:
 	return float(freeze_units) / float(UNITS_PER_SECOND)
 
 
-## 给 UI / 测试用的激活锁剩余秒数
 func activation_lock_seconds() -> float:
 	return float(activation_lock_units) / float(UNITS_PER_SECOND)
 

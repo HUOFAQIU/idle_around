@@ -1,8 +1,4 @@
 extends RefCounted
-## TestAPI 存档与开局域。
-##
-## 对外入口仍是 res://Scripts/test_api.gd 的 TestAPI。
-## 自检用 preload 拿测试 adapter，避免额外依赖全局类缓存。
 
 const MEMORY_SAVE_STORAGE: GDScript = preload("res://Scripts/save/testing/memory_save_storage.gd")
 const FAKE_SAVE_PARTICIPANT: GDScript = preload("res://Scripts/save/testing/fake_save_participant.gd")
@@ -61,7 +57,6 @@ static func dump_save() -> Dictionary:
 	return SaveManager.collect_save_data()
 
 
-## 用内存 storage + fake participant 验证存档管线；不碰真实存档
 static func check_save_pipeline() -> Dictionary:
 	var storage: MemorySaveStorage = MEMORY_SAVE_STORAGE.new()
 	var participant: FakeSaveParticipant = FAKE_SAVE_PARTICIPANT.new(

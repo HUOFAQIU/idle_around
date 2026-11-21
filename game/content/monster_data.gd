@@ -1,7 +1,3 @@
-## 怪物数据：图鉴与刷怪共用的一份资源。
-##
-## 场景（battle_scene）只负责碰撞体与节点结构；名字、血量、攻击范围、移速、
-## 贴图、掉落、携带魂灵都写在这里，由刷怪方在实例化场景后注入 BattleUnit。
 class_name MonsterData extends Resource
 
 ## 运行期稳定 ID：由 ModLoader 从 manifest 写入（core 沿用原 ID）。
@@ -28,7 +24,6 @@ class_name MonsterData extends Resource
 @export var battle_scene: PackedScene
 
 
-## 按配置顺序取出魂灵，交给 SoulLoadout 生成技能
 func soul_list() -> Array[SoulData]:
 	var result : Array[SoulData] = []
 	for entry in soul_entries:
@@ -37,7 +32,6 @@ func soul_list() -> Array[SoulData]:
 	return result
 
 
-## 每颗携带的魂灵都是一条掉落：死亡时逐条独立掷骰
 func drop_entries() -> Array[DropEntry]:
 	var result : Array[DropEntry] = []
 	for entry in soul_entries:

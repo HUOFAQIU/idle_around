@@ -1,5 +1,4 @@
 extends RefCounted
-## 命令 handler 的公共参数校验；失败时直接返回 CommandResult 字典。
 
 
 static func require(args: PackedStringArray, count: int, usage: String) -> Dictionary:

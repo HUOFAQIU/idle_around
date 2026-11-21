@@ -1,6 +1,5 @@
 class_name CommandResult
 extends RefCounted
-## 命令统一返回：terminal 和 AI 探针都读 {ok, value, error}。
 
 
 static func ok(value: Variant = null) -> Dictionary:

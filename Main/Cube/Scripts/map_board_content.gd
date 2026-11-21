@@ -1,20 +1,14 @@
 class_name MapBoardContent
 extends FaceContent
-## 05 面内容：8 个地图按钮 + 中心投放槽。
-##
-## 只负责显示和交互：地图板状态在 MapBoard，战斗窗口由 main.gd 打开。
-## 槽位 0..7 从左上角起顺时针，对应 3×3 网格的 0,1,2,5,8,7,6,3。
 
 signal battle_requested(slot_index: int)
 signal toast_requested(text: String)
 
-## 槽位下标 → 3×3 网格的 Cell 下标
 const SLOT_TO_CELL: Array[int] = [0, 1, 2, 5, 8, 7, 6, 3]
 const DEFAULT_ACCENT: Color = Color("#4fb8ff")
 
 var _accent_color: Color = DEFAULT_ACCENT
 var _slot_entries: Array[MapSlotEntry] = []
-## 上一帧显示的槽位内容，用来只在“从空变有”时播放弹出动画
 var _displayed: Array[MapItemData] = []
 var _auto_placing: bool = false
 
@@ -49,21 +43,18 @@ func content_id() -> StringName:
 	return &"map_board"
 
 
-## 测试/调试：模拟点击某个地图按钮
 func activate_map_button(slot_index: int) -> bool:
 	if slot_index < 0 or slot_index >= _slot_entries.size():
 		return false
 	return _slot_entries[slot_index].activate()
 
 
-## 测试/调试：模拟点击某个地图按钮右上角 ⬇
 func activate_eject(slot_index: int) -> bool:
 	if slot_index < 0 or slot_index >= _slot_entries.size():
 		return false
 	return _slot_entries[slot_index].activate_eject()
 
 
-## 测试/调试：模拟点击中心投放槽
 func activate_drop_slot() -> void:
 	_drop_slot.activate()
 
@@ -83,7 +74,6 @@ func _rebuild() -> void:
 		call_deferred("_auto_place_pending")
 
 
-## 中心槽有地图且空出位置时，自动飞进第一个空槽
 func _auto_place_pending() -> void:
 	if _auto_placing:
 		return
@@ -108,7 +98,6 @@ func _on_drop_slot_clicked() -> void:
 	moving.begin_detached(pending, Vector2i.ZERO, MapDropSlot.ITEM_BASE_SIZE)
 
 
-## 手上有地图时点中心槽：有空格就放按钮，满了就留在中心槽
 func _try_place_map(item: MapItemData) -> void:
 	var moving := GBIS.moving_item_service
 	var result := MapBoard.submit(item)
@@ -132,7 +121,6 @@ func _on_map_eject_requested(slot_index: int) -> void:
 		toast_requested.emit("仓库已满，无法退回")
 
 
-## 中心槽的小卡面飞向按钮并缩小消失；状态已经先写入 MapBoard
 func _play_fly_animation(item: MapItemData, slot_index: int) -> void:
 	if slot_index < 0 or slot_index >= _slot_entries.size():
 		return

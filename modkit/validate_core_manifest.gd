@@ -1,12 +1,4 @@
 extends SceneTree
-## 校验内置 core mod 的 manifest 与内容文件是否一致。
-##
-## 用法：
-##   Godot_v4.7.2... --headless --path <项目> --script res://modkit/validate_core_manifest.gd
-##
-## 退出码：0 = 通过；1 = 有错误。检查项：manifest 格式、core 身份、
-## 魂灵/怪物/魂器/Cue 条目与目录文件的一一对应、重复 ID/路径、ID/标签格式、
-## 魂灵技能 ID 是否与 content_id 派生值一致。
 
 const CORE_CONTENT_VALIDATOR := preload("res://Scripts/mod/core_content_validator.gd")
 

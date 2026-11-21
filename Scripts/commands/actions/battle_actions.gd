@@ -1,5 +1,4 @@
 extends RefCounted
-## battle.* 命令实现；调用 Scripts/test_api/battle.gd，不重复逻辑。
 
 const BATTLE: GDScript = preload("res://Scripts/test_api/battle.gd")
 const ARGS: GDScript = preload("res://Scripts/commands/actions/action_args.gd")

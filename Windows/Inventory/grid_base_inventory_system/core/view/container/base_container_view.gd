@@ -1,6 +1,5 @@
 @tool
 extends RefreshableView
-## 背包视图，控制背包的绘制
 class_name BaseContainerView
 
 @export_group("Container Settings")
@@ -76,26 +75,18 @@ class_name BaseContainerView
 		stack_num_color = value
 		queue_redraw()
 
-## 格子容器
 var _grid_container: GridContainer
-## 物品容器
 var _item_container: Control
 
-## 所有物品的View
 var _items: Array[ItemView]
-## 物品到格子的映射（Array[Vector2i]）
 var _item_grids_map: Dictionary[ItemView, Array]
-## 格子到格子View的映射
 var _grid_map: Dictionary[Vector2i, BaseGridView]
-## 格子到物品的映射
 var _grid_item_map: Dictionary[Vector2i, ItemView]
 
-## 刷新背包显示
 func refresh() -> void:
 	super()
 	_clear_inv()
 	var container_data := _container_data()
-	# auto_register=false 的视图在绑定数据源前没有容器；显示时先留空
 	if container_data == null:
 		return
 
@@ -117,17 +108,14 @@ func refresh() -> void:
 		else:
 			_grid_item_map[grid] = null
 
-## 通过格子ID获取物品视图
 func find_item_view_by_grid(grid_id: Vector2i) -> ItemView:
 	return _grid_item_map.get(grid_id)
 
 
-## 格子左键：子类按容器语义处理拿起/放下/购买/出售
 func handle_grid_click(_grid_id: Vector2i, _offset: Vector2i, _base_size: int) -> void:
 	pass
 
 
-## 当前容器数据；背包和商店都走这里
 func _container_data() -> ContainerData:
 	var container_data = GBIS.inventory_service.get_container(container_name)
 	if container_data:
@@ -135,14 +123,11 @@ func _container_data() -> ContainerData:
 	return GBIS.shop_service.get_container(container_name)
 
 
-## 把本容器的格子/堆叠样式同步给拖拽幽灵，避免跨容器悬停时尺寸跳变
 func _apply_drag_ghost_style() -> void:
 	GBIS.moving_item_service.apply_stack_style(
 		base_size, stack_num_font, stack_num_font_size, stack_num_margin, stack_num_color
 	)
 
-## 显示但不重建时调用；把现有 ItemView 按显示后的格子坐标重新摆放。
-## 隐藏阶段布局还没结算，ItemView 位置可能停在容器原点。
 func _on_shown_without_refresh() -> void:
 	for item in _items:
 		var grids: Array = _item_grids_map[item]
@@ -158,11 +143,8 @@ func _on_visible_changed() -> void:
 	else:
 		GBIS.opened_containers.erase(container_name)
 
-## 清空背包显示
-## 注意，只清空显示，不清空数据库
 func _clear_inv() -> void:
 	for item in _items:
-		# 先摘出树再释放，翻页重建时新旧 ItemView 不会同帧叠在一起
 		if item.get_parent() != null:
 			item.get_parent().remove_child(item)
 		item.queue_free()
@@ -172,7 +154,6 @@ func _clear_inv() -> void:
 		grid.release()
 	_grid_item_map = {}
 
-## 从指定格子开始，获取形状覆盖的格子
 func _get_grids_by_shape(start: Vector2i, shape: Vector2i) -> Array[Vector2i]:
 	var ret: Array[Vector2i] = []
 	for row in shape.y:
@@ -182,14 +163,12 @@ func _get_grids_by_shape(start: Vector2i, shape: Vector2i) -> Array[Vector2i]:
 				ret.append(grid_id)
 	return ret
 
-## 绘制物品
 func _draw_item(item_data: ItemData, first_grid: Vector2i) -> ItemView:
 	var item = ItemView.new(item_data, base_size, stack_num_font, stack_num_font_size, stack_num_margin, stack_num_color)
 	_item_container.add_child(item)
 	item.global_position = _grid_map[first_grid].global_position
 	return item
 
-## 初始化格子容器
 func _init_grid_container() -> void:
 	_grid_container = GridContainer.new()
 	_grid_container.add_theme_constant_override("h_separation", 0)
@@ -198,12 +177,10 @@ func _init_grid_container() -> void:
 	_grid_container.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_grid_container)
 
-## 初始化物品容器
 func _init_item_container() -> void:
 	_item_container = Control.new()
 	add_child(_item_container)
 
-## 编辑器中绘制示例
 func _draw() -> void:
 	if Engine.is_editor_hint():
 		var inner_size = base_size - grid_border_size * 2
@@ -220,7 +197,6 @@ func _draw() -> void:
 				pos += Vector2(col * base_size, row * base_size)
 				draw_string(font, pos, "99", HORIZONTAL_ALIGNMENT_RIGHT, -1, stack_num_font_size, stack_num_color)
 
-## 重新计算大小
 func _recalculate_size() -> void:
 		var new_size = Vector2(container_columns * base_size, container_rows * base_size)
 		if size != new_size:

@@ -1,6 +1,5 @@
 class_name BurnCue
 extends GameplayCueNotify
-## 灼烧状态光环：持续期间一直冒火，效果结束后淡出回池。
 
 const FADE_TIME : float = 0.25
 

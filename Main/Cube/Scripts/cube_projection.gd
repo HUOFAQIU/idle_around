@@ -1,15 +1,9 @@
 class_name CubeProjection
 extends RefCounted
-## 立方体屏幕投影工具。
-##
-## 把立方体本地包围盒的 8 个角投影成屏幕凸包；窗口穿透区域和
-## CubeInputSurface 的 GUI 命中共用这份轮廓。
 
-## 立方体本地包围盒半径，略大于本体 1.0，作为拖动和点击的容差
 const HALF_EXTENT: float = 1.03
 
 
-## 返回立方体在屏幕上的凸包；相机或朝向缺失时返回空数组
 static func project_hull(
 		camera: Camera3D,
 		orientation: Node3D,

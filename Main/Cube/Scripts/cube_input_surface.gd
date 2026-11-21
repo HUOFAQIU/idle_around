@@ -1,11 +1,5 @@
 class_name CubeInputSurface
 extends Control
-## 立方体顶层输入代理。
-##
-## 立方体渲染在 CubeView 的透明 SubViewport 里；本节点只在立方体屏幕
-## 轮廓（含拖动圆点）内参与 GUI 拾取，把鼠标事件转给子视口里的 CubeRig。
-## 轮廓外的事件照常落到下层游戏 UI；轮廓内由本节点吃掉，保证被立方体
-## 盖住的面板不会收到 hover 或点击。
 
 static var instance: CubeInputSurface
 
@@ -64,7 +58,6 @@ func _notification(what: int) -> void:
 		_rig.cancel_window_interaction()
 
 
-## 主视口 Viewport 坐标的点是否落在立方体输入区（投影轮廓或拖动圆点）
 func contains_screen_point(screen_position: Vector2) -> bool:
 	var local_position := (
 			get_global_transform_with_canvas().affine_inverse() * screen_position
@@ -72,13 +65,11 @@ func contains_screen_point(screen_position: Vector2) -> bool:
 	return _has_point(local_position)
 
 
-## 子视口、相机、朝向、CubeRig 和拖动圆点是否全部解析成功
 func is_ready() -> bool:
 	return _cube_viewport != null and _camera != null \
 			and _orientation != null and _rig != null and _drag_handle != null
 
 
-## 当前立方体屏幕轮廓；TestAPI/调试用
 func get_hull_points() -> PackedVector2Array:
 	return CubeProjection.project_hull(_camera, _orientation)
 

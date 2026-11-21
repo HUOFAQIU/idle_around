@@ -20,12 +20,10 @@ func _ready() -> void:
 	set_page(0)
 
 
-## 当前页（0 起）
 func get_page() -> int:
 	return _current_page
 
 
-## 切到指定页（0 起）；越界自动夹到有效范围
 func set_page(page: int) -> void:
 	page = clampi(page, 0, Warehouse.PAGE_COUNT - 1)
 	_current_page = page
@@ -52,7 +50,6 @@ func _build_page_bar() -> void:
 		_page_buttons.append(button)
 
 
-## 当前页按钮用 ACCENT 底色 + 深色文字，和主窗口置顶按钮的按下态一致
 func _apply_selected_style(button: Button) -> void:
 	var pressed_style := button.get_theme_stylebox("pressed").duplicate() as StyleBoxFlat
 	if pressed_style == null:

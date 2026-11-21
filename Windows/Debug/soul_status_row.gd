@@ -1,6 +1,3 @@
-## 调试窗口“总览/魂灵”页的一行魂灵状态。
-##
-## 只读 SoulRuntime，不反向改战斗状态；由 DebugWindow 定时调用 refresh()。
 extends PanelContainer
 
 var runtime: SoulRuntime

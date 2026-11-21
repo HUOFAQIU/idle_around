@@ -1,20 +1,13 @@
 extends RefCounted
-## TestAPI 战斗域：开战、刷怪、效果与战斗快照。
-##
-## 对外入口仍是 res://Scripts/test_api.gd 的 TestAPI。
 
 const COMMON: GDScript = preload("res://Scripts/test_api/common.gd")
 
-## 测试用灼烧效果：施加 + 周期
 const BURN_APPLY : GameplayEffect = preload("res://base_mods/core/effects/burn_apply.tres")
 const BURN_TICK : GameplayEffect = preload("res://base_mods/core/effects/burn_tick.tres")
-## 测试用剧毒效果：施加 + 周期
 const POISON_APPLY : GameplayEffect = preload("res://base_mods/core/effects/poison_apply.tres")
 const POISON_TICK : GameplayEffect = preload("res://base_mods/core/effects/poison_tick.tres")
-## 测试用生命再生效果：施加 + 周期
 const REGEN_APPLY : GameplayEffect = preload("res://base_mods/core/effects/regen_apply.tres")
 const REGEN_TICK : GameplayEffect = preload("res://base_mods/core/effects/regen_tick.tres")
-## 测试用单位冻结效果
 const FREEZE_UNIT : GameplayEffect = preload("res://base_mods/core/effects/freeze_unit.tres")
 
 static func start_battle(map_id : StringName = MapCatalog.FOREST_MAP_ID) -> bool:
@@ -64,7 +57,6 @@ static func apply_freeze(target : String = "player", seconds : float = 3.0) -> b
 	var spec := GameplayEffectSpec.new(FREEZE_UNIT, context)
 	spec.duration = seconds
 	unit.asc.apply_effect_spec(spec)
-	# 真实冻结会广播 FREEZE_APPLIED；测试接口保持一致，便于验证冻结触发器
 	unit.notify_freeze_applied(unit)
 	return true
 
@@ -134,31 +126,26 @@ static func get_battle_state() -> Dictionary:
 	return window.get_test_state()
 
 
-## 当前战斗已完成的物理 tick 数；没有战斗时返回 0
 static func get_battle_tick() -> int:
 	var battle := _active_battle()
 	return 0 if battle == null else battle.tick_count()
 
 
-## 暂停战斗仿真：引擎物理帧不再推进，改用 step_battle()
 static func pause_battle() -> bool:
 	var session := _active_session()
 	return session != null and session.set_manual_time(true)
 
 
-## 恢复战斗仿真
 static func resume_battle() -> bool:
 	var session := _active_session()
 	return session != null and session.set_manual_time(false)
 
 
-## 手动推进战斗 tick；只在 pause_battle() 之后有效
 static func step_battle(ticks : int = 1) -> bool:
 	var session := _active_session()
 	return session != null and session.step_ticks(ticks)
 
 
-## 战斗时钟快照
 static func get_battle_clock() -> Dictionary:
 	var session := _active_session()
 	if session == null or session.battle == null or session.battle.clock == null:
@@ -246,7 +233,6 @@ static func _active_session() -> BattleSession:
 	return window.get_battle_session() if window != null else null
 
 
-## 按显示名找某个单位已装备的魂灵技能
 static func _find_equipped_ability(soul_name : String, target : String) -> ChargedAbility:
 	var unit: BattleUnit = COMMON.find_unit(target)
 	if unit == null or unit.brain == null:

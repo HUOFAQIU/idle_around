@@ -1,13 +1,8 @@
 class_name PanelManager
 extends Node
-## 面板置顶与激活状态。所有 BaseWindow 都是主视口里的 Control，
-## 不再有原生窗口焦点，点谁谁在前由这里统一处理。
-##
-## 面板必须是本节点父级的直接子节点；运行期新增的直接子节点会自动登记。
 
 static var instance : PanelManager
 
-## 当前激活面板；战斗坐标 tooltip 等按它判断优先级
 var _active : BaseWindow
 var _registered : Dictionary = {}
 
@@ -27,7 +22,6 @@ func _exit_tree() -> void:
 		instance = null
 
 
-## 主界面按钮用：开着就关，关着就打开
 func toggle(panel : BaseWindow) -> void:
 	if panel == null:
 		return
@@ -37,7 +31,6 @@ func toggle(panel : BaseWindow) -> void:
 	panel.open_window()
 
 
-## 置顶并设为激活面板
 func raise(panel : BaseWindow) -> void:
 	if panel == null or not panel.is_visible_in_tree():
 		return
@@ -53,7 +46,6 @@ func get_active() -> BaseWindow:
 	return _active
 
 
-## 鼠标位置下最上层的可见面板；按子节点顺序判断遮挡
 func get_top_panel_at(global_position : Vector2) -> BaseWindow:
 	var parent := get_parent()
 	if parent == null:
@@ -68,7 +60,6 @@ func get_top_panel_at(global_position : Vector2) -> BaseWindow:
 	return null
 
 
-## 关闭所有已登记面板；切档/新游戏前清掉旧会话的窗口
 func hide_all() -> void:
 	for panel in _registered.keys():
 		var window := panel as BaseWindow
@@ -76,7 +67,6 @@ func hide_all() -> void:
 			window.hide()
 
 
-## 所有可见面板的全局矩形；供测试/调试使用
 func get_visible_panel_rects() -> Array[Rect2]:
 	var result : Array[Rect2] = []
 	var parent := get_parent()
@@ -97,7 +87,6 @@ func _input(event : InputEvent) -> void:
 	if not mouse_button.pressed or mouse_button.button_index != MOUSE_BUTTON_LEFT:
 		return
 	var mouse_position := get_viewport().get_mouse_position()
-	# 立方体在应用内最上层：被它的输入代理盖住的面板不参与置顶/激活
 	var cube_surface := CubeInputSurface.instance
 	if cube_surface != null and cube_surface.contains_screen_point(mouse_position):
 		return

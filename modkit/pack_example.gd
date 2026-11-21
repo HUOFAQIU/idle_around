@@ -1,14 +1,4 @@
 extends SceneTree
-## 一键打包示例 mod。
-##
-## 用法：
-##   Godot_v4.7.2... --headless --path <项目> --script res://modkit/pack_example.gd
-##
-## 输出：
-##   user://mods/example_souls/content.pck
-##   user://mods/example_souls/mod.json
-##
-## 只打包 res://mods/example_souls/ 下的文件；mod.json 留在 PCK 外面。
 
 const MOD_ID: String = "example_souls"
 const MOD_SOURCE: String = "res://mods/" + MOD_ID

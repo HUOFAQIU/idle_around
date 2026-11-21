@@ -1,11 +1,5 @@
 class_name Face3D
 extends Node3D
-## 立方体的一个面：把 SubViewport 中的 2D 内容贴到面片上，
-## 并把 CubeRig 计算出的指针事件转发给该 SubViewport。
-##
-## 普通 FaceUI 面沿用「按下即转发、拖动超阈值取消」的交互；
-## ui_capture 面（01 存档位 / 02 主菜单 / 04 角色选择 / 05 地图板）按控件优先分流：
-## 指针下有可交互控件时整个按下-拖动-松开周期都交给内容，不参与立方体旋转。
 
 signal face_identified(face_index: int, face_name: String, accent_color: Color)
 
@@ -38,7 +32,6 @@ func _ready() -> void:
 	_viewport.size = viewport_size
 	if content_scene != null:
 		_viewport.add_child(content_scene.instantiate())
-	# 锁图必须在内容之后绘制，实例化内容后把它移到最上层
 	if _lock_overlay != null:
 		_viewport.move_child(_lock_overlay, _viewport.get_child_count() - 1)
 		_lock_overlay.visible = _locked
@@ -62,7 +55,6 @@ func _ready() -> void:
 		_content.identify_requested.connect(_on_identify_requested)
 
 
-## 面锁定：内容压暗并显示锁图，所有指针事件不再转发
 func set_locked(locked: bool) -> void:
 	if _locked == locked:
 		return
@@ -82,7 +74,6 @@ func get_content() -> FaceContent:
 	return _content
 
 
-## 指针悬停在面上；只转发落在内容区内的位置
 func hover_at(world_position: Vector3) -> void:
 	if _locked:
 		return
@@ -95,7 +86,6 @@ func hover_at(world_position: Vector3) -> void:
 	_push_motion_at(viewport_position)
 
 
-## 普通面按下：立即转发左键按下，后续拖动由 CubeRig 决定是否取消
 func press_at(world_position: Vector3) -> void:
 	if _locked:
 		return
@@ -118,14 +108,12 @@ func release_at(world_position: Vector3) -> void:
 	_pointer_down = false
 
 
-## 世界点是否落在本面的可见内容区（不含方形侧面的留白边）
 func has_content_point(world_position: Vector3) -> bool:
 	if _locked:
 		return false
 	return _is_inside_content(_to_viewport_position(world_position))
 
 
-## ui_capture 面：指针下是否有可交互控件（会先同步一次鼠标位置）
 func ui_hit_at(world_position: Vector3) -> bool:
 	if _locked or not ui_capture or _content == null:
 		return false
@@ -138,7 +126,6 @@ func ui_hit_at(world_position: Vector3) -> bool:
 	return _viewport.gui_get_hovered_control() != null
 
 
-## ui_capture 面：转发完整的鼠标按键事件（保留右键/滚轮/修饰键）
 func forward_mouse_button(
 		event: InputEventMouseButton,
 		world_position: Vector3,
@@ -154,7 +141,6 @@ func forward_mouse_button(
 		_pointer_down = event.pressed
 
 
-## ui_capture 面：转发鼠标移动；拖动捕获期间允许坐标越出内容区
 func forward_mouse_motion(
 		event: InputEventMouseMotion,
 		world_position: Vector3,
@@ -183,7 +169,6 @@ func leave() -> void:
 		return
 	if not _pointer_inside:
 		return
-	# 先把鼠标移出内容区，让子视口内的 hover/Tooltip 及时清理
 	_push_motion_at(OFFSCREEN_POINTER)
 	_viewport.notify_mouse_exited()
 	_pointer_inside = false

@@ -1,10 +1,5 @@
 class_name SaveSlotsContent
 extends FaceContent
-## 面 01 内容：6 个存档位 + 新游戏入口 + 左上角退出。
-##
-## 只负责显示和转交点击；读档/新游戏/删档/满槽提示由 GameFlow 决定，
-## 退出由 main.gd 保存活动槽后关闭进程。
-## 槽位摘要通过 set_slots() 注入，避免面内容直接依赖 SaveManager。
 
 signal new_game_requested
 signal slot_requested(slot: int)
@@ -36,7 +31,6 @@ func content_id() -> StringName:
 	return &"save_slots"
 
 
-## slots 为 GameFlow.get_slot_summaries()：slot / occupied / character_name / active
 func set_slots(slots: Array) -> void:
 	for index in _slot_entries.size():
 		var occupied := false
@@ -50,12 +44,10 @@ func set_slots(slots: Array) -> void:
 		_slot_entries[index].set_slot(index, occupied, character_name, active)
 
 
-## 测试/调试：走与鼠标点击相同的按钮信号；调用后会结束游戏进程
 func activate_quit() -> void:
 	_quit_button.pressed.emit()
 
 
-## 测试/调试：走与鼠标点击相同的按钮信号
 func activate_new_game() -> void:
 	_new_game_button.pressed.emit()
 
@@ -66,7 +58,6 @@ func activate_slot(slot: int) -> bool:
 	return _slot_entries[slot].activate()
 
 
-## 删除是两段式：第一次进入确认，第二次才发 delete_requested；活动槽返回 false
 func activate_delete(slot: int) -> bool:
 	if slot < 0 or slot >= _slot_entries.size():
 		return false

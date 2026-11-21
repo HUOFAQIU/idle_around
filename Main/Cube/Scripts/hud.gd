@@ -1,18 +1,12 @@
 class_name CubeHud
 extends CanvasLayer
-## 立方体反馈条：面识别提示和靠近立方体的流程提示。
-##
-## HUD 层级高于 CubeView，保证提示不被立方体盖住；所有控件都不接收鼠标，
-## 可见 Toast 的矩形仍会交给 WindowPassthrough 计入点击区域。
 
 signal overlay_regions_changed
 
 const NEAR_CUBE_OFFSET: float = 14.0
-## 底部提示距屏幕底边的距离，沿用旧 ToastAnchor 的下边距
 const BOTTOM_MARGIN: float = 38.0
 const SCREEN_MARGIN: float = 8.0
 
-## 当前 Toast 是否跟随立方体
 var _near_cube: bool = false
 var _toast_tween: Tween
 var _placement: CubePlacement
@@ -35,7 +29,6 @@ func show_face_identified(face_name: String, accent_color: Color) -> void:
 	_show_toast("这是：%s" % face_name, accent_color, false)
 
 
-## 流程提示：显示在立方体上方，跟随拖动
 func show_near_cube(text: String, accent_color: Color = Color.TRANSPARENT) -> void:
 	var accent := accent_color
 	if accent.a <= 0.0:

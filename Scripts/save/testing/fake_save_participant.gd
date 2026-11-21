@@ -1,4 +1,3 @@
-## 测试用 participant：记录调用次数与收到的文档，可配置回写标记。
 class_name FakeSaveParticipant
 extends SaveParticipant
 

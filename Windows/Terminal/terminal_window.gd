@@ -1,9 +1,5 @@
 class_name TerminalWindow
 extends BaseWindow
-## 游戏内终端窗口：TerminalView 显示 + 底部命令输入。
-##
-## 输入走 CommandRegistry.run()，Tab 补全走 CommandRegistry.complete()，
-## 和 AI 探针共用同一套命令；显示 API 仍可外部写入。
 
 const COMMAND_REGISTRY: GDScript = preload("res://Scripts/commands/command_registry.gd")
 const COMMAND_FORMATTER: GDScript = preload("res://Scripts/commands/command_formatter.gd")
@@ -16,18 +12,14 @@ const COMPLETION_GAP: float = 2.0
 @onready var input: LineEdit = $Layout/Input
 @onready var completion: CompletionPanel = $CompletionPanel
 
-## 欢迎信息只写一次；等 TerminalView 完成首次布局、buffer 建好后再写
 var _welcomed: bool = false
-## 窗口还没布局时先缓存内容，等 buffer 建好后一次性写入
 var _pending_lines: PackedStringArray = PackedStringArray()
 var _pending_style: TerminalStyle
 var _has_pending_content: bool = false
 
 var _history: PackedStringArray = PackedStringArray()
 var _history_index: int = 0
-## 历史/程序化改文本时不要自动弹补全
 var _suppress_completion_refresh: bool = false
-## 面板当前对应的 token 区间；接受前校验，避免光标移动后改错 token
 var _completion_start: int = -1
 var _completion_end: int = -1
 var _ok_style: TerminalStyle
@@ -46,7 +38,6 @@ func _ready() -> void:
 	visibility_changed.connect(_on_visibility_changed)
 
 
-## 显示用：替换终端内容；buffer 还没建好时先缓存
 func set_content(lines: PackedStringArray, style: TerminalStyle = null) -> void:
 	if terminal.buffer == null:
 		_pending_lines = lines.duplicate()
@@ -57,7 +48,6 @@ func set_content(lines: PackedStringArray, style: TerminalStyle = null) -> void:
 	terminal.set_content(lines, style)
 
 
-## 追加一行；buffer 还没建好时先缓存
 func append_line(text: String, style: TerminalStyle = null) -> void:
 	if terminal.buffer == null:
 		_pending_lines.append(text)
@@ -67,7 +57,6 @@ func append_line(text: String, style: TerminalStyle = null) -> void:
 	terminal.append_line(text, style)
 
 
-## 提交一行命令；终端输入和探针测试共用
 func submit_command(line: String) -> void:
 	_hide_completion()
 	var text := line.strip_edges()
@@ -146,7 +135,6 @@ func _write_result(result: Dictionary) -> void:
 func _on_input_gui_input(event: InputEvent) -> void:
 	var mouse := event as InputEventMouseButton
 	if mouse != null and mouse.pressed:
-		# 点输入框会移动光标，旧候选的 token 区间不再可信
 		_hide_completion()
 		return
 	var key := event as InputEventKey
@@ -270,7 +258,6 @@ func _on_input_text_changed(_new_text: String) -> void:
 	_refresh_completion()
 
 
-## 按当前文本和光标自动预览；空文本、无候选或唯一完整匹配时收起
 func _refresh_completion() -> void:
 	if input.text.is_empty():
 		_hide_completion()
@@ -286,7 +273,6 @@ func _refresh_completion() -> void:
 	_show_completion(result)
 
 
-## 面板展示后光标可能被外部改走；token 区间或候选对不上就不接受
 func _can_accept(result: Dictionary, candidate: String) -> bool:
 	if not bool(result.get("ok", false)):
 		return false
@@ -298,7 +284,6 @@ func _can_accept(result: Dictionary, candidate: String) -> bool:
 	return candidates.has(candidate)
 
 
-## 当前 token 已经完整命中唯一候选时不再自动弹，避免提示自己
 func _is_exact_single(result: Dictionary) -> bool:
 	var candidates: PackedStringArray = result.get("candidates", PackedStringArray())
 	return candidates.size() == 1 and candidates[0] == String(result.get("prefix", ""))

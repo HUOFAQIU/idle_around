@@ -1,20 +1,13 @@
-## 一颗已装备魂灵的战斗运行期状态。
-##
-## SoulData 只保留静态数据；扫描线、加速/减速/冻结、计数器都放这里。
-## 玩家魂器网格的 ItemView 和调试窗口都从同一个 SoulRuntime 读，避免两份真相。
 class_name SoulRuntime extends RefCounted
 
 signal changed
 
 static var _next_id: int = 1
 
-## 运行时唯一 id（调试事件用）
 var id: int = 0
 var soul: SoulData
 var slot: SoulSlot
-## 主动魂灵有技能；被动魂灵为 null
 var ability: ChargedAbility
-## 本场由这颗魂灵生成的触发器能力
 var triggers: Array[SoulTriggerAbility] = []
 var owner_unit: BattleUnit
 
@@ -22,10 +15,8 @@ var scanline_progress: float = 0.0
 var haste_seconds: float = 0.0
 var slow_seconds: float = 0.0
 var freeze_seconds: float = 0.0
-## 所在魂器提供的直接伤害加成；只作用于这颗魂灵
 var vessel_damage_bonus: float = 0.0
 
-## 本场统计；报告/调试用，键名见下方字典
 var counters: Dictionary = {
 	"activations": 0,
 	"releases": 0,
@@ -59,7 +50,6 @@ func display_name() -> String:
 	return soul.item_name if soul != null else "未知魂灵"
 
 
-## 来源魂器名；怪物魂灵没有魂器时退回虚拟容器名
 func vessel_name() -> String:
 	if slot == null:
 		return ""
@@ -68,7 +58,6 @@ func vessel_name() -> String:
 	return slot.container_name
 
 
-## 从技能读当前显示状态；只有变化时才发 changed，避免 ItemView 每帧重绘
 func refresh_from_ability() -> void:
 	if ability == null:
 		set_display(0.0, 0.0, 0.0, 0.0)

@@ -1,6 +1,5 @@
 class_name FreezeCue
 extends GameplayCueNotify
-## 冻结状态光环：冰蓝光环轻轻脉动，霜粒缓慢上升，效果结束后淡出回池。
 
 const FADE_TIME : float = 0.25
 const HALO_SCALE : Vector2 = Vector2(0.75, 0.55)

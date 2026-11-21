@@ -1,11 +1,6 @@
 extends ItemData
-## 魂灵数据基类，你的魂灵数据类应该继承此类。
-##
-## 只放静态数据；战斗运行期状态（扫描线/加速/减速/冻结/统计）在
-## `game/battle/soul_runtime.gd` 的 SoulRuntime 里，通过 SoulRuntimeDB 查询。
 class_name SoulData
 
-## 尺寸标签；每颗魂灵必须且只能带一个，决定 tooltip 的 [ 小型 / 中型 / 大型 ]
 const SIZE_TAGS : Array[StringName] = [
 	&"Soul.tags.Small",
 	&"Soul.tags.Medium",
@@ -30,7 +25,6 @@ const SIZE_TAGS : Array[StringName] = [
 @export var tags: Array[StringName] = []
 
 
-## 取尺寸标签；没配时返回空（ModLoader 会报错）
 func size_tag() -> StringName:
 	for tag in SIZE_TAGS:
 		if tags.has(tag):

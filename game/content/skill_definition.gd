@@ -1,8 +1,3 @@
-## 技能数据资源：一个技能 = 一份数据。
-##
-## 把"技能描述"翻译成这些字段；新增技能 = 新增一份 .tres，不改任何代码。
-## 真正的能力节点是 AutoCastAbility（GameplayAbility 子类），这份资源只提供配置。
-##
 ## @meta_addon: GodotGAS
 ## @meta_license: MIT
 

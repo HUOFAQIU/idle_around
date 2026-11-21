@@ -3,21 +3,13 @@
 import re
 from pathlib import Path
 
+from comment_policy import allowed_comment_lines, is_generated
 from diagnostics import Diagnostic
 from lexer import code_lines, iter_comments
 
 CJK = re.compile(r"[㐀-䶿一-鿿豈-﫿]")
 RESOURCE_NAME = re.compile(r"resource_name\s*=\s*([\"'])(.*?)\1")
 FILE_ACCESS = re.compile(r"\b(FileAccess|DirAccess)\b")
-COMMENT_MARKER = re.compile(
-    r"\b(?:TODO|FIXME|HACK|XXX)\b|暂时|先这样|以后再|以后优化|够用|应该没问题",
-    re.IGNORECASE,
-)
-COMMENTED_CODE = re.compile(
-    r"^#\s*(var|const|func|signal|class|if|elif|else|for|while|match|return|"
-    r"await|print|pass|break|continue|extends|preload|load)\b"
-)
-REGION = re.compile(r"^#\s*(region|endregion)\b")
 
 FILE_ACCESS_ALLOWED = (
     "Scripts/save/",
@@ -42,59 +34,35 @@ class Rule:
         raise NotImplementedError
 
 
-class CommentMarkerRule(Rule):
-    id = "comment-marker"
-    description = "注释只写事实，不为捷径辩护"
+class NoCommentsRule(Rule):
+    id = "no-comments"
+    description = "首方代码不写注释，why 放 DOC/"
     severity = "error"
     extensions = frozenset({".gd"})
 
     def check(
         self, path: Path, source: str, root: Path
     ) -> list[Diagnostic]:
+        relative = path.resolve().relative_to(root.resolve()).as_posix()
+        if is_generated(relative):
+            return []
+
+        allowed = allowed_comment_lines(source)
         findings: list[Diagnostic] = []
         for comment in iter_comments(source):
-            text = comment.text
-            if text.startswith("##") or REGION.match(text):
+            if comment.line in allowed:
                 continue
-            if COMMENT_MARKER.search(text):
-                findings.append(
-                    Diagnostic(
-                        path,
-                        comment.line,
-                        comment.column,
-                        self.id,
-                        "不要在注释里为捷径找理由；事实注释要可核对，例外走 allowlist",
-                        self.severity,
-                    )
+            findings.append(
+                Diagnostic(
+                    path,
+                    comment.line,
+                    comment.column,
+                    self.id,
+                    "首方代码不写注释；why、边界、坑写进 DOC/。"
+                    "仅 @export 的 Inspector 文档、@meta_* 来源标注和生成文件例外",
+                    self.severity,
                 )
-        return findings
-
-
-class CommentedCodeRule(Rule):
-    id = "commented-code"
-    description = "注释掉的代码应删除"
-    severity = "warning"
-    extensions = frozenset({".gd"})
-
-    def check(
-        self, path: Path, source: str, root: Path
-    ) -> list[Diagnostic]:
-        findings: list[Diagnostic] = []
-        for comment in iter_comments(source):
-            text = comment.text
-            if text.startswith("##") or REGION.match(text):
-                continue
-            if COMMENTED_CODE.match(text):
-                findings.append(
-                    Diagnostic(
-                        path,
-                        comment.line,
-                        comment.column,
-                        self.id,
-                        "注释掉的代码应删除；版本库会保留历史",
-                        self.severity,
-                    )
-                )
+            )
         return findings
 
 
@@ -240,8 +208,7 @@ class InlineColorRule(Rule):
 
 def build_rules(root: Path) -> list[Rule]:
     return [
-        CommentMarkerRule(),
-        CommentedCodeRule(),
+        NoCommentsRule(),
         ResourceNameRule(),
         FileAccessBoundaryRule(root),
         ModPathRule(),

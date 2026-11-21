@@ -1,10 +1,5 @@
 class_name ControlDrag
 extends RefCounted
-## 通用 Control 拖动：把 handle 上的左键拖动映射成 target.position 的位移。
-##
-## 用 process_frame 轮询鼠标，不依赖 handle 的 motion 事件：鼠标快速拖出
-## 控件边缘时也能继续。target 必须不在 Container 的布局管理下，否则
-## position 会被父容器覆盖。
 
 signal drag_started
 signal drag_ended
@@ -17,7 +12,6 @@ var _start_mouse : Vector2 = Vector2.ZERO
 var _start_position : Vector2 = Vector2.ZERO
 
 
-## bounds 是可用区域，与 target 同一坐标系；为空时用主视口矩形。
 func bind(target : Control, handle : Control, bounds : Control = null) -> void:
 	if _dragging:
 		_stop_drag()

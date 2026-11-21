@@ -1,7 +1,4 @@
 extends RefCounted
-## TestAPI Mod 域：清单、顺序、窗口与 orphaned 记录。
-##
-## 对外入口仍是 res://Scripts/test_api.gd 的 TestAPI。
 
 const COMMON: GDScript = preload("res://Scripts/test_api/common.gd")
 

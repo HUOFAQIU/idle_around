@@ -1,28 +1,15 @@
 extends Node
-## 见闻图鉴服务（Autoload 名称：CollectionDB）。
-##
-## 全量清单来自 ModLoader：内置 core mod + 第三方 mod，统一按 manifest 注册。
-## 本节点只负责运行时索引（魂灵/怪物/魂器）、“已遇见”状态和存档。
-##
-## 已遇见状态以 manifest 的 content_id（例如 &"xiao_lu_soul"）为键，
-## 资源改名/移动不会丢记录；解锁后由 SaveManager 统一写入存档。
 
-## 新条目解锁；图鉴窗口用它刷新
 signal entry_unlocked(kind: int, id: StringName)
-## 读档整体替换“已遇见”状态后发出；图鉴窗口用它整体刷新
 signal state_reloaded
 
 const STARTUP_TIMING: GDScript = preload("res://Scripts/debug/startup_timing.gd")
 
-## 测试开关：见闻条目是否全部按已解锁显示；默认关闭。
-## 只影响显示，不写存档；调试窗口/TestAPI 可以临时切换。
 var unlock_all_for_testing: bool = false
 
-## content_id → 资源
 var _souls: Dictionary[StringName, SoulData] = {}
 var _monsters: Dictionary[StringName, MonsterData] = {}
 var _vessels: Dictionary[StringName, SoulVesselData] = {}
-## 已遇见：ContentKind.Kind → { content_id: true }
 var _seen: Dictionary = {}
 
 
@@ -36,7 +23,6 @@ func _ready() -> void:
 	_scan_owned_souls_after_ready()
 
 
-#region 查询
 func get_soul_ids() -> Array[StringName]:
 	var ids: Array[StringName] = []
 	ids.assign(_souls.keys())
@@ -74,12 +60,10 @@ func is_seen(kind: int, id: StringName) -> bool:
 	return seen.has(id)
 
 
-## 测试接口：临时切换“全部已解锁”，不改存档
 func set_unlock_all_for_testing(enabled: bool) -> void:
 	unlock_all_for_testing = enabled
 
 
-## 真实已解锁的 content_id（不受测试开关影响）
 func get_seen_ids(kind: int) -> Array[StringName]:
 	var ids: Array[StringName] = []
 	var seen: Dictionary = _seen.get(kind, {})
@@ -87,7 +71,6 @@ func get_seen_ids(kind: int) -> Array[StringName]:
 	return ids
 
 
-## 魂灵“首次获得”即记录；content_id 随 duplicate() 进入背包副本
 func mark_soul_seen(soul: SoulData) -> void:
 	if soul == null:
 		return
@@ -98,7 +81,6 @@ func mark_soul_seen(soul: SoulData) -> void:
 	_mark_seen(ContentKind.Kind.SOUL, id)
 
 
-## 魂器“首次进入任意容器”即记录；内部魂灵由 _scan_owned_item() 一并解锁
 func mark_vessel_seen(vessel: SoulVesselData) -> void:
 	if vessel == null:
 		return
@@ -109,7 +91,6 @@ func mark_vessel_seen(vessel: SoulVesselData) -> void:
 	_mark_seen(ContentKind.Kind.VESSEL, id)
 
 
-## 怪物“首次刷出”即记录；所有内容都由 ModLoader 写入 content_id
 func mark_monster_seen(monster: MonsterData) -> void:
 	if monster == null:
 		return
@@ -120,17 +101,12 @@ func mark_monster_seen(monster: MonsterData) -> void:
 	_mark_seen(ContentKind.Kind.MONSTER, id)
 
 
-## 永久解锁目录里的全部条目；返回是否新增了记录。
-## 新增条目照常发 entry_unlocked，SaveManager 会立即写盘。
 func unlock_all() -> bool:
 	var changed := _unlock_kind(ContentKind.Kind.MONSTER, _monsters)
 	changed = _unlock_kind(ContentKind.Kind.SOUL, _souls) or changed
 	return _unlock_kind(ContentKind.Kind.VESSEL, _vessels) or changed
-#endregion
 
 
-#region 存档
-## 供 SaveManager 序列化；数组里只放 canonical content_id
 func to_save_data() -> Dictionary:
 	return {
 		"monsters": _seen_ids(ContentKind.Kind.MONSTER),
@@ -139,7 +115,6 @@ func to_save_data() -> Dictionary:
 	}
 
 
-## 用统一存档里的 collection 段覆盖当前状态；不触发解锁信号
 func apply_save_data(data: Dictionary) -> void:
 	_reset_seen()
 	var monsters: Variant = data.get("monsters", [])
@@ -155,11 +130,8 @@ func apply_save_data(data: Dictionary) -> void:
 		for id in vessels:
 			_seen[ContentKind.Kind.VESSEL][StringName(String(id))] = true
 	state_reloaded.emit()
-#endregion
 
 
-#region 内部
-## 建立三个种类的空桶；必须在连接物品信号前调用。
 func _reset_seen() -> void:
 	_seen = {
 		ContentKind.Kind.MONSTER: {},
@@ -205,7 +177,6 @@ func _register_soul(id: StringName, soul: SoulData) -> void:
 	_souls[id] = soul
 
 
-## 两个资源共用同一个 skill.id 会让 Skill.<id> 的 ability tag 互相顶掉
 func _warn_duplicate_skill_ids() -> void:
 	var skill_sources: Dictionary[StringName, String] = {}
 	for soul: SoulData in _souls.values():
@@ -249,7 +220,6 @@ func _on_inv_item_added(_inv_name: String, item_data: ItemData, _grids: Array[Ve
 	_scan_owned_item(item_data)
 
 
-## 读档后背包里的魂灵不会重新发 add_item 信号，这里补扫一遍
 func _scan_owned_souls_after_ready() -> void:
 	await get_tree().process_frame
 	_scan_owned_souls()
@@ -264,7 +234,6 @@ func _scan_owned_souls() -> void:
 			_scan_owned_item(item)
 
 
-## 魂灵本身、魂器本身和魂器内部的魂灵都算“已拥有”；魂器可能还没打开过窗口
 func _scan_owned_item(item: ItemData) -> void:
 	if item is SoulData:
 		mark_soul_seen(item as SoulData)
@@ -282,4 +251,3 @@ func _seen_ids(kind: int) -> Array[String]:
 		ids.append(String(id))
 	ids.sort()
 	return ids
-#endregion

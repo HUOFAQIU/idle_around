@@ -1,12 +1,8 @@
 class_name MapDropSlot
 extends Control
-## 05 面中心投放槽：接收地图；8 格满时在这里显示待放地图。
-##
-## 只发 clicked，由 MapBoardContent 决定是放入按钮、留在中心还是拿起。
 
 signal clicked
 
-## ItemView 的单格大小；地图是 2×2，所以卡面是 64×64
 const ITEM_BASE_SIZE: int = 32
 const SLOT_BG: Color = Color(0.043, 0.067, 0.098, 0.85)
 const DEFAULT_ACCENT: Color = Color("#4fb8ff")
@@ -27,7 +23,6 @@ func _ready() -> void:
 	_update_visual()
 
 
-## 由面内容注入面的强调色
 func set_accent(color: Color) -> void:
 	_accent_color = color
 	_apply_styles()
@@ -46,7 +41,6 @@ func get_pending() -> MapItemData:
 	return _pending
 
 
-## 测试/调试：模拟左键
 func activate() -> void:
 	clicked.emit()
 

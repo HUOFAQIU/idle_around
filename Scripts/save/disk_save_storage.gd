@@ -1,6 +1,3 @@
-## 六槽 JSON 文件的磁盘 adapter：临时文件 + 备份轮换 + 只读态。
-##
-## 只认 JSON 字典，不校验版本号；版本策略在 SavePipeline。
 class_name DiskSaveStorage
 extends SaveStorage
 
@@ -35,7 +32,6 @@ func read_backup(slot: int) -> Dictionary:
 	return _read(backup_path(slot))
 
 
-## 原子写：先写临时文件，再轮换主文件/备份
 func write(slot: int, data: Dictionary, keep_backup: bool = false) -> bool:
 	if not SaveStorage.is_valid_slot(slot):
 		return false
@@ -59,7 +55,6 @@ func write(slot: int, data: Dictionary, keep_backup: bool = false) -> bool:
 		return false
 	if dir.file_exists(file_name):
 		if keep_backup:
-			# 主文件已经损坏；只替换主文件，保留刚恢复用的好备份
 			var remove_err := dir.remove(file_name)
 			if remove_err != OK:
 				push_warning("存档：无法移除损坏的主存档（%s）" % error_string(remove_err))
@@ -82,7 +77,6 @@ func write(slot: int, data: Dictionary, keep_backup: bool = false) -> bool:
 	return true
 
 
-## 只删除磁盘文件，不改变当前内存状态
 func delete(slot: int) -> bool:
 	if not SaveStorage.is_valid_slot(slot):
 		return false

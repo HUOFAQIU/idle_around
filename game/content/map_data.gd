@@ -1,8 +1,4 @@
 extends Resource
-## 地图定义：名字、图标和刷怪配置。
-##
-## core 里硬编码，不进 mod manifest；MapCatalog 按 content_id 直接取用。
-## 条目只存怪物 content_id，运行时通过 CollectionDB 解析，避免提前加载怪物资源。
 class_name MapData
 
 ## 运行期稳定 ID，存档和 MapCatalog 用
@@ -15,7 +11,6 @@ class_name MapData
 @export var spawn_entries: Array[MapSpawnEntry] = []
 
 
-## 配置问题；为空表示自洽
 func collect_problems() -> Array[String]:
 	var problems: Array[String] = []
 	if content_id.is_empty():

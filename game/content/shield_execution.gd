@@ -1,7 +1,3 @@
-## 获得护盾的执行计算。
-##
-## 护盾量 = floor(base_shield × 本次技能的暴击倍率)；计算允许小数，落地取整。
-## 不吃 GAS 的 damage_bonus；护盾没有上限，也没有持续时间。
 class_name ShieldExecution extends GameplayExecutionCalculation
 
 ## 基础护盾量（正数）

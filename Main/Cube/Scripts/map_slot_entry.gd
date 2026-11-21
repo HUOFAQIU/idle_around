@@ -1,8 +1,5 @@
 class_name MapSlotEntry
 extends Control
-## 05 面单个地图按钮：主按钮显示「地图：森林」，右上角 ⬇ 退回仓库。
-##
-## 只负责显示和转交点击；放置、退回和战斗入口都由 MapBoardContent 决定。
 
 signal pressed
 signal eject_requested
@@ -32,7 +29,6 @@ func _ready() -> void:
 	set_map(null)
 
 
-## 由面内容注入面的强调色
 func set_accent(color: Color) -> void:
 	_accent_color = color
 	_apply_styles()
@@ -55,7 +51,6 @@ func get_map() -> MapItemData:
 	return _item
 
 
-## 测试/调试：模拟左键；空槽返回 false
 func activate() -> bool:
 	if _item == null:
 		return false
@@ -63,7 +58,6 @@ func activate() -> bool:
 	return true
 
 
-## 测试/调试：模拟右上角 ⬇；空槽返回 false
 func activate_eject() -> bool:
 	if _item == null:
 		return false
@@ -71,7 +65,6 @@ func activate_eject() -> bool:
 	return true
 
 
-## 地图刚放进槽位时的小弹出动画
 func play_appear() -> void:
 	if _appear_tween != null and _appear_tween.is_valid():
 		_appear_tween.kill()

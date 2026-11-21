@@ -1,7 +1,4 @@
 class_name ModPaths extends RefCounted
-## mod 目录与文件名的唯一来源；其他脚本不要再拼裸路径。
-##
-## 路径约定见 DOC/架构/Mod系统.md。
 
 const BUILTIN_MODS_DIR: String = "res://base_mods"
 const USER_MODS_DIR: String = "user://mods"

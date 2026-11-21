@@ -1,8 +1,3 @@
-## 战斗叙事：把模拟层的信号与总线事件翻译成中文日志。
-##
-## 模拟层（BattleUnit / 技能 / 触发器 / 掉落）只发信号和结构化事件，
-## 这里统一拼文本，再通过 BattleManager.log_line() 发回总线；
-## InfoWindow 与控制台只需要订阅 log/line，不关心文案从哪来。
 class_name CombatNarrator extends RefCounted
 
 var _battle: BattleManager
@@ -17,7 +12,6 @@ func _init(battle: BattleManager) -> void:
 	_battle.events.emitted.connect(_on_event)
 
 
-#region 订阅
 func _on_unit_asc_ready(unit: BattleUnit) -> void:
 	if unit == null or unit.asc == null:
 		return
@@ -50,10 +44,8 @@ func _on_event(event: BattleEvent) -> void:
 		BattleEvent.CATEGORY_BATTLE:
 			if event.type == "drop":
 				_on_drop(event)
-#endregion
 
 
-#region 总线事件
 func _on_cast_event(event: BattleEvent) -> void:
 	var caster: BattleUnit = event.fields.get("actor_unit", null)
 	var ability := String(event.fields.get("ability", ""))
@@ -74,7 +66,6 @@ func _on_cast_event(event: BattleEvent) -> void:
 				"、".join(names),
 			], "#6fb7ff")
 		"empty":
-			# 纯单位技能只有玩家施法才播报空放，避免敌人刷屏
 			if bool(event.fields.get("narrate", false)):
 				_log("%s 的【%s】空放了（%s）" % [
 					_unit_label(caster),
@@ -105,12 +96,8 @@ func _on_drop(event: BattleEvent) -> void:
 		_log("%s 掉落了【%s】" % [_unit_label(unit), item], "#ffd866")
 	else:
 		_log("仓库已满，【%s】掉落丢失" % item, "yellow")
-#endregion
 
 
-#region ASC 信号
-## 效果生命周期：只有对方真正收到效果时才写伤害/治疗日志。
-## 击杀那一下也要显示，所以这里不因为 is_dead 直接返回。
 func _on_effect_received(
 	_source_asc: AbilitySystemComponent,
 	spec: GameplayEffectSpec,
@@ -118,8 +105,6 @@ func _on_effect_received(
 ) -> void:
 	if spec == null or spec.effect_def is PassiveEffect:
 		return
-	# 周期效果在施加时只做了预览计算，并没有真正扣血；
-	# 伤害要等每一跳通过 periodic_effect_ticked 单独记账。
 	if spec.period > 0.0:
 		return
 	var health_delta := float(spec.calculated_deltas.get("health", 0.0))
@@ -144,7 +129,6 @@ func _on_effect_received(
 			% [unit.unit_name, health_delta, crit_suffix, old_value, current], GameColors.HEAL)
 
 
-## 周期效果每跳：护盾吸收、伤害/生命再生叙事
 func _on_periodic_effect_ticked(
 	_active_effect: ActiveGameplayEffect,
 	spec: GameplayEffectSpec,
@@ -230,7 +214,6 @@ func _on_active_effect_removed(active_effect: ActiveGameplayEffect, unit: Battle
 	_log("%s 的状态【%s】结束" % [unit.unit_name, CombatNames.effect_name(active_effect.spec)], "gray")
 
 
-## 批量触发施加的效果不逐目标写状态日志，避免全体冻结时刷屏
 func _has_suppressed_state_log(active_effect: ActiveGameplayEffect) -> bool:
 	return (
 		active_effect != null
@@ -241,10 +224,8 @@ func _has_suppressed_state_log(active_effect: ActiveGameplayEffect) -> bool:
 
 func _on_unit_died(unit: BattleUnit) -> void:
 	_log("%s 倒下了！" % unit.unit_name, "#ffcc44")
-#endregion
 
 
-#region 魂灵能力信号
 func _on_status_applied(
 	status_name: String,
 	seconds: float,
@@ -266,7 +247,6 @@ func _on_charge_added(
 	ability: ChargedAbility
 ) -> void:
 	_log("%s 获得充能（%.1f 秒）" % [ability.ability_name, seconds], GameColors.CHARGE)
-#endregion
 
 
 func _log(text: String, color: String = "white") -> void:

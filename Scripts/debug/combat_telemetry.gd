@@ -1,12 +1,3 @@
-## 战斗遥测总线（Autoload：CombatTelemetry）。
-##
-## 只负责“记录”，不参与任何战斗判定：
-##   - 事件进环形缓冲，超过 max_events 覆盖最旧的；
-##   - 重要事件全局记录；详细事件默认只记录关注单位，避免无限刷怪把缓冲冲爆；
-##   - 可同时写 user://debug/*.jsonl，调试窗口可导出。
-##
-## 事件字段见 DOC/架构/调试与遥测.md。所有 Node 引用在入口处转成 id/名字，
-## 缓冲里不存 Node，单位释放后事件仍可读。
 extends Node
 
 signal event_recorded(event: Dictionary)
@@ -14,32 +5,21 @@ signal run_started(run_id: int)
 signal run_ended(run_id: int)
 
 const MAX_EVENTS_DEFAULT: int = 5000
-## JSONL 每写这么多行 flush 一次，避免逐条事件触发磁盘刷新
 const FILE_FLUSH_EVERY: int = 50
-## 缓冲溢出时一次裁掉的比例，避免每条事件都搬整个数组
 const TRIM_RATIO: float = 0.1
 
-## 总开关；关闭时 record() 立即返回，正式游戏可以整体关掉
 var enabled: bool = true
-## 是否记录所有详细事件（默认只记录关注单位）
 var record_detail_globally: bool = false
-## 是否同时写 JSONL 文件
 var record_to_file: bool = false
-## 环形缓冲上限
 var max_events: int = MAX_EVENTS_DEFAULT
 
-## 当前事件缓冲（最新在末尾）
 var events: Array[Dictionary] = []
-## 因为超过上限被覆盖的事件数
 var dropped_events: int = 0
-## 当前战斗场次；BattleSession 开战时设置
 var current_run_id: int = 0
 var current_battle: BattleManager
-## 关注单位实例 id；详细事件只记录它
 var watch_unit_id: int = 0
 
 var _seq: int = 0
-## 已绑定信号的对象实例 id → "full" / "death"，避免重复连接
 var _bound_units: Dictionary = {}
 var _bound_abilities: Dictionary = {}
 var _file: FileAccess
@@ -52,8 +32,6 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 
 
-#region 战斗生命周期
-## 开战：绑定当前 BattleManager，记录开战快照，必要时打开录制文件
 func begin_run(run_id: int, battle: BattleManager, loadout: Array = []) -> void:
 	current_run_id = run_id
 	current_battle = battle
@@ -77,7 +55,6 @@ func begin_run(run_id: int, battle: BattleManager, loadout: Array = []) -> void:
 	run_started.emit(run_id)
 
 
-## 关战/重开：记录结束并关闭文件
 func end_run(reason: String = "") -> void:
 	if current_run_id == 0:
 		return
@@ -107,15 +84,10 @@ func set_record_to_file(value: bool) -> void:
 		_close_file()
 
 
-## 当前录制文件路径（未录制为空）
 func get_record_path() -> String:
 	return _file_path
-#endregion
 
 
-#region 记录
-## 记一条事件。fields 里可以带 actor_unit / target_unit / trace，入口处自动转换。
-## importance = DETAIL 时，只有关注单位或 record_detail_globally 才真正入缓冲。
 func record(
 	category: String,
 	type: String,
@@ -124,7 +96,6 @@ func record(
 ) -> Dictionary:
 	if not enabled:
 		return {}
-	# 详细事件在没有任何关注对象时直接丢弃，不做 duplicate / 归一化
 	if importance == CombatTelemetrySchema.DETAIL and not record_detail_globally and watch_unit_id == 0:
 		return {}
 
@@ -160,21 +131,12 @@ func record(
 	return event
 
 
-## 关注单位：详细事件只记录它；传 null 取消关注。
-## 被关注时再补绑它的 ASC 信号，避免给所有刷出来的怪都绑一遍。
 func watch_unit(unit: BattleUnit) -> void:
 	watch_unit_id = unit.get_instance_id() if unit != null and is_instance_valid(unit) else 0
 	if unit != null and is_instance_valid(unit):
 		bind_unit(unit)
 
 
-#endregion
-
-
-#region GAS 信号绑定
-## 绑定一个单位的信号；同一单位只绑一次。
-## 玩家和当前关注单位绑完整 ASC 信号；其他敌人只绑死亡（重要事件），
-## 等 watch_unit() 关注时再补绑详细信号，避免无限刷怪时反复连接 13 个信号。
 func bind_unit(unit: BattleUnit) -> void:
 	if unit == null or not is_instance_valid(unit) or unit.asc == null:
 		return
@@ -214,7 +176,6 @@ func bind_unit(unit: BattleUnit) -> void:
 	}, CombatTelemetrySchema.DETAIL)
 
 
-## 绑定一颗主动魂灵信号；需要在 SoulRuntime 建好后调用。
 func bind_ability(ability: GameplayAbility, unit: BattleUnit, runtime: SoulRuntime) -> void:
 	if ability == null or not is_instance_valid(ability):
 		return
@@ -230,12 +191,8 @@ func bind_ability(ability: GameplayAbility, unit: BattleUnit, runtime: SoulRunti
 	charged.charge_added.connect(_on_ability_charge_added.bind(ability, unit, runtime))
 	charged.status_applied.connect(_on_ability_status_applied.bind(ability, unit, runtime))
 	charged.status_expired.connect(_on_ability_status_expired.bind(ability, unit, runtime))
-#endregion
 
 
-#region 查询 / 导出
-## 过滤事件。filter 支持：
-## category / type / actor_id / target_id / soul / text / importance / run_id / since_seq
 func query(filter: Dictionary = {}, limit: int = 1000) -> Array[Dictionary]:
 	var matched: Array[Dictionary] = []
 	for event in events:
@@ -246,7 +203,6 @@ func query(filter: Dictionary = {}, limit: int = 1000) -> Array[Dictionary]:
 	return matched
 
 
-## 同一 root trace 下的全部事件，按 seq 排序；用于因果链
 func get_trace_chain(trace_id: int) -> Array[Dictionary]:
 	if trace_id <= 0:
 		return []
@@ -266,7 +222,6 @@ func get_trace_chain(trace_id: int) -> Array[Dictionary]:
 	return chain
 
 
-## 把当前缓冲写成 JSONL；path 为空时写到 user://debug/
 func export_jsonl(path: String = "") -> String:
 	if path.is_empty():
 		path = "user://debug/combat_%s.jsonl" % Time.get_datetime_string_from_system().replace(":", "-")
@@ -289,7 +244,6 @@ func export_jsonl(path: String = "") -> String:
 	return ProjectSettings.globalize_path(path)
 
 
-## 溢出时一次性裁掉约 10%，摊销 pop_front 的搬数组成本
 func _trim_events() -> void:
 	var trim := maxi(int(ceil(float(max_events) * TRIM_RATIO)), 1)
 	trim = mini(trim, events.size())
@@ -322,10 +276,8 @@ func get_stats() -> Dictionary:
 		"watch_unit_id": watch_unit_id,
 		"counts": counts,
 	}
-#endregion
 
 
-#region GAS 回调
 func _on_unit_died(unit: BattleUnit) -> void:
 	_bound_units.erase(unit.get_instance_id())
 	record(CombatTelemetrySchema.BATTLE, "died", {
@@ -391,8 +343,6 @@ func _on_effect_received(
 ) -> void:
 	if spec == null:
 		return
-	# 周期效果施加时 calculated_deltas 只是预览，真正伤害在每跳 tick；
-	# 施加本身由 active_effect_added 记录，这里不要伪造一次伤害。
 	if spec.period > 0.0:
 		return
 	var fields := _spec_fields(spec)
@@ -583,10 +533,8 @@ func _on_ability_status_expired(
 		fields,
 		CombatTelemetrySchema.IMPORTANT if unit.team == BattleUnit.Team.PLAYER else CombatTelemetrySchema.DETAIL
 	)
-#endregion
 
 
-#region 内部
 func _elapsed() -> float:
 	if current_battle != null and is_instance_valid(current_battle) and current_battle.is_running:
 		return current_battle.elapsed_seconds()
@@ -625,7 +573,6 @@ func _source_unit(spec: GameplayEffectSpec) -> BattleUnit:
 	return null
 
 
-## 目标玩家 → 全局重要事件；其余 → 详细事件（关注玩家/该单位时记录）
 func _event_importance(target: BattleUnit, _source: BattleUnit) -> String:
 	return (
 		CombatTelemetrySchema.IMPORTANT
@@ -821,4 +768,3 @@ func _close_file() -> void:
 		_file.close()
 		_file = null
 	_file_lines = 0
-#endregion

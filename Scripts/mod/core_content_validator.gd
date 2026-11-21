@@ -1,11 +1,6 @@
 class_name CoreContentValidator
 extends RefCounted
-## 校验内置 core mod 的 manifest 与磁盘内容是否一致。
-##
-## 只检查 base_mods/core/mod.json 和内容文件的对应关系；
-## 资源类型、内部引用是否可加载仍由 ModLoader 在启动时检查。
 
-## 用 preload 而不是全局类名，保证 modkit 的 --script 无头模式能解析
 const CONTENT_NAMING: GDScript = preload("res://Scripts/mod/content_naming.gd")
 const CONTENT_KIND_SPEC: GDScript = preload("res://Scripts/mod/content_kind_spec.gd")
 const MOD_PATHS: GDScript = preload("res://Scripts/mod/mod_paths.gd")
@@ -13,11 +8,9 @@ const MOD_PATHS: GDScript = preload("res://Scripts/mod/mod_paths.gd")
 const CORE_ID: String = "core"
 const CORE_ROOT: String = MOD_PATHS.CORE_ROOT
 const MANIFEST_PATH: String = CORE_ROOT + "/" + MOD_PATHS.MANIFEST_FILE
-## 资源不应设置中文 resource_name；这里做文本扫描，避免 modkit 的 --script 模式加载资源
 const RESOURCE_NAME_PATTERN: String = "(?m)^\\s*resource_name\\s*=\\s*\"(.*)\"\\s*$"
 
 
-## 返回错误列表；空数组表示 manifest 与内容文件一致
 static func validate() -> Array[String]:
 	var errors: Array[String] = []
 	var manifest := _load_manifest(errors)
@@ -130,7 +123,6 @@ static func _validate_entry_id(spec: Dictionary, id: String, errors: Array[Strin
 		errors.append("%s ID 应以 %s 结尾：%s" % [label, suffix, id])
 
 
-## core 魂灵技能 ID 必须由 content_id 派生，避免同一个 Skill.<id> 被顶掉或拼写漂移
 static func _validate_soul_skills(content: Dictionary, errors: Array[String]) -> void:
 	var soul_spec: Dictionary = CONTENT_KIND_SPEC.for_key("souls")
 	if soul_spec.is_empty():
@@ -164,8 +156,6 @@ static func _validate_soul_skills(content: Dictionary, errors: Array[String]) ->
 			errors.append("魂灵 %s 的技能 id 应为 %s，实际为 %s" % [content_id, expected, actual])
 
 
-## 从魂灵 .tres 文本里读 `skill = ExtResource("<id>")`，再找到对应的 ext_resource 路径。
-## 不直接加载 SoulData：ItemData 引用 GBIS 等 autoload，modkit 的 --script 模式编译不了。
 static func _skill_path_from_soul(soul_path: String) -> String:
 	var text := FileAccess.get_file_as_string(soul_path)
 	if text.is_empty():
@@ -180,7 +170,6 @@ static func _skill_path_from_soul(soul_path: String) -> String:
 	return ext.get_string(1) if ext != null else ""
 
 
-## 资源不应设置中文 resource_name；编辑器按文件名显示即可。
 static func _validate_resource_names(errors: Array[String]) -> void:
 	var files: Array[String] = []
 	var suffixes: Array[String] = [".tres"]
@@ -199,7 +188,6 @@ static func _validate_resource_names(errors: Array[String]) -> void:
 			errors.append("资源不应设置中文 resource_name：%s（%s）" % [path, resource_name])
 
 
-## 基本汉字 + 扩展 A；覆盖常见中文资源名即可
 static func _contains_han(text: String) -> bool:
 	for i in text.length():
 		var code := text.unicode_at(i)

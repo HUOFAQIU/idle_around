@@ -1,17 +1,11 @@
 class_name FaceContent
 extends Control
-## 立方体面的 2D 内容接口。
-##
-## Face3D 只通过本类建立内容与 3D 面的联系，不关心内容具体是哪种 UI。
-## FaceUI（六面识别按钮）和 PetPanelContent（面 02 主菜单）都继承本类。
 
 const FACE_NUMBER_FONT: Font = preload(
 		"res://Main/Cube/Resources/UI/font_cjk_bold.tres")
-## 面号水印约占面高的比例；300 面约 150px，512 面约 280px
 const FACE_NUMBER_HEIGHT_RATIO := 0.8
 const FACE_NUMBER_ALPHA := 0.16
 
-## 内容需要向立方体外壳报告「面被识别/点击」时发出
 @warning_ignore("unused_signal")
 signal identify_requested
 
@@ -21,17 +15,14 @@ signal identify_requested
 var _face_number_label: Label
 
 
-## 把面索引、名称和强调色传给内容；子类按需覆盖
 func setup(index: int, _display_name: String, accent: Color) -> void:
 	_apply_face_number(index, accent)
 
 
-## 面内容类型标识；TestAPI 和调试窗口用它判断当前面承载什么
 func content_id() -> StringName:
 	return &"face_content"
 
 
-## 面号水印当前显示的文本；未生成时返回空串
 func face_number_text() -> String:
 	return _face_number_label.text if _face_number_label != null else ""
 

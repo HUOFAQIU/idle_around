@@ -1,4 +1,3 @@
-## SavePipeline.load() 的结果；EMPTY 表示该槽没有可用数据。
 class_name SaveLoadResult
 extends RefCounted
 

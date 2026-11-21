@@ -1,21 +1,11 @@
 class_name TerminalBuffer
 extends RefCounted
-## 字符网格数据。只保存字符与样式，不负责绘制。
-##
-## 每格用并行数组存储，避免一格一个 Object；扁平索引 = 物理行 * cols + col。
-## 行以环形方式保存：_row_start 是逻辑第 0 行对应的物理行，上滚只移动它并清空
-## 新底行，不再整屏复制。读逻辑行时用 get_row_base(row) 换算起始下标。
-## 字符宽度由 TerminalWidth 决定：双宽字符占两格，第二格写 WIDE_CONTINUATION；
-## 组合字符（宽度 0）暂时跳过，不参与渲染。
-## 转义序列不在这里解析：ESC 会像其他控制字符一样被忽略，调用方直接给样式。
 
 const ATTR_BOLD: int = 1 << 0
 const ATTR_UNDERLINE: int = 1 << 1
 const ATTR_REVERSE: int = 1 << 2
-## 该格是双宽字符的第一格
 const ATTR_WIDE: int = 1 << 3
 
-## 双宽字符的第二格；渲染器跳过，背景/样式仍按同一格处理
 const WIDE_CONTINUATION: int = -1
 
 const SPACE: int = 32
@@ -27,7 +17,6 @@ const TAB_WIDTH: int = 8
 
 var cols: int = 0
 var rows: int = 0
-## 光标允许停在 cols（最后一列的“待换行”状态），下一次写字符才换行
 var cursor_col: int = 0
 var cursor_row: int = 0
 
@@ -35,9 +24,7 @@ var _chars: PackedInt32Array = PackedInt32Array()
 var _fg: PackedColorArray = PackedColorArray()
 var _bg: PackedColorArray = PackedColorArray()
 var _attrs: PackedByteArray = PackedByteArray()
-## 逻辑第 0 行在扁平数组里的物理行号
 var _row_start: int = 0
-## 滚出屏幕的行；容量默认 1000 行
 var _history: TerminalHistory
 
 
@@ -46,7 +33,6 @@ func _init(initial_cols: int = 80, initial_rows: int = 24, history_limit: int = 
 	resize(initial_cols, initial_rows)
 
 
-## 重设尺寸；保留左上角内容，光标夹到新范围内
 func resize(new_cols: int, new_rows: int) -> void:
 	new_cols = maxi(new_cols, 1)
 	new_rows = maxi(new_rows, 1)
@@ -57,7 +43,6 @@ func resize(new_cols: int, new_rows: int) -> void:
 	var old_row_start := _row_start
 	var old_cursor_col := cursor_col
 	var old_cursor_row := cursor_row
-	# Packed 数组是按引用传递的，resize 前必须 duplicate，否则旧数组会被一起改掉
 	var old_chars := _chars.duplicate()
 	var old_fg := _fg.duplicate()
 	var old_bg := _bg.duplicate()
@@ -77,21 +62,17 @@ func resize(new_cols: int, new_rows: int) -> void:
 			_fg[dst_base + col] = old_fg[src_base + col]
 			_bg[dst_base + col] = old_bg[src_base + col]
 			_attrs[dst_base + col] = old_attrs[src_base + col]
-	# 窄列可能把双宽字符的续格截掉，清掉这些孤儿格
 	_repair_wide_cells()
-	# _allocate() 里的 clear() 会把光标归零，这里恢复并按新尺寸夹紧
 	cursor_col = clampi(old_cursor_col, 0, cols - 1)
 	cursor_row = clampi(old_cursor_row, 0, rows - 1)
 
 
-## 清空屏幕、历史和光标
 func clear() -> void:
 	_clear_screen()
 	if _history != null:
 		_history.clear()
 
 
-## 只清屏幕，保留历史；resize 分配新数组时用
 func _clear_screen() -> void:
 	_chars.fill(SPACE)
 	_fg.fill(TerminalPalette.default_fg())
@@ -102,7 +83,6 @@ func _clear_screen() -> void:
 	cursor_row = 0
 
 
-## 写一段文本；\n、\r、\t、\b 按终端习惯处理
 func write_text(text: String, style: TerminalStyle = null) -> void:
 	var cell_style := style if style != null else TerminalStyle.new()
 	for i in text.length():
@@ -114,7 +94,6 @@ func write_line(text: String, style: TerminalStyle = null) -> void:
 	newline()
 
 
-## 光标换到下一行；到底部时整屏上滚
 func newline() -> void:
 	cursor_col = 0
 	cursor_row += 1
@@ -123,7 +102,6 @@ func newline() -> void:
 		cursor_row = rows - 1
 
 
-## 向上滚动 count 行，底部补空行；滚出的顶部行写入历史
 func scroll_up(count: int = 1) -> void:
 	count = clampi(count, 0, rows)
 	if count <= 0:
@@ -144,15 +122,12 @@ func get_history() -> TerminalHistory:
 	return _history
 
 
-## 逻辑行在扁平数组里的起始下标；渲染器按逻辑行读取时用
 func get_row_base(row: int) -> int:
 	if rows <= 0:
 		return 0
 	return ((_row_start + row) % rows) * cols
 
 
-## 渲染器直接读取并行数组；约定只读，不要修改。
-## 数组按物理行排列，逻辑行用 get_row_base(row) 取起始下标。
 func get_chars() -> PackedInt32Array:
 	return _chars
 
@@ -204,16 +179,13 @@ func _write_codepoint(code: int, style: TerminalStyle) -> void:
 				return
 			var columns := TerminalWidth.columns(code)
 			if columns <= 0:
-				# 组合字符暂不渲染，避免占用一格
 				return
 			_write_cell(code, columns, style)
 
 
 func _write_cell(code: int, columns: int, style: TerminalStyle) -> void:
-	# 1 列的终端放不下双宽字符，退化成单宽
 	if columns == 2 and cols < 2:
 		columns = 1
-	# 双宽字符只剩最后一格时先换行，不能把续格拆到下一行
 	if columns == 2 and cursor_col >= cols - 1:
 		newline()
 	elif cursor_col >= cols:
@@ -247,7 +219,6 @@ func _tab_forward() -> void:
 	cursor_col = target
 
 
-## 覆盖某个格之前，把它所属的双宽字符连同另一格一起清掉，避免留下半个字
 func _clear_overlapping_wide(index: int) -> void:
 	var base := get_row_base(cursor_row)
 	var col := index - base
@@ -285,7 +256,6 @@ func _style_attrs(style: TerminalStyle) -> int:
 	return attrs
 
 
-## resize 后清理被截断的双宽字符/孤立续格
 func _repair_wide_cells() -> void:
 	for row in rows:
 		var base := get_row_base(row)

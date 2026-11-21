@@ -1,12 +1,8 @@
 class_name ModManifest
 extends RefCounted
-## mod.json 的解析与基础校验。
-##
-## 只校验格式和字段；内容路径是否存在、资源类型是否正确由 ModLoader 在挂载后检查。
 
 const SUPPORTED_SCHEMA: int = 1
 const ID_PATTERN: String = "^[a-z][a-z0-9_]{2,63}$"
-## 已知顶层字段；出现其他字段时只警告，不阻止加载
 const KNOWN_KEYS: Array[String] = [
 	"schema", "id", "name", "version", "author", "description",
 	"game_version", "load_after", "dependencies", "content_namespace",
@@ -22,20 +18,14 @@ var game_version_min: String = ""
 var game_version_max: String = ""
 var load_after: Array[StringName] = []
 var dependencies: Array[StringName] = []
-## 内容 ID 命名空间：mod = <mod_id>:<local_id>，global = 直接使用 ID。
-## global 只允许内置 mod 使用。
 var content_namespace: String = "mod"
-## 内置 mod 的内容根目录；空 = res://base_mods/<mod_id>/。
-## 只允许内置 mod 使用，第三方 mod 必须把内容放在自己的命名空间目录下。
 var content_root: String = ""
-## 原样保存 content 段；souls / monsters / vessels / cues 的路径由 ModLoader 解析
 var content: Dictionary = {}
 var overrides: Array[String] = []
 var errors: Array[String] = []
 var warnings: Array[String] = []
 
 
-## 读取并校验 mod.json；失败时 errors 里是原因
 func load_from_file(path: String) -> bool:
 	var text := FileAccess.get_file_as_string(path)
 	if text.is_empty():
@@ -53,7 +43,6 @@ static func is_valid_id(value: String) -> bool:
 	return regex.search(value) != null
 
 
-## 比较点分版本；缺省段按 0 处理
 static func compare_versions(a: String, b: String) -> int:
 	var a_parts := _version_parts(a)
 	var b_parts := _version_parts(b)
@@ -68,7 +57,6 @@ static func compare_versions(a: String, b: String) -> int:
 	return 0
 
 
-## min / max 都包含边界；空字符串表示不限制
 static func version_in_range(target_version: String, min_version: String, max_version: String) -> bool:
 	if not min_version.is_empty() and compare_versions(target_version, min_version) < 0:
 		return false

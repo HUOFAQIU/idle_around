@@ -1,7 +1,4 @@
 extends RefCounted
-## TestAPI 终端域：终端内容、滚动与 tooltip 显示。
-##
-## 对外入口仍是 res://Scripts/test_api.gd 的 TestAPI。
 
 const COMMON: GDScript = preload("res://Scripts/test_api/common.gd")
 const INVENTORY: GDScript = preload("res://Scripts/test_api/inventory.gd")
@@ -87,7 +84,6 @@ static func terminal_snapshot() -> Dictionary:
 	}
 
 
-## 命令补全候选；终端和 AI 共用同一套补全逻辑
 static func complete_command(line : String, caret : int = -1) -> Dictionary:
 	return COMMANDS.complete(line, caret)
 
@@ -153,7 +149,6 @@ static func terminal_show_equipped_vessel_tooltip(
 	return _terminal_show_tooltip(text, grid)
 
 
-## 把标题 + ANSI 正文写进当前 TerminalView；grid 控制调试网格开关
 static func _terminal_show_tooltip(text : String, grid : bool) -> bool:
 	var view := _terminal_view()
 	if view == null or view.buffer == null:

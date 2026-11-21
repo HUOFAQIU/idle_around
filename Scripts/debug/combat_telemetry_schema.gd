@@ -1,14 +1,7 @@
-## 调试事件分类与公共字段构造。
-##
-## 事件本身用 Dictionary 存，方便直接写 JSONL；这里只放常量和
-## “单位 → 可序列化字段”的转换，避免把 Node 引用写进事件缓冲。
 class_name CombatTelemetrySchema extends RefCounted
 
-## 分类与重要度沿用模拟层事件总线的词表，保证两边字符串永远一致。
 
-## 重要事件：默认显示在时间线
 const IMPORTANT: String = BattleEvent.IMPORTANCE_IMPORTANT
-## 详细事件：只在关注单位或打开详细模式时记录
 const DETAIL: String = BattleEvent.IMPORTANCE_DETAIL
 
 const BATTLE: String = BattleEvent.CATEGORY_BATTLE
@@ -36,7 +29,6 @@ const CATEGORY_COLORS := {
 }
 
 
-## 单位 → 事件字段；已释放的单位返回空字典
 static func unit_info(unit: Variant) -> Dictionary:
 	if unit == null or not is_instance_valid(unit):
 		return {}

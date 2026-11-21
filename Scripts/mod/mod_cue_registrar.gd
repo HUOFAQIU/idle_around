@@ -1,15 +1,6 @@
 extends Node
-## 项目侧 Cue 注册器（Autoload：ModCueRegistrar）。
-##
-## `GameplayCueManager` 直接使用 GodotGAS 的
-## `addons/GodotGAS/managers/gameplay_cue_manager.gd`，本节点只负责把
-## ModLoader 的 core/第三方 mod Cue 注册进它的 `_cue_scenes` / `_pool`。
-##
-## 不继承 addon 脚本：导出包里路径式 extends 会解析失败，导致整个
-## GameplayCueManager autoload 挂掉。
 
 var _mod_registered_tags: Array[StringName] = []
-## 引用检查去重：同一个 Cue 标签/效果可能被多颗魂灵引用
 var _checked_cue_tags: Dictionary = {}
 var _checked_effect_ids: Dictionary = {}
 
@@ -19,7 +10,6 @@ func _ready() -> void:
 	_validate_cue_references()
 
 
-## 运行时注册一个 Cue；标签已存在时返回 false
 func register_cue(tag: StringName, scene: PackedScene) -> bool:
 	if tag.is_empty() or scene == null or GameplayCueManager._cue_scenes.has(tag):
 		return false
@@ -28,7 +18,6 @@ func register_cue(tag: StringName, scene: PackedScene) -> bool:
 	return true
 
 
-## 已发现的 mod Cue 概况：tag / mod / path / 是否注册成功
 func get_mod_cues() -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
 	for entry in ModLoader.get_cue_entries():
@@ -45,7 +34,6 @@ func is_mod_cue_registered(tag: StringName) -> bool:
 	return _mod_registered_tags.has(tag)
 
 
-## Cue 注册完成后，检查魂灵技能/效果引用的 Cue 标签是否真的存在
 func _validate_cue_references() -> void:
 	for entry in ModLoader.get_soul_entries():
 		var soul := entry.resource as SoulData
@@ -120,7 +108,6 @@ func _register_entry(entry: ModContentEntry) -> bool:
 	return true
 
 
-## 实例化一次检查根节点能力；不在场景树里，只会触发 _init。
 func _scene_is_cue(scene: PackedScene) -> bool:
 	var instance := scene.instantiate()
 	if instance == null:

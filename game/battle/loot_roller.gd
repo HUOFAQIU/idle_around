@@ -1,7 +1,3 @@
-## 掉落判定：每项掉落各掷一次骰子。
-##
-## 入包动作由外部注入（BattleSession 接 Warehouse.add_item），
-## 本类不直接依赖仓库；日志由 CombatNarrator 订阅 battle/drop 事件生成。
 class_name LootRoller extends RefCounted
 
 var _events: BattleEventBus

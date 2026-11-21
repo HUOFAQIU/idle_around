@@ -1,14 +1,8 @@
-## 单位空间索引：按固定像素桶分格，用于“附近有哪些单位”的查询。
-##
-## 桶只用于范围查询；单位真实位置仍是像素坐标，移动后调用 update() 换桶。
 class_name UnitSpatialIndex extends RefCounted
 
-## 桶的边长（像素）
 const BUCKET_PX: float = 64.0
 
-## 桶键 → 该桶内的单位
 var _buckets: Dictionary = {}
-## 单位实例 ID → 所在桶的键，移动时用来快速换桶
 var _bucket_of_unit: Dictionary = {}
 
 
@@ -34,7 +28,6 @@ func unregister(unit: BattleUnit) -> void:
 		_buckets[key] = bucket
 
 
-## 单位移动后调用；桶键没变时什么都不做
 func update(unit: BattleUnit) -> void:
 	var id := unit.get_instance_id()
 	var new_key := _bucket_key(unit.position)
@@ -44,7 +37,6 @@ func update(unit: BattleUnit) -> void:
 	register(unit)
 
 
-## 距离 pos 半径 radius 内的所有存活单位
 func near(pos: Vector2, radius: float) -> Array[BattleUnit]:
 	var result: Array[BattleUnit] = []
 	var key_radius := int(ceil(radius / BUCKET_PX))

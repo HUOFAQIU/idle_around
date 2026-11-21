@@ -1,8 +1,4 @@
 extends Control
-## 字符网格的独立预览场景，按 F6 运行。
-##
-## 这里只做“看效果”的 demo：16 色、样式、光标、换行、滚动、resize。
-## 网格线和悬停格子由 DebugOverlay 画在 TerminalView 之上，不进入正式渲染路径。
 
 const TYPING_TEXT := (
 	"The quick brown fox jumps over the lazy dog. "
@@ -35,7 +31,6 @@ func _ready() -> void:
 	_update_grid_info()
 
 
-## 预览用窗口：从项目的全屏透明外壳切成可缩放的普通窗口，方便看 resize
 func _prepare_preview_window() -> void:
 	var window := get_window()
 	window.mode = Window.MODE_WINDOWED
@@ -310,7 +305,6 @@ class DebugOverlay extends Control:
 
 
 	func _ready() -> void:
-		# PASS 让未处理的滚轮事件继续落到父级 TerminalView
 		mouse_filter = Control.MOUSE_FILTER_PASS
 		mouse_exited.connect(_on_mouse_exited)
 		if terminal != null:

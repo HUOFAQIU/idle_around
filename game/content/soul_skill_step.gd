@@ -1,5 +1,4 @@
 class_name SoulSkillStep extends SkillStep
-## 以魂灵为目标的技能步骤。
 
 @export var target_rule: SoulTargetRule
 ## 加速/减速/冻结时长（秒）；0 = 不施加
@@ -48,7 +47,6 @@ func execute(ctx: SkillCastContext) -> SkillStepResult:
 			target.apply_slow(slow_duration, ctx.trace)
 		if freeze_duration > 0.0:
 			target.apply_freeze(freeze_duration, ctx.trace)
-		# 充能满就同帧释放：避免目标晚一帧归零，之后和充能者相位锁死。
 		if (
 			charge_applied
 			and target.is_ready()

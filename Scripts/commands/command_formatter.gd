@@ -1,5 +1,4 @@
 extends RefCounted
-## 终端显示格式：标量直接输出，Dictionary/Array 转 JSON。
 
 
 static func format(value: Variant) -> PackedStringArray:

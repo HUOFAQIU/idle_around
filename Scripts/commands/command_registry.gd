@@ -1,9 +1,5 @@
 class_name CommandRegistry
 extends RefCounted
-## 调试命令入口：终端输入和 AI 探针共用同一套命令。
-##
-## run() 返回 {ok, value, error}；命令实现在 Scripts/commands/actions/。
-## 新增命令：写 handler → 在 command_catalog.gd 登记 → 更新 DOC/指南/命令控制台.md。
 
 const PARSER: GDScript = preload("res://Scripts/commands/command_parser.gd")
 const CATALOG: GDScript = preload("res://Scripts/commands/command_catalog.gd")
@@ -36,7 +32,6 @@ static func run(line: String) -> Dictionary:
 	return result
 
 
-## 命令列表或单条用法；终端 help 和 AI 共用
 static func help(command := "") -> String:
 	var entries: Dictionary = CATALOG.all_entries()
 	if not command.is_empty():
@@ -57,7 +52,6 @@ static func command_names() -> PackedStringArray:
 	return CATALOG.command_names()
 
 
-## 光标处补全；终端输入和 AI 探针共用
 static func complete(line: String, caret: int = -1) -> Dictionary:
 	return COMPLETION.complete(line, caret)
 

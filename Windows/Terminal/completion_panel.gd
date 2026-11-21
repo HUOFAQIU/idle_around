@@ -1,8 +1,5 @@
 class_name CompletionPanel
 extends Control
-## 命令补全候选浮层：自绘列表，不抢输入焦点。
-##
-## TerminalWindow 负责键位和替换文本；这里只管候选、选中行和鼠标点击。
 
 signal candidate_chosen(text: String)
 
@@ -17,9 +14,7 @@ var font_size: int = 16
 
 var _candidates := PackedStringArray()
 var _selected: int = 0
-## 第一行可见候选在 _candidates 里的下标
 var _scroll: int = 0
-## 抬头的 usage + summary；空字符串时不画
 var _hint: String = ""
 
 
@@ -30,7 +25,6 @@ func _ready() -> void:
 	visible = false
 
 
-## 打开并替换候选；width 跟随输入框，hint 显示在候选上方
 func show_candidates(candidates: PackedStringArray, width: float, hint := "") -> void:
 	if candidates.is_empty():
 		hide_panel()
@@ -145,7 +139,6 @@ func _gui_input(event: InputEvent) -> void:
 			queue_redraw()
 
 
-## 本地 y 坐标 → 可见行号；不在候选行上返回 -1
 func _row_at(local_y: float) -> int:
 	var offset := local_y - _rows_top()
 	if offset < 0.0:
@@ -174,7 +167,6 @@ func _keep_selected_visible() -> void:
 	_scroll = clampi(_scroll, 0, maxi(_candidates.size() - MAX_VISIBLE_ROWS, 0))
 
 
-## 当前可见的最后一行的绝对下标
 func _last_visible_index() -> int:
 	return mini(_scroll + MAX_VISIBLE_ROWS - 1, _candidates.size() - 1)
 
@@ -183,12 +175,10 @@ func _row_height() -> float:
 	return maxf(ceilf(_draw_font().get_height(font_size)) + 8.0, MIN_ROW_HEIGHT)
 
 
-## 抬头占一行；没有 hint 时为 0
 func _header_height() -> float:
 	return _row_height() if not _hint.is_empty() else 0.0
 
 
-## 候选行的起点：顶部留白 + 抬头 + 1px 分隔线
 func _rows_top() -> float:
 	if _hint.is_empty():
 		return ROW_PADDING

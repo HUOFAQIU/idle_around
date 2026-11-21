@@ -1,73 +1,41 @@
-## 通用自动施法技能：全场共用这一个脚本，差异全在 SkillDefinition 数据里。
-##
-## 施法顺序：
-##   ① commit_cost() + reset_charge()  扣费 + 清空充能 —— 充满就放，不等任何东西
-##   ② 吟唱（可选）       吟唱结束后才选目标，避免对着尸体放大
-##   ③ 按 steps 顺序结算  每步自己选目标；全部步骤都空放才记一次空放
-##
-## SkillDefinition.cast_times > 1 时（多重触发），②～③ 会重复执行：
-## 每次释放重新选目标、独立暴击、独立结算自身效果。第 2 次起各占一个 20 刻
-## 激活锁，所以 1 秒最多释放 6 次，超出的顺延到后续秒继续，不丢弃。
-## 一次激活仍只扣一次充能、只广播一次 SoulUsed。
-##
-## 投射物发射后立即返回，不占用 is_active：箭独立飞行、逐箭结算，
-## 同一颗魂灵的下一次释放只受充能和 20 刻激活锁限制。
-##
-## 门卫检查（花费 / 施法条件标签 / 是否在施法中）由框架的 can_activate_ability()
-## 负责；冷却由 ChargedAbility 的充能值控制。
-##
-## 释放逻辑按 SkillDefinition.steps 顺序执行；每一步自己决定目标域（单位/魂灵）。
-##
 ## @meta_addon: GodotGAS
 ## @meta_license: MIT
 
 class_name AutoCastAbility extends ChargedAbility
 
-## 一次释放的结果；多重触发的循环据此决定继续、停止还是记空放。
 enum ReleaseResult {
-	HIT,        ## 选中目标并完成结算
-	EMPTY,      ## 本次释放没有目标
-	CANCELLED,  ## 吟唱被打断，后续释放不再进行
-	STOPPED,    ## 战斗结束或施法者倒下，后续释放正常停止
+	HIT,
+	EMPTY,
+	CANCELLED,
+	STOPPED,
 }
 
-## 等待下一次释放的结果。
 enum WaitResult {
-	READY,      ## 激活锁已走完，可以释放
-	CANCELLED,  ## 施法被打断
-	STOPPED,    ## 战斗结束或施法者倒下
+	READY,
+	CANCELLED,
+	STOPPED,
 }
 
 ## 本技能的数据定义（由 SoulLoadout 构建时注入）
 @export var skill: SkillDefinition
-## 本技能来源的魂灵数据；用于 SoulUsed 触发器的标签过滤
 var soul_data: SoulData
-## 本技能对应的战斗运行期状态（由 SoulLoadout 构建时注入）
 var soul_runtime: SoulRuntime
-## 释放步骤；apply_definition() 时缓存
 var _steps: Array[SkillStep] = []
-## 命中特效的方向计数：按 step 实例 id 分开，多个单位步骤互不影响
 var _hit_cue_counts: Dictionary = {}
-## 本次释放各步骤的空放原因；供整次激活的空放日志使用
 var _last_empty_reasons: Array[String] = []
 
 
 func _ready() -> void:
 	super()
-	# 通过场景节点直接配置 skill 的用法：入树时翻译成框架配置。
-	# 代码创建的技能在授予前已经 apply 过，ability_name 非空，不会重复执行
 	if skill != null and ability_name.is_empty():
 		apply_definition(skill)
 
 
-## 外部充能实际生效后累计本魂灵的运行期统计
 func _on_charge_received(seconds: float) -> void:
 	if soul_runtime != null:
 		soul_runtime.add_counter("charges_received", seconds)
 
 
-## 把一份 SkillDefinition 翻译成框架的技能配置。
-## p_display_name 来自魂灵物品的 item_name；不传时退回内部 id。
 func apply_definition(def: SkillDefinition, p_display_name: String = "") -> void:
 	skill = def
 	_steps = def.steps.duplicate()
@@ -75,11 +43,8 @@ func apply_definition(def: SkillDefinition, p_display_name: String = "") -> void
 	_last_empty_reasons.clear()
 	ability_name = p_display_name if not p_display_name.is_empty() else def.id
 	ability_tag = StringName("Skill." + def.id)
-	# 魂灵冷却使用充能模型，不是 GAS 的 DURATION 冷却效果；
-	# GameplayAbility.cooldown_effect 保持为空，避免门卫按标签再判一次冷却。
 	cooldown = def.cooldown_seconds
 
-	# 施法条件翻译成框架标签查询，由门卫统一检查
 	if not def.cast_require_all_tags.is_empty() or not def.cast_block_tags.is_empty():
 		var query := GameplayTagQuery.new()
 		query.require_all_tags.append_array(def.cast_require_all_tags)
@@ -87,7 +52,6 @@ func apply_definition(def: SkillDefinition, p_display_name: String = "") -> void
 		activation_query = query
 
 
-## 由框架在通过门卫后调用；返回 true = 正常结束，false = 结束且算"取消"。
 func _activate_ability() -> bool:
 	var battle := _get_battle()
 	var trace := CombatTrace.new("cast:" + ability_name, _trace_from_payload(current_event_payload))
@@ -96,33 +60,25 @@ func _activate_ability() -> bool:
 	if skill == null or battle == null:
 		_record_cast("failed", trace, {"detail": "skill 或 battle 为空"})
 		return false
-	# 底层激活锁：同一颗魂灵 20 刻内最多激活一次（1 秒最多 6 次）。
-	# 放在扣费/清空充能之前，被锁拒绝时不产生任何副作用。
 	if not can_activate_now():
 		_record_cast("blocked", trace, {
 			"detail": "激活锁剩余 %.2f 秒" % activation_lock_seconds(),
 			"reason": "ACTIVATION_LOCK",
 		})
 		return false
-	# 第一次释放占用这次激活的锁；多重触发的后续释放各自再等一个锁周期
 	mark_activated()
 
-	# ① 充满就放，不等任何东西 —— 先扣费并清空充能（扫描线从头重扫）
 	commit_cost()
 	reset_charge()
 	if soul_runtime != null:
 		soul_runtime.add_counter("activations")
 		soul_runtime.set_counter_timestamp("last_activation_t", battle.elapsed_seconds())
 	_record_cast("activate", trace, {"cooldown": cooldown, "cast_times": total})
-	# 空放也算“使用”：先广播，让 SoulUsed 触发器有机会充能别的魂灵
 	_notify_soul_used(trace)
 
-	# ②～③ 按多重触发次数循环释放
 	return await _run_releases(battle, trace, total)
 
 
-## 按多重触发次数连续释放；每次独立选目标、独立暴击、独立结算自身效果。
-## 第 2 次起要等激活锁走完，所以 1 秒最多释放 6 次，超出的顺延到后续秒继续。
 func _run_releases(battle: BattleManager, trace: CombatTrace, total: int) -> bool:
 	var hit_any := false
 	for index in total:
@@ -156,14 +112,11 @@ func _run_releases(battle: BattleManager, trace: CombatTrace, total: int) -> boo
 			ReleaseResult.HIT:
 				hit_any = true
 
-	# 所有释放都没选中目标才记一次空放；部分空放不刷屏
 	if not hit_any and not _steps.is_empty():
 		_log_empty_activation(battle, trace, total, _last_empty_reasons)
 	return true
 
 
-## 等激活锁走完再放下一次；冻结、战斗结束、施法者倒下时不释放。
-## 激活锁由 BattleBrain 的物理帧推进，所以这里按物理帧轮询。
 func _wait_for_next_release(battle: BattleManager) -> WaitResult:
 	if battle.clock == null:
 		return WaitResult.STOPPED
@@ -181,8 +134,6 @@ func _wait_for_next_release(battle: BattleManager) -> WaitResult:
 	return WaitResult.CANCELLED if not is_active else WaitResult.STOPPED
 
 
-## 吟唱按物理 tick 等待：不读渲染帧 delta，也不占用 GAS 的 SceneTreeTimer。
-## 每个 tick 检查技能/战斗/施法者状态，被打断时尽快返回。
 func _wait_cast_ticks(battle: BattleManager, seconds: float) -> WaitResult:
 	if battle.clock == null:
 		return WaitResult.STOPPED
@@ -205,7 +156,6 @@ func _cast_wait_state(battle: BattleManager) -> WaitResult:
 	return WaitResult.READY
 
 
-## 执行一次释放：先结算自身效果，再按 steps 顺序执行。
 func _release_once(
 	battle: BattleManager,
 	trace: CombatTrace,
@@ -253,8 +203,6 @@ func _release_once(
 	return ReleaseResult.HIT if hit_any else ReleaseResult.EMPTY
 
 
-## 整次激活的所有释放都没选中目标时，只报一次空放。
-## 只要技能里有魂灵步骤就播报；纯单位技能只播报我方的。
 func _log_empty_activation(
 	_battle: BattleManager,
 	trace: CombatTrace,
@@ -280,13 +228,10 @@ func _log_empty_activation(
 		soul_runtime.add_counter("empty_casts")
 
 
-## 多重触发次数：至少释放 1 次
 func _cast_times() -> int:
 	return maxi(skill.cast_times, 1) if skill != null else 1
 
 
-## 有投射物的步骤：一支箭对一个目标，射向它"此刻"的坐标。
-## 发射完立即返回；落地回调带着发起它的 step，各自结算自己的 effects/cue。
 func launch_projectiles(step: UnitSkillStep, groups: Array, ctx: SkillCastContext) -> void:
 	if step == null or step.projectile_scene == null:
 		return
@@ -302,8 +247,6 @@ func launch_projectiles(step: UnitSkillStep, groups: Array, ctx: SkillCastContex
 		return
 	_record_cast("projectiles", ctx.trace, {"projectile_count": targets.size()})
 
-	# 任务挂在施法者身上，不绑定技能生命周期：技能结束后箭仍继续结算；
-	# 单位/战场销毁时任务随节点一起释放。
 	var task := AbilityTask_Projectile.new()
 	caster.add_child(task)
 	task.projectile_landed.connect(_on_step_projectile_landed.bind(step, ctx))
@@ -311,8 +254,6 @@ func launch_projectiles(step: UnitSkillStep, groups: Array, ctx: SkillCastContex
 	task.execute(caster, targets, step.projectile_scene, step.projectile_speed)
 
 
-## 一支箭落地就地结算。远近不同的目标各打各的，互不等待。
-## 这里不再检查 is_active：技能早已结束，箭仍然要正常结算。
 func _on_step_projectile_landed(hit_unit: BattleUnit, step: UnitSkillStep, ctx: SkillCastContext) -> void:
 	if hit_unit == null or not is_instance_valid(hit_unit) or hit_unit.is_dead:
 		_record_cast("projectile_miss", ctx.trace)
@@ -324,7 +265,6 @@ func _on_step_projectile_landed(hit_unit: BattleUnit, step: UnitSkillStep, ctx: 
 		step.apply_to_target(ctx, hit_unit)
 
 
-## 所有箭落地/飞空后统计空箭；不再阻塞释放，只补一条日志。
 func _on_projectiles_finished(result: Variant, projectile_count: int, trace: CombatTrace) -> void:
 	var battle := _get_battle()
 	if battle == null or not battle.is_running:
@@ -338,8 +278,6 @@ func _on_projectiles_finished(result: Variant, projectile_count: int, trace: Com
 	})
 
 
-## 对施法者自己结算 self_effects；每次释放各结算一次，独立掷暴击。
-## 即使目标规则空放，也照常生效（没有怪物时也会提高生命再生）。
 func _apply_self_effects(battle: BattleManager, trace: CombatTrace) -> void:
 	if skill == null or skill.self_effects.is_empty():
 		return
@@ -353,7 +291,6 @@ func _apply_self_effects(battle: BattleManager, trace: CombatTrace) -> void:
 	_apply_effect_list_to_target(skill.self_effects, caster, crit_multiplier, trace)
 
 
-## 掷一次暴击，返回倍率；steps 共用同一套暴击配置。
 func roll_crit(battle: BattleManager) -> float:
 	if skill == null:
 		return 1.0
@@ -361,7 +298,6 @@ func roll_crit(battle: BattleManager) -> float:
 	return skill.crit_multiplier if is_crit else 1.0
 
 
-## 把一组效果施加到目标；crit_multiplier 已经由调用方掷好。
 func apply_effects(
 	effects: Array[GameplayEffect],
 	target: BattleUnit,
@@ -372,8 +308,6 @@ func apply_effects(
 	_apply_effect_list_to_target(effects, target, crit_multiplier, trace, status_magnitude)
 
 
-## 在受击目标身上播放命中特效；方向按 step 自己的命中次数交替。
-## 致命击时挂到战场层，避免 Cue 随目标一起消失。
 func play_hit_cue(tag: StringName, target: BattleUnit, step_key: int) -> void:
 	if tag.is_empty():
 		return
@@ -402,8 +336,6 @@ func _apply_effect_list_to_target(
 			_apply_effect_to_target(effect, target, crit_multiplier, trace, status_magnitude)
 
 
-## 用当前目标建 spec，把暴击倍率注入给 SoulDamageExecution。
-## 伤害加成由 SoulDamageExecution 自己从施法者 ASC 的 damage_bonus 读取。
 func _apply_effect_to_target(
 	effect: GameplayEffect,
 	target: BattleUnit,
@@ -423,19 +355,16 @@ func _apply_effect_to_target(
 	context.target_data = target_data
 	var spec := GameplayEffectSpec.new(effect, context, ability_level)
 	spec.display_name = ability_name
-	# 异常状态的暴击在释放时已经结算进施加数值；后续每跳不再乘倍率。
 	spec.set_set_by_caller_magnitude(GameplayTags.Data_CritMultiplier, crit_multiplier)
 	if status_magnitude >= 0.0:
 		spec.set_set_by_caller_magnitude(GameplayTags.Data_SkillMagnitude, status_magnitude)
 	owner_asc.apply_effect_spec_to_target(spec, target.asc)
-	# 每冻住一个目标算一次冻结事件；全场任何单位的冻结触发器都会收到广播
 	if effect.granted_tags.has(GameplayTags.State_Frozen):
 		caster.notify_freeze_applied(target, trace)
 		if soul_runtime != null:
 			soul_runtime.add_counter("freezes_applied")
 
 
-## 广播“本魂灵被使用”；空放也广播，因为冷却已经消耗
 func _notify_soul_used(trace: CombatTrace) -> void:
 	var caster := _caster_unit()
 	var battle := _get_battle()
@@ -468,7 +397,6 @@ func _trace_from_payload(payload: Variant) -> CombatTrace:
 	return null
 
 
-#region 给 SkillStep / SkillCastContext 的公开接口
 func caster_unit() -> BattleUnit:
 	return _caster_unit()
 
@@ -487,7 +415,6 @@ func targets_summary(groups: Array) -> String:
 
 func target_count(groups: Array) -> int:
 	return _target_count(groups)
-#endregion
 
 
 func _record_cast(type: String, trace: CombatTrace, fields: Dictionary = {}) -> void:

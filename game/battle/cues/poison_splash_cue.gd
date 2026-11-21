@@ -1,8 +1,6 @@
 class_name PoisonSplashCue
 extends GameplayCueNotify
-## 剧毒施加瞬间：墨绿液滴向四周溅开，软圆环扩散后淡出。
 
-## 圆环扩散/淡出时长；必须小于场景上的 destroy_delay
 const RING_TIME : float = 0.28
 
 @onready var ring : Sprite2D = $Ring
@@ -11,7 +9,6 @@ const RING_TIME : float = 0.28
 var _tween : Tween
 
 
-## 对象池复用时先复位上一次播放留下的状态，再开新补间
 func play_cue() -> void:
 	if _tween and _tween.is_valid():
 		_tween.kill()

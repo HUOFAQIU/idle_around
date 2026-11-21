@@ -1,16 +1,10 @@
 class_name CommandCompletion
 extends RefCounted
-## 命令补全：按光标位置给出候选，不依赖终端 UI。
-##
-## 命令名取命令表全部名字；参数按 token 位置读 catalog 的 complete 数组。
-## 返回 {ok, start, end, prefix, token_index, candidates, common_prefix,
-## usage, summary, error}；usage/summary 只在参数阶段有值。
 
 const PARSER: GDScript = preload("res://Scripts/commands/command_parser.gd")
 const CATALOG: GDScript = preload("res://Scripts/commands/command_catalog.gd")
 
 
-## 光标处 token 的候选；quoted 时返回 ok=false，避免改写引号内的文本
 static func complete(line: String, caret: int = -1) -> Dictionary:
 	var span: Dictionary = PARSER.token_at(line, caret)
 	var start := int(span.get("start", 0))
@@ -60,7 +54,6 @@ static func _argument_candidates(
 	return _filter(_to_packed(completer.call()), prefix)
 
 
-## 光标前一段文本解析出的命令名；引号没闭合等情况返回空
 static func _command_before(line: String, token_start: int) -> String:
 	var parsed: Dictionary = PARSER.parse(line.substr(0, token_start))
 	if not bool(parsed.get("ok", false)):

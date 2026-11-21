@@ -1,11 +1,4 @@
 extends SceneTree
-## 校验场景里的 container_name 字面量与 ContainerIds 常量一致。
-##
-## 用法：
-##   Godot_v4.7.2... --headless --path <项目> --script res://modkit/validate_container_ids.gd
-##
-## 退出码：0 = 通过；1 = 有错误。场景里的 container_name 不能引用常量，
-## 改名时靠这个脚本防止两边漂移。
 
 const CONTAINER_IDS: GDScript = preload("res://Scripts/container_ids.gd")
 

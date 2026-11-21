@@ -1,11 +1,6 @@
 extends RefCounted
-## TestAPI 颜色域：色板取值与校验。
-##
-## 对外入口仍是 res://Scripts/test_api.gd 的 TestAPI。
 
-## 色板脚本：用于按常量名取色
 const GAME_COLORS_SCRIPT : GDScript = preload("res://Scripts/game_colors.gd")
-## 色板目录：分组、别名、校验
 const GAME_COLOR_CATALOG : GDScript = preload("res://Scripts/game_color_catalog.gd")
 
 static func get_game_color(constant_name : String) -> String:

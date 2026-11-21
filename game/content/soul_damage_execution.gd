@@ -1,10 +1,3 @@
-## 魂灵直接伤害的 GAS 执行计算。
-##
-## 伤害 = (base_damage + 施法者 damage_bonus + 匹配魂灵数量 × bonus_per_matching_soul + 魂器加成) × 暴击倍率
-## 暴击倍率由 AutoCastAbility 通过 spec 的 SetByCaller 传入。
-## 最终伤害交给 DamageResolver 先扣护盾，再扣生命。
-##
-## 灼烧/剧毒/治疗不要挂这个 execution，它们走自己的效果。
 class_name SoulDamageExecution extends GameplayExecutionCalculation
 
 ## 这个伤害效果的基础伤害（正数）
@@ -17,7 +10,6 @@ class_name SoulDamageExecution extends GameplayExecutionCalculation
 @export var matching_soul_types: Array[StringName] = []
 
 
-## 暴击前的伤害合计；tooltip 预览与 execute 共用，避免两份公式。
 static func total_before_crit(
 	base_damage_value: float,
 	damage_bonus: float,
@@ -27,8 +19,6 @@ static func total_before_crit(
 	return maxf(base_damage_value + damage_bonus + soul_bonus + vessel_bonus, 0.0)
 
 
-## 数魂器网格里带匹配类型的魂灵；恐狼自己也算一颗。
-## 用无类型 Array 动态读字段，避免静态引用 SoulRuntime 让 modkit --script 校验编译失败。
 static func matching_soul_count(loadout: Array, matching_types: Array[StringName]) -> int:
 	var count := 0
 	for runtime in loadout:
@@ -66,7 +56,6 @@ func execute(spec: GameplayEffectSpec, target_asc: AbilitySystemComponent) -> Di
 	return DamageResolver.split_damage(target_asc, damage, 1.0)
 
 
-## 数施法者魂器网格里带匹配类型的魂灵；恐狼自己也算一颗。
 func _matching_soul_bonus(source_asc: AbilitySystemComponent) -> float:
 	if bonus_per_matching_soul <= 0.0 or matching_soul_types.is_empty():
 		return 0.0
@@ -79,9 +68,6 @@ func _matching_soul_bonus(source_asc: AbilitySystemComponent) -> float:
 	return float(count) * bonus_per_matching_soul
 
 
-## 来源魂灵所在魂器提供的直接伤害加成；没有来源魂灵时为 0。
-## 用动态属性读取而不是静态引用 SoulRuntime：modkit 的 --script 校验会在
-## 没有 autoload 的环境里加载技能资源，静态依赖会让整个执行器编译失败。
 func _vessel_damage_bonus(spec: GameplayEffectSpec) -> float:
 	if spec == null or spec.context == null:
 		return 0.0
@@ -92,8 +78,6 @@ func _vessel_damage_bonus(spec: GameplayEffectSpec) -> float:
 	return maxf(float(bonus) if bonus != null else 0.0, 0.0)
 
 
-## 施法者的 ASC；context.instigator 通常是 BattleUnit。
-## 周期效果可能比施加者活得久，context 里可能是已释放实例，先判有效再取。
 func _source_asc(spec: GameplayEffectSpec) -> AbilitySystemComponent:
 	if spec == null or spec.context == null:
 		return null

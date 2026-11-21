@@ -9,11 +9,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from lexer import code_lines, iter_comments
 from rules import (
-    CommentMarkerRule,
-    CommentedCodeRule,
     FileAccessBoundaryRule,
     InlineColorRule,
     ModPathRule,
+    NoCommentsRule,
     ResourceNameRule,
 )
 
@@ -39,64 +38,47 @@ class LexerTest(unittest.TestCase):
         self.assertEqual(lines, [(1, "var a := 1 ")])
 
 
-class CommentMarkerRuleTest(unittest.TestCase):
+class NoCommentsRuleTest(unittest.TestCase):
     def setUp(self) -> None:
-        self.rule = CommentMarkerRule()
+        self.rule = NoCommentsRule()
 
-    def test_flags_marker(self) -> None:
-        findings = self.rule.check(
-            Path("Scripts/example.gd"), "# TODO: later\n", Path(".")
+    def check(self, source: str, path: str = "Scripts/example.gd") -> list:
+        return self.rule.check(Path(path), source, Path("."))
+
+    def test_flags_plain_comment(self) -> None:
+        self.assertEqual(len(self.check("# 这里说明数据流\n")), 1)
+
+    def test_flags_doc_comment_outside_inspector(self) -> None:
+        self.assertEqual(len(self.check("## 类说明\nvar value\n")), 1)
+
+    def test_flags_region(self) -> None:
+        self.assertEqual(len(self.check("#region 查询\n")), 1)
+
+    def test_flags_trailing_comment(self) -> None:
+        self.assertEqual(len(self.check("var a := 1 # 说明\n")), 1)
+
+    def test_allows_inspector_doc(self) -> None:
+        source = "## Inspector 说明\n@export var value: int\n"
+        self.assertEqual(self.check(source), [])
+
+    def test_allows_inspector_doc_on_export_range(self) -> None:
+        source = "## 范围说明\n@export_range(0, 10) var value: int\n"
+        self.assertEqual(self.check(source), [])
+
+    def test_allows_inline_inspector_doc(self) -> None:
+        source = "@export var value: int ## 行尾说明\n"
+        self.assertEqual(self.check(source), [])
+
+    def test_allows_provenance(self) -> None:
+        self.assertEqual(self.check("## @meta_license: MIT\n"), [])
+
+    def test_ignores_comment_in_string(self) -> None:
+        self.assertEqual(self.check('var text := "# TODO"\n'), [])
+
+    def test_ignores_generated_file(self) -> None:
+        self.assertEqual(
+            self.check("## AUTO-GENERATED\n", "godot_gas/gameplay_tags.gd"), []
         )
-        self.assertEqual(len(findings), 1)
-        self.assertEqual(findings[0].rule_id, "comment-marker")
-
-    def test_ignores_doc_comment(self) -> None:
-        findings = self.rule.check(
-            Path("Scripts/example.gd"), "## 暂时跳过，这是事实\n", Path(".")
-        )
-        self.assertEqual(findings, [])
-
-    def test_ignores_region(self) -> None:
-        findings = self.rule.check(
-            Path("Scripts/example.gd"), "#region 查询\n", Path(".")
-        )
-        self.assertEqual(findings, [])
-
-    def test_ignores_marker_in_string(self) -> None:
-        findings = self.rule.check(
-            Path("Scripts/example.gd"), 'var text := "# TODO"\n', Path(".")
-        )
-        self.assertEqual(findings, [])
-
-    def test_flags_justification(self) -> None:
-        findings = self.rule.check(
-            Path("Scripts/example.gd"), "# 这里先这样，够用\n", Path(".")
-        )
-        self.assertEqual(len(findings), 1)
-
-
-class CommentedCodeRuleTest(unittest.TestCase):
-    def setUp(self) -> None:
-        self.rule = CommentedCodeRule()
-
-    def test_flags_commented_code(self) -> None:
-        findings = self.rule.check(
-            Path("Scripts/example.gd"), "# var old := 1\n", Path(".")
-        )
-        self.assertEqual(len(findings), 1)
-        self.assertEqual(findings[0].severity, "warning")
-
-    def test_ignores_prose(self) -> None:
-        findings = self.rule.check(
-            Path("Scripts/example.gd"), "# 这里说明数据流\n", Path(".")
-        )
-        self.assertEqual(findings, [])
-
-    def test_ignores_doc_comment(self) -> None:
-        findings = self.rule.check(
-            Path("Scripts/example.gd"), "## var 说明\n", Path(".")
-        )
-        self.assertEqual(findings, [])
 
 
 class ResourceNameRuleTest(unittest.TestCase):

@@ -1,12 +1,14 @@
 # GAS 适配层
 
-> 类型：实现 | 状态：有效 | 核对：2026-11-15
+> 类型：实现 | 状态：有效 | 核对：2026-11-21
 > 何时读：改属性集、标签注册、Cue 清单
 > 关键词：GAS GameplayAbility AttributeSet Tag Cue godot_gas
 > 代码：godot_gas/、base_mods/core/mod.json
 > 相关：`特效/effects.md`、`架构/调试与遥测.md`
 
 ## 1. GAS 适配层 `godot_gas/`
+
+- 静态汇总玩家 `damage_bonus` 时必须复刻 `ASC._aggregate_attribute_value()` 的相乘顺序与 OVERRIDE 优先级，否则预览值和实际伤害会不一致。
 
 | 文件 | 内容 |
 |---|---|

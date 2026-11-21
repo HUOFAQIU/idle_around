@@ -1,14 +1,3 @@
-## 魂灵触发器能力：监听一个 GAS GameplayEvent，按 PassiveTrigger 配置施加效果/充能。
-##
-## 每颗魂灵的每条触发器生成一个节点，grant 到 ASC 并设置 trigger_event_tag；
-## `ASC.send_gameplay_event()` 会按标签找到它并 try_activate(payload)。
-##
-## payload 约定（Dictionary）：
-##   target       事件目标 BattleUnit
-##   used_ability 被使用的魂灵能力（SoulUsed）
-##   used_soul    被使用魂灵的 SoulData（SoulUsed）
-##   ratio        生命比例（Health.BelowPercent）
-##   trace        CombatTrace
 class_name SoulTriggerAbility extends GameplayAbility
 
 var definition: PassiveTrigger
@@ -16,9 +5,7 @@ var source_ability: ChargedAbility
 var source_name: String = ""
 var source_index: int = -1
 var owner_unit: BattleUnit
-## once_per_battle 是否已经用掉
 var fired: bool = false
-## 本场实际触发次数（非 once 触发器也计数）
 var run_count: int = 0
 
 
@@ -40,7 +27,6 @@ func _init(
 		ability_tag = ability_tag_for_event(definition.event_tag)
 
 
-## 由框架在通过门卫后调用。
 func _activate_ability() -> bool:
 	if definition == null or owner_unit == null or not is_instance_valid(owner_unit):
 		return false

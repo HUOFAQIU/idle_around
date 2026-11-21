@@ -1,12 +1,6 @@
 class_name TerminalHistory
 extends RefCounted
-## 终端回看历史：按行保存滚出屏幕的内容，环形覆盖，容量固定。
-##
-## 每行仍是并行 Packed 数组；数组按物理行排列，逻辑行用 get_row_base() 换算。
-## push_row() 由 TerminalBuffer 在 scroll_up 时调用；渲染器只读。
-## pushed 是累计推入行数（容量满后仍增长），供 View 判断新增了多少行。
 
-## 与 TerminalBuffer 对齐的哨兵值；这里单独定义，避免两个类互相引用
 const SPACE: int = 32
 const WIDE_CONTINUATION: int = -1
 
@@ -28,7 +22,6 @@ func _init(initial_cols: int = 80, line_capacity: int = 1000) -> void:
 	_allocate()
 
 
-## 把一行 cell 追加到历史；容量满时覆盖最旧的行
 func push_row(
 	chars: PackedInt32Array,
 	fg_colors: PackedColorArray,
@@ -54,7 +47,6 @@ func push_row(
 	pushed += 1
 
 
-## 列数变化时重建历史，保留左侧内容；宽字符被截断时清掉孤儿格
 func resize_cols(new_cols: int) -> void:
 	new_cols = maxi(new_cols, 1)
 	if new_cols == cols:
@@ -90,7 +82,6 @@ func clear() -> void:
 	pushed = 0
 
 
-## 逻辑行在扁平数组里的起始下标
 func get_row_base(logical_row: int) -> int:
 	if capacity <= 0 or count <= 0:
 		return 0

@@ -1,19 +1,11 @@
-## 容器的存档域：仓库各页 + 角色魂器网格，以及放不进世界的孤儿记录。
-##
-## 魂器内部容器不在这里单独保存：它随魂器物品记录一起嵌套在容器记录里。
-## 容器未注册时不读不写（由 SaveManager 检查 missing_containers）；
-## 未知容器的原始记录原样保留，避免后续写档丢物品。
 class_name ContainerSaveParticipant extends SaveParticipant
 
 const WAREHOUSE_SCRIPT: GDScript = preload("res://Scripts/warehouse.gd")
 
-## 本次读档从磁盘带回来的孤儿记录数；只重试这些，不重试本次新产生的
 var _restore_count: int = 0
-## 因 mod 缺失/容器缺失/容器满而暂时放不进世界的物品记录；写档时原样保留
 var _orphaned_records: Array[Dictionary] = []
 
 
-## 存档必须覆盖的容器：仓库各页 + 角色魂器网格
 func expected_containers() -> Array[String]:
 	var names: Array[String] = []
 	for page in Warehouse.PAGE_COUNT:
@@ -22,7 +14,6 @@ func expected_containers() -> Array[String]:
 	return names
 
 
-## 期望容器里当前还没注册的项；为空表示可以安全读写档
 func missing_containers() -> Array[String]:
 	var missing: Array[String] = []
 	for container_name in expected_containers():
@@ -35,7 +26,6 @@ func containers_ready() -> bool:
 	return missing_containers().is_empty()
 
 
-## 当前存档里因 mod 缺失/放不下而保留的原始记录
 func get_orphaned_records() -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
 	for entry in _orphaned_records:
@@ -76,7 +66,6 @@ func apply_from(document: Dictionary, _has_disk_data: bool) -> bool:
 	return false
 
 
-## 读档末尾再试一次存档里带回来的保留物品；本次新产生的保留记录不重复尝试
 func finish_load() -> bool:
 	var remaining: Array[Dictionary] = []
 	var index := 0
@@ -98,8 +87,6 @@ func finish_load() -> bool:
 			continue
 		var container_name := String(entry.get("container", ""))
 		if _try_restore_item(item, record_data, container_name):
-			# 魂器本体放进世界后，内部缺失记录才单独保留；本体没放进去时
-			# 原始 record 已包含全部 contents，不能再拆一份，避免下次读档重复。
 			_append_missing(missing, remaining)
 			continue
 		remaining.append(entry)
@@ -150,7 +137,6 @@ func _apply_containers(data: Dictionary) -> void:
 				_append_missing(missing, _orphaned_records)
 
 
-## 未知容器的原始记录原样保留，避免之后写档时丢失
 func _preserve_unknown_container(container_name: String, records: Array) -> int:
 	var preserved := 0
 	for record in records:
@@ -185,12 +171,10 @@ func _apply_container(container: ContainerData, records: Array) -> void:
 			_append_missing(missing, _orphaned_records)
 			push_warning("存档：%s 的「%s」放不下，已转入仓库" % [container.container_name, item.item_name])
 			continue
-		# 本体没放进去：原始 record 已包含 contents，不能再拆出缺失魂灵，避免重复
 		_orphaned_records.append(_make_orphaned_entry(container.container_name, record_data))
 		push_warning("存档：物品无处安放，已保留到 orphaned：%s" % item.item_name)
 
 
-## 构造一条保留记录；container 为空表示原本在鼠标上或魂器内部
 func _make_orphaned_entry(container_name: String, record: Dictionary) -> Dictionary:
 	return {
 		"container": container_name,
@@ -198,7 +182,6 @@ func _make_orphaned_entry(container_name: String, record: Dictionary) -> Diction
 	}
 
 
-## 魂器内部还原失败的魂灵记录：没有原容器可回，统一进孤儿记录
 func _append_missing(missing: Array, target: Array[Dictionary]) -> void:
 	for record in missing:
 		if record is Dictionary:

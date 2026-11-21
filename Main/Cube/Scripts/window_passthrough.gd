@@ -1,17 +1,8 @@
 class_name WindowPassthrough
 extends Node
-## 全屏透明覆盖层的点击穿透控制。
-##
-## Windows 上跨应用穿透必须使用 Window.mouse_passthrough_polygon，
-## 不能用 mouse_passthrough。未按下鼠标时，命中区域只覆盖立方体的屏幕
-## 投影凸包（相机在 CubeView 子视口里）、可见游戏面板/Tooltip/ItemWindow、
-## HUD 与拖动圆点；按下鼠标后临时扩成整个客户区，避免拖拽时丢事件。
 
 const REGION_PADDING: float = 28.0
-## 游戏 UI 面板外扩比立方体小，避免窗口周围出现太宽的拦截区
 const UI_REGION_PADDING: float = 8.0
-## Windows 上区域切换后 DWM 还会用上一帧内容裁剪合成约 1~2 帧；
-## 区域收缩先保持旧区域，等新画面提交几帧后再裁，避免关窗时留下面板残影。
 const SHRINK_HOLD_FRAMES: int = 3
 
 static var instance: WindowPassthrough
@@ -22,7 +13,6 @@ static var instance: WindowPassthrough
 @export var tooltip_path: NodePath = ^"../GameUI/GameControl/TooltipLayer/TooltipWindow"
 @export var item_window_path: NodePath = ^"../GameUI/GameControl/DragLayer/ItemWindow"
 
-## 总开关；关掉后窗口始终可交互，供测试接口使用
 var enabled: bool = true:
 	set(value):
 		if enabled == value:
@@ -50,7 +40,6 @@ var _last_ui_rects: Array[Rect2] = []
 var _last_viewport_size := Vector2i.ZERO
 var _last_window_size := Vector2i.ZERO
 var _last_cube_viewport_size := Vector2i.ZERO
-## 等待应用的新区域；只在收缩时设置，扩张和旋转仍立即生效
 var _held_region := PackedVector2Array()
 var _held_frames: int = 0
 
@@ -70,7 +59,6 @@ func _ready() -> void:
 	_item_window = get_node_or_null(item_window_path) as Control
 
 	if _window != null:
-		# 这个开关在 Windows 上只对同一应用窗口生效；区域方案要求它保持 false。
 		_window.mouse_passthrough = false
 	if _hud != null:
 		_hud.overlay_regions_changed.connect(_on_overlay_regions_changed)
@@ -105,7 +93,6 @@ func _process(_delta: float) -> void:
 		_last_window_size = window_size
 		_dirty = true
 
-	# 立方体子视口由 SubViewportContainer 拉伸，尺寸稳定后要重算凸包
 	var cube_viewport_size := _cube_viewport_size()
 	if cube_viewport_size != _last_cube_viewport_size:
 		_last_cube_viewport_size = cube_viewport_size
@@ -120,7 +107,6 @@ func _process(_delta: float) -> void:
 		if _mouse_buttons_down():
 			return
 		if _cube_orientation != null and _cube_orientation.is_rotating():
-			# 松手后还有惯性/自动回正，保持整个客户区可接收事件，避免裁掉转动的立方体。
 			return
 		_locked = false
 		_dirty = true
@@ -169,12 +155,10 @@ func is_locked() -> bool:
 	return _locked
 
 
-## 当前参与命中的游戏 UI / HUD / 拖动圆点矩形
 func get_hit_rects() -> Array[Rect2]:
 	return _last_rects.duplicate()
 
 
-## 当前设置的窗口区域多边形；TestAPI/调试用
 func get_polygon_points() -> PackedVector2Array:
 	if _window == null:
 		return PackedVector2Array()
@@ -185,7 +169,6 @@ func _on_overlay_regions_changed() -> void:
 	_dirty = true
 
 
-## 可见游戏 UI 的屏幕矩形：窗口面板、Tooltip、拖拽幽灵
 func _collect_ui_rects() -> Array[Rect2]:
 	var rects: Array[Rect2] = []
 	var area := Rect2(Vector2.ZERO, get_viewport().get_visible_rect().size)
@@ -264,8 +247,6 @@ func _refresh_region() -> void:
 	_apply_polygon(region)
 
 
-## 收缩先保持旧区域；新画面提交后再裁，DWM 不会把上一帧面板裁成残影。
-## 新区域必须完全落在旧区域内，否则新面板/新位置会被旧区域裁掉，应立即应用。
 func _should_hold_shrink(region: PackedVector2Array) -> bool:
 	if region.size() < 3 or _last_polygon.size() < 3:
 		return false
@@ -334,5 +315,4 @@ func _clear_region() -> void:
 	if _window == null:
 		return
 	_window.mouse_passthrough = false
-	# 空数组 = 取消区域穿透，所有鼠标事件由窗口拦截
 	_window.mouse_passthrough_polygon = PackedVector2Array()

@@ -1,4 +1,3 @@
-## 测试用内存 adapter：与 DiskSaveStorage 同接口，不落盘。
 class_name MemorySaveStorage
 extends SaveStorage
 
@@ -6,7 +5,6 @@ var _primary: Dictionary = {}
 var _backup: Dictionary = {}
 
 
-## 预置槽内容，用于构造「只有备份可用」「版本过高」等场景
 func seed(slot: int, primary: Dictionary, backup: Dictionary = {}) -> void:
 	if not SaveStorage.is_valid_slot(slot):
 		return

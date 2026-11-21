@@ -1,7 +1,3 @@
-## 当前战斗快照：给 DebugWindow 实时面板和 TestAPI 用。
-##
-## 只读 BattleManager / BattleUnit / ASC / SoulRuntime，不改变任何状态。
-## 敌人只给摘要（无限刷怪时不能每帧展开全部属性/效果）；玩家和选中单位给完整详情。
 class_name CombatSnapshot extends RefCounted
 
 const POLICIES: Array[String] = ["INSTANT", "DURATION", "INFINITE", "TURN_BASED"]
@@ -224,7 +220,6 @@ static func triggers(unit: BattleUnit) -> Array:
 	return result
 
 
-#region 内部
 static func _attr_value(asc: AbilitySystemComponent, attribute_name: String) -> float:
 	if asc == null:
 		return 0.0
@@ -262,4 +257,3 @@ static func _trace_ids(spec: GameplayEffectSpec) -> Dictionary:
 	if trace == null:
 		return {}
 	return {"trace_id": trace.id, "root_trace_id": trace.root_id}
-#endregion

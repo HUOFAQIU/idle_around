@@ -1,5 +1,4 @@
 extends Control
-## 冻结徽章：面板颜色从 GameColors 取，场景只留边框宽度和圆角。
 
 func _ready() -> void:
 	var panel := get_node_or_null("Panel") as Panel

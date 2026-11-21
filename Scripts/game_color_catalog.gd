@@ -1,16 +1,10 @@
 class_name GameColorCatalog
 extends RefCounted
-## 色板目录：从 GameColors 和 TerminalPalette 派生只读数据。
-##
-## 编辑器色板 Dock 与 TestAPI 共用这里的分组、别名和校验逻辑；
-## 颜色值仍以 GameColors / TerminalPalette 为准，这里不保存任何色值。
 
-## 用 preload 而不是全局类名，保证 --script 无头模式也能解析。
 const GAME_COLORS_SCRIPT : GDScript = preload("res://Scripts/game_colors.gd")
 const TERMINAL_PALETTE_SCRIPT : GDScript = preload("res://Scripts/terminal/terminal_palette.gd")
 
 
-## 按 GameColors.GROUPS 返回分组；每组含 title 和 colors（name/hex/color）
 static func groups() -> Array[Dictionary]:
 	var constants := _game_constants()
 	var raw_groups: Dictionary = constants.get("GROUPS", {})
@@ -26,7 +20,6 @@ static func groups() -> Array[Dictionary]:
 	return result
 
 
-## 同色别名：同一个色值被多个常量使用时，返回 {hex, color, names}
 static func aliases() -> Array[Dictionary]:
 	var constants := _game_constants()
 	var by_key: Dictionary = {}
@@ -47,7 +40,6 @@ static func aliases() -> Array[Dictionary]:
 	return result
 
 
-## GameColors 中未出现在 GROUPS 的颜色常量；每项含 name/hex/color
 static func ungrouped() -> Array[Dictionary]:
 	var constants := _game_constants()
 	var grouped := _grouped_names(constants)
@@ -60,7 +52,6 @@ static func ungrouped() -> Array[Dictionary]:
 	return result
 
 
-## GameColors.STATUS：显示名 → 颜色；每项含 name/hex/color
 static func status_entries() -> Array[Dictionary]:
 	var constants := _game_constants()
 	var status: Dictionary = constants.get("STATUS", {})
@@ -73,7 +64,6 @@ static func status_entries() -> Array[Dictionary]:
 	return result
 
 
-## 终端 16 色 + 默认前景/背景；与 GameColors 是两套独立色板
 static func terminal_palette() -> Dictionary:
 	var constants := TERMINAL_PALETTE_SCRIPT.get_script_constant_map()
 	var colors: Array[Dictionary] = []
@@ -90,7 +80,6 @@ static func terminal_palette() -> Dictionary:
 	return {"colors": colors, "defaults": defaults}
 
 
-## 常量数量与唯一色值数量（含 Color 常量别名）
 static func stats() -> Dictionary:
 	var constants := _game_constants()
 	var primary := _primary_colors(constants)
@@ -106,7 +95,6 @@ static func stats() -> Dictionary:
 	}
 
 
-## 返回分组配置的问题；空数组表示所有颜色常量都已归类
 static func validate() -> Array[String]:
 	var constants := _game_constants()
 	var raw_groups: Dictionary = constants.get("GROUPS", {})
@@ -143,7 +131,6 @@ static func _game_constants() -> Dictionary:
 	return GAME_COLORS_SCRIPT.get_script_constant_map()
 
 
-## 值是可解析的十六进制字符串的常量 → name: hex
 static func _primary_colors(constants: Dictionary) -> Dictionary:
 	var result: Dictionary = {}
 	for name in constants:
@@ -153,7 +140,6 @@ static func _primary_colors(constants: Dictionary) -> Dictionary:
 	return result
 
 
-## Color 类型的常量（构造默认参数用的别名）→ name: hex
 static func _color_constants(constants: Dictionary) -> Dictionary:
 	var result: Dictionary = {}
 	for name in constants:

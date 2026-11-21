@@ -1,5 +1,4 @@
 extends RefCounted
-## soul.* 命令实现；调用 Scripts/test_api/inventory.gd，不重复逻辑。
 
 const INVENTORY: GDScript = preload("res://Scripts/test_api/inventory.gd")
 const ARGS: GDScript = preload("res://Scripts/commands/actions/action_args.gd")

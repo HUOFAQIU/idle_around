@@ -1,11 +1,3 @@
-## 灼烧的周期结算。
-##
-## 每跳先按当前整数层数结算伤害，再把层数 ×0.97 向下取整：
-##   8 层 → 8,7,6,5,4,3,2,1，总计 36
-## 每层每跳的伤害由 damage_per_stack 控制，默认 1。
-##
-## 异常状态的暴击只在施加时判定；施加后的每跳都不再暴击。
-## 伤害交给 DamageResolver 分流：总伤害在入口向下取整，灼烧对护盾再减半并向下取整。
 class_name BurnTickExecution extends PeriodicStatusTickExecution
 
 ## 每层灼烧每跳的伤害

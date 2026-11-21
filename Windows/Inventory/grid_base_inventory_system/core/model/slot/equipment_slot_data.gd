@@ -1,5 +1,4 @@
 extends Resource
-## 装备槽数据类，管理穿脱装备
 class_name EquipmentSlotData
 
 ## 已装备的物品，未装备时null，可用于检测是否有装备
@@ -9,7 +8,6 @@ class_name EquipmentSlotData
 ## 装备槽的名字
 @export_storage var slot_name: String
 
-## 装备物品
 func equip(item_data: ItemData) -> bool:
 	if can_accept(item_data):
 		equipped_item = item_data
@@ -17,7 +15,6 @@ func equip(item_data: ItemData) -> bool:
 		return true
 	return false
 
-## 脱掉装备，返回被脱掉的物品
 func unequip() -> ItemData:
 	if not equipped_item:
 		return null
@@ -26,18 +23,15 @@ func unequip() -> ItemData:
 	equipped_item = null
 	return ret
 
-## 检查是否可装备这个物品
 func is_item_avilable(item_data: ItemData) -> bool:
 	if avilable_types.has("ANY") or avilable_types.has(item_data.category):
 		return item_data.test_need(slot_name)
 	return false
 
 
-## 当前槽位能否接收这个物品：空槽且类型允许；高亮和实际装备共用
 func can_accept(item_data: ItemData) -> bool:
 	return equipped_item == null and is_item_avilable(item_data)
 
-## 构造函数
 @warning_ignore("shadowed_variable")
 func _init(slot_name: String = GBIS.DEFAULT_SLOT_NAME, avilable_types: Array[String] = []) -> void:
 	self.slot_name = slot_name

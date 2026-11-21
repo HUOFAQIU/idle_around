@@ -1,8 +1,3 @@
-## 通用异常状态施加。
-##
-## 施加数值优先取主动技能步骤的 `Data.SkillMagnitude`，其次触发器的
-## `Data.TriggerMagnitude`，最后用 base_amount，再乘释放时已经判定好的暴击倍率。
-## 最终数值向下取整，和灼烧/剧毒的整数口径保持一致。
 class_name StatusApplyExecution extends GameplayExecutionCalculation
 
 ## 要写入的状态属性名：burn / poison / regen
@@ -21,8 +16,6 @@ func execute(spec: GameplayEffectSpec, _target_asc: AbilitySystemComponent) -> D
 	return {attribute_name: amount}
 
 
-## 本次施加的最终数值：SetByCaller 优先，再乘释放时判定好的暴击倍率，向下取整。
-## 供派生效果读取同一份结算口径（例如生命再生读取灼烧值）。
 func resolve_amount(spec: GameplayEffectSpec) -> float:
 	var amount := base_amount
 	var multiplier := 1.0
@@ -38,6 +31,5 @@ func resolve_amount(spec: GameplayEffectSpec) -> float:
 	return floorf(amount * multiplier)
 
 
-## 状态的显示名；未知属性回退到属性名。
 func status_display_name() -> String:
 	return StatusText.display_name(attribute_name)

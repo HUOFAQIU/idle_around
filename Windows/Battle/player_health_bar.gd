@@ -1,6 +1,3 @@
-## 战斗窗口左下角的角色血条（UI 层）。
-## 数据源和单位头顶血条一样，直接接 ASC 的 attribute_changed。
-
 class_name PlayerHealthBar extends Control
 
 const BORDER : float = 1.0
@@ -23,7 +20,6 @@ func _draw() -> void:
 	draw_rect(Rect2(Vector2.ZERO, Vector2(size.x * _ratio, size.y)), _fill_color)
 
 
-## 接上角色属性；每场战斗重建角色后调用
 func bind(health : AttributeData, max_health : AttributeData, asc : AbilitySystemComponent) -> void:
 	if _asc != null and is_instance_valid(_asc) and _asc.attribute_changed.is_connected(_on_attribute_changed):
 		_asc.attribute_changed.disconnect(_on_attribute_changed)

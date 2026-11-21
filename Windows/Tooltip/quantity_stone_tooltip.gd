@@ -1,8 +1,6 @@
 class_name QuantityStoneTooltip
 extends RefCounted
-## 数量石 tooltip 正文格式化器；标题「数量石」由 TooltipWindow 显示。
 
-## 生成数量石 tooltip 正文（不含物品名）
 static func build(
 	stone: QuantityStoneData,
 	format: TooltipText.Format = TooltipText.Format.PLAIN

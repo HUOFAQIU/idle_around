@@ -1,7 +1,3 @@
-## 战斗调试窗口。
-##
-## 数据来自 CombatTelemetry（事件流 + 快照）和 SoulRuntimeDB（魂灵运行期状态）；
-## 本窗口只读，不参与战斗判定。界面全部用代码搭建，避免调试面板的布局散落在场景里。
 class_name DebugWindow extends BaseWindow
 
 const REFRESH_INTERVAL: float = 0.1
@@ -107,11 +103,9 @@ var _watch_label: Label
 var _record_path_label: Label
 
 var _paused: bool = false
-## 跟随最新事件：关闭后时间线/日志不再追加，方便查看历史
 var _follow_tail: bool = true
 var _refresh_accum: float = 0.0
 var _slow_refresh_accum: float = 0.0
-## 搜索防抖代次：连续输入时只让最后一次重建
 var _search_generation: int = 0
 var _snapshot: Dictionary = {}
 var _selected_unit_id: int = 0
@@ -148,7 +142,6 @@ func _process(delta: float) -> void:
 	_refresh_accum += delta
 	if _refresh_accum >= REFRESH_INTERVAL:
 		_refresh_accum = 0.0
-		# 快照只服务总览/单位/触发器/GAS 页，其余页签不构建
 		if not _paused and (tab == 0 or tab == 3 or tab == 4 or tab == 5):
 			_refresh_live()
 		_refresh_timeline_incremental()
@@ -171,7 +164,6 @@ func _on_visibility_changed() -> void:
 		_sync_controls()
 
 
-#region UI 搭建
 func _build_ui() -> void:
 	var root := Control.new()
 	root.name = "Root"
@@ -444,7 +436,6 @@ func _connect_controls() -> void:
 	visibility_changed.connect(_on_visibility_changed)
 
 
-## 搜索框逐字重建 2000 行太贵，200ms 防抖；连续输入只保留最后一次
 func _on_search_changed(_text: String) -> void:
 	_search_generation += 1
 	var generation := _search_generation
@@ -462,10 +453,8 @@ func _sync_controls() -> void:
 	_follow_check.set_pressed_no_signal(_follow_tail)
 	_max_events_spin.set_value_no_signal(CombatTelemetry.max_events)
 	_update_watch_label()
-#endregion
 
 
-#region 工具栏
 func _on_record_toggled(on: bool) -> void:
 	CombatTelemetry.set_enabled(on)
 	_update_status()
@@ -481,7 +470,6 @@ func _on_pause_pressed() -> void:
 	_paused = not _paused
 	_pause_button.text = "继续" if _paused else "暂停"
 	if not _paused and _follow_tail:
-		# 暂停期间日志没有追加；恢复时从缓冲补齐（查看历史模式保持用户位置）
 		_rebuild_log()
 	_update_status()
 
@@ -490,7 +478,6 @@ func _on_follow_toggled(on: bool) -> void:
 	_set_follow_tail(on)
 
 
-## 跟随最新：关闭后时间线/日志不再追加，停在当前内容；重新打开时跳回最新。
 func _set_follow_tail(on: bool) -> void:
 	_follow_tail = on
 	if _follow_check != null:
@@ -502,7 +489,6 @@ func _set_follow_tail(on: bool) -> void:
 	_update_status()
 
 
-## 鼠标滚轮/触控板滚动时间线时自动停止跟随，方便查看历史
 func _on_timeline_gui_input(event: InputEvent) -> void:
 	if not _follow_tail:
 		return
@@ -566,10 +552,8 @@ func _on_detail_global_toggled(on: bool) -> void:
 
 func _on_unlock_all_toggled(on: bool) -> void:
 	CollectionDB.set_unlock_all_for_testing(on)
-#endregion
 
 
-#region 事件流
 func _on_event_recorded(event: Dictionary) -> void:
 	if String(event.get("category", "")) == CombatTelemetrySchema.LOG:
 		_append_log_event(event)
@@ -593,7 +577,6 @@ func _refresh_timeline_incremental() -> void:
 	if _paused:
 		return
 	if not _follow_tail:
-		# 不跟随时不追加、不滚动；重新打开“跟随”会从缓冲重建最新内容
 		_pending_events.clear()
 		return
 	if _pending_events.is_empty():
@@ -678,7 +661,6 @@ func _on_timeline_selected() -> void:
 	var event: Dictionary = selected.get_metadata(0)
 	if event.is_empty():
 		return
-	# 点选历史事件时停止跟随，避免下一帧又被拉回底部
 	if _follow_tail:
 		_set_follow_tail(false)
 	_timeline_selected_seq = int(event.get("seq", 0))
@@ -757,10 +739,8 @@ func _format_event_detail(event: Dictionary) -> String:
 				_event_detail_text(linked),
 			])
 	return "\n".join(lines)
-#endregion
 
 
-#region 实时面板
 func _refresh_live() -> void:
 	var battle := CombatTelemetry.current_battle
 	if battle == null or not is_instance_valid(battle):
@@ -834,7 +814,6 @@ func _format_recent_events() -> String:
 	return "\n".join(lines)
 
 
-## 只刷新当前页签对应的树，避免每 0.5 秒重建三棵树
 func _refresh_trees() -> void:
 	match _tabs.get_current_tab():
 		2:
@@ -952,8 +931,6 @@ func _show_soul_detail(runtime: SoulRuntime) -> void:
 	_soul_detail.text = "\n".join(lines)
 
 
-## 从事件流汇总一颗魂灵本场的伤害/治疗/状态贡献；
-## 通过 event.soul 或 trace_cause 里的来源名归属。
 func _soul_contribution(soul_name: String) -> Dictionary:
 	var result := {
 		"damage": 0.0, "heal": 0.0, "shield": 0.0,
@@ -1238,10 +1215,8 @@ func _refresh_gas() -> void:
 			String(event.get("detail", "")),
 		])
 	_gas_text.text = "\n".join(lines)
-#endregion
 
 
-#region 日志
 func _append_log_event(event: Dictionary) -> void:
 	if not visible or _paused or not _follow_tail:
 		return
@@ -1271,17 +1246,14 @@ func _rebuild_log() -> void:
 	_log_rebuilding = false
 
 
-## 日志被用户向上滚动时，自动停止跟随（与时间线共用“跟随”开关）
 func _on_log_scroll_changed(value: float) -> void:
 	if _log_rebuilding or not _follow_tail:
 		return
 	var bar := _log_text.get_v_scroll_bar()
 	if bar != null and value < bar.max_value - 1.0:
 		_set_follow_tail(false)
-#endregion
 
 
-#region 状态 / 工具
 func _update_status() -> void:
 	var stats := CombatTelemetry.get_stats()
 	var watch_name := "无"
@@ -1331,4 +1303,3 @@ func _vessel_text(runtime: SoulRuntime) -> String:
 	if runtime == null:
 		return ""
 	return runtime.vessel_name()
-#endregion

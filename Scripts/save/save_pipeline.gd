@@ -1,7 +1,3 @@
-## 存档管线：文档收集、版本/主备策略与 participant 顺序。
-##
-## 不认识 autoload、UI 和磁盘；storage 决定数据落点（磁盘或内存），
-## 这样整条读写策略可以在没有真实存档、没有启动链的情况下验证。
 class_name SavePipeline
 extends RefCounted
 
@@ -15,7 +11,6 @@ func _init(storage: SaveStorage, participants: Array[SaveParticipant] = []) -> v
 		_participants.append(participant)
 
 
-## 当前内存状态的存档文档（不写盘）
 func collect(play_time_sec: float, player_data: Dictionary = {}) -> Dictionary:
 	var document := SaveDocument.build(play_time_sec, player_data)
 	for participant in _participants:
@@ -23,7 +18,6 @@ func collect(play_time_sec: float, player_data: Dictionary = {}) -> Dictionary:
 	return document
 
 
-## 把文档应用到各 participant；返回是否有 participant 报告需要回写
 func apply(document: Dictionary, has_disk_data: bool) -> bool:
 	var write_back := false
 	for participant in _participants:
@@ -35,7 +29,6 @@ func apply(document: Dictionary, has_disk_data: bool) -> bool:
 	return write_back
 
 
-## 写档；返回 false 表示槽位非法或底层写入失败
 func save(
 		slot: int,
 		play_time_sec: float,
@@ -47,7 +40,6 @@ func save(
 	return _storage.write(slot, collect(play_time_sec, player_data), keep_backup)
 
 
-## 新建档并写盘；成功返回写下的文档，失败返回空字典
 func create(slot: int, player_data: Dictionary) -> Dictionary:
 	if not SaveStorage.is_valid_slot(slot):
 		return {}
@@ -57,7 +49,6 @@ func create(slot: int, player_data: Dictionary) -> Dictionary:
 	return document
 
 
-## 读槽：主文件不可用时回退备份，按版本决定迁移或只读
 func load(slot: int) -> SaveLoadResult:
 	if not SaveStorage.is_valid_slot(slot):
 		return SaveLoadResult.empty()
@@ -106,7 +97,6 @@ func is_read_only() -> bool:
 	return _storage.is_read_only()
 
 
-## 六个槽的摘要：slot / occupied / player / saved_at / play_time
 func summaries() -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
 	for slot in SaveStorage.SLOT_COUNT:

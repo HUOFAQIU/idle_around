@@ -1,14 +1,10 @@
 class_name NetStatusTickExecution extends PeriodicStatusTickExecution
-## 剧毒/生命再生这类“净值 × 每点数值”的周期结算基类。
-## 每跳总量向下取整后落地；不足 1 点不结算。
 
 
-## 与对立状态相减后的净值；<= 0 时不结算
 func net_stacks(_target_asc: AbilitySystemComponent) -> float:
 	return 0.0
 
 
-## 每点净值的伤害/恢复量
 func stack_amount() -> float:
 	return 1.0
 

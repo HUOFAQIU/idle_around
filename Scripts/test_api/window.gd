@@ -1,7 +1,4 @@
 extends RefCounted
-## TestAPI 窗口域：主窗口置顶、面板与立方体屏幕位置。
-##
-## 对外入口仍是 res://Scripts/test_api.gd 的 TestAPI。
 
 const COMMON: GDScript = preload("res://Scripts/test_api/common.gd")
 

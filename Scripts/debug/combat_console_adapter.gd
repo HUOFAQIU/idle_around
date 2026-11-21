@@ -1,4 +1,3 @@
-## 战斗日志事件 → 控制台输出；替代原先在 BattleManager 里的 print_rich。
 class_name CombatConsoleAdapter extends RefCounted
 
 var enabled: bool = true

@@ -1,5 +1,4 @@
 class_name SkillCastContext extends RefCounted
-## 一次技能释放的上下文；steps 之间共享。
 
 var ability: AutoCastAbility
 var battle: BattleManager
@@ -8,8 +7,6 @@ var caster_unit: BattleUnit
 var caster_asc: AbilitySystemComponent
 var release_index: int = 0
 var release_count: int = 1
-## 步骤间共享数据；键由步骤自行约定。
-## 用于“前一步选中的目标留给后一步用”这类组合，替代把运行时状态写进共享资源。
 var blackboard: Dictionary = {}
 
 

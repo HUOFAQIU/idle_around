@@ -1,12 +1,6 @@
 class_name MapTooltip
 extends RefCounted
-## 地图 tooltip 正文格式化器。
-##
-## 标题（地图名）由 TooltipWindow 单独显示，这里按 MapData 的刷怪条目生成条件行：
-## 时间条目 → 每 N 秒出现X；击杀条目 → 每累计击杀 N X时，出现Y。
-## 怪物名从 CollectionDB 解析，缺失时退回 content_id。
 
-## 生成地图 tooltip 正文（不含地图名）
 static func build(
 	map_item: MapItemData,
 	format: TooltipText.Format = TooltipText.Format.PLAIN

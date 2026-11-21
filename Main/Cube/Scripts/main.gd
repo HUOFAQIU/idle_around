@@ -1,9 +1,4 @@
 extends Node3D
-## 主场景装配：立方体、六面内容、会话流程和游戏 UI 覆盖层。
-##
-## 立方体渲染在 CubeView 的透明子视口里，由 CubeInputSurface 接管输入，
-## 因此它始终压在游戏 UI 面板之上；面内容的请求在这里接到 GameFlow，
-## GameFlow 的锁定/翻面/提示再回到立方体和 HUD。
 
 const STARTUP_TIMING: GDScript = preload("res://Scripts/debug/startup_timing.gd")
 
@@ -68,7 +63,6 @@ func _on_face_focus_requested(face_index: int) -> void:
 	_cube_rig.flip_to_face(face_index)
 
 
-## 05 面地图按钮：同一张图正在打就置顶，否则直接开战/换图
 func _on_map_battle_requested(slot_index: int) -> void:
 	var map_item := MapBoard.get_slot(slot_index)
 	if map_item == null:
@@ -90,7 +84,6 @@ func _on_session_will_change() -> void:
 	_game_ui.battle_window.stop_battle()
 
 
-## 01 面「退出」：先落盘再关进程，和系统关闭窗口时的保存行为一致
 func _on_quit_requested() -> void:
 	SaveManager.save_now()
 	get_tree().quit()

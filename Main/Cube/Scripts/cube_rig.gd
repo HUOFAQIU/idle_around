@@ -1,11 +1,5 @@
 class_name CubeRig
 extends Node3D
-## 立方体交互入口：处理鼠标射线、拖拽与点击分流，
-## 并把指针事件转发给对应的面内 UI。
-##
-## 普通面沿用「按住可拖拽旋转、松手点击面内按钮」的分流；ui_capture 面
-## （01 存档位 / 02 主菜单 / 04 角色选择）按控件优先：指针下有可交互控件时，
-## 整个按下-拖动-松开周期都交给面内容，不进入旋转。
 
 signal face_identified(face_index: int, face_name: String, accent_color: Color)
 
@@ -40,7 +34,6 @@ func _ready() -> void:
 		push_warning("CubeRig 找不到拖动圆点，圆点拖动不可用。")
 
 
-## 兜底：面内 UI 捕获期间如果 release 被主视口 GUI 吃掉，下一帧主动取消
 func _process(_delta: float) -> void:
 	if _ui_face != null and not Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
 		_cancel_ui_capture()
@@ -99,12 +92,10 @@ func _notification(what: int) -> void:
 	cancel_window_interaction()
 
 
-## 主场景装配：屏幕锚定和位置持久化统一交给 CubePlacement
 func setup_placement(placement : CubePlacement) -> void:
 	_placement = placement
 
 
-## 平滑翻到指定面；开局/存档流程用
 func flip_to_face(face_index: int) -> bool:
 	return _orientation.rotate_to_face(face_index)
 
@@ -117,15 +108,12 @@ func get_faces() -> Array[Face3D]:
 	return faces
 
 
-## 指针离开立方体输入代理时清掉悬停；正在拖动/转发 UI 时不打断
 func pointer_left() -> void:
 	if _ui_face != null or _pressed_face != null or _dragging or _moving_handle:
 		return
 	_clear_hover()
 
 
-## 窗口失焦/鼠标离开窗口：取消 UI 捕获或旋转。
-## CubeRig 在子视口里，主视口的 InputSurface 也会转发这两个通知。
 func cancel_window_interaction() -> void:
 	if _ui_face != null:
 		_ui_face.cancel_interaction()
@@ -224,7 +212,6 @@ func _handle_primary_released(event: InputEventMouseButton) -> void:
 	get_viewport().set_input_as_handled()
 
 
-## 右键/滚轮等非左键事件：ui_capture 面内容区内直接转发
 func _handle_auxiliary_button(event: InputEventMouseButton) -> void:
 	var hit := _raycast_at(event.position)
 	if hit.is_empty():
@@ -277,7 +264,6 @@ func _try_begin_handle_drag(screen_position: Vector2) -> bool:
 	if not _drag_handle.is_screen_point_inside(screen_position):
 		return false
 
-	# 圆点被夹到屏幕边缘时可能盖住面 02，菜单控件优先
 	var hit := _raycast_at(screen_position)
 	if not hit.is_empty():
 		var face := hit["face"] as Face3D
@@ -396,7 +382,6 @@ func _raycast_at(screen_position: Vector2) -> Dictionary:
 	}
 
 
-## 捕获期间鼠标可能离开面片，按面所在平面换算世界点
 func _world_on_face(face: Face3D, screen_position: Vector2) -> Vector3:
 	var camera := get_viewport().get_camera_3d()
 	if camera == null:

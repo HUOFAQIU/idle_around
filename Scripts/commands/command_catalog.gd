@@ -1,8 +1,4 @@
 extends RefCounted
-## 命令表：内置命令和域命令都在这里登记，终端、补全和 AI 共用。
-##
-## 新增命令时在这里登记 usage、summary、handler 和可选的 complete，并更新
-## DOC/指南/命令控制台.md。
 
 const BATTLE: GDScript = preload("res://Scripts/commands/actions/battle_actions.gd")
 const INVENTORY: GDScript = preload("res://Scripts/commands/actions/inventory_actions.gd")
@@ -12,7 +8,6 @@ const CUBE: GDScript = preload("res://Scripts/commands/actions/cube_actions.gd")
 const DEBUG: GDScript = preload("res://Scripts/commands/actions/debug_actions.gd")
 const COMPLETERS: GDScript = preload("res://Scripts/commands/command_completers.gd")
 
-## 执行逻辑在 CommandRegistry.run() 里单独处理，元数据仍放在命令表
 const BUILTIN_ENTRIES := {
 	"help": {"usage": "help [command]", "summary": "列出命令或查看单条用法"},
 	"clear": {"usage": "clear", "summary": "清空终端；AI 调用只返回 ok"},
@@ -32,7 +27,6 @@ static func builtin_entries() -> Dictionary:
 	return BUILTIN_ENTRIES.duplicate(true)
 
 
-## 内置命令 + 域命令；help 和补全都读这一份
 static func all_entries() -> Dictionary:
 	var result := builtin_entries()
 	result.merge(entries(), true)
@@ -45,7 +39,6 @@ static func command_names() -> PackedStringArray:
 	return PackedStringArray(names)
 
 
-## 命令元数据；内置命令也能查到，供 help 和补全抬头使用
 static func get_entry(command: String) -> Dictionary:
 	if BUILTIN_ENTRIES.has(command):
 		return BUILTIN_ENTRIES[command]

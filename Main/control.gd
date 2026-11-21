@@ -1,9 +1,5 @@
 class_name GameUI
 extends Control
-## 游戏 UI 根节点：窗口开关与主菜单请求解析。
-##
-## 主菜单 PetPanel 挂在立方体面 02 上，按钮请求由 Main/Cube 装配脚本
-## 转进 open_panel()；窗口本身仍在主视口里，和以前一样弹出/置顶。
 
 var _panels: Dictionary = {}
 
@@ -31,7 +27,6 @@ func _ready() -> void:
 	}
 
 
-## 主菜单按钮请求：按 id 打开/关闭对应窗口
 func open_panel(panel_id: StringName) -> void:
 	popup_window(_panels.get(panel_id) as BaseWindow)
 
@@ -40,6 +35,5 @@ func popup_window(window: BaseWindow) -> void:
 	panel_manager.toggle(window)
 
 
-## 切档/新游戏前关闭所有面板，避免旧数据继续显示
 func close_all_panels() -> void:
 	panel_manager.hide_all()

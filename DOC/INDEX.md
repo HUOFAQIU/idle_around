@@ -41,6 +41,7 @@
 | AI/自动化测试、构造战斗或背包场景 | `指南/AI测试接口.md`、`指南/命令控制台.md` | `Scripts/test_api.gd`、`Scripts/test_api/`、`Scripts/commands/` |
 | 提交前检查、新增 lint 规则、领域行为回归（情景测试）、判断规范该放代码还是文档 | `指南/代码检查.md`、`指导文件.md` | `tools/check.sh`、`tools/lint/`、`tools/scenarios/` |
 | 动手前写变更契约、查某个决策当时为什么这么定 | `spec/README.md`、`spec/`、`adr/README.md` | — |
+| 需求含糊、方案空间大，先把未定决策问清 | `spec/README.md`、`.claude/skills/grill/` | — |
 | 清理代码注释、把注释里的 why 迁进文档 | `指南/代码检查.md` | `.claude/skills/delete-comment/`、`tools/lint/strip_comments.py` |
 | 改 Claude Code 配置（CLAUDE.md/settings/hooks/skills/agents/workflows）、查加载与权限行为 | `指南/Claude Code 项目结构.md` | — |
 | 按症状排查战斗（不放技能/不触发/没伤害/Cue 不播/卡顿） | `指南/调试窗口.md` §常见排查、`架构/现状与注意.md` | `Windows/Debug/`、`game/battle/` |
@@ -83,7 +84,7 @@
 | `指南/代码检查.md` | 指南 | 有效 | 2026-11-21 |
 | `spec/README.md` | 规范 | 有效 | 2026-11-21 |
 | `adr/README.md` | 指南 | 有效 | 2026-11-21 |
-| `指导文件.md` | 指南 | 有效 | 2026-11-15 |
+| `指导文件.md` | 指南 | 有效 | 2026-11-21 |
 | `指南/存档排查.md` | 指南 | 有效 | 2026-11-21 |
 | `指南/调试窗口.md` | 指南 | 有效 | 2026-11-21 |
 | `架构/调试与遥测.md` | 实现 | 有效 | 2026-11-21 |
@@ -132,6 +133,7 @@
 6. 过期内容直接删除，不留在正文；需要追溯时用 git 历史。
 7. 改代码时同步更新文档头的核对日期，并跑 `python -X utf8 -I tools/lint/index_meta.py --root . --write` 同步本页清单；新增/删除文档时增删清单行。
 8. 新增功能/内容时，在 `Scripts/test_api/` 对应域模块实现测试方法，在 `Scripts/test_api.gd` 补转发；只有新增域或入口语义变化时才更新 `指南/AI测试接口.md`。
+9. 一个概念只在一个权威节维护：事件清单、流程图、规则表这类内容选一处作为权威，其他文档只写指针和该文档特有的本地流程；改动时只改权威节（决策见 `adr/0002-pointer-docs.md`）。
 
 ## 检索协议（配合 CLAUDE.md）
 

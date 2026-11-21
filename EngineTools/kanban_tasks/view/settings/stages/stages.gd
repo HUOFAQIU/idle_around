@@ -135,7 +135,7 @@ func update() -> void:
 
 
 func __on_add_stage(column: int) -> void:
-	var data = __StageData.new("New Stage")
+	var data = __StageData.new("新阶段")
 	var uuid = board_data.add_stage(data, true)
 
 	var columns = board_data.layout.columns

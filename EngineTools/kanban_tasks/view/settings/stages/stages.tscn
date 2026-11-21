@@ -19,11 +19,11 @@ theme_override_constants/separation = 10
 [node name="\'EditStageLayout\'" type="Label" parent="Header" unique_id=348522360]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Edit Stage Layout:"
+text = "编辑阶段布局："
 
 [node name="\'StageWidth\'" type="Label" parent="Header" unique_id=827952690]
 layout_mode = 2
-text = "Stage Width"
+text = "阶段宽度"
 
 [node name="WidthSpinBox" type="SpinBox" parent="Header" unique_id=2023771662]
 unique_name_in_owner = true
@@ -43,7 +43,7 @@ select_all_on_focus = true
 unique_name_in_owner = true
 layout_mode = 2
 focus_mode = 0
-text = "Warn about empty deletion."
+text = "删除空阶段前先确认。"
 
 [node name="PanelContainer" type="PanelContainer" parent="." unique_id=1613118127]
 unique_name_in_owner = true
@@ -97,15 +97,15 @@ layout_mode = 0
 anchor_left = 1.0
 anchor_right = 1.0
 grow_horizontal = 0
-tooltip_text = "Adding to much stages can overflow the editor.
+tooltip_text = "添加过多阶段可能超出编辑器范围。
 
-Recommended maximum: 4*3"
+推荐上限：4*3"
 focus_mode = 0
 flat = true
 
 [node name="ConfirmNotEmpty" type="ConfirmationDialog" parent="." unique_id=1240101809]
 unique_name_in_owner = true
-title = "Delete Stage"
+title = "删除阶段"
 size = Vector2i(403, 159)
 
 [node name="VBoxContainer" type="VBoxContainer" parent="ConfirmNotEmpty" unique_id=1173550062]
@@ -121,9 +121,9 @@ grow_vertical = 2
 
 [node name="Label" type="Label" parent="ConfirmNotEmpty/VBoxContainer" unique_id=1210268278]
 layout_mode = 2
-text = "You are deleting a stage which has tasks assigned.
+text = "你正在删除一个有任务的阶段。
 
-The tasks will be assigned to the following stage:"
+这些任务将被分配到以下阶段："
 
 [node name="TaskDestination" type="OptionButton" parent="ConfirmNotEmpty/VBoxContainer" unique_id=1622670225]
 unique_name_in_owner = true
@@ -132,7 +132,7 @@ size_flags_horizontal = 3
 
 [node name="ConfirmEmpty" type="ConfirmationDialog" parent="." unique_id=1107424921]
 unique_name_in_owner = true
-title = "Delete Stage"
+title = "删除阶段"
 size = Vector2i(316, 100)
-dialog_text = "Do you really want to delete this stage?
-You can not undo this."
+dialog_text = "确定要删除这个阶段吗？
+此操作无法撤销。"

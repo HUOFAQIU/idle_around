@@ -27,71 +27,71 @@ columns = 2
 [node name="ShowDescriptionPreviewLabel" type="Label" parent="PanelContainer/ScrollContainer/GridContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Show description preview"
+text = "显示描述预览"
 
 [node name="ShowDescriptionPreview" type="CheckBox" parent="PanelContainer/ScrollContainer/GridContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 focus_mode = 0
-text = "On"
+text = "开"
 
 [node name="ShowStepsPreviewLabel" type="Label" parent="PanelContainer/ScrollContainer/GridContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Show steps preview"
+text = "显示步骤预览"
 
 [node name="ShowStepsPreview" type="CheckBox" parent="PanelContainer/ScrollContainer/GridContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 focus_mode = 0
-text = "On"
+text = "开"
 
 [node name="ShowCategoriesOnBoardLabel" type="Label" parent="PanelContainer/ScrollContainer/GridContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Show categories on board"
+text = "在看板上显示分类"
 
 [node name="ShowCategoriesOnBoard" type="CheckBox" parent="PanelContainer/ScrollContainer/GridContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 focus_mode = 0
-text = "On"
+text = "开"
 
 [node name="EditStepDetailsExclusivelyLabel" type="Label" parent="PanelContainer/ScrollContainer/GridContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Edit step details in fullscreen"
+text = "全屏编辑步骤详情"
 
 [node name="EditStepDetailsExclusively" type="CheckBox" parent="PanelContainer/ScrollContainer/GridContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 focus_mode = 0
-text = "On"
+text = "开"
 
 [node name="DescriptionOnBoardLabel" type="Label" parent="PanelContainer/ScrollContainer/GridContainer"]
 layout_mode = 2
-text = "Description on board"
+text = "看板上的描述"
 
 [node name="DescriptionOnBoard" type="OptionButton" parent="PanelContainer/ScrollContainer/GridContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 selected = 1
 item_count = 3
-popup/item_0/text = "Full description"
+popup/item_0/text = "完整描述"
 popup/item_0/id = 0
-popup/item_1/text = "First line of description"
+popup/item_1/text = "描述首行"
 popup/item_1/id = 1
-popup/item_2/text = "Until first blank line of description"
+popup/item_2/text = "到描述的第一个空行为止"
 popup/item_2/id = 2
 
 [node name="MaxDisplayedLinesInDescriptionLabel" type="Label" parent="PanelContainer/ScrollContainer/GridContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Maximum displayed lines in description"
+text = "描述最多显示行数"
 
 [node name="MaxDisplayedLinesInDescription" type="SpinBox" parent="PanelContainer/ScrollContainer/GridContainer"]
 unique_name_in_owner = true
@@ -101,24 +101,24 @@ allow_greater = true
 
 [node name="StepsOnBoardLabel" type="Label" parent="PanelContainer/ScrollContainer/GridContainer"]
 layout_mode = 2
-text = "Steps on board"
+text = "看板上的步骤"
 
 [node name="StepsOnBoard" type="OptionButton" parent="PanelContainer/ScrollContainer/GridContainer"]
 unique_name_in_owner = true
 layout_mode = 2
 selected = 0
 item_count = 3
-popup/item_0/text = "Only open steps"
+popup/item_0/text = "仅显示未完成步骤"
 popup/item_0/id = 0
-popup/item_1/text = "All, but open first"
+popup/item_1/text = "全部显示，未完成在前"
 popup/item_1/id = 1
-popup/item_2/text = "All in original order"
+popup/item_2/text = "全部按原顺序"
 popup/item_2/id = 2
 
 [node name="MaxStepsOnBoardLabel" type="Label" parent="PanelContainer/ScrollContainer/GridContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Maximum steps on board"
+text = "看板最多显示步骤数"
 
 [node name="MaxStepsOnBoard" type="SpinBox" parent="PanelContainer/ScrollContainer/GridContainer"]
 unique_name_in_owner = true
@@ -130,7 +130,7 @@ allow_greater = true
 [node name="DataFilePathLabel" type="Label" parent="PanelContainer/ScrollContainer/GridContainer"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Data file path"
+text = "数据文件路径"
 
 [node name="DataFilePathContainer" type="HBoxContainer" parent="PanelContainer/ScrollContainer/GridContainer"]
 unique_name_in_owner = true
@@ -150,8 +150,8 @@ text = " ... "
 
 [node name="FileDialog" type="FileDialog" parent="."]
 unique_name_in_owner = true
-title = "Open board from existing file"
+title = "从现有文件打开看板"
 size = Vector2i(800, 600)
-ok_button_text = "Open"
+ok_button_text = "打开"
 mode_overrides_title = false
 file_mode = 0

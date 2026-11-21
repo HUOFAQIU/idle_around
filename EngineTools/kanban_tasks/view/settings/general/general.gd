@@ -53,13 +53,13 @@ func _ready() -> void:
 	data_file_path_button.pressed.connect(__open_data_file_path_dialog)
 
 	file_dialog_open_option = CheckBox.new()
-	file_dialog_open_option.text = "Open board from existing file"
+	file_dialog_open_option.text = "从现有文件打开看板"
 	file_dialog.get_vbox().add_child(file_dialog_open_option)
 	file_dialog_save_option = CheckBox.new()
-	file_dialog_save_option.text = "Save current board to file"
+	file_dialog_save_option.text = "将当前看板保存到文件"
 	file_dialog.get_vbox().add_child(file_dialog_save_option)
 	file_dialog_create_option = CheckBox.new()
-	file_dialog_create_option.text = "Create new board in file"
+	file_dialog_create_option.text = "在文件中创建新看板"
 	file_dialog.get_vbox().add_child(file_dialog_create_option)
 	file_dialog_option_button_group = ButtonGroup.new()
 	file_dialog_open_option.button_group = file_dialog_option_button_group
@@ -100,7 +100,7 @@ func __open_data_file_path_dialog() -> void:
 	file_dialog_create_option.set_pressed_no_signal(false)
 	file_dialog.file_mode = FileDialog.FILE_MODE_OPEN_FILE
 	file_dialog.clear_filters()
-	file_dialog.add_filter("*.kanban, *.json", "Kanban Board")
+	file_dialog.add_filter("*.kanban, *.json", "看板文件")
 	file_dialog.popup_centered(file_dialog.size)
 
 
@@ -108,15 +108,15 @@ func __update_file_dialog() -> void:
 	if file_dialog_save_option.button_pressed:
 		file_dialog.file_mode = FileDialog.FILE_MODE_SAVE_FILE
 		file_dialog.title = file_dialog_save_option.text
-		file_dialog.ok_button_text = "Save"
+		file_dialog.ok_button_text = "保存"
 	elif file_dialog_create_option.button_pressed:
 		file_dialog.file_mode = FileDialog.FILE_MODE_SAVE_FILE
 		file_dialog.title = file_dialog_create_option.text
-		file_dialog.ok_button_text = "Create"
+		file_dialog.ok_button_text = "创建"
 	else:
 		file_dialog.file_mode = FileDialog.FILE_MODE_OPEN_FILE
 		file_dialog.title = file_dialog_open_option.text
-		file_dialog.ok_button_text = "Open"
+		file_dialog.ok_button_text = "打开"
 
 
 func __update_editor_data_file(path: String) -> void:

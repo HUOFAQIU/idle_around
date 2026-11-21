@@ -14,6 +14,10 @@ var board_data: __BoardData
 
 
 func _ready() -> void:
+	tab_container.set_tab_title(0, "常规")
+	tab_container.set_tab_title(1, "分类")
+	tab_container.set_tab_title(2, "阶段")
+
 	# Wait for board to set board_data.
 	await get_tree().create_timer(0.0).timeout
 

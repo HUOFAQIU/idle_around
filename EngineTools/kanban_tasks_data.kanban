@@ -68,103 +68,9 @@
 			"uuid": "3d8e3d00-a609-41c7-a684-c1dd2b26f8c7",
 			"title": "进行中",
 			"tasks": []
-		},
-		{
-			"uuid": "00cc217b-6c96-4fd1-acab-fa03554e6f0f",
-			"title": "已完成",
-			"tasks": [
-				"b1ded61d-4fa0-478f-8a9c-cb3c94ecbc65",
-				"ca003893-c03d-462d-8530-fb6553c37cd8",
-				"064ed8d0-e776-4472-971d-12b4bbd56c8b",
-				"a70561cd-5818-45b3-a434-03a2ca564543",
-				"499e7710-81c7-4ff8-86ff-e2cadeda8597",
-				"aa93e1a4-7df8-4914-b735-f321212402ff",
-				"13de6c29-589d-41b3-91db-f392fe25f327",
-				"2d44f95f-5926-4afb-9f2c-20a64393c01e",
-				"29fa349a-dcab-4ea5-8a8c-634a10391763",
-				"30215f06-69cc-4210-a19e-64f59d5297cb",
-				"a31f774e-4cb0-434c-95f3-e578f59c9212"
-			]
 		}
 	],
 	"tasks": [
-		{
-			"uuid": "b1ded61d-4fa0-478f-8a9c-cb3c94ecbc65",
-			"title": "基础玩法循环",
-			"description": "自动战斗、刷怪、掉落、死亡重开已打通。",
-			"category": "4b348556-513b-4b37-89db-80c8da65c875",
-			"steps": []
-		},
-		{
-			"uuid": "ca003893-c03d-462d-8530-fb6553c37cd8",
-			"title": "存档",
-			"description": "六槽、摘要扫描、活动槽、版本/备份/损坏回退。",
-			"category": "4ee063c8-70d2-4279-bf31-00b9cca15bb4",
-			"steps": []
-		},
-		{
-			"uuid": "064ed8d0-e776-4472-971d-12b4bbd56c8b",
-			"title": "调试窗口",
-			"description": "总览/时间线/魂灵/单位/触发器/GAS/日志/设置；启动耗时打点。",
-			"category": "1a4f9721-1f1b-426a-b117-85d0267bd5bb",
-			"steps": []
-		},
-		{
-			"uuid": "a70561cd-5818-45b3-a434-03a2ca564543",
-			"title": "地图刷怪",
-			"description": "蛇死 10 只刷 1 只蝮；间隔与刷新距离走地图配置。",
-			"category": "4b348556-513b-4b37-89db-80c8da65c875",
-			"steps": []
-		},
-		{
-			"uuid": "499e7710-81c7-4ff8-86ff-e2cadeda8597",
-			"title": "仓库窗口",
-			"description": "左键拿起、右键取消、中键分割；容器满时物品留在手上并 warning。",
-			"category": "e37be7be-2fc3-40de-9f3a-4a8ff365179c",
-			"steps": []
-		},
-		{
-			"uuid": "aa93e1a4-7df8-4914-b735-f321212402ff",
-			"title": "Mod 系统 Phase 1",
-			"description": "发现/校验/挂载/依赖排序/管理窗口/示例与打包。",
-			"category": "689124f0-5cf8-4f6e-bd54-a4c93513ea0c",
-			"steps": []
-		},
-		{
-			"uuid": "13de6c29-589d-41b3-91db-f392fe25f327",
-			"title": "图鉴 / 见闻窗口",
-			"description": "怪物/魂灵/魂器三页，首次刷出或进容器即解锁，右键放回仓库。",
-			"category": "1a4f9721-1f1b-426a-b117-85d0267bd5bb",
-			"steps": []
-		},
-		{
-			"uuid": "2d44f95f-5926-4afb-9f2c-20a64393c01e",
-			"title": "简单特效",
-			"description": "灼烧火焰光环、剧毒飞溅与气泡、命中爪痕。",
-			"category": "4b348556-513b-4b37-89db-80c8da65c875",
-			"steps": []
-		},
-		{
-			"uuid": "29fa349a-dcab-4ea5-8a8c-634a10391763",
-			"title": "怪物掉落",
-			"description": "掉落表、掉落物进仓库、见闻解锁。",
-			"category": "e37be7be-2fc3-40de-9f3a-4a8ff365179c",
-			"steps": []
-		},
-		{
-			"uuid": "30215f06-69cc-4210-a19e-64f59d5297cb",
-			"title": "文档与 AI 约束",
-			"description": "DOC/INDEX 路由表、写作约定与规范落地。",
-			"category": "2fcef552-d675-4ae7-920c-cd4d4c79db35",
-			"steps": []
-		},
-		{
-			"uuid": "a31f774e-4cb0-434c-95f3-e578f59c9212",
-			"title": "TestAPI：给 AI 的测试入口",
-			"description": "域模块 + 门面转发，战斗/背包/存档可构造。",
-			"category": "2fcef552-d675-4ae7-920c-cd4d4c79db35",
-			"steps": []
-		},
 		{
 			"uuid": "174839b6-79ea-47fd-ab25-08d96c04e39c",
 			"title": "魂灵数值 roll",
@@ -281,9 +187,6 @@
 			],
 			[
 				"3d8e3d00-a609-41c7-a684-c1dd2b26f8c7"
-			],
-			[
-				"00cc217b-6c96-4fd1-acab-fa03554e6f0f"
 			]
 		]
 	}

@@ -1,5 +1,19 @@
 {
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python -X utf8 -I \"$CLAUDE_PROJECT_DIR/tools/git_guard.py\"",
+            "shell": "bash",
+            "timeout": 10,
+            "statusMessage": "Checking git safety"
+          }
+        ]
+      }
+    ],
     "PostToolUse": [
       {
         "matcher": "Edit|Write",

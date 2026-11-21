@@ -25,7 +25,7 @@
 | 改移动、攻击范围门控、刷怪、空间索引、投射物 | `架构/战斗运行时_移动与投射物.md` | `game/battle/`、`Windows/Battle/` |
 | 改暴击/伤害/异常、开战关窗、玩家怪物场景 | `架构/战斗运行时_伤害与流程.md` | `game/battle/`、`Windows/Battle/` |
 | 改技能/目标规则/魂灵/怪物数据/掉落 | `架构/战斗数据与魂灵.md` | `base_mods/core/`、`game/content/` |
-| 改背包/仓库/装备槽/拖拽 | `架构/背包_GBIS.md` | `Windows/Inventory/grid_base_inventory_system/`、`Scripts/warehouse.gd` |
+| 改背包/仓库/装备槽/拖拽 | `架构/背包_GBIS.md` | `game/inventory/grid_base_inventory_system/`、`Scripts/warehouse.gd` |
 | 改存档/六槽/读档/存档格式/迁移 | `架构/存档.md` | `Scripts/save/`、`game/flow/game_flow.gd` |
 | 读档丢物品/回退旧档/版本过高只读/槽位摘要异常/存档测试 | `指南/存档排查.md` | `Scripts/save/`、`Scripts/test_api.gd` |
 | 改 GAS 属性/标签/Cue | `架构/GAS.md`、`特效/effects.md` | `godot_gas/`、`addons/GodotGAS/`、`Scripts/mod/mod_cue_registrar.gd` |
@@ -46,7 +46,7 @@
 | 新增调试事件、理解遥测数据或看启动耗时 | `架构/调试与遥测.md` | `game/battle/battle_event.gd`、`game/battle/battle_event_bus.gd`、`Scripts/debug/`、`Windows/Debug/` |
 | 改魂灵冷却/充能/冻结/主动效果 | `魂灵/主动魂灵.md` | `base_mods/core/souls/`、`game/content/`、`game/battle/charged_ability.gd` |
 | 改被动魂灵/触发效果 | `魂灵/被动魂灵.md` | `base_mods/core/souls/`、`game/content/passive_soul_data.gd`、`game/content/passive_effect.gd`、`game/content/passive_trigger.gd` |
-| 确认魂灵尺寸/魂器/角色魂器网格 | `魂灵/魂灵.md`、`魂灵/魂器.md` | `Windows/Inventory/grid_base_inventory_system/core/model/item/soul_data.gd`、`soul_vessel_data.gd`、`Windows/Vessel/`、`Windows/Character/` |
+| 确认魂灵尺寸/魂器/角色魂器网格 | `魂灵/魂灵.md`、`魂灵/魂器.md` | `game/inventory/grid_base_inventory_system/core/model/item/soul_data.gd`、`soul_vessel_data.gd`、`Windows/Vessel/`、`Windows/Character/` |
 | 改怪物魂灵/掉落/刷新距离 | `怪物/怪物.md` | `base_mods/core/monsters/`、`game/content/monster_data.gd`、`game/content/monster_soul_entry.gd` |
 | 改地图物品/05 面地图板/地图刷怪/完成重开/数量石 | `战斗/地图.md` | `game/content/map_*.gd`、`Scripts/map_board.gd`、`Main/Cube/Scripts/map_board_content.gd`、`game/battle/map_run.gd` |
 | 改模块边界/拆分或深化模块/收敛入口/判断该不该加 seam | `架构/边界与seam.md` | `Scripts/`、`game/`、`Windows/`、`Main/` |

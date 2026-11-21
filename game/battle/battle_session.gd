@@ -6,7 +6,7 @@ signal player_spawned(unit: BattleUnit)
 
 const REVIVE_DELAY: float = 3.0
 const MAP_RESTART_DELAY: float = 5.0
-const PLAYER_SCENE := preload("res://game/content/Player/player.tscn")
+const PLAYER_SCENE := preload("res://game/battle/player.tscn")
 
 var units_root: Node2D
 var map: TileMapLayer

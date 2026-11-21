@@ -15,7 +15,7 @@ expires = "2027-03-01"
 
 [[allow]]
 rule = "dependency-boundary"
-path = "Windows/Inventory/grid_base_inventory_system/core/view/drag_presenter.gd"
+path = "game/inventory/grid_base_inventory_system/core/view/drag_presenter.gd"
 reason = "GBIS 拖拽表现直接开物品窗口；待开窗收敛到统一入口"
 expires = "2027-03-01"
 

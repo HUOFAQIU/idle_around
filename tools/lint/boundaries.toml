@@ -28,28 +28,13 @@ reads = [
     "addons/",
     "base_mods/",
     "Assets/",
-    "Windows/Inventory/grid_base_inventory_system/",
     "Main/panel_manager.gd",
-]
-
-[[layer]]
-name = "gbis"
-paths = ["Windows/Inventory/grid_base_inventory_system/"]
-reads = [
-    "game/",
-    "addons/",
-    "Assets/",
-    "Scripts/game_colors.gd",
-    "Scripts/soul_text.gd",
-    "Scripts/mod/",
-    "Scripts/collection_db.gd",
 ]
 
 [[layer]]
 name = "script"
 paths = ["Scripts/"]
 reads = [
-    "Windows/Inventory/grid_base_inventory_system/",
     "game/",
     "godot_gas/",
     "addons/",
@@ -63,8 +48,7 @@ reads = [
 name = "content-def"
 paths = ["game/content/"]
 reads = [
-    "game/",
-    "Windows/Inventory/grid_base_inventory_system/",
+    "game/inventory/",
     "godot_gas/",
     "addons/",
     "Assets/",
@@ -80,7 +64,6 @@ name = "domain"
 paths = ["game/"]
 reads = [
     "game/content/",
-    "Windows/Inventory/grid_base_inventory_system/",
     "godot_gas/",
     "addons/",
     "Assets/",
@@ -103,13 +86,12 @@ reads = [
     "godot_gas/",
     "addons/",
     "Assets/",
-    "Windows/Inventory/grid_base_inventory_system/",
 ]
 
 [autoload]
 ModLoader = "Scripts/mod/mod_loader.gd"
 GameGlobal = "Scripts/GameGlobal.gd"
-GBIS = "Windows/Inventory/grid_base_inventory_system/core/grid_base_inventory_system.gd"
+GBIS = "game/inventory/grid_base_inventory_system/core/grid_base_inventory_system.gd"
 GameplayCueManager = "addons/GodotGAS/managers/gameplay_cue_manager.gd"
 ModCueRegistrar = "Scripts/mod/mod_cue_registrar.gd"
 CollectionDB = "Scripts/collection_db.gd"

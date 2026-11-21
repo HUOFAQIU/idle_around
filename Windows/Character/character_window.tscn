@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://da2scdocynbkk"]
 
 [ext_resource type="Script" uid="uid://7siqbpean10a" path="res://Windows/Character/character_window.gd" id="1_vc8vg"]
-[ext_resource type="Script" uid="uid://b3x4mwtjmm4tp" path="res://Windows/Inventory/grid_base_inventory_system/core/view/container/inventory/inventory_view.gd" id="2_view"]
+[ext_resource type="Script" uid="uid://b3x4mwtjmm4tp" path="res://game/inventory/grid_base_inventory_system/core/view/container/inventory/inventory_view.gd" id="2_view"]
 
 [node name="CharacterWindow" type="Control" unique_id=1910727813]
 layout_mode = 1

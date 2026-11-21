@@ -3,14 +3,15 @@
 > 类型：实现 | 状态：有效 | 核对：2026-11-21
 > 何时读：改背包/仓库/魂器容器/魂器网格、拖拽、商店容器、存档
 > 关键词：GBIS 背包 仓库 inventory container 物品大类 category 魂器 vessel vessel_cells 魂器网格 地图 MAP STONE 数量石 拖拽 Tooltip 存档 分页 Warehouse 商店 Shop
-> 代码：Windows/Inventory/grid_base_inventory_system/、Scripts/warehouse.gd
+> 代码：game/inventory/grid_base_inventory_system/、Scripts/warehouse.gd
 > 不覆盖：仓库玩法设计（见 DOC/窗口/仓库窗口.md）
 
 ## 1. 背包 / 仓库系统（GBIS）
 
 ### 1.1 接入方式
 
-- 框架的 autoload 脚本是 `Windows/Inventory/grid_base_inventory_system/core/grid_base_inventory_system.gd`，全局名必须是 `GBIS`。
+- 框架代码在 `game/inventory/grid_base_inventory_system/`，属 `game/` 领域层，不是 `addons/` 第三方；`SoulData`、`ItemView` 等已按项目需求改造。
+- 框架的 autoload 脚本是 `game/inventory/grid_base_inventory_system/core/grid_base_inventory_system.gd`，全局名必须是 `GBIS`；autoload 按 UID 引用，目录移动不改 `project.godot`。
 - `GBIS` 在启动时 `new` 出所有 Service，外部不要自己再 `new`：
   - `inventory_service`、`shop_service`、`equipment_slot_service`、`moving_item_service`、`item_focus_service`。
 - `ContainerRepository` / `EquipmentSlotRepository` 是 `Resource` 单例（`static var instance`），通过 `GBIS` 的 Service 访问。

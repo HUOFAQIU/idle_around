@@ -11,6 +11,7 @@
 - 已成立的真 seam：`SaveParticipant`（3 个生产 adapter + fake）、`SaveStorage`（磁盘 / 内存 adapter）、战斗事件总线 + 遥测 adapter、TestAPI 按域拆分（门面浅、域内有 depth）、`BattleClock`（生产/手动两模式）。
 - 仍需处理：会话状态所有权分散，UI 持有领域策略。入口与命名已收敛（§4），只剩 autoload 无 `class_name` 的检索限制。
 - 边界已可执行：`dependency-boundary` 按 `tools/lint/boundaries.toml` 的层表检查 `res://`、`class_name`、autoload 三种边；存量 4 处反向依赖挂 allowlist，带到期。
+- 目录分层已单向：`game/battle/` 读 `game/content/` 的定义，反向由层表禁止；GBIS 落 `game/inventory/`，归 `game/` 层，不再单开层。
 - 本文只记录结构判断和证据；具体行为以各模块文档为准。
 
 ## 2. 模块判决
@@ -45,7 +46,6 @@
 - 存档服务摸 UI/战斗状态：`SaveManager` 查 `GBIS.has_moving_item()`，清 `SoulRuntimeDB` 并广播 `GBIS.sig_inv_refresh`；已限制在组合根，`SavePipeline` 本身不碰这些全局。
 - 下层反向依赖上层：`CollectionDB` → `ModLoader` 的 warning 表。
 - 编解码耦合运行时：`SaveCodec` 直接查 `CollectionDB` / `MapCatalog`。
-- content 反向依赖 battle：`TargetRule::resolve()`、`SkillCastContext`、`SoulTargetRule`。`game/content/` 与 `game/battle/` 是实测互读，层表按互读声明；收敛归 B3。
 - 测试用节点路径当接口：`test_api/window.gd`、`test_api/cube.gd`。
 - 项目代码写第三方私有字段：`ModCueRegistrar` 写 `GameplayCueManager._cue_scenes`；`DebugWindow` 读 `_cue_scenes`。
 
@@ -71,7 +71,8 @@
   - C4 存档注入：抽出 `SavePipeline` + `SaveLoadResult`；`SaveStorage` 变 seam（`DiskSaveStorage` / `MemorySaveStorage`）；加 `FakeSaveParticipant`；TestAPI `check_save_pipeline()`。
   - C5 依赖边界 lint：层表 `tools/lint/boundaries.toml` + 检查器 `boundaries.py`；三种边（`res://`、类名、autoload）与 autoload 漂移校验；4 处存量例外带到期。
   - C6 入口与命名收敛（spec 0003）：开战、战斗快照、开窗各有唯一外壳入口；`tick_*` 改 `advance_*`；删 `add_soul_to_warehouse`、`popup_window`，`load_save_slot_raw` 改 `load_save_slot_direct`。规则见 §4。
-- **待做**：`game/content/` 与 `game/battle/` 的互读收敛（B3 一并处理）。
+  - C7 目录分层（spec 0004）：运行时行为脚本从 `game/content/` 搬进 `game/battle/`，`SkillStep` 基类只作类型标记、执行由 battle 分派；content-def 读取面收窄到 `game/inventory/`；GBIS 移到 `game/inventory/` 并删掉独立层。
+- **待做**：无。B 序列收尾后，C（文档指针化）与 D（会话技能）不属于 seam。
 
 ## 6. 未确认
 

@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://Windows/Vessel/vessel_window.gd" id="1_window"]
-[ext_resource type="Script" uid="uid://b3x4mwtjmm4tp" path="res://Windows/Inventory/grid_base_inventory_system/core/view/container/inventory/inventory_view.gd" id="2_view"]
+[ext_resource type="Script" uid="uid://b3x4mwtjmm4tp" path="res://game/inventory/grid_base_inventory_system/core/view/container/inventory/inventory_view.gd" id="2_view"]
 
 [node name="VesselWindow" type="Control"]
 layout_mode = 1

@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://c81papidngxvg" path="res://addons/GodotGAS/effects/gameplay_effect.gd" id="1_effect"]
 [ext_resource type="Script" uid="uid://b7ovihaaijli7" path="res://addons/GodotGAS/effects/gameplay_execution_calculation.gd" id="2_execution"]
-[ext_resource type="Script" uid="uid://dyduh45xabujm" path="res://game/content/burn_tick_execution.gd" id="3_burn_execution"]
+[ext_resource type="Script" uid="uid://dyduh45xabujm" path="res://game/battle/burn_tick_execution.gd" id="3_burn_execution"]
 [ext_resource type="Script" uid="uid://bcow77l0bnh0s" path="res://addons/GodotGAS/effects/gameplay_effect_modifier.gd" id="3_ml0ex"]
 
 [sub_resource type="Resource" id="Resource_execution_burn"]

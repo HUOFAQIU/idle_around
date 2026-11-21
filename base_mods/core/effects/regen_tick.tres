@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://c81papidngxvg" path="res://addons/GodotGAS/effects/gameplay_effect.gd" id="1_effect"]
 [ext_resource type="Script" uid="uid://b7ovihaaijli7" path="res://addons/GodotGAS/effects/gameplay_execution_calculation.gd" id="2_execution"]
 [ext_resource type="Script" uid="uid://bcow77l0bnh0s" path="res://addons/GodotGAS/effects/gameplay_effect_modifier.gd" id="3_3yykp"]
-[ext_resource type="Script" uid="uid://dafoiasud6oyx" path="res://game/content/regen_tick_execution.gd" id="3_regen_execution"]
+[ext_resource type="Script" uid="uid://dafoiasud6oyx" path="res://game/battle/regen_tick_execution.gd" id="3_regen_execution"]
 
 [sub_resource type="Resource" id="Resource_execution_regen"]
 script = ExtResource("3_regen_execution")

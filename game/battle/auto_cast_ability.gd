@@ -191,7 +191,7 @@ func _release_once(
 			continue
 		if not battle.is_running:
 			return ReleaseResult.STOPPED
-		var result := step.execute(ctx)
+		var result := _run_step(step, ctx)
 		if result == null:
 			push_error("技能 %s 的步骤没有返回结果：%s" % [ability_name, step])
 			continue
@@ -201,6 +201,15 @@ func _release_once(
 			_last_empty_reasons.append(result.empty_reason)
 
 	return ReleaseResult.HIT if hit_any else ReleaseResult.EMPTY
+
+
+func _run_step(step: SkillStep, ctx: SkillCastContext) -> SkillStepResult:
+	if step is SoulSkillStep:
+		return (step as SoulSkillStep).execute(ctx)
+	if step is UnitSkillStep:
+		return (step as UnitSkillStep).execute(ctx)
+	push_error("技能 %s 的步骤类型没有执行入口：%s" % [ability_name, step])
+	return null
 
 
 func _log_empty_activation(

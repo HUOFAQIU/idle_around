@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="SoulVesselData" format=3 uid="uid://bb0unqqrxk318"]
 
-[ext_resource type="Script" uid="uid://byqtuku2rmne5" path="res://Windows/Inventory/grid_base_inventory_system/core/model/item/soul_vessel_data.gd" id="1_vessel"]
+[ext_resource type="Script" uid="uid://byqtuku2rmne5" path="res://game/inventory/grid_base_inventory_system/core/model/item/soul_vessel_data.gd" id="1_vessel"]
 [ext_resource type="Script" uid="uid://bdpa3dyl415g7" path="res://game/content/soul_vessel_effect.gd" id="2_effect"]
 [ext_resource type="Texture2D" uid="uid://cd5f3v7eq6ylb" path="res://Assets/soul_medium.png" id="3_icon"]
 

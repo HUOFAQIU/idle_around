@@ -2,10 +2,10 @@
 
 [ext_resource type="Script" uid="uid://c81papidngxvg" path="res://addons/GodotGAS/effects/gameplay_effect.gd" id="1_effect"]
 [ext_resource type="Script" uid="uid://ktr72cmavmyy" path="res://game/content/skill_definition.gd" id="2_skill"]
-[ext_resource type="Script" uid="uid://urle87hlfidy" path="res://game/content/soul_target_rule.gd" id="3_soul_rule"]
+[ext_resource type="Script" uid="uid://urle87hlfidy" path="res://game/battle/soul_target_rule.gd" id="3_soul_rule"]
 
 [ext_resource type="Script" uid="uid://y8prij0xt0cx" path="res://game/content/skill_step.gd" id="skill_step_base"]
-[ext_resource type="Script" uid="uid://c5snpmjq25p85" path="res://game/content/soul_skill_step.gd" id="skill_step_soul"]
+[ext_resource type="Script" uid="uid://c5snpmjq25p85" path="res://game/battle/soul_skill_step.gd" id="skill_step_soul"]
 [sub_resource type="Resource" id="Resource_soul_target"]
 script = ExtResource("3_soul_rule")
 mode = 2

@@ -34,12 +34,9 @@
 | `State.Frozen` | `ChargedAbility.FROZEN_TAG`（`BattleBrain.FROZEN_TAG` 别名）；单位级冻结由 `freeze_unit.tres` 挂/摘，同时驱动 `Cue.Status.Freeze` |
 | `Cue.Status.Freeze` | 单位冻结持久光环（`base_mods/core/cues/freeze_cue.tscn`） |
 | `Cue.Combat.ClawSlash` | 命中爪痕（`base_mods/core/cues/claw_slash_cue.tscn`）；由技能资源的 `hit_cue_tag` 触发，带方向/位置 |
-| `Event.Movement.UnitMoved` | 敌方跨格；`BattleUnit.on_enemy_moved()` 接收，`BattleManager` 只派发给注册了该触发器的单位 |
-| `Event.Health.BelowPercent` | 生命下降；`BattleUnit._check_health_triggers()` 发送 |
-| `Event.Combat.SoulUsed` | 魂灵成功激活；`AutoCastAbility._notify_soul_used()` 发送 |
-| `Event.Combat.FreezeApplied` | 单位被冻结；`BattleUnit.notify_freeze_applied()` 发送 |
-| `Event.Combat.SlowApplied` | 魂灵级减速施加；`ChargedAbility.apply_slow()` → `BattleUnit.notify_slow_applied()` 发送 |
 | `Data.TriggerMagnitude` / `Data.SkillMagnitude` / `Data.CritMultiplier` / `Data.SuppressStateLog` | 触发数值 / 主动技能步骤数值 / 暴击倍率 / 批量日志抑制的 SetByCaller 键 |
+
+触发器事件的 payload、派发点和条件见 `架构/战斗数据与魂灵.md` §魂灵触发器；GAS 侧只负责按标签唤醒 `SoulTriggerAbility`。
 
 执行器统一通过 `CritResolution`（`game/battle/crit_resolution.gd`）读取暴击倍率，并在暴击时注入 `Event.Combat.Critical`；SetByCaller 键统一使用自动生成的 `GameplayTags.Data_*`，不要手写字符串。`StatusApplyExecution` 的数值优先级：`Data.SkillMagnitude` > `Data.TriggerMagnitude` > 效果资源 `base_amount`，再乘暴击倍率。
 

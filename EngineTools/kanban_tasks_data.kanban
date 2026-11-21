@@ -1,45 +1,87 @@
 {
 	"categories": [
 		{
-			"uuid": "abd1801b-a241-4c02-8dd1-4e804d1e3bd5",
-			"title": "Task",
+			"uuid": "4b348556-513b-4b37-89db-80c8da65c875",
+			"title": "战斗",
+			"color": "ff5c5c"
+		},
+		{
+			"uuid": "e37be7be-2fc3-40de-9f3a-4a8ff365179c",
+			"title": "魂灵与物品",
 			"color": "70bafa"
 		},
 		{
-			"uuid": "dc17d4ed-a172-4464-9b98-2aeab52f9cdf",
-			"title": "JI",
-			"color": "ff1800"
+			"uuid": "1a4f9721-1f1b-426a-b117-85d0267bd5bb",
+			"title": "窗口与UI",
+			"color": "a78bfa"
+		},
+		{
+			"uuid": "4ee063c8-70d2-4279-bf31-00b9cca15bb4",
+			"title": "存档与流程",
+			"color": "34d399"
+		},
+		{
+			"uuid": "689124f0-5cf8-4f6e-bd54-a4c93513ea0c",
+			"title": "Mod",
+			"color": "fbbf24"
+		},
+		{
+			"uuid": "7ec17929-f3f4-4109-896a-98b248618905",
+			"title": "内容与数值",
+			"color": "f472b6"
+		},
+		{
+			"uuid": "2fcef552-d675-4ae7-920c-cd4d4c79db35",
+			"title": "文档与流程",
+			"color": "94a3b8"
 		}
 	],
 	"stages": [
 		{
-			"uuid": "13cb6bda-ffb7-4ee9-879a-a4735482d3aa",
-			"title": "Todo",
+			"uuid": "1d61c881-8db8-46fe-82d7-4ad62f37b4ed",
+			"title": "想法",
 			"tasks": [
-				"d92b1696-7e59-4569-864a-0eca8bbe36f4",
-				"a8962ae3-4c69-4ae7-89a8-5e74188ffc30"
+				"a8962ae3-4c69-4ae7-89a8-5e74188ffc30",
+				"cc2f6c3d-fe41-4afc-9dbc-691ad7f43f92",
+				"30c6b17d-5eed-45d2-960b-8077839cb3c2"
+			]
+		},
+		{
+			"uuid": "13cb6bda-ffb7-4ee9-879a-a4735482d3aa",
+			"title": "待办",
+			"tasks": [
+				"174839b6-79ea-47fd-ab25-08d96c04e39c",
+				"56d4e6fe-01ca-4d23-be20-e78006eaac35",
+				"3eef2ac3-3930-44df-91dd-74eca8792f3b",
+				"ca473143-68ad-4069-a29a-c5eda0b9927b",
+				"54bb935d-83a5-4589-954a-a1f6135bf07c",
+				"d853b436-f200-40db-9ebd-4a363ea63fc9",
+				"581cdf0c-e557-47ef-ba39-5f2de0495b70",
+				"92298899-8a52-4967-be33-fb1bfdeeb56c",
+				"051f7adb-9b63-49c1-8e26-09f7615a5cc7",
+				"26361578-4bc6-417f-8809-eb847809f170",
+				"fdf0a783-2444-4f7d-a505-42fd5abf581a",
+				"c34145b6-2df4-4cc3-9610-dec6f7cab9a1"
 			]
 		},
 		{
 			"uuid": "3d8e3d00-a609-41c7-a684-c1dd2b26f8c7",
-			"title": "Doing",
+			"title": "进行中",
+			"tasks": []
+		},
+		{
+			"uuid": "00cc217b-6c96-4fd1-acab-fa03554e6f0f",
+			"title": "已完成",
 			"tasks": [
 				"b1ded61d-4fa0-478f-8a9c-cb3c94ecbc65",
-				"051f7adb-9b63-49c1-8e26-09f7615a5cc7",
 				"ca003893-c03d-462d-8530-fb6553c37cd8",
-				"2d44f95f-5926-4afb-9f2c-20a64393c01e",
-				"29fa349a-dcab-4ea5-8a8c-634a10391763",
 				"064ed8d0-e776-4472-971d-12b4bbd56c8b",
 				"a70561cd-5818-45b3-a434-03a2ca564543",
 				"499e7710-81c7-4ff8-86ff-e2cadeda8597",
 				"aa93e1a4-7df8-4914-b735-f321212402ff",
-				"cc2f6c3d-fe41-4afc-9dbc-691ad7f43f92"
-			]
-		},
-		{
-			"uuid": "00cc217b-6c96-4fd1-acab-fa03554e6f0f",
-			"title": "Done",
-			"tasks": [
+				"13de6c29-589d-41b3-91db-f392fe25f327",
+				"2d44f95f-5926-4afb-9f2c-20a64393c01e",
+				"29fa349a-dcab-4ea5-8a8c-634a10391763",
 				"30215f06-69cc-4210-a19e-64f59d5297cb",
 				"a31f774e-4cb0-434c-95f3-e578f59c9212"
 			]
@@ -49,139 +91,191 @@
 		{
 			"uuid": "b1ded61d-4fa0-478f-8a9c-cb3c94ecbc65",
 			"title": "基础玩法循环",
-			"description": "",
-			"category": "abd1801b-a241-4c02-8dd1-4e804d1e3bd5",
-			"steps": []
-		},
-		{
-			"uuid": "a31f774e-4cb0-434c-95f3-e578f59c9212",
-			"title": "需要公开些方法方便AI做后续测试",
-			"description": "",
-			"category": "abd1801b-a241-4c02-8dd1-4e804d1e3bd5",
-			"steps": []
-		},
-		{
-			"uuid": "30215f06-69cc-4210-a19e-64f59d5297cb",
-			"title": "文档很重要，一定要完善，这是给自己看的，也是给AI的约束",
-			"description": "",
-			"category": "abd1801b-a241-4c02-8dd1-4e804d1e3bd5",
+			"description": "自动战斗、刷怪、掉落、死亡重开已打通。",
+			"category": "4b348556-513b-4b37-89db-80c8da65c875",
 			"steps": []
 		},
 		{
 			"uuid": "ca003893-c03d-462d-8530-fb6553c37cd8",
 			"title": "存档",
-			"description": "",
-			"category": "abd1801b-a241-4c02-8dd1-4e804d1e3bd5",
+			"description": "六槽、摘要扫描、活动槽、版本/备份/损坏回退。",
+			"category": "4ee063c8-70d2-4279-bf31-00b9cca15bb4",
 			"steps": []
 		},
 		{
-			"uuid": "051f7adb-9b63-49c1-8e26-09f7615a5cc7",
-			"title": "完善Tooltip",
-			"description": "",
-			"category": "abd1801b-a241-4c02-8dd1-4e804d1e3bd5",
+			"uuid": "064ed8d0-e776-4472-971d-12b4bbd56c8b",
+			"title": "调试窗口",
+			"description": "总览/时间线/魂灵/单位/触发器/GAS/日志/设置；启动耗时打点。",
+			"category": "1a4f9721-1f1b-426a-b117-85d0267bd5bb",
+			"steps": []
+		},
+		{
+			"uuid": "a70561cd-5818-45b3-a434-03a2ca564543",
+			"title": "地图刷怪",
+			"description": "蛇死 10 只刷 1 只蝮；间隔与刷新距离走地图配置。",
+			"category": "4b348556-513b-4b37-89db-80c8da65c875",
+			"steps": []
+		},
+		{
+			"uuid": "499e7710-81c7-4ff8-86ff-e2cadeda8597",
+			"title": "仓库窗口",
+			"description": "左键拿起、右键取消、中键分割；容器满时物品留在手上并 warning。",
+			"category": "e37be7be-2fc3-40de-9f3a-4a8ff365179c",
+			"steps": []
+		},
+		{
+			"uuid": "aa93e1a4-7df8-4914-b735-f321212402ff",
+			"title": "Mod 系统 Phase 1",
+			"description": "发现/校验/挂载/依赖排序/管理窗口/示例与打包。",
+			"category": "689124f0-5cf8-4f6e-bd54-a4c93513ea0c",
+			"steps": []
+		},
+		{
+			"uuid": "13de6c29-589d-41b3-91db-f392fe25f327",
+			"title": "图鉴 / 见闻窗口",
+			"description": "怪物/魂灵/魂器三页，首次刷出或进容器即解锁，右键放回仓库。",
+			"category": "1a4f9721-1f1b-426a-b117-85d0267bd5bb",
 			"steps": []
 		},
 		{
 			"uuid": "2d44f95f-5926-4afb-9f2c-20a64393c01e",
 			"title": "简单特效",
-			"description": "做了一部分",
-			"category": "abd1801b-a241-4c02-8dd1-4e804d1e3bd5",
+			"description": "灼烧火焰光环、剧毒飞溅与气泡、命中爪痕。",
+			"category": "4b348556-513b-4b37-89db-80c8da65c875",
 			"steps": []
 		},
 		{
 			"uuid": "29fa349a-dcab-4ea5-8a8c-634a10391763",
 			"title": "怪物掉落",
-			"description": "1、roll值区间",
-			"category": "abd1801b-a241-4c02-8dd1-4e804d1e3bd5",
+			"description": "掉落表、掉落物进仓库、见闻解锁。",
+			"category": "e37be7be-2fc3-40de-9f3a-4a8ff365179c",
 			"steps": []
 		},
 		{
-			"uuid": "11bb7c9b-ae8a-4ecd-8cb6-41dc718f43d7",
-			"title": "New task",
-			"description": "/Users/huofaqiu/AppData/Local/Programs/Tabby\n\n\n\nC:\\Users\\huofaqiu\\AppData\\Local\\Microsoft\\WindowsApps\\pwsh.exe\n-noexit -command cd '{directory}'",
-			"category": "abd1801b-a241-4c02-8dd1-4e804d1e3bd5",
+			"uuid": "30215f06-69cc-4210-a19e-64f59d5297cb",
+			"title": "文档与 AI 约束",
+			"description": "DOC/INDEX 路由表、写作约定与规范落地。",
+			"category": "2fcef552-d675-4ae7-920c-cd4d4c79db35",
 			"steps": []
 		},
 		{
-			"uuid": "13de6c29-589d-41b3-91db-f392fe25f327",
-			"title": "图鉴",
-			"description": "仓库页上面的tab都去掉，新增图鉴窗口，点击魂灵添加进仓库",
-			"category": "dc17d4ed-a172-4464-9b98-2aeab52f9cdf",
+			"uuid": "a31f774e-4cb0-434c-95f3-e578f59c9212",
+			"title": "TestAPI：给 AI 的测试入口",
+			"description": "域模块 + 门面转发，战斗/背包/存档可构造。",
+			"category": "2fcef552-d675-4ae7-920c-cd4d4c79db35",
+			"steps": []
+		},
+		{
+			"uuid": "174839b6-79ea-47fd-ab25-08d96c04e39c",
+			"title": "魂灵数值 roll",
+			"description": "魂灵数值的 roll 区间；掉落与生成共用同一口径。",
+			"category": "7ec17929-f3f4-4109-896a-98b248618905",
+			"steps": []
+		},
+		{
+			"uuid": "56d4e6fe-01ca-4d23-be20-e78006eaac35",
+			"title": "迅捷 / 迟缓移动状态",
+			"description": "单位级移动速度状态；当前只有魂灵级加速/减速。",
+			"category": "4b348556-513b-4b37-89db-80c8da65c875",
+			"steps": []
+		},
+		{
+			"uuid": "3eef2ac3-3930-44df-91dd-74eca8792f3b",
+			"title": "数量石使用流程",
+			"description": "强化地图使用流程 +「怪物数量 +50%」效果；物品/仓库/tooltip 已有。",
+			"category": "7ec17929-f3f4-4109-896a-98b248618905",
+			"steps": []
+		},
+		{
+			"uuid": "ca473143-68ad-4069-a29a-c5eda0b9927b",
+			"title": "离线收益结算",
+			"description": "saved_at_unix 已写入存档，缺挂机结算。见 架构/存档.md。",
+			"category": "4ee063c8-70d2-4279-bf31-00b9cca15bb4",
+			"steps": []
+		},
+		{
+			"uuid": "54bb935d-83a5-4589-954a-a1f6135bf07c",
+			"title": "人物窗口实时 HP 回写",
+			"description": "角色名/最大生命值/魂器网格已显示，战斗中实时 HP 未回写。",
+			"category": "1a4f9721-1f1b-426a-b117-85d0267bd5bb",
+			"steps": []
+		},
+		{
+			"uuid": "d853b436-f200-40db-9ebd-4a363ea63fc9",
+			"title": "商店货物与价格数据",
+			"description": "ShopView 与买卖链路已接入，货物/价格未实现。",
+			"category": "7ec17929-f3f4-4109-896a-98b248618905",
+			"steps": []
+		},
+		{
+			"uuid": "581cdf0c-e557-47ef-ba39-5f2de0495b70",
+			"title": "装备槽 / 丢弃区 / 消耗品接入",
+			"description": "GBIS 框架支持，游戏内未接入。",
+			"category": "e37be7be-2fc3-40de-9f3a-4a8ff365179c",
+			"steps": []
+		},
+		{
+			"uuid": "92298899-8a52-4967-be33-fb1bfdeeb56c",
+			"title": "全局设置（音量等）",
+			"description": "user://Settings.cfg 目前只存窗口置顶。",
+			"category": "4ee063c8-70d2-4279-bf31-00b9cca15bb4",
+			"steps": []
+		},
+		{
+			"uuid": "051f7adb-9b63-49c1-8e26-09f7615a5cc7",
+			"title": "完善 Tooltip",
+			"description": "魂灵/魂器/地图/数量石已有正文；其余物品只有标题。",
+			"category": "1a4f9721-1f1b-426a-b117-85d0267bd5bb",
 			"steps": []
 		},
 		{
 			"uuid": "26361578-4bc6-417f-8809-eb847809f170",
 			"title": "窗口移动的补间动画",
 			"description": "",
-			"category": "abd1801b-a241-4c02-8dd1-4e804d1e3bd5",
+			"category": "1a4f9721-1f1b-426a-b117-85d0267bd5bb",
 			"steps": []
 		},
 		{
-			"uuid": "064ed8d0-e776-4472-971d-12b4bbd56c8b",
-			"title": "需要很清晰的调试工具，看看游戏过程中出现了什么",
-			"description": "",
-			"category": "abd1801b-a241-4c02-8dd1-4e804d1e3bd5",
+			"uuid": "fdf0a783-2444-4f7d-a505-42fd5abf581a",
+			"title": "跨单位选魂灵",
+			"description": "加速/减速/冻结/充能目前只作用于施法者自己的魂灵栏。",
+			"category": "4b348556-513b-4b37-89db-80c8da65c875",
 			"steps": []
 		},
 		{
-			"uuid": "c4302d6e-cab1-47de-bad1-1057e61a7cdb",
-			"title": "New task",
-			"description": "",
-			"category": "dc17d4ed-a172-4464-9b98-2aeab52f9cdf",
-			"steps": []
-		},
-		{
-			"uuid": "886753f0-6f90-4b4a-8c6f-c9e2042d9ea2",
-			"title": "Skill Description",
-			"description": "删除",
-			"category": "abd1801b-a241-4c02-8dd1-4e804d1e3bd5",
-			"steps": []
-		},
-		{
-			"uuid": "a70561cd-5818-45b3-a434-03a2ca564543",
-			"title": "刷怪",
-			"description": "蛇死掉 10 个刷 1 个蝮",
-			"category": "abd1801b-a241-4c02-8dd1-4e804d1e3bd5",
-			"steps": []
-		},
-		{
-			"uuid": "499e7710-81c7-4ff8-86ff-e2cadeda8597",
-			"title": "仓库窗口",
-			"description": "1、左键拿起，右键取消，中键分割\n2、如果整个容器都满了，物品继续拿在手上，并打一条 warning。",
-			"category": "abd1801b-a241-4c02-8dd1-4e804d1e3bd5",
-			"steps": []
-		},
-		{
-			"uuid": "d92b1696-7e59-4569-864a-0eca8bbe36f4",
-			"title": "要做的",
-			"description": "1、魂灵数值 roll\n2、战斗",
-			"category": "dc17d4ed-a172-4464-9b98-2aeab52f9cdf",
-			"steps": []
-		},
-		{
-			"uuid": "aa93e1a4-7df8-4914-b735-f321212402ff",
-			"title": "Mod",
-			"description": "",
-			"category": "abd1801b-a241-4c02-8dd1-4e804d1e3bd5",
-			"steps": []
-		},
-		{
-			"uuid": "cc2f6c3d-fe41-4afc-9dbc-691ad7f43f92",
-			"title": "MCP",
-			"description": "",
-			"category": "abd1801b-a241-4c02-8dd1-4e804d1e3bd5",
+			"uuid": "c34145b6-2df4-4cc3-9610-dec6f7cab9a1",
+			"title": "Steam 创意工坊订阅 / 发布",
+			"description": "Mod 系统后续。见 架构/Mod系统.md。",
+			"category": "689124f0-5cf8-4f6e-bd54-a4c93513ea0c",
 			"steps": []
 		},
 		{
 			"uuid": "a8962ae3-4c69-4ae7-89a8-5e74188ffc30",
 			"title": "养魂灵，需要些养成玩法",
 			"description": "",
-			"category": "abd1801b-a241-4c02-8dd1-4e804d1e3bd5",
+			"category": "e37be7be-2fc3-40de-9f3a-4a8ff365179c",
+			"steps": []
+		},
+		{
+			"uuid": "cc2f6c3d-fe41-4afc-9dbc-691ad7f43f92",
+			"title": "MCP",
+			"description": "",
+			"category": "2fcef552-d675-4ae7-920c-cd4d4c79db35",
+			"steps": []
+		},
+		{
+			"uuid": "30c6b17d-5eed-45d2-960b-8077839cb3c2",
+			"title": "终端 raw 模式 / 备用屏 / 多行 TUI",
+			"description": "窗口/终端窗口.md 标为 P2 可选。",
+			"category": "1a4f9721-1f1b-426a-b117-85d0267bd5bb",
 			"steps": []
 		}
 	],
 	"layout": {
 		"columns": [
+			[
+				"1d61c881-8db8-46fe-82d7-4ad62f37b4ed"
+			],
 			[
 				"13cb6bda-ffb7-4ee9-879a-a4735482d3aa"
 			],

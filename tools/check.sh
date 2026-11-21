@@ -134,11 +134,13 @@ scenario_check() {
 
 lint_staged() {
 	"$PYTHON_BIN" -X utf8 -I "$ROOT/tools/lint/runner.py" --root "$ROOT" --staged
+	"$PYTHON_BIN" -X utf8 -I "$ROOT/tools/lint/index_meta.py" --root "$ROOT"
 }
 
 lint_all() {
 	"$PYTHON_BIN" -X utf8 -I -m unittest discover -s "$ROOT/tools/lint/tests" -v
 	"$PYTHON_BIN" -X utf8 -I "$ROOT/tools/lint/runner.py" --root "$ROOT" --all
+	"$PYTHON_BIN" -X utf8 -I "$ROOT/tools/lint/index_meta.py" --root "$ROOT"
 }
 
 case "${1:---all}" in

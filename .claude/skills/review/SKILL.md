@@ -11,7 +11,7 @@ description: 审查一次改动：Standards 轴查项目规则（lint、注释�
 
 - 默认：`git status` + `git diff`，含未跟踪文件。
 - 用户给了 PR、分支、路径或 commit 时以它为准。
-- 先读改动涉及的 spec 和目标文档，再读代码。
+- 先读改动涉及的 spec 和目标文档，再读代码。spec 已删除时用 `git show HEAD:DOC/spec/NNNN-x.md` 读取。
 
 ## 1. Standards 轴（总是跑）
 
@@ -30,7 +30,7 @@ bash tools/check.sh --all
 - 改功能时旧代码、旧命名、旧迁移、旧文档描述一并删除，没写兼容层。
 - 依赖边界：层次表以 `tools/lint/boundaries.toml` 为准，重点看 `Windows/` 不读 `Scripts/test_api`、`game/content/` 与 `game/` 单向。
 - `addons/` 未被改动；确需改动时事先说明。
-- 文档头「核对」日期与本次改动一致；只有新增或删除文档才动 `DOC/INDEX.md` 的清单。
+- 文档头「核对」日期与本次改动一致；改文档内容后同步 `DOC/INDEX.md` 对应行（可跑 `index_meta.py --write`），新增或删除文档才增删清单行。
 - 存档和设置格式可以破坏，但无头探针不能写真实 `user://`。
 
 ## 2. Spec 轴（有 spec 才跑）
@@ -40,7 +40,7 @@ bash tools/check.sh --all
 - 逐条对照「用户可见行为」；缺一条是发现，多出没写的可见行为也是发现。
 - 跑 spec 头写的验收命令，确认是绿的。
 - 核对「不在范围内」确实没做。
-- 实现完成后把状态改「已实现」，并执行「退出」：抄进 `架构/` 或 `指南/`、转 ADR，或删除。
+- 审查时 spec 必须仍在、状态为「已实现」；review 通过后才执行「退出」：抄进 `架构/` 或 `指南/`、转 ADR，或删除。
 
 没有对应 spec 就跳过这一轴，不临时补造。如果这次改动其实触发了 `DOC/spec/README.md` 的触发表，报「缺 spec」，不要替它写。
 
@@ -52,4 +52,4 @@ bash tools/check.sh --all
 
 按 `file:line` 分组，每条三段：问题 / 依据（引哪条规则或 spec 哪一行）/ 建议。拿不准的标「待确认」，说明还差什么证据。
 
-最后一行给结论：`可提交` 或 `需修 N 项`。修完复跑 `bash tools/check.sh --all`。
+最后一行给结论：`可提交` 或 `需修 N 项`。修完复跑 `bash tools/check.sh --all`。结论为「可提交」后，才退出并删除 spec，再 commit，最后写交接。

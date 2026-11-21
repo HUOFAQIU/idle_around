@@ -92,6 +92,7 @@ your-repo/
 - ✅ `.claude/commands/x.md` 是旧格式，继续可用；不支持 `name` / `paths`，同名时 skill 优先。
 - ⚠️ 扩展 frontmatter：`allowed-tools / compatibility / license / metadata`；支持 `${CLAUDE_SKILL_DIR}`、`/reload-skills`。
 - ⚠️ `--add-dir` 会加载该目录的 skills/commands/agents；`permissions.additionalDirectories` 只给文件权限，不加载。
+- 项目内工作流顺序固定：改完 → `check.sh --all` → review（spec 状态「已实现」）→ spec 退出 → commit → 交接。review 遇到已删除的 spec 时从 git 历史读，不要跳过 Spec 轴。
 
 ### 5.2 agents/
 

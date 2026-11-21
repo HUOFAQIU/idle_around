@@ -180,7 +180,7 @@ print(TestAPI.get_mod_load_order())
 
 - 内置 core 清单在 `base_mods/core/mod.json`，固定启用、排序最前；第三方 mod 目录是 `user://mods/<mod_id>/`，最小结构 `mod.json` + `content.pck`，开发期可以只放 loose 目录。
 - 制作和字段说明见 `指南/Mod制作.md`，加载规则见 `架构/Mod系统.md`。core 内容 ID 不带前缀，第三方内容 ID 带 `<mod_id>:` 前缀，都可以直接传给 `add_soul()` / `get_soul_ids()`。
-- 装好示例 mod 后，可以用 `TestAPI.add_soul_to_warehouse(&"example_souls:fire_wolf_soul")` 验证。示例源码在 `mods/example_souls/`，打包脚本是 `modkit/pack_example.gd`。
+- 装好示例 mod 后，可以用 `TestAPI.add_soul_to_warehouse(&"example_souls:fire_wolf_soul")` 验证。示例源码在 `mods/example_souls/`，打包脚本是 `EngineTools/modkit/pack_example.gd`。
 
 ## 窗口
 

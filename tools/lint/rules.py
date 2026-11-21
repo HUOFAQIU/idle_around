@@ -15,7 +15,7 @@ FILE_ACCESS_ALLOWED = (
     "Scripts/save/",
     "Scripts/mod/",
     "Scripts/debug/",
-    "modkit/",
+    "EngineTools/modkit/",
 )
 
 
@@ -150,7 +150,10 @@ class ModPathRule(Rule):
         self, path: Path, source: str, root: Path
     ) -> list[Diagnostic]:
         relative = path.resolve().relative_to(root.resolve()).as_posix()
-        if relative == self.ALLOWED_FILE or relative.startswith("modkit/"):
+        if (
+            relative == self.ALLOWED_FILE
+            or relative.startswith("EngineTools/modkit/")
+        ):
             return []
 
         findings: list[Diagnostic] = []

@@ -75,7 +75,7 @@
 - Shop 窗口是占位还是由 GBIS 驱动。
 - GBIS 的 `inventory_names`/`opened_containers` 是否官方扩展点。
 - `Warehouse.page_index` 是否死代码。
-- `modkit/` 是否直接调用 ModLoader/SaveManager。
+- `EngineTools/modkit/` 是否直接调用 ModLoader/SaveManager。
 
 ## 6. 维护
 

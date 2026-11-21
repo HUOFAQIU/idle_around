@@ -33,9 +33,9 @@
 | 新增魂灵/怪物/魂器/技能/窗口/特效 | `架构/扩展点.md` | `base_mods/core/`、`game/content/`、`Main/control.gd` |
 | 改 mod 加载/内容注册/存档兼容/管理窗口/加载顺序 | `架构/Mod系统.md` | `Scripts/mod/`、`Scripts/collection_db.gd`、`Scripts/save/`、`Windows/ModWindow/` |
 | mod 未生效/内容缺失/orphaned/Cue 未注册/顺序不生效 | `架构/Mod系统.md` §11（常见排查） | `Scripts/mod/`、`Windows/ModWindow/` |
-| 新增/修改官方魂灵、怪物、魂器、Cue | `架构/Mod系统.md`、`指南/Mod制作.md` | `base_mods/core/mod.json`、`modkit/validate_core_manifest.gd` |
+| 新增/修改官方魂灵、怪物、魂器、Cue | `架构/Mod系统.md`、`指南/Mod制作.md` | `base_mods/core/mod.json`、`EngineTools/modkit/validate_core_manifest.gd` |
 | 查/改内容 ID、技能 ID、Cue 标签命名 | `指南/Mod制作.md` §3.1、`架构/Mod系统.md` §6 | `Scripts/mod/content_naming.gd`、`Scripts/mod/mod_loader.gd` |
-| 制作/打包/发布 mod、看示例 | `指南/Mod制作.md` | `Scripts/mod/`、`mods/example_souls/`、`modkit/` |
+| 制作/打包/发布 mod、看示例 | `指南/Mod制作.md` | `Scripts/mod/`、`mods/example_souls/`、`EngineTools/modkit/` |
 | 确认功能是否已实现/已知坑 | `架构/现状与注意.md` | — |
 | AI/自动化测试、构造战斗或背包场景 | `指南/AI测试接口.md`、`指南/命令控制台.md` | `Scripts/test_api.gd`、`Scripts/test_api/`、`Scripts/commands/` |
 | 提交前检查、新增 lint 规则、判断规范该放代码还是文档 | `指南/代码检查.md`、`指导文件.md` | `tools/check.sh`、`tools/lint/` |
@@ -50,7 +50,8 @@
 | 改地图物品/05 面地图板/地图刷怪/完成重开/数量石 | `战斗/地图.md` | `game/content/map_*.gd`、`Scripts/map_board.gd`、`Main/Cube/Scripts/map_board_content.gd`、`game/battle/map_run.gd` |
 | 改模块边界/拆分或深化模块/收敛入口/判断该不该加 seam | `架构/边界与seam.md` | `Scripts/`、`game/`、`Windows/`、`Main/` |
 | 改魂灵/魂器 tooltip 内容/格式 | `魂灵/魂灵.md`、`魂灵/魂器.md`、`架构/窗口与场景.md` | `Windows/Tooltip/` |
-| 改颜色/色板（战斗状态/UI/场景/特效） | `架构/颜色与主题.md` | `Scripts/game_colors.gd`、`Scripts/game_color_catalog.gd`、`addons/color_catalog/` |
+| 改颜色/色板（战斗状态/UI/场景/特效） | `架构/颜色与主题.md` | `Scripts/game_colors.gd`、`Scripts/game_color_catalog.gd`、`EngineTools/color_catalog/` |
+| 改引擎工具（看板/色板/modkit） | `架构/00_总览.md`、`架构/颜色与主题.md`、`指南/Mod制作.md` | `EngineTools/` |
 | 改见闻/图鉴/解锁（怪物/魂灵/魂器） | `窗口/见闻窗口.md` | `Scripts/collection_db.gd`、`Windows/Collection/` |
 | 改仓库窗口/背包理念/仓库分页 | `窗口/仓库窗口.md` | `Windows/Inventory/`、`Scripts/warehouse.gd` |
 | 改人物属性 | `属性/人物属性.md` | `godot_gas/attributes/player_stats_attribute_set.gd` |

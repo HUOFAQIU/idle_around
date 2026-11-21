@@ -5,12 +5,12 @@ description: Package this project's Godot mods with modkit — example mod PCK, 
 
 # 打包 / 校验 Mod
 
-详细规则以 `modkit/README.md` 和 `DOC/指南/Mod制作.md` 为准；这里只放执行步骤。
+详细规则以 `EngineTools/modkit/README.md` 和 `DOC/指南/Mod制作.md` 为准；这里只放执行步骤。
 
 ## 1. 打包示例 mod
 
 ```text
-"U:/Godot_ver/Godot_v4.7.2-stable_win64.exe/Godot_v4.7.2-stable_win64.exe" --headless --path "U:/Godot_Project/idle_around" --script res://modkit/pack_example.gd
+"U:/Godot_ver/Godot_v4.7.2-stable_win64.exe/Godot_v4.7.2-stable_win64.exe" --headless --path "U:/Godot_Project/idle_around" --script res://EngineTools/modkit/pack_example.gd
 ```
 
 输出：
@@ -28,7 +28,7 @@ description: Package this project's Godot mods with modkit — example mod PCK, 
 
 1. 复制 `mods/example_souls/` 为 `mods/<mod_id>/`。
 2. 同步修改 `mod.json` 的 `id`、`name`、`version`、`author`、`content`，以及所有内容 ID。
-3. 复制 `modkit/pack_example.gd` 并改 `MOD_ID`；或临时改原脚本后记得改回。
+3. 复制 `EngineTools/modkit/pack_example.gd` 并改 `MOD_ID`；或临时改原脚本后记得改回。
 4. 命名规则：
    - 魂灵/怪物：`<mod_id>:<local_id>`，local_id 小写 snake_case，魂灵以 `_soul` 结尾、怪物以 `_monster` 结尾。
    - 技能：`Mod.<PascalModId>.<PascalName>`。
@@ -40,8 +40,8 @@ description: Package this project's Godot mods with modkit — example mod PCK, 
 改完官方内容或容器名后按需运行：
 
 ```text
-godot --headless --path "U:/Godot_Project/idle_around" --script res://modkit/validate_core_manifest.gd
-godot --headless --path "U:/Godot_Project/idle_around" --script res://modkit/validate_container_ids.gd
+godot --headless --path "U:/Godot_Project/idle_around" --script res://EngineTools/modkit/validate_core_manifest.gd
+godot --headless --path "U:/Godot_Project/idle_around" --script res://EngineTools/modkit/validate_container_ids.gd
 ```
 
 - `validate_core_manifest.gd`：`base_mods/core/mod.json` 与实际文件是否一一对应、ID/路径重复、技能 ID 派生是否一致。退出码 `0` 通过。
@@ -58,4 +58,4 @@ godot --headless --path "U:/Godot_Project/idle_around" --script res://modkit/val
   content.pck
 ```
 
-整个文件夹压缩上传即可。不要把 `mods/`、`modkit/` 打进正式游戏包；导出排除规则见 `DOC/指南/Mod制作.md`。
+整个文件夹压缩上传即可。不要把 `mods/`、`EngineTools/` 打进正式游戏包；导出排除规则见 `DOC/指南/Mod制作.md`。

@@ -1,6 +1,6 @@
 # 给游戏加特效（GameplayCue）
 
-> 类型：指南 | 状态：有效 | 核对：2026-11-15
+> 类型：指南 | 状态：有效 | 核对：2026-11-21
 > 何时读：新增/调试 GameplayCue 特效
 > 关键词：特效 GameplayCue Cue 场景 对象池 补间 注册 挂钩 灼烧 剧毒 冻结 爪痕 hit_cue_tag 命中特效 mod 内置 core manifest
 > 代码：`base_mods/core/mod.json`、`godot_gas/cue_registry.tres`、`addons/GodotGAS/cues/`、`Scripts/mod/mod_cue_registrar.gd`
@@ -124,16 +124,12 @@ func execute_cue(target: Node, payload: Dictionary = {}) -> void:
 
 ## 四、基类给了什么
 
-`GameplayCueNotify` 上的东西：
+`GameplayCueNotify` 的成员见 `addons/GodotGAS/cues/gameplay_cue_notify.gd`，要点：
 
-| 成员 | 作用 |
-|---|---|
-| `play_cue()` | **你重写这个**。播你的粒子/动画/音效 |
-| `finish_cue()` | 手动宣布"播完了"，还回池子。挂到 `AudioStreamPlayer.finished` 之类上很合适 |
-| `end_cue()` | 持续型 cue 被收走时调用，默认直接 `finish_cue()`，可以重写成淡出 |
-| `auto_destroy` | 默认 `true`：到点自动还池。持续型光环设成 `false` |
-| `destroy_delay` | 自动还池前的等待秒数，默认 2.0 |
-| `gameplay_cue_tag` | 管理器填进来的本次标签，播的时候想知道自己是谁就用它 |
+- 重写 `play_cue()` 播自己的粒子/动画/音效；播完调 `finish_cue()` 还池，挂到 `AudioStreamPlayer.finished` 之类上最自然。
+- 持续型 Cue 设 `auto_destroy = false`，被收走时由 `end_cue()` 收尾（默认直接 `finish_cue()`，可重写成淡出）。
+- `destroy_delay`（默认 2.0）是"多久之后还池"，不是动画时长。
+- `gameplay_cue_tag` 是管理器填进来的本次标签，播的时候想知道自己是谁就读它。
 
 ---
 
@@ -185,19 +181,8 @@ print(img.get_pixel(origin + Vector2i(x, y)))   # x, y 是面板内部坐标
 
 ## 七、现有示例
 
-| 东西 | 在哪 |
-|---|---|
-| 注册表 | 官方：`base_mods/core/mod.json` 的 `content.cues`；第三方：各自的 `mod.json` |
-| 管理器（autoload） | `GameplayCueManager`：`addons/GodotGAS/managers/gameplay_cue_manager.gd` |
-| mod 注册（autoload） | `ModCueRegistrar`：`Scripts/mod/mod_cue_registrar.gd` |
-| 基类 | `addons/GodotGAS/cues/gameplay_cue_notify.gd` |
-| 挂点字段 | `addons/GodotGAS/effects/gameplay_effect.gd` 的 Cue Management 一节 |
-| 灼烧光环 | `base_mods/core/cues/burn_cue.tscn`；标签 `Cue.Status.Burn`；挂在 `base_mods/core/effects/burn_tick.tres` 的 `persistent_cue_tags` |
-| 剧毒施加飞溅 | `base_mods/core/cues/poison_splash_cue.tscn`；标签 `Cue.Combat.PoisonApply`；挂在 `base_mods/core/effects/poison_tick.tres` 的 `application_cue_tags` |
-| 中毒气泡光环 | `base_mods/core/cues/poison_aura_cue.tscn`；标签 `Cue.Status.Poison`；挂在 `poison_tick.tres` 的 `persistent_cue_tags` |
-| 冻结光环 | `base_mods/core/cues/freeze_cue.tscn`；标签 `Cue.Status.Freeze`；挂在 `base_mods/core/effects/freeze_unit.tres` 的 `persistent_cue_tags` |
-| 左右交替爪痕 | `base_mods/core/cues/claw_slash_cue.tscn`；标签 `Cue.Combat.ClawSlash`；由技能资源的 `hit_cue_tag` 触发；方向由 `AutoCastAbility` 按每颗魂灵的命中次数交替传入 |
+- 注册表：官方在 `base_mods/core/mod.json` 的 `content.cues`，第三方在各自 `mod.json`；`GameplayCueManager`（addon autoload）持有注册结果，`ModCueRegistrar`（`Scripts/mod/mod_cue_registrar.gd`）负责注册。
+- 基类 `addons/GodotGAS/cues/gameplay_cue_notify.gd`；效果挂点在 `addons/GodotGAS/effects/gameplay_effect.gd` 的 Cue Management 一节（`application/persistent/periodic/removal_cue_tags`），技能侧挂点是 `UnitSkillStep.hit_cue_tag`。
+- 内置 Cue 场景都在 `base_mods/core/cues/`；标签、场景路径和挂载关系以 `base_mods/core/mod.json` 与 `base_mods/core/effects/*.tres` 为准。
 
 魂灵格子被冻结时走的是 `ItemView` 的材质表现，不走 Cue：`SoulRuntime.freeze_seconds` 驱动 `soul_scanline.gdshader` 的 `freeze` 参数和 `game/content/Kits/bingdong.tscn` 徽章。原因是魂灵的显示对象是 UI `Control`，而不是可以挂 Cue 的战场节点。
-
-（项目里原本有一个示例"受击火花"，后来按需要删掉了 —— 自己写的时候照上面三步来就行。）

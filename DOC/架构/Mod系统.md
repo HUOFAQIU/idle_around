@@ -175,8 +175,8 @@ res://mods/example_souls/content/monsters/fire_wolf_monster.tres
 
 ### 8.4 内置 core
 
-- 清单在 `base_mods/core/mod.json`，当前 `souls` 19 条、`monsters` 2 条、`vessels` 1 条、`cues` 5 条；技能、触发器、effects 不单独登记，由资源内部引用。
-- `content_namespace: "global"` 保留原 ID；内容资源位于 `base_mods/core/` 的 `souls/`、`monsters/`、`vessels/`、`effects/`、`cues/`。
+- 清单在 `base_mods/core/mod.json`，条目与 ID 以该文件为准；技能、触发器、effects 不单独登记，由资源内部引用。
+- `content_namespace: "global"` 保留原 ID；内容资源按 `souls/`、`monsters/`、`vessels/`、`effects/`、`cues/` 分目录存放。
 - 官方 Cue 场景在 `base_mods/core/cues/`，逻辑脚本仍在 `game/battle/cues/`；`godot_gas/cue_registry.tres` 为空。
 - 导出时 `export_presets.cfg` 的 `include_filter` 必须包含 `base_mods/*/mod.json`；`exclude_filter` 用 `mods/*,EngineTools/*`，不能写成 `*mods/*`，否则会误伤 `base_mods/`。
 - 改完官方内容后运行 `EngineTools/modkit/validate_core_manifest.gd`（或 `TestAPI.validate_core_manifest()`），检查 manifest 是否漏登记、路径不存在、ID 重复，以及资源是否误设中文 `resource_name`；内容种类、字段名与文件后缀来自 `ContentKindSpec`，校验器不再复制这些常量；技能由 `SkillDefinition.steps` 组成，步骤类型、目标规则与字段是否一致由 ModLoader 在加载期检查；执行器字段（`attribute_name`、数值范围、`burn_effect` 等）也在加载期校验；怪物会校验 `display_name`、`max_health`、`attack_range`、`move_speed` 和 `battle_scene`。

@@ -177,8 +177,7 @@ user://mods/example_souls/
 
 ## 9. 官方内置内容（core）
 
-- 清单：`base_mods/core/mod.json`；内容资源已经物理迁移到 `base_mods/core/` 的 `souls/`、`monsters/`、`vessels/`、`effects/`、`cues/`，manifest 不再填写 `content_root`。
-- 当前条目：`souls` 19 条、`monsters` 2 条、`vessels` 1 条、`cues` 5 条。技能、触发器、effects 不单独登记，由魂灵/技能资源内部引用。
+- 清单：`base_mods/core/mod.json`。内容资源按 `souls/`、`monsters/`、`vessels/`、`effects/`、`cues/` 分目录存放，manifest 不再填写 `content_root`；现存条目和 ID 以这个文件为准。技能、触发器、effects 不单独登记，由魂灵/技能资源内部引用。
 - 新增官方魂灵：把 `.tres` 放到 `base_mods/core/souls/<name>/`，在 `content.souls` 加 `{ "id": "<id>", "path": "souls/<name>/<file>.tres" }`。
 - 新增官方怪物：数据放 `base_mods/core/monsters/<name>/`，在 `content.monsters` 加 `{ "id": "<id>", "path": "monsters/<name>/<file>.tres" }`；`display_name` / `max_health` / `attack_range` / `move_speed` / `spawn_distances` / `icon` / `battle_scene` 都配在 `MonsterData`，战斗场景不再写这些字段。
 - 新增官方魂器：数据放 `base_mods/core/vessels/<name>/`，在 `content.vessels` 加 `{ "id": "<id>", "path": "vessels/<name>/<file>.tres" }`；字段见 `魂灵/魂器.md`，`item_name` / `category = "VESSEL"` / `vessel_kind` / 内部容器尺寸 / 效果都配在 `SoulVesselData`。

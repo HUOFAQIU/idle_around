@@ -23,28 +23,7 @@
 
 ### 1.2 分层与主要类
 
-```
-core/
-├─ grid_base_inventory_system.gd        GBIS autoload：信号、Service、全局配置
-├─ model/
-│  ├─ item/ItemData                     物品基类：名称、类型、图标、占格、材质、shader 参数
-│  ├─ item/SoulData                     extends ItemData：技能、触发规则、类型/标签/尺寸；运行期状态在游戏层 SoulRuntime
-│  ├─ item/SoulVesselData               extends ItemData：魂器类型、内部容器尺寸、效果、运行时 contents
-│  └─ container/ContainerData           网格容器：格子↔物品映射、放置规则
-├─ repository/
-│  └─ ContainerRepository               所有 ContainerData 的存取与存档
-├─ service/
-│  ├─ BaseContainerService              注册容器、按格子/名字查物品、放置物品
-│  ├─ InventoryService                  背包：添加/移除/使用/分割/快速移动
-│  ├─ MovingItemService                 拖拽中的物品与跟随鼠标的 ItemView
-│  └─ ItemFocusService                  鼠标当前悬停的物品（tooltip 用）
-└─ view/
-   ├─ container/BaseContainerView       容器视图基类：网格 + 物品绘制
-   ├─ container/InventoryView           背包视图（可配置类型/魂器类型/件数）
-   ├─ container/BaseGridView            单个格子的绘制与悬停
-   ├─ container/InventoryGridView       背包格子输入：左键拿/放、右键用、Shift+左键快移、Shift+右键快卖、中键分割
-   └─ item/ItemView                     物品图标 + 魂灵名称 Label + 堆叠数字 + shader 参数 + 魂灵加速/减速/冻结徽章（仅绑定运行期状态时创建）
-```
+`core/` 按 `model/`（`ItemData` / `SoulData` / `SoulVesselData` / `ContainerData`）、`repository/`（`ContainerRepository`）、`service/`（容器 / 背包 / 拖拽 / 悬停）、`view/`（容器与物品绘制）分层，类清单以目录为准；`grid_base_inventory_system.gd` 是 autoload 入口。`SoulData` 的技能/触发规则在基类上，运行期状态在游戏层 `SoulRuntime`。
 
 未接入的 `StackableData`、`ConsumableData`、`EquipmentData`、`EquipmentSlot*`、`DropAreaView` 见 1.8；商店见 1.7。
 
@@ -54,14 +33,7 @@ core/
 
 ### 1.3 GBIS 信号
 
-| 信号 | 参数 | 用途 |
-|---|---|---|
-| `sig_inv_item_added` | `inv_name, item_data, grids` | 背包新增物品 |
-| `sig_inv_item_removed` | `inv_name, item_data` | 背包移除物品 |
-| `sig_inv_item_updated` | `inv_name, grid_id` | 物品数量/外观更新 |
-| `sig_inv_refresh` | 无 | 整包刷新 |
-| `sig_item_focused` | `item_data, container_name` | 鼠标悬停到物品 |
-| `sig_item_focus_lost` | `item_data` | 鼠标离开物品 |
+信号声明在 `core/grid_base_inventory_system.gd`，参数以声明为准；视图只监听，不互相引用。
 
 当前项目实际监听：
 

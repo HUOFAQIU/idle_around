@@ -76,12 +76,12 @@ static func eject_map_from_board(slot_index : int) -> bool:
 	return MapBoard.eject(slot_index)
 
 
-static func start_map_battle_from_board(slot_index : int) -> bool:
+static func click_map_start_button(slot_index : int) -> bool:
 	var content := CUBE.face_content(GameFlow.FACE_MAP) as MapBoardContent
 	if content == null:
 		push_warning("TestAPI：找不到地图板内容")
 		return false
-	if not content.activate_map_button(slot_index):
+	if not content.activate_start_button(slot_index):
 		return false
 	return true
 

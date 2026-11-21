@@ -210,10 +210,13 @@ class InlineColorRule(Rule):
 
 
 def build_rules(root: Path) -> list[Rule]:
+    from boundaries import DependencyBoundaryRule
+
     return [
         NoCommentsRule(),
         ResourceNameRule(),
         FileAccessBoundaryRule(root),
         ModPathRule(),
         InlineColorRule(),
+        DependencyBoundaryRule(root),
     ]

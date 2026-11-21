@@ -39,7 +39,6 @@ TestAPI.stop_battle()
 | `add_soul(id, container := "") -> bool` | 按 content_id 放入指定容器；`container` 为空时从仓库第 1 页开始找空位；容器不存在返回 `false` |
 | `has_container(container) -> bool` | 容器名是否已注册 |
 | `get_container_names() -> PackedStringArray` | 已注册容器名（仓库页 / 魂器网格 / 商店），命令补全共用 |
-| `add_soul_to_warehouse(id) -> bool` | 按 content_id 放入仓库，从第 1 页开始找空位 |
 | `show_shop() -> bool` | 显示商店窗口；找不到窗口返回 `false` |
 | `shop_add_soul(id) -> bool` | 按 content_id 往 `shop_0` 追加一颗魂灵；清空用 `clear_container("shop_0")` |
 | `pick_up_item(container, grid_id) -> bool` | 模拟左键从格子拿起物品，进入拖拽状态 |
@@ -81,7 +80,7 @@ TestAPI.stop_battle()
 
 仓库/见闻悬停的 `TooltipWindow` 正文现在由内嵌 `TerminalView` 渲染：传入 `SoulTooltip.build(..., Format.PLAIN)` / `VesselTooltip.build(..., Format.PLAIN)`，窗口内部转 ANSI 并显示调试网格；`text` 方法返回的就是这份输入，`bbcode` / `ansi` 用于对比和直接喂终端。
 
-`kind` 用 `ContentKind.Kind.SOUL` / `ContentKind.Kind.MONSTER` / `ContentKind.Kind.VESSEL`。见闻窗口的魂灵/魂器条目悬停使用与仓库相同的 tooltip（魂灵 `SoulTooltip.build()`，魂器 `VesselTooltip.build()`）；右键已遇见魂灵等价于 `add_soul_to_warehouse(id)`，右键已遇见魂器等价于 `add_vessel(id)`。魂器首次进入任意容器即解锁：
+`kind` 用 `ContentKind.Kind.SOUL` / `ContentKind.Kind.MONSTER` / `ContentKind.Kind.VESSEL`。见闻窗口的魂灵/魂器条目悬停使用与仓库相同的 tooltip（魂灵 `SoulTooltip.build()`，魂器 `VesselTooltip.build()`）；右键已遇见魂灵等价于 `add_soul(id)`，右键已遇见魂器等价于 `add_vessel(id)`。魂器首次进入任意容器即解锁：
 
 ```gdscript
 var vessel_id: StringName = TestAPI.get_vessel_ids()[0]
@@ -89,7 +88,7 @@ TestAPI.add_vessel(vessel_id)
 print(TestAPI.is_seen(ContentKind.Kind.VESSEL, vessel_id))  # true
 ```
 
-仓库有 10 页（`inventory_0..inventory_9`）。测试时用 `add_soul_to_warehouse()` 自动入页，或 `set_warehouse_page()` 切到指定页观察显示；页码从 0 开始。
+仓库有 10 页（`inventory_0..inventory_9`）。测试时用 `add_soul()` 自动入页，或 `set_warehouse_page()` 切到指定页观察显示；页码从 0 开始。
 
 拖拽取消可以这样验证：
 
@@ -109,7 +108,7 @@ TestAPI.drop_moving_item("inventory_0", Vector2i(5, 0))  # 放到指定格
 |---|---|
 | `save_now() -> bool` | 立即写当前活动槽；没有活动槽返回 false |
 | `load_save_slot(slot) -> bool` | 完整流程读档：保存当前槽（如有）、结束战斗/关面板、读取目标槽、锁 04/解锁 02、翻到 02 面 |
-| `load_save_slot_raw(slot) -> bool` | 直接调 `SaveManager.load_slot()`，不改变 `GameFlow` 状态和立方体朝向；用于存档格式/迁移测试 |
+| `load_save_slot_direct(slot) -> bool` | 直接调 `SaveManager.load_slot()`，不改变 `GameFlow` 状态和立方体朝向；用于存档格式/迁移测试 |
 | `new_game(character_id = &"small_coal_lamp") -> bool` | 完整新游戏流程：01 面新游戏 → 04 面选角 → 02 面；占第一个空槽 |
 | `delete_save_slot(slot) -> bool` | 绕过 UI 直接删除指定槽的磁盘文件；删活动槽会断开活动槽，`GameFlow` 回到 `NO_SESSION`/01 面 |
 | `has_save() -> bool` | 是否存在任意可读槽 |
@@ -130,7 +129,7 @@ TestAPI.add_soul(TestAPI.get_soul_ids()[0])
 TestAPI.save_now()
 print(TestAPI.get_save_path(0))
 TestAPI.clear_container("inventory_0")
-TestAPI.load_save_slot_raw(0)            # 只验证存档恢复
+TestAPI.load_save_slot_direct(0)            # 只验证存档恢复
 print(TestAPI.get_container_items("inventory_0"))
 TestAPI.delete_save_slot(0)
 ```
@@ -180,7 +179,7 @@ print(TestAPI.get_mod_load_order())
 
 - 内置 core 清单在 `base_mods/core/mod.json`，固定启用、排序最前；第三方 mod 目录是 `user://mods/<mod_id>/`，最小结构 `mod.json` + `content.pck`，开发期可以只放 loose 目录。
 - 制作和字段说明见 `指南/Mod制作.md`，加载规则见 `架构/Mod系统.md`。core 内容 ID 不带前缀，第三方内容 ID 带 `<mod_id>:` 前缀，都可以直接传给 `add_soul()` / `get_soul_ids()`。
-- 装好示例 mod 后，可以用 `TestAPI.add_soul_to_warehouse(&"example_souls:fire_wolf_soul")` 验证。示例源码在 `mods/example_souls/`，打包脚本是 `EngineTools/modkit/pack_example.gd`。
+- 装好示例 mod 后，可以用 `TestAPI.add_soul(&"example_souls:fire_wolf_soul")` 验证。示例源码在 `mods/example_souls/`，打包脚本是 `EngineTools/modkit/pack_example.gd`。
 
 ## 窗口
 
@@ -291,7 +290,7 @@ print(TestAPI.click_cube_pet_button(&"inventory"))
 | `submit_map_to_board(map_id := &"forest_map") -> Dictionary` | 走 `MapBoard.submit`：`status` 为 `placed/queued/rejected`，附 `slot` |
 | `settle_pending_map() -> Dictionary` | 中心待放地图进场；返回同上 |
 | `eject_map_from_board(slot_index) -> bool` | 走地图按钮右上角 ⬇ 的退回仓库流程 |
-| `start_map_battle_from_board(slot_index) -> bool` | 走 05 面按钮点击：打开战斗窗口并按这张图开战 |
+| `click_map_start_button(slot_index) -> bool` | 模拟 05 面地图槽的开始按钮：打开战斗窗口并按这张图开战 |
 | `click_map_drop_slot() -> bool` | 模拟点击中心槽；先把地图拿在手上，再调用它 |
 
 ## 战斗

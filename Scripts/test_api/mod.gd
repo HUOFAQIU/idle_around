@@ -60,8 +60,8 @@ static func show_mod_window() -> bool:
 	var window := _mod_window()
 	if window == null:
 		return false
-	if not window.visible:
-		window.open_window()
+	if not window.visible and not COMMON.show_window(window):
+		return false
 	window.refresh()
 	return true
 

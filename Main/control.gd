@@ -28,11 +28,7 @@ func _ready() -> void:
 
 
 func open_panel(panel_id: StringName) -> void:
-	popup_window(_panels.get(panel_id) as BaseWindow)
-
-
-func popup_window(window: BaseWindow) -> void:
-	panel_manager.toggle(window)
+	panel_manager.toggle(_panels.get(panel_id) as BaseWindow)
 
 
 func close_all_panels() -> void:

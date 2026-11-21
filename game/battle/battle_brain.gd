@@ -134,10 +134,10 @@ func advance() -> void:
 		var charged := ability as ChargedAbility
 		if charged == null:
 			continue
-		charged.tick_activation_lock(base_units)
+		charged.advance_activation_lock(base_units)
 		if not frozen and not charged.is_frozen():
-			charged.tick_charge(base_units)
-		charged.tick_status(base_units)
+			charged.advance_charge(base_units)
+		charged.advance_status(base_units)
 
 	if frozen:
 		return

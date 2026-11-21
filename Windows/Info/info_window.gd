@@ -56,7 +56,7 @@ func toggle() -> void:
 		hide()
 		return
 	_needs_rebuild = true
-	open_window()
+	_open_window()
 	if _needs_rebuild:
 		_rebuild_log()
 

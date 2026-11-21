@@ -33,7 +33,7 @@ Windows 下 `user://` 是 `%APPDATA%\Godot\app_userdata\idle_around\`。
 6. 用测试接口把示例魂灵放进仓库：
 
 ```gdscript
-TestAPI.add_soul_to_warehouse(&"example_souls:fire_wolf_soul")
+TestAPI.add_soul(&"example_souls:fire_wolf_soul")
 ```
 
 ## 校验内置 core manifest

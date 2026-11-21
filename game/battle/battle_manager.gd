@@ -92,7 +92,7 @@ func trigger_listeners(event_tag: StringName) -> Array[BattleUnit]:
 	return result
 
 
-func start_battle() -> void:
+func begin() -> void:
 	is_running = true
 	_tick_count = 0
 

@@ -7,6 +7,7 @@ const SCAN_DIRS: Array[String] = [
 	"res://godot_gas",
 	"res://Windows",
 	"res://EngineTools/modkit",
+	"res://tools/scenarios",
 ]
 
 
@@ -38,7 +39,7 @@ func _collect(dir_path: String, out: Array[String]) -> void:
 			var full := dir_path.path_join(entry)
 			if dir.current_is_dir():
 				_collect(full, out)
-			elif entry.ends_with(".gd"):
+			elif entry.ends_with(".gd") or entry.ends_with(".tscn") or entry.ends_with(".tres"):
 				out.append(full)
 		entry = dir.get_next()
 	dir.list_dir_end()

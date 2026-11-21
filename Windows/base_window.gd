@@ -39,7 +39,7 @@ func _ready() -> void:
 	_sync_title()
 
 
-func open_window() -> void:
+func _open_window() -> void:
 	_wrap_content()
 	var target_size := _popup_size()
 	size = target_size

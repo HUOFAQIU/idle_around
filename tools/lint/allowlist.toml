@@ -1,7 +1,38 @@
 # 例外必须写原因和过期日期；过期或未命中都会让检查失败。
+# 未命中只在全量检查时判红：--staged / --file 只看到部分文件，不能据此删例外。
 #
 # [[allow]]
 # rule = "no-comments"
 # path = "Scripts/example.gd"
 # reason = "这里保留旧实现对照，2027 年前删除"
 # expires = "2027-01-01"
+
+[[allow]]
+rule = "dependency-boundary"
+path = "Windows/Battle/battle_window.gd"
+reason = "战斗窗口读外壳输入面的鼠标捕获状态；待把输入门控抽成独立接口"
+expires = "2027-03-01"
+
+[[allow]]
+rule = "dependency-boundary"
+path = "Windows/Inventory/grid_base_inventory_system/core/view/drag_presenter.gd"
+reason = "GBIS 拖拽表现直接开物品窗口；待开窗收敛到统一入口"
+expires = "2027-03-01"
+
+[[allow]]
+rule = "dependency-boundary"
+path = "game/battle/battle_session.gd"
+reason = "战斗结算直接写 Warehouse 单例；待改成注入的仓库端口"
+expires = "2027-03-01"
+
+[[allow]]
+rule = "dependency-boundary"
+path = "game/content/map_catalog.gd"
+reason = "地图目录硬编码内置 core mod 的地图资源；待改走 ModLoader 资源注册"
+expires = "2027-03-01"
+
+[[allow]]
+rule = "dependency-boundary"
+path = "game/content/map_catalog.gd"
+reason = "同上：数量石物品资源同样硬编码内置 core mod"
+expires = "2027-03-01"

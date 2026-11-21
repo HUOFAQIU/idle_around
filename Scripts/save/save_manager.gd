@@ -44,7 +44,7 @@ func _process(delta: float) -> void:
 	_play_time_sec += delta
 	if _loading or _pipeline.is_read_only():
 		return
-	if _scheduler.tick(delta):
+	if _scheduler.advance(delta):
 		save_now()
 
 

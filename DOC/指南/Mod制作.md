@@ -117,7 +117,7 @@ user://mods/example_souls/
   --script res://EngineTools/modkit/pack_example.gd
 ```
 
-脚本会生成 `user://mods/example_souls/content.pck` 并把 `mod.json` 复制到旁边。打包脚本走 `--script` 模式；`SaveManager` 检测到没有主场景会跳过读档，不会碰存档。重启游戏后，Mod 窗口里能看到 `Example Souls`；用 `TestAPI.add_soul_to_warehouse(&"example_souls:fire_wolf_soul")` 可以把魂灵放进仓库。
+脚本会生成 `user://mods/example_souls/content.pck` 并把 `mod.json` 复制到旁边。打包脚本走 `--script` 模式；`SaveManager` 检测到没有主场景会跳过读档，不会碰存档。重启游戏后，Mod 窗口里能看到 `Example Souls`；用 `TestAPI.add_soul(&"example_souls:fire_wolf_soul")` 可以把魂灵放进仓库。
 
 改一个新 mod 时，复制 `mods/example_souls/` 为 `mods/<mod_id>/`，同步修改 `mod.json` 的 `id`、内容 ID、技能 ID（`Mod.<PascalModId>.<PascalName>`）和 Cue 前缀，再复制或改造 `pack_example.gd` 里的 `MOD_ID`。`mods/` 和 `EngineTools/modkit/` 不会打进正式游戏包。
 

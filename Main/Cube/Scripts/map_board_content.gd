@@ -43,7 +43,7 @@ func content_id() -> StringName:
 	return &"map_board"
 
 
-func activate_map_button(slot_index: int) -> bool:
+func activate_start_button(slot_index: int) -> bool:
 	if slot_index < 0 or slot_index >= _slot_entries.size():
 		return false
 	return _slot_entries[slot_index].activate()

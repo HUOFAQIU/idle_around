@@ -21,6 +21,7 @@ FIRST_PARTY_ROOTS = (
     "godot_gas",
     "Windows",
     "EngineTools/modkit",
+    "tools/scenarios",
 )
 RELEVANT_SUFFIXES = {".gd", ".tscn", ".tres"}
 ALLOWLIST_PATH = Path(__file__).resolve().parent / "allowlist.toml"
@@ -157,7 +158,10 @@ def _load_allowlist() -> tuple[list[AllowEntry], list[Diagnostic]]:
 
 
 def _apply_allowlist(
-    diagnostics: list[Diagnostic], entries: list[AllowEntry], root: Path
+    diagnostics: list[Diagnostic],
+    entries: list[AllowEntry],
+    root: Path,
+    report_unused: bool,
 ) -> list[Diagnostic]:
     kept: list[Diagnostic] = []
     for diagnostic in diagnostics:
@@ -180,17 +184,18 @@ def _apply_allowlist(
         if not matched:
             kept.append(diagnostic)
 
-    for entry in entries:
-        if not entry.used:
-            kept.append(
-                Diagnostic(
-                    ALLOWLIST_PATH,
-                    1,
-                    1,
-                    "allowlist-unused",
-                    f"例外没有命中，删除它：{entry.rule} {entry.path}",
+    if report_unused:
+        for entry in entries:
+            if not entry.used:
+                kept.append(
+                    Diagnostic(
+                        ALLOWLIST_PATH,
+                        1,
+                        1,
+                        "allowlist-unused",
+                        f"例外没有命中，删除它：{entry.rule} {entry.path}",
+                    )
                 )
-            )
     return kept
 
 
@@ -251,7 +256,10 @@ def main(argv: list[str] | None = None) -> int:
 
     entries, allow_errors = _load_allowlist()
     diagnostics = allow_errors + _apply_allowlist(
-        diagnostics, entries, root
+        diagnostics,
+        entries,
+        root,
+        report_unused=not (args.file or args.staged),
     )
     diagnostics.sort(
         key=lambda item: (

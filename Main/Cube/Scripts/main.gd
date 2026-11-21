@@ -71,7 +71,7 @@ func _on_map_battle_requested(slot_index: int) -> void:
 	if battle.is_battling_slot(slot_index):
 		_game_ui.panel_manager.raise(battle)
 		return
-	battle.start_map_battle(map_item, slot_index)
+	battle.start_battle(map_item, slot_index)
 	_game_ui.panel_manager.raise(battle)
 
 

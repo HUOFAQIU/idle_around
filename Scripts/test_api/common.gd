@@ -20,6 +20,16 @@ static func find_node_in_scene(type : Variant, node_name : StringName = &"") -> 
 	return null
 
 
+static func show_window(window : BaseWindow) -> bool:
+	if window == null:
+		return false
+	var manager := PanelManager.instance
+	if manager == null:
+		return false
+	manager.open(window)
+	return true
+
+
 static func find_unit(target : String) -> BattleUnit:
 	var root := scene_root()
 	if root == null:

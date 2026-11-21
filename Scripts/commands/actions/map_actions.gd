@@ -38,6 +38,6 @@ static func start(args: PackedStringArray) -> Dictionary:
 	var parsed: Dictionary = ARGS.int_arg(args[0], USAGE_START)
 	if not parsed.ok:
 		return parsed
-	if not MAP.start_map_battle_from_board(int(parsed.value)):
+	if not MAP.click_map_start_button(int(parsed.value)):
 		return CommandResult.fail("开战失败：该槽没有地图")
 	return CommandResult.ok(true)

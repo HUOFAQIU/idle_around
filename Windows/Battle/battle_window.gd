@@ -98,11 +98,11 @@ func _physics_process(_delta: float) -> void:
 	_push_scanlines()
 
 
-func start_map_battle(map_item: MapItemData, slot_index: int = -1) -> void:
+func start_battle(map_item: MapItemData, slot_index: int = -1) -> void:
 	if map_item == null or map_item.map_data == null:
 		return
 	if not visible:
-		open_window()
+		_open_window()
 	_map_item = map_item
 	_map_slot = slot_index
 	InfoWindow.instance.clear_log()
@@ -306,21 +306,6 @@ func spawn_monster_for_test(monster_id : StringName) -> bool:
 	return _session.spawn_monster_for_test(monster_id)
 
 
-func get_test_state() -> Dictionary:
-	if _session == null:
-		return {
-			"running": false,
-			"elapsed": 0.0,
-			"player": {},
-			"enemies": [],
-			"player_souls": [],
-			"map_id": "",
-			"map_finished": false,
-			"map": {},
-			"map_kills": {},
-			"pending_spawns": 0,
-		}
-	return _session.get_state()
 
 
 func get_fps_text_for_test() -> String:

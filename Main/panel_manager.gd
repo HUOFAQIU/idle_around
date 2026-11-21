@@ -28,7 +28,13 @@ func toggle(panel : BaseWindow) -> void:
 	if panel.visible:
 		panel.hide()
 		return
-	panel.open_window()
+	open(panel)
+
+
+func open(panel : BaseWindow) -> void:
+	if panel == null:
+		return
+	panel._open_window()
 
 
 func raise(panel : BaseWindow) -> void:

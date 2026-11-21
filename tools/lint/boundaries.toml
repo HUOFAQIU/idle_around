@@ -1,0 +1,121 @@
+# 层表：谁可以读谁。
+# 同层永远放行；目标不属于任何层时默认放行（Assets/、mods/、user://）。
+# 层按最长前缀匹配，子层因此能从父目录里独立出来。
+# 目标写目录前缀（带 /）或具体文件；reads 写 "*" 表示全部放行。
+
+[[layer]]
+name = "tools"
+paths = ["tools/", "EngineTools/"]
+reads = ["*"]
+
+[[layer]]
+name = "main"
+paths = ["Main/"]
+reads = ["*"]
+
+[[layer]]
+name = "test-api"
+paths = ["Scripts/test_api.gd", "Scripts/test_api/"]
+reads = ["*"]
+
+[[layer]]
+name = "windows"
+paths = ["Windows/"]
+reads = [
+    "Scripts/",
+    "game/",
+    "godot_gas/",
+    "addons/",
+    "base_mods/",
+    "Assets/",
+    "Windows/Inventory/grid_base_inventory_system/",
+    "Main/panel_manager.gd",
+]
+
+[[layer]]
+name = "gbis"
+paths = ["Windows/Inventory/grid_base_inventory_system/"]
+reads = [
+    "game/",
+    "addons/",
+    "Assets/",
+    "Scripts/game_colors.gd",
+    "Scripts/soul_text.gd",
+    "Scripts/mod/",
+    "Scripts/collection_db.gd",
+]
+
+[[layer]]
+name = "script"
+paths = ["Scripts/"]
+reads = [
+    "Windows/Inventory/grid_base_inventory_system/",
+    "game/",
+    "godot_gas/",
+    "addons/",
+    "base_mods/",
+    "Assets/",
+    "Scripts/test_api.gd",
+    "Scripts/test_api/",
+]
+
+[[layer]]
+name = "content-def"
+paths = ["game/content/"]
+reads = [
+    "game/",
+    "Windows/Inventory/grid_base_inventory_system/",
+    "godot_gas/",
+    "addons/",
+    "Assets/",
+    "Scripts/game_colors.gd",
+    "Scripts/debug/",
+    "Scripts/save/",
+    "Scripts/mod/",
+    "Scripts/collection_db.gd",
+]
+
+[[layer]]
+name = "domain"
+paths = ["game/"]
+reads = [
+    "game/content/",
+    "Windows/Inventory/grid_base_inventory_system/",
+    "godot_gas/",
+    "addons/",
+    "Assets/",
+    "Scripts/game_colors.gd",
+    "Scripts/debug/",
+    "Scripts/save/",
+    "Scripts/collection_db.gd",
+]
+
+[[layer]]
+name = "gas"
+paths = ["godot_gas/"]
+reads = ["addons/"]
+
+[[layer]]
+name = "content"
+paths = ["base_mods/"]
+reads = [
+    "game/",
+    "godot_gas/",
+    "addons/",
+    "Assets/",
+    "Windows/Inventory/grid_base_inventory_system/",
+]
+
+[autoload]
+ModLoader = "Scripts/mod/mod_loader.gd"
+GameGlobal = "Scripts/GameGlobal.gd"
+GBIS = "Windows/Inventory/grid_base_inventory_system/core/grid_base_inventory_system.gd"
+GameplayCueManager = "addons/GodotGAS/managers/gameplay_cue_manager.gd"
+ModCueRegistrar = "Scripts/mod/mod_cue_registrar.gd"
+CollectionDB = "Scripts/collection_db.gd"
+CombatTelemetry = "Scripts/debug/combat_telemetry.gd"
+SoulRuntimeDB = "game/battle/soul_runtime_db.gd"
+Warehouse = "Scripts/warehouse.gd"
+MapBoard = "Scripts/map_board.gd"
+SaveManager = "Scripts/save/save_manager.gd"
+GameFlow = "game/flow/game_flow.gd"

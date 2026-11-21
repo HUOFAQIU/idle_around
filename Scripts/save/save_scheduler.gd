@@ -13,7 +13,7 @@ func mark_dirty(urgent: bool = false) -> void:
 	_urgent = _urgent or urgent
 
 
-func tick(delta: float, can_save: bool = true) -> bool:
+func advance(delta: float, can_save: bool = true) -> bool:
 	if not can_save:
 		return false
 	_since_save += delta

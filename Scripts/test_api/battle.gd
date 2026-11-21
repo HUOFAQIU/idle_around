@@ -19,7 +19,7 @@ static func start_battle(map_id : StringName = MapCatalog.FOREST_MAP_ID) -> bool
 	if item == null:
 		push_warning("TestAPI：地图不存在 %s" % map_id)
 		return false
-	window.start_map_battle(item)
+	window.start_battle(item)
 	return true
 
 
@@ -120,10 +120,10 @@ static func has_status(tag : StringName, target : String = "player") -> bool:
 
 
 static func get_battle_state() -> Dictionary:
-	var window := _battle_window()
-	if window == null:
+	var session := _active_session()
+	if session == null:
 		return {"running": false}
-	return window.get_test_state()
+	return session.get_state()
 
 
 static func get_battle_tick() -> int:

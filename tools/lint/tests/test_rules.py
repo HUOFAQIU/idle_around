@@ -7,6 +7,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from boundaries import DependencyBoundaryRule
 from lexer import code_lines, iter_comments
 from rules import (
     FileAccessBoundaryRule,
@@ -241,6 +242,136 @@ class InlineColorRuleTest(unittest.TestCase):
             Path("."),
         )
         self.assertEqual(findings, [])
+
+
+class DependencyBoundaryRuleTest(unittest.TestCase):
+    CONFIG = """
+[[layer]]
+name = "domain"
+paths = ["game/"]
+reads = ["Scripts/game_colors.gd"]
+
+[[layer]]
+name = "content-def"
+paths = ["game/content/"]
+reads = ["Scripts/"]
+
+[[layer]]
+name = "script"
+paths = ["Scripts/"]
+reads = []
+
+[autoload]
+Warehouse = "Scripts/warehouse.gd"
+"""
+
+    def setUp(self) -> None:
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.root = Path(self.tmp.name)
+        (self.root / "project.godot").write_text(
+            '[autoload]\n\nWarehouse="*res://Scripts/warehouse.gd"\n',
+            encoding="utf-8",
+        )
+        self.config = self.root / "boundaries.toml"
+        self.config.write_text(self.CONFIG, encoding="utf-8")
+        self.write("Scripts/warehouse.gd", "")
+        self.write("Scripts/soul.gd", "class_name SoulData\n")
+        self.write("Scripts/game_colors.gd", "")
+        self.rule = DependencyBoundaryRule(self.root, self.config)
+
+    def write(self, relative: str, source: str) -> Path:
+        path = self.root / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(source, encoding="utf-8")
+        return path
+
+    def check(self, relative: str, source: str) -> list:
+        path = self.write(relative, source)
+        return self.rule.check(path, source, self.root)
+
+    def test_flags_res_literal_across_layers(self) -> None:
+        findings = self.check(
+            "game/battle/a.gd",
+            'const W := preload("res://Scripts/warehouse.gd")\n',
+        )
+        self.assertEqual(len(findings), 1)
+        self.assertIn("Scripts/warehouse.gd", findings[0].message)
+
+    def test_flags_class_reference_across_layers(self) -> None:
+        findings = self.check("game/battle/a.gd", "var soul: SoulData\n")
+        self.assertEqual(len(findings), 1)
+        self.assertIn("Scripts/soul.gd", findings[0].message)
+
+    def test_flags_autoload_reference(self) -> None:
+        findings = self.check(
+            "game/battle/a.gd", "Warehouse.add_item(null)\n"
+        )
+        self.assertEqual(len(findings), 1)
+        self.assertIn("Scripts/warehouse.gd", findings[0].message)
+
+    def test_allows_same_layer(self) -> None:
+        findings = self.check(
+            "game/battle/a.gd",
+            'const B := preload("res://game/battle/b.gd")\n',
+        )
+        self.assertEqual(findings, [])
+
+    def test_allows_declared_target(self) -> None:
+        findings = self.check(
+            "game/battle/a.gd",
+            'const C := preload("res://Scripts/game_colors.gd")\n',
+        )
+        self.assertEqual(findings, [])
+
+    def test_allows_unconfigured_target(self) -> None:
+        findings = self.check(
+            "game/battle/a.gd",
+            'const A := preload("res://Assets/icon.png")\n',
+        )
+        self.assertEqual(findings, [])
+
+    def test_longest_prefix_wins(self) -> None:
+        findings = self.check(
+            "game/content/a.gd",
+            'const W := preload("res://Scripts/soul.gd")\n',
+        )
+        self.assertEqual(findings, [])
+
+    def test_flags_unassigned_source(self) -> None:
+        findings = self.check("other/a.gd", "")
+        self.assertEqual(len(findings), 1)
+        self.assertIn("不属于任何层", findings[0].message)
+
+    def test_ignores_class_name_in_string(self) -> None:
+        findings = self.check(
+            "game/battle/a.gd", 'var label := "SoulData"\n'
+        )
+        self.assertEqual(findings, [])
+
+    def test_one_diagnostic_per_target(self) -> None:
+        findings = self.check(
+            "game/battle/a.gd",
+            'const A := preload("res://Scripts/soul.gd")\n'
+            'const B := preload("res://Scripts/soul.gd")\n',
+        )
+        self.assertEqual(len(findings), 1)
+        self.assertIn("2 处引用", findings[0].message)
+
+    def test_autoload_drift(self) -> None:
+        self.config.write_text(
+            self.CONFIG.replace(
+                'Warehouse = "Scripts/warehouse.gd"',
+                'Warehouse = "Scripts/warehouse.gd"\n'
+                'MapBoard = "Scripts/map_board.gd"',
+            ),
+            encoding="utf-8",
+        )
+        rule = DependencyBoundaryRule(self.root, self.config)
+        path = self.write("game/battle/a.gd", "")
+        findings = rule.check(path, "", self.root)
+        self.assertEqual(len(findings), 1)
+        self.assertIn("MapBoard", findings[0].message)
 
 
 if __name__ == "__main__":

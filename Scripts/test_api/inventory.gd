@@ -33,20 +33,12 @@ static func get_container_names() -> PackedStringArray:
 	return names
 
 
-static func add_soul_to_warehouse(id : StringName) -> bool:
-	var soul := CollectionDB.get_soul(id)
-	if soul == null:
-		push_warning("TestAPI：魂灵不存在 %s" % id)
-		return false
-	return Warehouse.add_item(soul)
-
-
 static func show_shop() -> bool:
 	var window := _shop_window()
 	if window == null:
 		return false
-	if not window.visible:
-		window.open_window()
+	if not window.visible and not COMMON.show_window(window):
+		return false
 	return true
 
 

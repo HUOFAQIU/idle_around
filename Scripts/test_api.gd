@@ -36,10 +36,6 @@ static func get_container_names() -> PackedStringArray:
 	return INVENTORY.get_container_names()
 
 
-static func add_soul_to_warehouse(id : StringName) -> bool:
-	return INVENTORY.add_soul_to_warehouse(id)
-
-
 static func show_shop() -> bool:
 	return INVENTORY.show_shop()
 
@@ -259,8 +255,8 @@ static func eject_map_from_board(slot_index : int) -> bool:
 	return MAP.eject_map_from_board(slot_index)
 
 
-static func start_map_battle_from_board(slot_index : int) -> bool:
-	return MAP.start_map_battle_from_board(slot_index)
+static func click_map_start_button(slot_index : int) -> bool:
+	return MAP.click_map_start_button(slot_index)
 
 
 static func click_map_drop_slot() -> bool:
@@ -275,8 +271,8 @@ static func load_save_slot(slot: int) -> bool:
 	return SAVE.load_save_slot(slot)
 
 
-static func load_save_slot_raw(slot: int) -> bool:
-	return SAVE.load_save_slot_raw(slot)
+static func load_save_slot_direct(slot: int) -> bool:
+	return SAVE.load_save_slot_direct(slot)
 
 
 static func new_game(character_id: StringName = &"small_coal_lamp") -> bool:

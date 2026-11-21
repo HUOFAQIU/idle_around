@@ -111,8 +111,8 @@ static func show_terminal() -> bool:
 	var window := _terminal_window()
 	if window == null:
 		return false
-	if not window.visible:
-		window.open_window()
+	if not window.visible and not COMMON.show_window(window):
+		return false
 	return true
 
 

@@ -32,7 +32,7 @@ func reset_activation_lock() -> void:
 	activation_lock_units = 0
 
 
-func tick_activation_lock(base_units: int) -> void:
+func advance_activation_lock(base_units: int) -> void:
 	if activation_lock_units > 0 and base_units > 0:
 		activation_lock_units = maxi(activation_lock_units - base_units, 0)
 
@@ -70,7 +70,7 @@ func add_charge_units(units: int) -> void:
 		became_ready.emit()
 
 
-func tick_charge(base_units: int) -> void:
+func advance_charge(base_units: int) -> void:
 	if cooldown <= 0.0 or base_units <= 0:
 		return
 	add_charge_units(_charged_units_for_tick(base_units))
@@ -100,7 +100,7 @@ func apply_freeze(seconds: float, trace: CombatTrace = null) -> bool:
 	return true
 
 
-func tick_status(base_units: int) -> void:
+func advance_status(base_units: int) -> void:
 	if base_units <= 0:
 		return
 	if haste_units > 0:

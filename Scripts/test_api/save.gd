@@ -14,7 +14,7 @@ static func load_save_slot(slot: int) -> bool:
 	return GameFlow.request_load_slot(slot)
 
 
-static func load_save_slot_raw(slot: int) -> bool:
+static func load_save_slot_direct(slot: int) -> bool:
 	return SaveManager.load_slot(slot)
 
 

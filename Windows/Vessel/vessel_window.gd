@@ -36,7 +36,7 @@ func open_for(vessel: SoulVesselData) -> void:
 	inventory_view.change_data_source(contents.container_name)
 	inventory_view.mark_dirty()
 	if not visible:
-		open_window()
+		_open_window()
 	_fit_to_contents(contents)
 	if not GBIS.opened_containers.has(contents.container_name):
 		GBIS.opened_containers.append(contents.container_name)

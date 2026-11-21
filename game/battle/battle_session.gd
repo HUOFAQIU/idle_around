@@ -57,7 +57,7 @@ func start(p_slots: Array[SoulSlot], map_item: MapItemData) -> void:
 	player_spawned.emit(battle.player)
 	CombatTelemetry.begin_run(run_id, battle, battle.player.loadout)
 	CombatTelemetry.watch_unit(battle.player)
-	battle.start_battle()
+	battle.begin()
 	_rebuild_spawn_cells()
 	battle.log_line("========== 战斗开始 ==========", "yellow")
 	for unit in battle.units:

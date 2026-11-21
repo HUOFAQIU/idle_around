@@ -30,7 +30,7 @@ bash tools/check.sh --all
 - 改功能时旧代码、旧命名、旧迁移、旧文档描述一并删除，没写兼容层。
 - 依赖边界：层次表以 `tools/lint/boundaries.toml` 为准，重点看 `Windows/` 不读 `Scripts/test_api`、`game/content/` 与 `game/` 单向。
 - `addons/` 未被改动；确需改动时事先说明。
-- 文档头「核对」日期与本次改动一致；改文档内容后同步 `DOC/INDEX.md` 对应行（可跑 `index_meta.py --write`），新增或删除文档才增删清单行。
+- 文档头「核对」日期与本次改动一致；改文档内容后先更新文档头日期，再跑 `index_meta.py --write` 同步 `DOC/INDEX.md` 对应行；新增或删除文档才增删清单行。
 - 存档和设置格式可以破坏，但无头探针不能写真实 `user://`。
 
 ## 2. Spec 轴（有 spec 才跑）

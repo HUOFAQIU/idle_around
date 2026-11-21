@@ -5,7 +5,7 @@
 > 关键词：Claude Code 项目结构 CLAUDE.md AGENTS.md settings.json mcp hooks skills agents workflows agent-memory rules 权限 优先级 2.1.329 Code Mode
 > 代码：—
 > 相关：`指导文件.md`；本仓库自己的约定以根 `CLAUDE.md` 为准，不在此重复
-> 核对：2026-11-20
+> 核对：2026-11-21
 
 ## 1. 基线
 

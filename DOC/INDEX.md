@@ -40,7 +40,7 @@
 | 查术语/缩写（魂灵、魂器、触发器、ASC、GBIS 等） | `术语表.md` | — |
 | AI/自动化测试、构造战斗或背包场景 | `指南/AI测试接口.md`、`指南/命令控制台.md` | `Scripts/test_api.gd`、`Scripts/test_api/`、`Scripts/commands/` |
 | 提交前检查、新增 lint 规则、领域行为回归（情景测试）、判断规范该放代码还是文档 | `指南/代码检查.md`、`指导文件.md` | `tools/check.sh`、`tools/lint/`、`tools/scenarios/` |
-| 动手前写变更契约、查某个决策当时为什么这么定 | `spec/README.md`、`spec/` | — |
+| 动手前写变更契约、查某个决策当时为什么这么定 | `spec/README.md`、`spec/`、`adr/README.md` | — |
 | 清理代码注释、把注释里的 why 迁进文档 | `指南/代码检查.md` | `.claude/skills/delete-comment/`、`tools/lint/strip_comments.py` |
 | 改 Claude Code 配置（CLAUDE.md/settings/hooks/skills/agents/workflows）、查加载与权限行为 | `指南/Claude Code 项目结构.md` | — |
 | 按症状排查战斗（不放技能/不触发/没伤害/Cue 不播/卡顿） | `指南/调试窗口.md` §常见排查、`架构/现状与注意.md` | `Windows/Debug/`、`game/battle/` |
@@ -82,6 +82,7 @@
 | `指南/命令控制台.md` | 指南 | 有效 | 2026-11-21 |
 | `指南/代码检查.md` | 指南 | 有效 | 2026-11-21 |
 | `spec/README.md` | 规范 | 有效 | 2026-11-21 |
+| `adr/README.md` | 指南 | 有效 | 2026-11-21 |
 | `指导文件.md` | 指南 | 有效 | 2026-11-15 |
 | `指南/存档排查.md` | 指南 | 有效 | 2026-11-21 |
 | `指南/调试窗口.md` | 指南 | 有效 | 2026-11-21 |

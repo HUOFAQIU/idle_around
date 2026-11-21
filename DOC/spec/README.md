@@ -63,4 +63,4 @@ spec 决定测什么，用例负责让它能红。
 
 - 活跃 spec 按编号在 `DOC/spec/` 平铺；状态改「已实现」后先 review，review 通过再执行「退出」，最后删除。
 - 只有 `spec/README.md` 进 `DOC/INDEX.md` 的文档清单；单份 spec 不进，避免索引膨胀。
-- 决策如果长期有效（比如「为什么用场景而不是 `--script`」），退出时写进 `架构/现状与注意.md`，不要留在 spec 里。
+- 决策如果长期有效（比如「为什么用场景而不是 `--script`」），退出时写成 `adr/NNNN-<slug>.md` 并在 `adr/README.md` 登记，不要留在 spec 里。

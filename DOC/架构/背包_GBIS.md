@@ -18,7 +18,7 @@
 - 游戏层另有 `Warehouse` autoload（`Scripts/warehouse.gd`）：启动时预注册 `inventory_0..inventory_9` 十页仓库，并提供 `add_item()` 跨页找空位；它只调用 GBIS 的公开接口，不修改框架本身。每页用独立数组，避免多个 `ContainerData` 共享同一只只读常量。
 - `Service` 不在场景树里，没有 `get_tree()`；需要取根时走 `GBIS.get_root()`。
 - 容器名常量集中在 `Scripts/container_ids.gd`（`inventory_0`、`shop_0`、`vessel_cells`）；场景 `.tscn` 里的 `container_name` 仍是字面量，改名时必须两边一起改。
-- 场景漂移校验：`--headless --script res://modkit/validate_container_ids.gd` 对比场景字面量与常量；运行中的主场景可用 `TestAPI.validate_container_ids()` 检查容器是否都已注册。
+- 场景漂移校验：`--headless --script res://EngineTools/modkit/validate_container_ids.gd` 对比场景字面量与常量；运行中的主场景可用 `TestAPI.validate_container_ids()` 检查容器是否都已注册。
 
 ### 1.2 分层与主要类
 

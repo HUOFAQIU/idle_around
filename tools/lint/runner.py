@@ -20,7 +20,7 @@ FIRST_PARTY_ROOTS = (
     "game",
     "godot_gas",
     "Windows",
-    "modkit",
+    "EngineTools/modkit",
 )
 RELEVANT_SUFFIXES = {".gd", ".tscn", ".tres"}
 ALLOWLIST_PATH = Path(__file__).resolve().parent / "allowlist.toml"
@@ -40,7 +40,11 @@ def _is_first_party(root: Path, path: Path) -> bool:
         relative = path.resolve().relative_to(root.resolve())
     except ValueError:
         return False
-    return bool(relative.parts) and relative.parts[0] in FIRST_PARTY_ROOTS
+    as_posix = relative.as_posix()
+    return any(
+        as_posix == name or as_posix.startswith(f"{name}/")
+        for name in FIRST_PARTY_ROOTS
+    )
 
 
 def _collect_all(root: Path) -> list[Path]:

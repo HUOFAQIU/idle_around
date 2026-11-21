@@ -170,16 +170,16 @@ res://mods/example_souls/content/monsters/fire_wolf_monster.tres
 ### 8.3 示例 mod/modkit
 
 - 示例源码在 `mods/example_souls/`，按 `res://mods/example_souls/` 的运行时路径编写，包含魂灵、技能和自定义 Cue。
-- `modkit/pack_example.gd` 用 `PCKPacker` 打包到 `user://mods/example_souls/`，并复制 `mod.json`；具体命令见 `指南/Mod制作.md` 的 4.1。
-- `mods/` 和 `modkit/` 已从正式游戏导出中排除。
+- `EngineTools/modkit/pack_example.gd` 用 `PCKPacker` 打包到 `user://mods/example_souls/`，并复制 `mod.json`；具体命令见 `指南/Mod制作.md` 的 4.1。
+- `mods/` 和 `EngineTools/modkit/` 已从正式游戏导出中排除。
 
 ### 8.4 内置 core
 
 - 清单在 `base_mods/core/mod.json`，当前 `souls` 19 条、`monsters` 2 条、`vessels` 1 条、`cues` 5 条；技能、触发器、effects 不单独登记，由资源内部引用。
 - `content_namespace: "global"` 保留原 ID；内容资源位于 `base_mods/core/` 的 `souls/`、`monsters/`、`vessels/`、`effects/`、`cues/`。
 - 官方 Cue 场景在 `base_mods/core/cues/`，逻辑脚本仍在 `game/battle/cues/`；`godot_gas/cue_registry.tres` 为空。
-- 导出时 `export_presets.cfg` 的 `include_filter` 必须包含 `base_mods/*/mod.json`；`exclude_filter` 用 `mods/*,modkit/*`，不能写成 `*mods/*`，否则会误伤 `base_mods/`。
-- 改完官方内容后运行 `modkit/validate_core_manifest.gd`（或 `TestAPI.validate_core_manifest()`），检查 manifest 是否漏登记、路径不存在、ID 重复，以及资源是否误设中文 `resource_name`；内容种类、字段名与文件后缀来自 `ContentKindSpec`，校验器不再复制这些常量；技能由 `SkillDefinition.steps` 组成，步骤类型、目标规则与字段是否一致由 ModLoader 在加载期检查；执行器字段（`attribute_name`、数值范围、`burn_effect` 等）也在加载期校验；怪物会校验 `display_name`、`max_health`、`attack_range`、`move_speed` 和 `battle_scene`。
+- 导出时 `export_presets.cfg` 的 `include_filter` 必须包含 `base_mods/*/mod.json`；`exclude_filter` 用 `mods/*,EngineTools/*`，不能写成 `*mods/*`，否则会误伤 `base_mods/`。
+- 改完官方内容后运行 `EngineTools/modkit/validate_core_manifest.gd`（或 `TestAPI.validate_core_manifest()`），检查 manifest 是否漏登记、路径不存在、ID 重复，以及资源是否误设中文 `resource_name`；内容种类、字段名与文件后缀来自 `ContentKindSpec`，校验器不再复制这些常量；技能由 `SkillDefinition.steps` 组成，步骤类型、目标规则与字段是否一致由 ModLoader 在加载期检查；执行器字段（`attribute_name`、数值范围、`burn_effect` 等）也在加载期校验；怪物会校验 `display_name`、`max_health`、`attack_range`、`move_speed` 和 `battle_scene`。
 
 ## 9. 安全边界
 

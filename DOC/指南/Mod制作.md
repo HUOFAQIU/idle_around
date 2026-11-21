@@ -17,7 +17,7 @@ user://mods/example_souls/
 
 开发期可以不放 `content.pck`，直接把内容放在目录里（loose 模式）；发布前再打包。loose 模式不经过 Godot 导入流程，贴图/场景资源可能不可用，只建议用来调数据。
 
-本工程自带示例源码 `mods/example_souls/` 和一键打包脚本 `modkit/pack_example.gd`，见 4.1。官方内容不走 `user://mods`，而是内置 `base_mods/core/mod.json`，见第 9 节；第三方 mod 不要填写 `content_namespace: "global"` 或 `content_root`，这两个字段只对内置 mod 开放。
+本工程自带示例源码 `mods/example_souls/` 和一键打包脚本 `EngineTools/modkit/pack_example.gd`，见 4.1。官方内容不走 `user://mods`，而是内置 `base_mods/core/mod.json`，见第 9 节；第三方 mod 不要填写 `content_namespace: "global"` 或 `content_root`，这两个字段只对内置 mod 开放。
 
 ## 2. mod.json
 
@@ -114,12 +114,12 @@ user://mods/example_souls/
 ```text
 "U:\Godot_ver\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64.exe" ^
   --headless --path "U:\Godot_Project\idle_around" ^
-  --script res://modkit/pack_example.gd
+  --script res://EngineTools/modkit/pack_example.gd
 ```
 
 脚本会生成 `user://mods/example_souls/content.pck` 并把 `mod.json` 复制到旁边。打包脚本走 `--script` 模式；`SaveManager` 检测到没有主场景会跳过读档，不会碰存档。重启游戏后，Mod 窗口里能看到 `Example Souls`；用 `TestAPI.add_soul_to_warehouse(&"example_souls:fire_wolf_soul")` 可以把魂灵放进仓库。
 
-改一个新 mod 时，复制 `mods/example_souls/` 为 `mods/<mod_id>/`，同步修改 `mod.json` 的 `id`、内容 ID、技能 ID（`Mod.<PascalModId>.<PascalName>`）和 Cue 前缀，再复制或改造 `pack_example.gd` 里的 `MOD_ID`。`mods/` 和 `modkit/` 不会打进正式游戏包。
+改一个新 mod 时，复制 `mods/example_souls/` 为 `mods/<mod_id>/`，同步修改 `mod.json` 的 `id`、内容 ID、技能 ID（`Mod.<PascalModId>.<PascalName>`）和 Cue 前缀，再复制或改造 `pack_example.gd` 里的 `MOD_ID`。`mods/` 和 `EngineTools/modkit/` 不会打进正式游戏包。
 
 ### 4.2 用 patch 导出
 
@@ -185,7 +185,7 @@ user://mods/example_souls/
 - 新增官方 Cue：场景放 `base_mods/core/cues/`，逻辑脚本可放 `game/battle/cues/`，在 `content.cues` 加 `{ "tag": "...", "scene": "cues/<file>.tscn" }`。
 - 官方 ID 保持原值，不要加 `core:` 前缀；存档以这些 ID 为键。
 - 内置 mod 只能 loose，不能把 `content.pck` 放进 `base_mods/`。
-- 导出：`include_filter` 必须包含 `base_mods/*/mod.json`；`exclude_filter` 用 `mods/*,modkit/*`，不要用 `*mods/*`。
-- 改完官方内容后跑 `modkit/validate_core_manifest.gd`，或调用 `TestAPI.validate_core_manifest()`，检查 manifest 是否漏登记、路径不存在和中文 `resource_name`。校验器读 `.tres` 文本而不是 `load()` 资源：`ItemData` 依赖 GBIS 等 autoload，modkit 的 `--script` 模式编译不了。
+- 导出：`include_filter` 必须包含 `base_mods/*/mod.json`；`exclude_filter` 用 `mods/*,EngineTools/*`，不要用 `*mods/*`。
+- 改完官方内容后跑 `EngineTools/modkit/validate_core_manifest.gd`，或调用 `TestAPI.validate_core_manifest()`，检查 manifest 是否漏登记、路径不存在和中文 `resource_name`。校验器读 `.tres` 文本而不是 `load()` 资源：`ItemData` 依赖 GBIS 等 autoload，modkit 的 `--script` 模式编译不了。
 - 技能由 `SkillDefinition.steps` 组成；步骤类型、`target_rule` 与字段不一致（例如 `UnitSkillStep` 配 `SoulTargetRule`、`SoulSkillStep` 没有任何时长）会在 ModLoader 加载时报错。执行器字段也会校验：`StatusApplyExecution.attribute_name` 必须是 `burn/poison/regen`，伤害/治疗/护盾数值不能为负。校验失败的条目不会注册（不进入图鉴/刷怪池，mod 内容计数也不增加）；看 `ModLoader.get_errors()` 或 ModWindow。未知 manifest 字段、`content.*` 未知段只记 warning（`ModLoader.get_warnings()`），不阻止加载。
 - 落地数值请写整数：`max_health`、`base_damage`、`bonus_per_matching_soul`、`base_heal`、`base_shield`、`base_amount`、`damage_per_stack`、`heal_per_stack`、`status_magnitude`、触发器 `magnitude`。写小数也能加载，但运行时会向下取整；每跳总量不足 1 点会变成 0，例如 `heal_per_stack = 0.5` + 1 层生命再生不产生治疗。暴击率/倍率、比例、冷却、概率、距离仍用小数。

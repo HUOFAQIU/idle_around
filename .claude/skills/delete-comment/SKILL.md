@@ -9,7 +9,7 @@ description: 清理首方 GDScript 注释：把决策记录迁进 DOC/，删除�
 
 ## 边界
 
-- 只处理首方 6 个目录：`Scripts/`、`Main/`、`game/`、`godot_gas/`、`Windows/`、`modkit/`。
+- 只处理首方 6 个目录：`Scripts/`、`Main/`、`game/`、`godot_gas/`、`Windows/`、`EngineTools/modkit/`。
 - 不碰 `addons/`、`.godot/`、`base_mods/`、`mods/`。
 - 保留三类注释，不迁移也不删除：
   - `@export` 及其变体（`@export_range` 等）正上方的 `##`：Godot Inspector 会显示。

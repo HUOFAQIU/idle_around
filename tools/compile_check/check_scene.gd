@@ -6,7 +6,7 @@ const SCAN_DIRS: Array[String] = [
 	"res://game",
 	"res://godot_gas",
 	"res://Windows",
-	"res://modkit",
+	"res://EngineTools/modkit",
 ]
 
 

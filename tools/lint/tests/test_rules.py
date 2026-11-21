@@ -132,7 +132,7 @@ class FileAccessBoundaryRuleTest(unittest.TestCase):
         self.assertEqual(findings, [])
 
     def test_allows_modkit(self) -> None:
-        path = self.root / "modkit/example.gd"
+        path = self.root / "EngineTools/modkit/example.gd"
         findings = self.rule.check(
             path, "var file := FileAccess.open(path, FileAccess.READ)\n", self.root
         )
@@ -184,7 +184,7 @@ class ModPathRuleTest(unittest.TestCase):
         self.assertEqual(findings, [])
 
     def test_allows_modkit(self) -> None:
-        path = self.root / "modkit/pack.gd"
+        path = self.root / "EngineTools/modkit/pack.gd"
         findings = self.rule.check(
             path, 'const MODS_DIR := "user://mods"\n', self.root
         )

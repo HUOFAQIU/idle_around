@@ -101,6 +101,8 @@ static func ability_tag_for_event(event_tag: StringName) -> StringName:
 			return GameplayTags.Skill_Trigger_SoulUsed
 		GameplayTags.Event_Combat_FreezeApplied:
 			return GameplayTags.Skill_Trigger_Freeze
+		GameplayTags.Event_Combat_SlowApplied:
+			return GameplayTags.Skill_Trigger_Slow
 		_:
 			return &"Skill.Trigger"
 
@@ -155,6 +157,9 @@ func _conditions_match(payload: Dictionary) -> bool:
 		GameplayTags.Event_Combat_FreezeApplied:
 			if not (payload.get("target") is BattleUnit):
 				return false
+		GameplayTags.Event_Combat_SlowApplied:
+			if not (payload.get("target") is BattleUnit):
+				return false
 		GameplayTags.Event_Movement_UnitMoved:
 			if not (payload.get("target") is BattleUnit):
 				return false
@@ -178,7 +183,7 @@ func _targets(event_target: BattleUnit) -> Array[BattleUnit]:
 	var targets: Array[BattleUnit] = []
 	match definition.target_scope:
 		PassiveTrigger.TargetScope.EVENT_TARGET:
-			if event_target != null and not event_target.is_dead:
+			if event_target != null and not event_target.is_dead and _within_range(event_target):
 				targets.append(event_target)
 		PassiveTrigger.TargetScope.SELF:
 			if not owner_unit.is_dead:
@@ -187,6 +192,12 @@ func _targets(event_target: BattleUnit) -> Array[BattleUnit]:
 			if owner_unit.battle == null:
 				return targets
 			for unit in owner_unit.battle.units_of_team(BattleUnit.opposing_team(owner_unit.team)):
-				if unit != null and not unit.is_dead:
+				if unit != null and not unit.is_dead and _within_range(unit):
 					targets.append(unit)
 	return targets
+
+
+func _within_range(target: BattleUnit) -> bool:
+	if definition.max_range <= 0 or owner_unit.battle == null:
+		return true
+	return owner_unit.distance_to_unit(target) <= float(definition.max_range) * owner_unit.battle.cell_size_px

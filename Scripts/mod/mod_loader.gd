@@ -625,6 +625,8 @@ func _validate_soul_vocabulary(mod: ModInfo, soul: SoulData) -> void:
 	for trigger in soul.triggers:
 		if trigger == null:
 			continue
+		if trigger.max_range < 0:
+			_mod_error(mod, "魂灵 %s 的触发器 max_range 不能为负：%d" % [soul.content_id, trigger.max_range])
 		for type in trigger.required_soul_types:
 			if not _is_soul_type(type):
 				_mod_error(mod, "魂灵 %s 的触发条件类型应为 Soul.types.<PascalName>：%s" % [soul.content_id, type])

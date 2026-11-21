@@ -583,12 +583,20 @@ static func apply_soul_freeze(soul_name : String, seconds : float = 1.0, target 
 	return BATTLE.apply_soul_freeze(soul_name, seconds, target)
 
 
+static func apply_soul_slow(soul_name : String, seconds : float = 1.0, target : String = "player") -> bool:
+	return BATTLE.apply_soul_slow(soul_name, seconds, target)
+
+
 static func simulate_soul_used(soul_name : String, target : String = "player") -> bool:
 	return BATTLE.simulate_soul_used(soul_name, target)
 
 
 static func charge_soul(soul_name : String, seconds : float, target : String = "player") -> bool:
 	return BATTLE.charge_soul(soul_name, seconds, target)
+
+
+static func move_unit_to_cell(target : String, cell : Vector2i) -> bool:
+	return BATTLE.move_unit_to_cell(target, cell)
 
 
 static func damage_unit(target : String = "player", amount : float = 1.0) -> bool:

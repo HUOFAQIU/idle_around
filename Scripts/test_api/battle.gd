@@ -78,6 +78,15 @@ static func apply_soul_freeze(soul_name : String, seconds : float = 1.0, target 
 	return charged.apply_freeze(seconds)
 
 
+static func apply_soul_slow(soul_name : String, seconds : float = 1.0, target : String = "player") -> bool:
+	if seconds <= 0.0:
+		return false
+	var charged := _find_equipped_ability(soul_name, target)
+	if charged == null:
+		return false
+	return charged.apply_slow(seconds)
+
+
 static func simulate_soul_used(soul_name : String, target : String = "player") -> bool:
 	var charged := _find_equipped_ability(soul_name, target)
 	var unit: BattleUnit = COMMON.find_unit(target)
@@ -94,6 +103,14 @@ static func charge_soul(soul_name : String, seconds : float, target : String = "
 	if charged == null:
 		return false
 	charged.add_charge(seconds)
+	return true
+
+
+static func move_unit_to_cell(target : String, cell : Vector2i) -> bool:
+	var unit: BattleUnit = COMMON.find_unit(target)
+	if unit == null or unit.battle == null:
+		return false
+	unit.set_cell(cell)
 	return true
 
 

@@ -16,6 +16,8 @@ enum TargetScope {
 ## 生命值事件：严格低于该比例时触发（0~1）
 @export_range(0.0, 1.0, 0.01) var threshold_ratio: float = 0.5
 @export var target_scope: TargetScope = TargetScope.EVENT_TARGET
+## 触发效果的最大生效距离（格，按持有者与目标单位的距离算）；0 = 不限
+@export var max_range: int = 0
 ## 每场战斗只触发一次（半血这类一次性事件用）
 @export var once_per_battle: bool = false
 ## 触发时给来源魂灵技能充能的秒数；0 = 不充能
@@ -38,6 +40,8 @@ static func event_label(tag: StringName) -> String:
 			return "其他魂灵被使用"
 		GameplayTags.Event_Combat_FreezeApplied:
 			return "冻结施加"
+		GameplayTags.Event_Combat_SlowApplied:
+			return "减速施加"
 		_:
 			return String(tag)
 

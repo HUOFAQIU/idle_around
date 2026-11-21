@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="PassiveTrigger" format=3]
+
+[ext_resource type="Script" path="res://game/content/passive_trigger.gd" id="1_trigger"]
+[ext_resource type="Script" path="res://addons/GodotGAS/effects/gameplay_effect.gd" id="2_effect"]
+[ext_resource type="Resource" path="res://base_mods/core/effects/trigger_damage_50.tres" id="3_damage"]
+
+[resource]
+script = ExtResource("1_trigger")
+event_tag = &"Event.Combat.FreezeApplied"
+max_range = 10
+effects = Array[ExtResource("2_effect")]([ExtResource("3_damage")])

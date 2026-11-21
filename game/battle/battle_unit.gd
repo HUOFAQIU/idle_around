@@ -182,6 +182,22 @@ func notify_freeze_applied(event_target: BattleUnit, parent_trace: CombatTrace =
 		})
 
 
+func notify_slow_applied(parent_trace: CombatTrace = null) -> void:
+	if battle == null or not battle.is_running:
+		return
+	var trace := parent_trace if parent_trace != null else CombatTrace.new("event:SlowApplied", null)
+	for unit in battle.trigger_listeners(GameplayTags.Event_Combat_SlowApplied):
+		if unit.team == team or unit.asc == null:
+			continue
+		if unit.soul_loadout == null or not unit.soul_loadout.has_trigger(GameplayTags.Event_Combat_SlowApplied):
+			continue
+		unit.asc.send_gameplay_event(GameplayTags.Event_Combat_SlowApplied, {
+			"target": self,
+			"source": self,
+			"trace": trace,
+		})
+
+
 func apply_trigger_effect(
 	effect: GameplayEffect,
 	target: BattleUnit,
@@ -221,6 +237,7 @@ func _refresh_trigger_listeners() -> void:
 		return
 	_sync_trigger_listener(GameplayTags.Event_Movement_UnitMoved)
 	_sync_trigger_listener(GameplayTags.Event_Combat_FreezeApplied)
+	_sync_trigger_listener(GameplayTags.Event_Combat_SlowApplied)
 
 
 func _sync_trigger_listener(event_tag: StringName) -> void:
@@ -233,6 +250,7 @@ func _clear_trigger_listeners() -> void:
 		return
 	battle.set_trigger_listener(self, GameplayTags.Event_Movement_UnitMoved, false)
 	battle.set_trigger_listener(self, GameplayTags.Event_Combat_FreezeApplied, false)
+	battle.set_trigger_listener(self, GameplayTags.Event_Combat_SlowApplied, false)
 
 
 func runtime_for_source_index(index: int) -> SoulRuntime:

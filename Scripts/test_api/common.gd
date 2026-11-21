@@ -40,6 +40,8 @@ static func find_unit(target : String) -> BattleUnit:
 		var unit := node as BattleUnit
 		if unit.is_dead or unit.asc == null:
 			continue
+		if unit.battle == null or unit.battle.is_queued_for_deletion():
+			continue
 		if target == "player" and unit.team == BattleUnit.Team.PLAYER:
 			return unit
 		if target == "enemy" and unit.team == BattleUnit.Team.ENEMY:

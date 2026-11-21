@@ -27,7 +27,7 @@ static func build(
 		lines.append(header)
 		lines.append("")
 	lines.append("暴击率，%s %%" % TooltipText.format_number(_crit_chance(skill) * 100.0))
-	lines.append("攻击距离，%d" % _attack_range(skill))
+	lines.append("攻击距离，%d" % _attack_range(soul, skill))
 	lines.append(TooltipText.SEPARATOR)
 	for i in blocks.size():
 		if i > 0:
@@ -76,10 +76,13 @@ static func _header_line(soul: SoulData) -> String:
 	return "".join(labels)
 
 
-static func _attack_range(skill: SkillDefinition) -> int:
-	if skill == null:
-		return 0
+static func _attack_range(soul: SoulData, skill: SkillDefinition) -> int:
 	var max_range := 0
+	if skill == null:
+		for trigger in soul.triggers:
+			if trigger != null:
+				max_range = maxi(max_range, trigger.max_range)
+		return max_range
 	for step in skill.steps:
 		if step is UnitSkillStep:
 			var unit_step := step as UnitSkillStep

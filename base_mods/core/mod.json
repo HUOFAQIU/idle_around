@@ -12,6 +12,10 @@
   "content": {
 	"souls": [
 	  {
+		"id": "bi_lei_zhen_soul",
+		"path": "souls/bi_lei_zhen/bi_lei_zhen_soul.tres"
+	  },
+	  {
 		"id": "chang_gong_soul",
 		"path": "souls/chang_gong/chang_gong_soul.tres"
 	  },

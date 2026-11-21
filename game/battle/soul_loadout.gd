@@ -85,8 +85,14 @@ func _create_abilities() -> void:
 			ability = AutoCastAbility.new()
 			ability.apply_definition(soul.skill, soul.item_name)
 			ability.soul_data = soul
+			ability.status_applied.connect(_on_status_applied)
 			unit.brain.add_ability(ability)
 		abilities.append(ability)
+
+
+func _on_status_applied(status_name: String, _seconds: float, trace: CombatTrace) -> void:
+	if status_name == ChargedAbility.STATUS_SLOW:
+		unit.notify_slow_applied(trace)
 
 
 func _create_triggers() -> void:

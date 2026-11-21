@@ -10,6 +10,7 @@ const SIZE_NAMES := {
 const TYPE_NAMES := {
 	&"Soul.types.Wolf": "狼",
 	&"Soul.types.Animal": "动物",
+	&"Soul.types.Weapon": "武器",
 }
 
 

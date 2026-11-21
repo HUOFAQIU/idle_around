@@ -40,7 +40,7 @@ TestAPI.stop_battle()
 | 立方体 | `cube.gd` | 层级、面内容、面锁定、面按钮点击 |
 | 颜色 | `colors.gd` | 取色、色板目录、分组校验 |
 | 终端 | `terminal.gd` | 写入、滚动、快照、命令补全、tooltip 上屏 |
-| 战斗 | `battle.gd` | 开战、刷怪、状态、冻结、充能、快照、时钟 |
+| 战斗 | `battle.gd` | 开战、刷怪、状态、冻结、减速、移动、充能、快照、时钟 |
 | 调试 | `debug.gd` | 事件、统计、触发状态、JSONL 导出 |
 | 通用 | `common.gd` | 容器名、物品名等跨域查询 |
 
@@ -56,7 +56,7 @@ TestAPI.stop_battle()
 - `player.souls` 是场景配置（通常为空）；实际装备看 `player_souls`。`player_souls[].freeze` 是魂灵级冻结剩余秒数，`frozen` 是 `is_frozen()`。
 - `*_text` / `*_bbcode` / `*_ansi` 是同一份 tooltip 内容的三种格式；`get_equipped_soul_damage_preview()` 战斗中优先运行期值，未开战时按当前魂器网格静态预览。
 - `set_unlock_all()` 只改判定、不写存档、不刷新已打开的见闻窗口；`add_soul()` 仍走正常入包并打存档脏标记。
-- 状态类方法的 `target` 参数接受 `"player"` / `"enemy"` / 单位名。
+- 状态类方法的 `target` 参数接受 `"player"` / `"enemy"` / 单位名；单位名查到多个时跳过已死亡与所在战斗已排队销毁的旧节点，取当前战斗里的那个。
 
 ## 注意
 

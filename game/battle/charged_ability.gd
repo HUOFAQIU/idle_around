@@ -8,6 +8,7 @@ signal status_expired(status_name: String)
 const UNITS_PER_SECOND: int = 120
 const ACTIVATION_LOCK_UNITS: int = 20
 const FROZEN_TAG : StringName = GameplayTags.State_Frozen
+const STATUS_SLOW : String = "减速"
 
 ## 冷却总时长（秒，数据仍用秒）
 @export var cooldown: float = 0.0
@@ -88,7 +89,7 @@ func apply_slow(seconds: float, trace: CombatTrace = null) -> bool:
 	if cooldown <= 0.0 or seconds <= 0.0:
 		return false
 	slow_units += _seconds_to_units(seconds)
-	status_applied.emit("减速", seconds, trace)
+	status_applied.emit(STATUS_SLOW, seconds, trace)
 	return true
 
 

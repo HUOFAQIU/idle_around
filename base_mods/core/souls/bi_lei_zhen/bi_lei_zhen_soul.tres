@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="PassiveSoulData" format=3]
+
+[ext_resource type="Texture2D" path="res://Assets/soul_large.png" id="1_icon"]
+[ext_resource type="Shader" path="res://Assets/Shader/soul_scanline.gdshader" id="2_shader"]
+[ext_resource type="Script" path="res://game/content/passive_soul_data.gd" id="3_soul"]
+[ext_resource type="Script" path="res://game/content/passive_trigger.gd" id="4_trigger_script"]
+[ext_resource type="Resource" path="res://base_mods/core/souls/bi_lei_zhen/bi_lei_zhen_freeze_trigger.tres" id="5_trigger"]
+[ext_resource type="Resource" path="res://base_mods/core/souls/bi_lei_zhen/bi_lei_zhen_slow_trigger.tres" id="6_trigger_slow"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_scan"]
+shader = ExtResource("2_shader")
+shader_parameter/band_width = 0.16
+shader_parameter/intensity = 1.0
+shader_parameter/enable = 0.0
+shader_parameter/progress = 0.0
+shader_parameter/freeze = 0.0
+
+[resource]
+script = ExtResource("3_soul")
+triggers = Array[ExtResource("4_trigger_script")]([ExtResource("5_trigger"), ExtResource("6_trigger_slow")])
+types = Array[StringName]([&"Soul.types.Weapon"])
+tags = Array[StringName]([&"Soul.tags.Large", &"Soul.tags.Damage"])
+tooltip_blocks = Array[String](["- 触发冻结或减速时，造成 50 伤害"])
+item_name = "避雷针"
+category = "SOUL"
+icon = ExtResource("1_icon")
+columns = 3
+rows = 2
+material = SubResource("ShaderMaterial_scan")

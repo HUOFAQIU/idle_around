@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="GameplayEffect" format=3]
+[gd_resource type="Resource" script_class="GameplayEffect" format=3 uid="uid://b0rd8noriqyya"]
 
 [ext_resource type="Script" uid="uid://b7ovihaaijli7" path="res://addons/GodotGAS/effects/gameplay_execution_calculation.gd" id="1_p37ak"]
 [ext_resource type="Script" uid="uid://bcow77l0bnh0s" path="res://addons/GodotGAS/effects/gameplay_effect_modifier.gd" id="2_pe2kk"]

@@ -44,6 +44,7 @@
 | 需求含糊、方案空间大，先把未定决策问清 | `spec/README.md`、`.claude/skills/grill/` | — |
 | 清理代码注释、把注释里的 why 迁进文档 | `指南/代码检查.md` | `.claude/skills/delete-comment/`、`tools/lint/strip_comments.py` |
 | 改 Claude Code 配置（CLAUDE.md/settings/hooks/skills/agents/workflows）、查加载与权限行为 | `指南/Claude Code 项目结构.md` | — |
+| 分析/优化 AI 会话 token 消耗、上下文与子代理用量 | `指南/AI用量优化.md` | — |
 | 按症状排查战斗（不放技能/不触发/没伤害/Cue 不播/卡顿） | `指南/调试窗口.md` §常见排查、`架构/现状与注意.md` | `Windows/Debug/`、`game/battle/` |
 | 新增调试事件、理解遥测数据或看启动耗时 | `架构/调试与遥测.md` | `game/battle/battle_event.gd`、`game/battle/battle_event_bus.gd`、`Scripts/debug/`、`Windows/Debug/` |
 | 改魂灵冷却/充能/冻结/主动效果 | `魂灵/主动魂灵.md` | `base_mods/core/souls/`、`game/content/`、`game/battle/charged_ability.gd` |
@@ -108,6 +109,7 @@
 | `架构/Mod系统.md` | 设计 | 部分实现（内置 core mod 已接入） | 2026-11-21 |
 | `指南/Mod制作.md` | 指南 | 部分实现（内置 core 已接入） | 2026-11-21 |
 | `指南/Claude Code 项目结构.md` | 指南 | 有效 | 2026-11-21 |
+| `指南/AI用量优化.md` | 指南 | 有效 | 2026-11-22 |
 | `术语表.md` | 指南 | 有效 | 2026-11-21 |
 
 ## 文档头规范

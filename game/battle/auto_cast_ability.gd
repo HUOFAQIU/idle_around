@@ -312,9 +312,12 @@ func apply_effects(
 	target: BattleUnit,
 	crit_multiplier: float,
 	trace: CombatTrace,
-	status_magnitude: float = -1.0
+	status_magnitude: float = -1.0,
+	effect_duration: float = 0.0
 ) -> void:
-	_apply_effect_list_to_target(effects, target, crit_multiplier, trace, status_magnitude)
+	_apply_effect_list_to_target(
+		effects, target, crit_multiplier, trace, status_magnitude, effect_duration
+	)
 
 
 func play_hit_cue(tag: StringName, target: BattleUnit, step_key: int) -> void:
@@ -338,11 +341,14 @@ func _apply_effect_list_to_target(
 	target: BattleUnit,
 	crit_multiplier: float,
 	trace: CombatTrace,
-	status_magnitude: float = -1.0
+	status_magnitude: float = -1.0,
+	effect_duration: float = 0.0
 ) -> void:
 	for effect in effects:
 		if effect != null:
-			_apply_effect_to_target(effect, target, crit_multiplier, trace, status_magnitude)
+			_apply_effect_to_target(
+				effect, target, crit_multiplier, trace, status_magnitude, effect_duration
+			)
 
 
 func _apply_effect_to_target(
@@ -350,7 +356,8 @@ func _apply_effect_to_target(
 	target: BattleUnit,
 	crit_multiplier: float,
 	trace: CombatTrace,
-	status_magnitude: float = -1.0
+	status_magnitude: float = -1.0,
+	effect_duration: float = 0.0
 ) -> void:
 	if owner_asc == null or target == null or target.asc == null:
 		return
@@ -367,6 +374,8 @@ func _apply_effect_to_target(
 	spec.set_set_by_caller_magnitude(GameplayTags.Data_CritMultiplier, crit_multiplier)
 	if status_magnitude >= 0.0:
 		spec.set_set_by_caller_magnitude(GameplayTags.Data_SkillMagnitude, status_magnitude)
+	if effect_duration > 0.0:
+		spec.duration = effect_duration
 	owner_asc.apply_effect_spec_to_target(spec, target.asc)
 	if effect.granted_tags.has(GameplayTags.State_Frozen):
 		caster.notify_freeze_applied(target, trace)

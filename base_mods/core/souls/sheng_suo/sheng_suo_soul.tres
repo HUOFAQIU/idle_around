@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="SoulData" format=3]
+
+[ext_resource type="Texture2D" uid="uid://ud0woxy1e8dy" path="res://Assets/soul_small.png" id="1_icon"]
+[ext_resource type="Shader" uid="uid://c7gxmyf484kcn" path="res://Assets/Shader/soul_scanline.gdshader" id="2_shader"]
+[ext_resource type="Script" uid="uid://bbcxwqb4ef1cg" path="res://game/inventory/grid_base_inventory_system/core/model/item/soul_data.gd" id="3_soul"]
+[ext_resource type="Resource" path="res://base_mods/core/souls/sheng_suo/sheng_suo_skill.tres" id="4_skill"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_scan"]
+shader = ExtResource("2_shader")
+shader_parameter/band_width = 0.16
+shader_parameter/intensity = 1.0
+shader_parameter/enable = 0.0
+shader_parameter/progress = 0.0
+shader_parameter/freeze = 0.0
+
+[resource]
+script = ExtResource("3_soul")
+skill = ExtResource("4_skill")
+tooltip_blocks = Array[String](["( {cooldown} 秒 )
+> 迟缓一个怪物 {effect_duration} 秒"])
+tags = Array[StringName]([&"Soul.tags.Small", &"Soul.tags.Slow"])
+item_name = "绳索"
+category = "SOUL"
+icon = ExtResource("1_icon")
+rows = 2
+material = SubResource("ShaderMaterial_scan")
+metadata/_custom_type_script = "uid://bbcxwqb4ef1cg"

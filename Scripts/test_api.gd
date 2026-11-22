@@ -571,16 +571,16 @@ static func apply_regen(target : String = "player") -> bool:
 	return BATTLE.apply_regen(target)
 
 
-static func apply_freeze(target : String = "player", seconds : float = 3.0) -> bool:
+static func apply_freeze(target : String = "player", seconds : float = 1.0) -> bool:
 	return BATTLE.apply_freeze(target, seconds)
 
 
-static func apply_haste(target : String = "enemy", seconds : float = 3.0) -> bool:
-	return BATTLE.apply_haste(target, seconds)
+static func apply_swift(target : String = "enemy", seconds : float = 1.0) -> bool:
+	return BATTLE.apply_swift(target, seconds)
 
 
-static func apply_slow(target : String = "enemy", seconds : float = 3.0) -> bool:
-	return BATTLE.apply_slow(target, seconds)
+static func apply_sluggish(target : String = "enemy", seconds : float = 1.0) -> bool:
+	return BATTLE.apply_sluggish(target, seconds)
 
 
 static func get_move_speed(target : String = "enemy") -> float:

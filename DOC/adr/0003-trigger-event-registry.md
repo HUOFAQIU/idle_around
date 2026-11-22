@@ -27,7 +27,7 @@
 
 - 好处：新增事件成本低；无监听者时不发事件，避免刷屏；冻结与减速共享同一套派发语义。
 - 代价：payload 约定必须稳定（至少 `target` / `trace`，事件特有字段按事件补）；触发器行为分散在事件产生处，排查时要顺着 `send_gameplay_event()` 找。
-- 已知边界：单位级 `State.Slowed` 已实现，但由 `slow_unit.tres` 施加时不发 `SlowApplied`，目前只有魂灵级减速会触发；冻结不区分来源，重复冻结同一目标会重复触发。
+- 已知边界：单位级 `State.Sluggish` 已实现，但由 `sluggish_unit.tres` 施加时不发 `SlowApplied`，目前只有魂灵级减速会触发；冻结不区分来源，重复冻结同一目标会重复触发。
 
 ## 替代方案
 

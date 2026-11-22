@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="SkillDefinition" format=3]
+
+[ext_resource type="Script" path="res://addons/GodotGAS/effects/gameplay_effect.gd" id="1_effect"]
+[ext_resource type="Script" path="res://game/content/skill_definition.gd" id="2_skill"]
+[ext_resource type="Script" path="res://game/battle/target_rule.gd" id="3_rule"]
+[ext_resource type="Script" path="res://game/content/skill_step.gd" id="skill_step_base"]
+[ext_resource type="Script" path="res://game/battle/unit_skill_step.gd" id="skill_step_unit"]
+[ext_resource type="Resource" path="res://base_mods/core/effects/sluggish_unit.tres" id="4_sluggish"]
+
+[sub_resource type="Resource" id="Resource_target_rule"]
+script = ExtResource("3_rule")
+mode = 3
+max_range = 5
+
+[sub_resource type="Resource" id="Resource_skill_step"]
+script = ExtResource("skill_step_unit")
+effects = Array[ExtResource("1_effect")]([ExtResource("4_sluggish")])
+target_rule = SubResource("Resource_target_rule")
+effect_duration = 2.0
+
+[resource]
+script = ExtResource("2_skill")
+id = "ShengSuo"
+cooldown_seconds = 4.0
+steps = Array[ExtResource("skill_step_base")]([SubResource("Resource_skill_step")])

@@ -20,9 +20,9 @@ static func effect_name(spec: GameplayEffectSpec) -> String:
 			return "护盾"
 	if effect.granted_tags.has(GameplayTags.State_Frozen):
 		return "冻结"
-	if effect.granted_tags.has(GameplayTags.State_Hasted):
+	if effect.granted_tags.has(GameplayTags.State_Swift):
 		return "迅捷"
-	if effect.granted_tags.has(GameplayTags.State_Slowed):
+	if effect.granted_tags.has(GameplayTags.State_Sluggish):
 		return "迟缓"
 	if not spec.display_name.is_empty():
 		return spec.display_name

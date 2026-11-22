@@ -31,11 +31,13 @@
 | `Event.Combat.Critical` | 直接伤害/护盾等即时效果暴击时 `inject_tag`；`BattleUnit` 用它判断日志样式，`UnitPresenter` 用它判断飘字样式。异常状态只在施放时判定暴击，周期 tick 不带此标签 |
 | `Team.Player` / `Team.Enemy` | `BattleUnit._init_attributes()` 按 `team` 字段添加 |
 | `State.Burning` / `State.Poisoned` | 灼烧/剧毒周期效果的 `granted_tags` |
-| `State.Frozen` | `ChargedAbility.FROZEN_TAG`（`BattleBrain.FROZEN_TAG` 别名）；单位级冻结由 `freeze_unit.tres` 挂/摘，同时驱动 `Cue.Status.Freeze` |
-| `State.Hasted` / `State.Slowed` | 单位级迅捷/迟缓的 `granted_tags`（`haste_unit.tres` / `slow_unit.tres`）；用 `PERCENT_ADD ±0.5` 修饰 `move_speed`，不影响魂灵充能 |
+| `State.Frozen` | `ChargedAbility.FROZEN_TAG`（`BattleBrain.FROZEN_TAG` 别名）；单位级冻结由 `freeze_unit.tres` 挂/摘，默认 1 秒，同时驱动 `Cue.Status.Freeze` |
+| `State.Swift` / `State.Sluggish` | 单位级迅捷/迟缓的 `granted_tags`（`swift_unit.tres` / `sluggish_unit.tres`）；用 `PERCENT_ADD ±0.5` 修饰 `move_speed`，不影响魂灵充能 |
 | `Cue.Status.Freeze` | 单位冻结持久光环（`base_mods/core/cues/freeze_cue.tscn`） |
 | `Cue.Combat.ClawSlash` | 命中爪痕（`base_mods/core/cues/claw_slash_cue.tscn`）；由技能资源的 `hit_cue_tag` 触发，带方向/位置 |
 | `Data.TriggerMagnitude` / `Data.SkillMagnitude` / `Data.CritMultiplier` / `Data.SuppressStateLog` | 触发数值 / 主动技能步骤数值 / 暴击倍率 / 批量日志抑制的 SetByCaller 键 |
+
+单位状态（迅捷/迟缓/冻结）的时长由施加来源决定：`UnitSkillStep.effect_duration` / `PassiveTrigger.effect_duration` > 0 时写入本次 `GameplayEffectSpec.duration`，否则用效果资源的 `duration`（三个单位状态默认 1 秒）；重复施加由 `REFRESH_DURATION` 按新时长重置。
 
 触发器事件的 payload、派发点和条件见 `架构/战斗数据与魂灵.md` §魂灵触发器；GAS 侧只负责按标签唤醒 `SoulTriggerAbility`。
 

@@ -209,7 +209,8 @@ func apply_trigger_effect(
 	suppress_state_log: bool = false,
 	trace: CombatTrace = null,
 	display_name: String = "",
-	soul_runtime: SoulRuntime = null
+	soul_runtime: SoulRuntime = null,
+	effect_duration: float = 0.0
 ) -> void:
 	if effect == null or asc == null or target == null or target.asc == null:
 		return
@@ -220,6 +221,8 @@ func apply_trigger_effect(
 	if not display_name.is_empty():
 		spec.display_name = display_name
 	spec.set_set_by_caller_magnitude(GameplayTags.Data_TriggerMagnitude, magnitude)
+	if effect_duration > 0.0:
+		spec.duration = effect_duration
 	if suppress_state_log:
 		spec.inject_tag(SUPPRESS_STATE_LOG_TAG)
 	asc.apply_effect_spec_to_target(spec, target.asc)

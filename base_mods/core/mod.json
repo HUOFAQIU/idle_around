@@ -64,6 +64,10 @@
 		"path": "souls/qiang_laishi/qiang_laishi_soul.tres"
 	  },
 	  {
+		"id": "sheng_suo_soul",
+		"path": "souls/sheng_suo/sheng_suo_soul.tres"
+	  },
+	  {
 		"id": "song_shu_soul",
 		"path": "souls/song_shu/song_shu_soul.tres"
 	  },

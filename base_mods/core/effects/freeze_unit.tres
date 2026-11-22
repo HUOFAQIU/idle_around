@@ -8,7 +8,7 @@
 script = ExtResource("3_wopr4")
 stacking_policy = 1
 policy = 1
-duration = 3.0
+duration = 1.0
 max_stacks = 1
 persistent_cue_tags = Array[StringName]([&"Cue.Status.Freeze"])
 granted_tags = Array[StringName]([&"State.Frozen"])

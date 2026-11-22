@@ -5,6 +5,7 @@ const COOLDOWN_PLACEHOLDER : String = "{cooldown}"
 const CAST_TIMES_PLACEHOLDER : String = "{cast_times}"
 const DAMAGE_PLACEHOLDER : String = "{damage}"
 const DAMAGE_PER_SOUL_PLACEHOLDER : String = "{damage_per_soul}"
+const EFFECT_DURATION_PLACEHOLDER : String = "{effect_duration}"
 
 
 static func build(
@@ -46,6 +47,7 @@ static func _collect_blocks(
 	var cast_times := _cast_times_text(skill)
 	var damage_text := _damage_text(damage)
 	var per_soul_text := TooltipText.format_number(damage.bonus_per_matching_soul)
+	var effect_duration := _effect_duration_text(skill)
 	for block in soul.tooltip_blocks:
 		if block.is_empty():
 			continue
@@ -55,6 +57,7 @@ static func _collect_blocks(
 			.replace(CAST_TIMES_PLACEHOLDER, cast_times)
 			.replace(DAMAGE_PLACEHOLDER, damage_text)
 			.replace(DAMAGE_PER_SOUL_PLACEHOLDER, per_soul_text)
+			.replace(EFFECT_DURATION_PLACEHOLDER, effect_duration)
 		)
 	return blocks
 
@@ -89,6 +92,21 @@ static func _attack_range(soul: SoulData, skill: SkillDefinition) -> int:
 			if unit_step.target_rule != null:
 				max_range = maxi(max_range, unit_step.target_rule.max_range_cells())
 	return max_range
+
+
+static func _effect_duration_text(skill: SkillDefinition) -> String:
+	if skill == null:
+		return "0"
+	for step in skill.steps:
+		if not step is UnitSkillStep:
+			continue
+		var unit_step := step as UnitSkillStep
+		if unit_step.effect_duration > 0.0:
+			return TooltipText.format_number(unit_step.effect_duration)
+		for effect in unit_step.effects:
+			if effect != null and effect.policy == GameplayEffect.DurationPolicy.DURATION:
+				return TooltipText.format_number(effect.duration)
+	return "0"
 
 
 static func _crit_chance(skill: SkillDefinition) -> float:

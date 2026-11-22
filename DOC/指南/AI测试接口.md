@@ -57,7 +57,7 @@ TestAPI.stop_battle()
 - `*_text` / `*_bbcode` / `*_ansi` 是同一份 tooltip 内容的三种格式；`get_equipped_soul_damage_preview()` 战斗中优先运行期值，未开战时按当前魂器网格静态预览。
 - `set_unlock_all()` 只改判定、不写存档、不刷新已打开的见闻窗口；`add_soul()` 仍走正常入包并打存档脏标记。
 - 状态类方法的 `target` 参数接受 `"player"` / `"enemy"` / 单位名；单位名查到多个时跳过已死亡与所在战斗已排队销毁的旧节点，取当前战斗里的那个。
-- `get_move_speed(target)` 返回 `move_speed` 属性当前值（含迅捷/迟缓修饰），默认目标 `"enemy"`；`apply_haste()` / `apply_slow()` 是单位级移动状态，默认目标同为 `"enemy"`，与魂灵级 `apply_soul_slow()` 不同。
+- `get_move_speed(target)` 返回 `move_speed` 属性当前值（含迅捷/迟缓修饰），默认目标 `"enemy"`；`apply_swift()` / `apply_sluggish()` 是单位级移动状态，默认目标同为 `"enemy"`，与魂灵级 `apply_soul_slow()` 不同。
 
 ## 注意
 

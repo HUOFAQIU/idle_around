@@ -12,6 +12,8 @@ enum TargetScope {
 @export var magnitude: float = 0.0
 ## 触发时按顺序施加的效果
 @export var effects: Array[GameplayEffect] = []
+## 触发效果施加的持续秒数；0 = 使用效果资源自己的 duration
+@export_range(0.0, 60.0, 0.1) var effect_duration: float = 0.0
 
 ## 生命值事件：严格低于该比例时触发（0~1）
 @export_range(0.0, 1.0, 0.01) var threshold_ratio: float = 0.5

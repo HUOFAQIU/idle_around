@@ -26,10 +26,10 @@ func run(ctx: ScenarioContext) -> void:
 	var base := TestAPI.get_move_speed(MONSTER_NAME)
 	ctx.near(base, monster.move_speed, 0.01, "怪物移速写入属性")
 
-	ctx.check(TestAPI.apply_haste(MONSTER_NAME, 1.0), "施加迅捷")
+	ctx.check(TestAPI.apply_swift(MONSTER_NAME, 1.0), "施加迅捷")
 	ctx.near(TestAPI.get_move_speed(MONSTER_NAME), base * 1.5, 0.01, "迅捷 ×1.5")
 
-	ctx.check(TestAPI.apply_slow(MONSTER_NAME, 3.0), "施加迟缓")
+	ctx.check(TestAPI.apply_sluggish(MONSTER_NAME, 3.0), "施加迟缓")
 	ctx.near(TestAPI.get_move_speed(MONSTER_NAME), base, 0.01, "迅捷与迟缓抵消")
 
 	ctx.check(TestAPI.step_battle(_ticks(1.2)), "步进 1.2 秒")
@@ -38,9 +38,9 @@ func run(ctx: ScenarioContext) -> void:
 	ctx.check(TestAPI.step_battle(_ticks(2.0)), "步进 2 秒")
 	ctx.near(TestAPI.get_move_speed(MONSTER_NAME), base, 0.01, "迟缓到期后恢复")
 
-	ctx.check(TestAPI.apply_haste(MONSTER_NAME, 1.0), "再次施加迅捷")
+	ctx.check(TestAPI.apply_swift(MONSTER_NAME, 1.0), "再次施加迅捷")
 	ctx.check(TestAPI.step_battle(_ticks(0.5)), "步进 0.5 秒")
-	ctx.check(TestAPI.apply_haste(MONSTER_NAME, 1.0), "刷新迅捷")
+	ctx.check(TestAPI.apply_swift(MONSTER_NAME, 1.0), "刷新迅捷")
 	ctx.check(TestAPI.step_battle(_ticks(0.75)), "步进 0.75 秒")
 	ctx.near(TestAPI.get_move_speed(MONSTER_NAME), base * 1.5, 0.01, "重复施加只刷新时长")
 	ctx.check(TestAPI.step_battle(_ticks(0.5)), "步进到刷新后的到期")

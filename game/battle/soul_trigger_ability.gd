@@ -77,7 +77,8 @@ func _activate_ability() -> bool:
 				suppress_state_logs,
 				trace,
 				label,
-				runtime
+				runtime,
+				definition.effect_duration
 			)
 			if effect != null and effect.granted_tags.has(GameplayTags.State_Frozen) and runtime != null:
 				runtime.add_counter("freezes_applied")

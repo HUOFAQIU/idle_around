@@ -9,8 +9,8 @@ const POISON_TICK : GameplayEffect = preload("res://base_mods/core/effects/poiso
 const REGEN_APPLY : GameplayEffect = preload("res://base_mods/core/effects/regen_apply.tres")
 const REGEN_TICK : GameplayEffect = preload("res://base_mods/core/effects/regen_tick.tres")
 const FREEZE_UNIT : GameplayEffect = preload("res://base_mods/core/effects/freeze_unit.tres")
-const HASTE_UNIT : GameplayEffect = preload("res://base_mods/core/effects/haste_unit.tres")
-const SLOW_UNIT : GameplayEffect = preload("res://base_mods/core/effects/slow_unit.tres")
+const SWIFT_UNIT : GameplayEffect = preload("res://base_mods/core/effects/swift_unit.tres")
+const SLUGGISH_UNIT : GameplayEffect = preload("res://base_mods/core/effects/sluggish_unit.tres")
 
 static func start_battle(map_id : StringName = MapCatalog.FOREST_MAP_ID) -> bool:
 	var window := _battle_window()
@@ -50,7 +50,7 @@ static func apply_regen(target : String = "player") -> bool:
 	return _apply_dot(REGEN_APPLY, REGEN_TICK, target)
 
 
-static func apply_freeze(target : String = "player", seconds : float = 3.0) -> bool:
+static func apply_freeze(target : String = "player", seconds : float = 1.0) -> bool:
 	var unit: BattleUnit = COMMON.find_unit(target)
 	if unit == null or unit.asc == null or seconds <= 0.0:
 		return false
@@ -63,12 +63,12 @@ static func apply_freeze(target : String = "player", seconds : float = 3.0) -> b
 	return true
 
 
-static func apply_haste(target : String = "enemy", seconds : float = 3.0) -> bool:
-	return _apply_movement_status(HASTE_UNIT, target, seconds)
+static func apply_swift(target : String = "enemy", seconds : float = 1.0) -> bool:
+	return _apply_movement_status(SWIFT_UNIT, target, seconds)
 
 
-static func apply_slow(target : String = "enemy", seconds : float = 3.0) -> bool:
-	return _apply_movement_status(SLOW_UNIT, target, seconds)
+static func apply_sluggish(target : String = "enemy", seconds : float = 1.0) -> bool:
+	return _apply_movement_status(SLUGGISH_UNIT, target, seconds)
 
 
 static func get_move_speed(target : String = "enemy") -> float:

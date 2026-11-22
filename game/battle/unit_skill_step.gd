@@ -11,6 +11,8 @@ class_name UnitSkillStep extends SkillStep
 @export var projectile_speed: float = 420.0
 ## 本步骤对 StatusApplyExecution 的数值覆盖；< 0 = 使用效果资源自己的 base_amount
 @export_range(-1.0, 9999.0, 0.1) var status_magnitude: float = -1.0
+## 本步骤施加效果的持续秒数；0 = 使用效果资源自己的 duration
+@export_range(0.0, 60.0, 0.1) var effect_duration: float = 0.0
 
 
 func execute(ctx: SkillCastContext) -> SkillStepResult:
@@ -52,5 +54,7 @@ func apply_to_target(ctx: SkillCastContext, target: BattleUnit) -> void:
 	var crit_multiplier := ctx.ability.roll_crit(ctx.battle)
 	if crit_multiplier > 1.0:
 		ctx.ability.record_step("crit", ctx.trace, {"target_unit": target})
-	ctx.ability.apply_effects(effects, target, crit_multiplier, ctx.trace, status_magnitude)
+	ctx.ability.apply_effects(
+		effects, target, crit_multiplier, ctx.trace, status_magnitude, effect_duration
+	)
 	ctx.ability.play_hit_cue(hit_cue_tag, target, get_instance_id())

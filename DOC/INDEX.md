@@ -48,6 +48,7 @@
 | 按症状排查战斗（不放技能/不触发/没伤害/Cue 不播/卡顿） | `指南/调试窗口.md` §常见排查、`架构/现状与注意.md` | `Windows/Debug/`、`game/battle/` |
 | 新增调试事件、理解遥测数据或看启动耗时 | `架构/调试与遥测.md` | `game/battle/battle_event.gd`、`game/battle/battle_event_bus.gd`、`Scripts/debug/`、`Windows/Debug/` |
 | 改魂灵冷却/充能/冻结/主动效果 | `魂灵/主动魂灵.md` | `base_mods/core/souls/`、`game/content/`、`game/battle/charged_ability.gd` |
+| 改魂灵情绪/抽签/映射/掉落数值差异 | `魂灵/情绪系统.md` | `game/content/soul_emotion*.gd`、`game/inventory/grid_base_inventory_system/core/model/item/soul_data.gd`、`game/battle/loot_roller.gd` |
 | 改被动魂灵/触发效果 | `魂灵/被动魂灵.md` | `base_mods/core/souls/`、`game/content/passive_soul_data.gd`、`game/content/passive_effect.gd`、`game/content/passive_trigger.gd` |
 | 确认魂灵尺寸/魂器/角色魂器网格 | `魂灵/魂灵.md`、`魂灵/魂器.md` | `game/inventory/grid_base_inventory_system/core/model/item/soul_data.gd`、`soul_vessel_data.gd`、`Windows/Vessel/`、`Windows/Character/` |
 | 改怪物魂灵/掉落/刷新距离 | `怪物/怪物.md` | `base_mods/core/monsters/`、`game/content/monster_data.gd`、`game/content/monster_soul_entry.gd` |
@@ -69,7 +70,7 @@
 | 文档 | 类型 | 状态 | 最后核对/整理 |
 |---|---|---|---|
 | `战斗/战斗逻辑.md` | 设计 | 有效 | 2026-11-21 |
-| `战斗/地图.md` | 设计 | 已实现 | 2026-11-21 |
+| `战斗/地图.md` | 设计 | 已实现 | 2026-11-22 |
 | `属性/人物属性.md` | 设计 | 设计 | 2026-11-15 |
 | `怪物/怪物.md` | 设计 | 部分实现 | 2026-11-18 |
 | `窗口/仓库窗口.md` | 设计 | 部分实现 | 2026-11-18 |
@@ -79,6 +80,7 @@
 | `魂灵/魂器.md` | 设计 | 已实现 | 2026-11-21 |
 | `魂灵/主动魂灵.md` | 设计 | 部分实现 | 2026-11-22 |
 | `魂灵/被动魂灵.md` | 设计 | 已实现 | 2026-11-21 |
+| `魂灵/情绪系统.md` | 设计 | 部分实现 | 2026-11-22 |
 | `特效/effects.md` | 指南 | 有效 | 2026-11-21 |
 | `指南/AI测试接口.md` | 指南 | 有效 | 2026-11-22 |
 | `指南/命令控制台.md` | 指南 | 有效 | 2026-11-21 |
@@ -110,7 +112,7 @@
 | `指南/Mod制作.md` | 指南 | 部分实现（内置 core 已接入） | 2026-11-21 |
 | `指南/Claude Code 项目结构.md` | 指南 | 有效 | 2026-11-21 |
 | `指南/AI用量优化.md` | 指南 | 有效 | 2026-11-22 |
-| `术语表.md` | 指南 | 有效 | 2026-11-21 |
+| `术语表.md` | 指南 | 有效 | 2026-11-22 |
 
 ## 文档头规范
 

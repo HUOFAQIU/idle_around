@@ -17,7 +17,7 @@ static func build(
 		return TooltipText.EMPTY_TEXT
 
 	var skill := soul.skill
-	var damage := preview if preview != null else SoulDamagePreview.base_for(skill)
+	var damage := preview if preview != null else SoulDamagePreview.base_for(skill, soul)
 	var blocks := _collect_blocks(soul, skill, damage)
 	if blocks.is_empty():
 		blocks.append(TooltipText.EMPTY_TEXT)
@@ -34,6 +34,10 @@ static func build(
 		if i > 0:
 			lines.append(TooltipText.SEPARATOR)
 		lines.append(blocks[i])
+	var emotions := _emotion_lines(soul)
+	if not emotions.is_empty():
+		lines.append(TooltipText.SEPARATOR)
+		lines.append_array(emotions)
 	lines.append(TooltipText.SEPARATOR)
 	var body := "\n".join(lines)
 	return TooltipText.render(body, format)
@@ -43,8 +47,8 @@ static func _collect_blocks(
 	soul: SoulData, skill: SkillDefinition, damage: SoulDamagePreview
 ) -> PackedStringArray:
 	var blocks := PackedStringArray()
-	var cooldown := _cooldown_text(skill)
-	var cast_times := _cast_times_text(skill)
+	var cooldown := _cooldown_text(soul, skill)
+	var cast_times := _cast_times_text(soul, skill)
 	var damage_text := _damage_text(damage)
 	var per_soul_text := TooltipText.format_number(damage.bonus_per_matching_soul)
 	var effect_duration := _effect_duration_text(skill)
@@ -113,9 +117,46 @@ static func _crit_chance(skill: SkillDefinition) -> float:
 	return skill.crit_chance if skill != null else 0.0
 
 
-static func _cooldown_text(skill: SkillDefinition) -> String:
+static func _cooldown_text(soul: SoulData, skill: SkillDefinition) -> String:
+	var value := SoulEmotionValues.cooldown_seconds(soul)
+	if value >= 0.0:
+		return TooltipText.format_number(value)
 	return TooltipText.format_number(skill.cooldown_seconds) if skill != null else "0"
 
 
-static func _cast_times_text(skill: SkillDefinition) -> String:
+static func _cast_times_text(soul: SoulData, skill: SkillDefinition) -> String:
+	var value := SoulEmotionValues.cast_times(soul)
+	if value > 0:
+		return str(value)
 	return str(maxi(skill.cast_times, 1)) if skill != null else "1"
+
+
+static func _emotion_lines(soul: SoulData) -> PackedStringArray:
+	var lines := PackedStringArray()
+	var ids := SoulEmotion.ordered_ids(soul.emotions)
+	if ids.is_empty():
+		return lines
+	var labels := PackedStringArray()
+	var values := PackedStringArray()
+	var label_columns := 0
+	var value_columns := 0
+	for id in ids:
+		var label := SoulEmotion.display_name(id)
+		if not SoulEmotionValues.is_effective(soul, id):
+			label = TooltipText.DIM_PREFIX + label
+		var value := "%d%%" % SoulEmotionValues.share(soul, id)
+		labels.append(label)
+		values.append(value)
+		label_columns = maxi(label_columns, TerminalWidth.text_columns(label))
+		value_columns = maxi(value_columns, TerminalWidth.text_columns(value))
+	lines.append("情绪")
+	for i in labels.size():
+		var padding := (
+			label_columns
+			- TerminalWidth.text_columns(labels[i])
+			+ 1
+			+ value_columns
+			- TerminalWidth.text_columns(values[i])
+		)
+		lines.append(labels[i] + " ".repeat(padding) + values[i])
+	return lines

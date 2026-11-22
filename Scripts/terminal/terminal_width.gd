@@ -63,6 +63,13 @@ static func columns(code: int) -> int:
 	return 1
 
 
+static func text_columns(text: String) -> int:
+	var total := 0
+	for i in text.length():
+		total += columns(text.unicode_at(i))
+	return total
+
+
 static func _in_ranges(code: int, ranges: Array[Vector2i]) -> bool:
 	for allowed_range in ranges:
 		if code < allowed_range.x:

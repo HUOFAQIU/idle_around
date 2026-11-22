@@ -52,6 +52,14 @@ func apply_definition(def: SkillDefinition, p_display_name: String = "") -> void
 		activation_query = query
 
 
+func apply_soul_emotions() -> void:
+	if soul_data == null:
+		return
+	var value := SoulEmotionValues.cooldown_seconds(soul_data)
+	if value >= 0.0:
+		cooldown = value
+
+
 func _activate_ability() -> bool:
 	var battle := _get_battle()
 	var trace := CombatTrace.new("cast:" + ability_name, _trace_from_payload(current_event_payload))
@@ -238,6 +246,10 @@ func _log_empty_activation(
 
 
 func _cast_times() -> int:
+	if soul_data != null:
+		var value := SoulEmotionValues.cast_times(soul_data)
+		if value > 0:
+			return value
 	return maxi(skill.cast_times, 1) if skill != null else 1
 
 

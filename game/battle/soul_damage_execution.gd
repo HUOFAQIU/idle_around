@@ -49,7 +49,7 @@ func execute(spec: GameplayEffectSpec, target_asc: AbilitySystemComponent) -> Di
 
 	var soul_bonus := _matching_soul_bonus(source_asc)
 	var vessel_bonus := _vessel_damage_bonus(spec)
-	var damage := total_before_crit(base_damage, damage_bonus, soul_bonus, vessel_bonus) * crit_multiplier
+	var damage := total_before_crit(_damage_base(spec), damage_bonus, soul_bonus, vessel_bonus) * crit_multiplier
 	if damage <= 0.0:
 		return {}
 	CritResolution.inject_if_critical(spec, crit_multiplier)
@@ -66,6 +66,19 @@ func _matching_soul_bonus(source_asc: AbilitySystemComponent) -> float:
 		return 0.0
 	var count := matching_soul_count(unit.loadout, matching_soul_types)
 	return float(count) * bonus_per_matching_soul
+
+
+func _damage_base(spec: GameplayEffectSpec) -> float:
+	if spec == null or spec.context == null:
+		return base_damage
+	var runtime: Variant = spec.context.get("soul_runtime")
+	if not runtime is Object:
+		return base_damage
+	var soul: Variant = runtime.get("soul")
+	if not soul is SoulData:
+		return base_damage
+	var value := SoulEmotionValues.damage_base(soul as SoulData)
+	return value if value >= 0.0 else base_damage
 
 
 func _vessel_damage_bonus(spec: GameplayEffectSpec) -> float:

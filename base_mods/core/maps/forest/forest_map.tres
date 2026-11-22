@@ -21,4 +21,5 @@ script = ExtResource("1_map")
 content_id = &"forest_map"
 display_name = "森林"
 icon = ExtResource("3_icon")
+rarity = 1
 spawn_entries = Array[ExtResource("2_entry")]([SubResource("Resource_snake"), SubResource("Resource_fu")])

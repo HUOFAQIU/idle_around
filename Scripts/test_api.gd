@@ -13,6 +13,7 @@ const GAME_COLORS_SCRIPT : GDScript = preload("res://Scripts/game_colors.gd")
 const GAME_COLOR_CATALOG : GDScript = preload("res://Scripts/game_color_catalog.gd")
 
 const INVENTORY: GDScript = preload("res://Scripts/test_api/inventory.gd")
+const SOUL: GDScript = preload("res://Scripts/test_api/soul.gd")
 const MAP: GDScript = preload("res://Scripts/test_api/map.gd")
 const SAVE: GDScript = preload("res://Scripts/test_api/save.gd")
 const MOD: GDScript = preload("res://Scripts/test_api/mod.gd")
@@ -206,6 +207,60 @@ static func get_equipped_soul_tooltip_bbcode(id : StringName) -> String:
 
 static func get_equipped_soul_tooltip_ansi(id : StringName) -> String:
 	return INVENTORY.get_equipped_soul_tooltip_ansi(id)
+
+
+static func get_soul_emotion_ids() -> Array[StringName]:
+	return SOUL.get_emotion_ids()
+
+
+static func get_soul_emotion_ranges(id : StringName) -> Dictionary:
+	return SOUL.get_emotion_ranges(id)
+
+
+static func get_soul_effective_emotions(id : StringName) -> Array[StringName]:
+	return SOUL.get_effective_emotion_ids(id)
+
+
+static func roll_soul_emotions(
+	id : StringName,
+	rarity : int = SoulEmotion.DEFAULT_RARITY,
+	rng_seed : int = 0
+) -> Dictionary:
+	return SOUL.roll_soul_emotions(id, rarity, rng_seed)
+
+
+static func roll_loot_soul_emotions(
+	id : StringName,
+	rarity : int = SoulEmotion.DEFAULT_RARITY,
+	rng_seed : int = 0
+) -> Dictionary:
+	return SOUL.roll_loot_soul_emotions(id, rarity, rng_seed)
+
+
+static func roll_soul_to_warehouse(
+	id : StringName,
+	rarity : int = SoulEmotion.DEFAULT_RARITY,
+	rng_seed : int = -1
+) -> Dictionary:
+	return SOUL.roll_soul_to_warehouse(id, rarity, rng_seed)
+
+
+static func apply_soul_emotions(id : StringName, emotions : Dictionary) -> Dictionary:
+	return SOUL.apply_soul_emotions(id, emotions)
+
+
+static func get_soul_tooltip_with_emotions(
+	id : StringName, emotions : Dictionary
+) -> String:
+	return SOUL.get_soul_tooltip_text_with_emotions(id, emotions)
+
+
+static func check_soul_emotion_roundtrip(
+	id : StringName,
+	rarity : int = SoulEmotion.DEFAULT_RARITY,
+	rng_seed : int = 0
+) -> Dictionary:
+	return SOUL.check_soul_emotion_roundtrip(id, rarity, rng_seed)
 
 
 static func get_monster_ids() -> Array[StringName]:

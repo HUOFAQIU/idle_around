@@ -49,6 +49,11 @@ func start(p_slots: Array[SoulSlot], map_item: MapItemData) -> void:
 	battle.spawn_enemy = _spawn_enemy
 	battle.loot_sink = Warehouse.add_item
 	battle.setup()
+	battle.loot_rarity = (
+		_map_item.map_data.rarity
+		if _map_item != null and _map_item.map_data != null
+		else SoulEmotion.DEFAULT_RARITY
+	)
 	battle.clock.manual = _manual_time
 	if attach_observers.is_valid():
 		attach_observers.call(battle)

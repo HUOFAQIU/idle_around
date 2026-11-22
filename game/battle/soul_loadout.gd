@@ -85,6 +85,7 @@ func _create_abilities() -> void:
 			ability = AutoCastAbility.new()
 			ability.apply_definition(soul.skill, soul.item_name)
 			ability.soul_data = soul
+			ability.apply_soul_emotions()
 			ability.status_applied.connect(_on_status_applied)
 			unit.brain.add_ability(ability)
 		abilities.append(ability)

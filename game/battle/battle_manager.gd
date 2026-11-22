@@ -6,6 +6,7 @@ const TICK_END_PHYSICS_PRIORITY : int = 128
 var map: TileMapLayer
 var spawn_enemy: Callable = Callable()
 var loot_sink: Callable = Callable()
+var loot_rarity: int = SoulEmotion.DEFAULT_RARITY
 var player: BattleUnit
 var is_running: bool = false
 
@@ -247,6 +248,6 @@ func _on_unit_died(unit: BattleUnit) -> void:
 		return
 	spatial.unregister(unit)
 	registry.remove(unit)
-	_loot.roll(unit, rng)
+	_loot.roll(unit, rng, loot_rarity)
 	unit.cleanup_asc()
 	unit.queue_free()

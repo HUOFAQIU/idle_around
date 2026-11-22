@@ -33,6 +33,7 @@ TestAPI.stop_battle()
 | 域 | 文件 | 覆盖 |
 |---|---|---|
 | 背包/魂器/见闻 | `Scripts/test_api/inventory.gd` | 容器、拖拽、魂器网格、见闻解锁、tooltip 文本 |
+| 魂灵情绪 | `soul.gd` | 情绪表、范围、有效情绪、按稀有度 roll、指定构成、tooltip、存档往返 |
 | 地图 | `map.gd` | 地图板入槽/排队/退回、数量石 |
 | 存档 | `save.gd` | 新游戏、读档、删档、槽位、管线自检 |
 | Mod | `mod.gd` | 列表、加载顺序、内容 ID、Cue、管理窗口 |
@@ -58,6 +59,9 @@ TestAPI.stop_battle()
 - `set_unlock_all()` 只改判定、不写存档、不刷新已打开的见闻窗口；`add_soul()` 仍走正常入包并打存档脏标记。
 - 状态类方法的 `target` 参数接受 `"player"` / `"enemy"` / 单位名；单位名查到多个时跳过已死亡与所在战斗已排队销毁的旧节点，取当前战斗里的那个。
 - `get_move_speed(target)` 返回 `move_speed` 属性当前值（含迅捷/迟缓修饰），默认目标 `"enemy"`；`apply_swift()` / `apply_sluggish()` 是单位级移动状态，默认目标同为 `"enemy"`，与魂灵级 `apply_soul_slow()` 不同。
+- `roll_soul_emotions(id, rarity, rng_seed)` / `apply_soul_emotions(id, emotions)` 返回实例快照：`emotions`、`values`、`damage`、`cooldown`、`cast_times`；魂灵未声明该参数时伤害/冷却为 -1、多重触发为 0，声明了但构成里没有时按占比 0 取左端。
+- `roll_soul_to_warehouse(id, rarity, rng_seed)` 生成带构成的实例并写入仓库，返回同一份实例快照；`rng_seed < 0` 时随机，`soul.roll` 命令走它。
+- `check_soul_emotion_roundtrip()` 复用存档编解码，返回 `{ok, checks}`；与 `check_save_pipeline()` 一样不碰真实存档。
 
 ## 注意
 

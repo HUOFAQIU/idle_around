@@ -16,11 +16,14 @@ static func encode_item(item: ItemData) -> Dictionary:
 		if id.is_empty():
 			push_warning("存档：魂灵没有 content_id「%s」" % soul.item_name)
 			return {}
-		return {
+		var record := {
 			"kind": KIND_SOUL,
 			"id": String(id),
 			"name": soul.item_name,
 		}
+		if not soul.emotions.is_empty():
+			record["emotions"] = _encode_emotions(soul.emotions)
+		return record
 	if item is SoulVesselData:
 		var vessel := item as SoulVesselData
 		var vessel_id: StringName = vessel.content_id
@@ -67,7 +70,9 @@ static func decode_item(record: Dictionary, orphans: Array = []) -> ItemData:
 		if soul == null:
 			push_warning("存档：找不到魂灵「%s」" % id)
 			return null
-		return soul.make_instance()
+		var instance := soul.make_instance() as SoulData
+		instance.emotions = _decode_emotions(record.get("emotions", {}))
+		return instance
 	if kind == KIND_VESSEL:
 		var vessel := CollectionDB.get_vessel(id)
 		if vessel == null:
@@ -148,6 +153,27 @@ static func _decode_contents(vessel: SoulVesselData, raw_records: Variant, orpha
 		if not contents.add_item(item).is_empty():
 			continue
 		_append_orphan(orphans, record_data)
+
+
+static func _encode_emotions(emotions: Dictionary) -> Dictionary:
+	var record := {}
+	for key in emotions:
+		record[String(key)] = int(emotions[key])
+	return record
+
+
+static func _decode_emotions(raw: Variant) -> Dictionary:
+	var result := {}
+	if not raw is Dictionary:
+		return result
+	for key in raw as Dictionary:
+		var id := StringName(String(key))
+		if not SoulEmotion.is_valid(id):
+			continue
+		var value := clampi(int((raw as Dictionary)[key]), 0, 100)
+		if value > 0:
+			result[id] = value
+	return result
 
 
 static func _append_orphan(orphans: Array, record: Dictionary) -> void:

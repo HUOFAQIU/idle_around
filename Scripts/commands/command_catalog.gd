@@ -89,6 +89,12 @@ static func _build_entries() -> Dictionary:
 				Callable(COMPLETERS, "container_names"),
 			],
 		},
+		"soul.roll": {
+			"usage": "soul.roll <soul_id> [rarity]",
+			"summary": "按稀有度生成一颗带情绪构成的魂灵并放入仓库；rarity 默认 3",
+			"handler": Callable(INVENTORY, "soul_roll"),
+			"complete": [Callable(COMPLETERS, "soul_ids")],
+		},
 		"map.list": {
 			"usage": "map.list",
 			"summary": "列出地图 id",

@@ -12,20 +12,23 @@ var is_dynamic: bool = false
 var has_runtime: bool = false
 
 
-static func base_for(skill: SkillDefinition) -> SoulDamagePreview:
+static func base_for(skill: SkillDefinition, soul: SoulData = null) -> SoulDamagePreview:
 	var preview := SoulDamagePreview.new()
 	var execution := find_damage_execution(skill)
 	if execution == null:
 		return preview
 	preview.has_damage = true
 	preview.base_damage = execution.base_damage
+	var emotion_damage := SoulEmotionValues.damage_base(soul)
+	if emotion_damage >= 0.0:
+		preview.base_damage = emotion_damage
 	preview.bonus_per_matching_soul = execution.bonus_per_matching_soul
 	preview.matching_soul_types = execution.matching_soul_types.duplicate()
 	return preview
 
 
 static func for_soul(soul: SoulData, runtime: SoulRuntime) -> SoulDamagePreview:
-	var preview := base_for(soul.skill if soul != null else null)
+	var preview := base_for(soul.skill if soul != null else null, soul)
 	if runtime == null or not is_instance_valid(runtime.owner_unit):
 		return preview
 	var unit := runtime.owner_unit
@@ -44,7 +47,7 @@ static func preview_for(
 	vessel: SoulVesselData,
 	equipped_souls: Array[SoulData]
 ) -> SoulDamagePreview:
-	var preview := base_for(soul.skill if soul != null else null)
+	var preview := base_for(soul.skill if soul != null else null, soul)
 	if soul == null:
 		return preview
 	var souls: Array[SoulData] = equipped_souls.duplicate()

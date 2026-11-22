@@ -9,6 +9,8 @@ class_name MapData
 @export var icon: Texture2D
 ## 刷怪配置
 @export var spawn_entries: Array[MapSpawnEntry] = []
+## 地图稀有度 1~5；决定掉落魂灵的有效情绪总量区间
+@export_range(1, 5) var rarity: int = 1
 
 
 func collect_problems() -> Array[String]:
@@ -17,6 +19,8 @@ func collect_problems() -> Array[String]:
 		problems.append("地图缺少 content_id")
 	if display_name.is_empty():
 		problems.append("%s：缺少 display_name" % content_id)
+	if rarity < 1 or rarity > 5:
+		problems.append("%s：稀有度必须在 1~5" % content_id)
 	if spawn_entries.is_empty():
 		problems.append("%s：没有任何刷怪条目" % content_id)
 	var has_time_entry := false

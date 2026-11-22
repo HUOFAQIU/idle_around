@@ -9,6 +9,7 @@ static func build(
 		return TooltipText.EMPTY_TEXT
 
 	var lines := PackedStringArray()
+	lines.append("稀有度：%s" % SoulEmotion.rarity_name(map_item.map_data.rarity))
 	for entry in map_item.map_data.spawn_entries:
 		if entry == null:
 			continue

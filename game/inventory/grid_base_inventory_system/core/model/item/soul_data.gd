@@ -24,6 +24,19 @@ const SIZE_TAGS : Array[StringName] = [
 ## 魂灵标签：见闻窗口筛选用（例：Soul.tags.Small、Soul.tags.Burn）
 @export var tags: Array[StringName] = []
 
+## 情绪参数范围：情绪 ID → Vector2(最低端值, 最高端值)；占比 0 取左端，100 取右端。
+## 冷却写在冷却情绪键下，其余键为有效情绪；空 = 这颗魂灵不参与情绪系统。
+@export var emotion_ranges: Dictionary = {}
+
+## 实例情绪构成：情绪 ID → 整数百分比，合计 100；模板为空，由掉落时 roll 写入。
+@export var emotions: Dictionary = {}
+
+
+func make_instance() -> ItemData:
+	var instance := super.make_instance() as SoulData
+	instance.emotions = emotions.duplicate()
+	return instance
+
 
 func size_tag() -> StringName:
 	for tag in SIZE_TAGS:

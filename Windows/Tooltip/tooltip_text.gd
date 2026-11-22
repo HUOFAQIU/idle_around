@@ -8,6 +8,7 @@ const SEPARATOR_COLOR : String = "#4a4f58"
 const COOLDOWN_FONT_SIZE : int = 20
 const EMPTY_TEXT : String = "无"
 const CRIT_PREFIX : String = "暴击率"
+const DIM_PREFIX : String = "· "
 const ANSI_BOLD : String = "\u001b[1m"
 const ANSI_RESET : String = "\u001b[0m"
 
@@ -109,6 +110,8 @@ static func _append_line_runs(runs: Array[Run], line: String) -> void:
 		_append_keyword_runs(runs, line, true)
 	elif line.begins_with(CRIT_PREFIX):
 		runs.append(Run.new(line, GameColors.CRIT))
+	elif line.begins_with(DIM_PREFIX):
+		runs.append(Run.new(line, GameColors.TEXT_SECONDARY))
 	else:
 		_append_keyword_runs(runs, line, false)
 

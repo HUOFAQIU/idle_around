@@ -7,6 +7,7 @@ class_name MonsterStatsAttributeSet extends AttributeSet
 
 var max_health: AttributeData = AttributeData.new(500.0)
 var health: AttributeData = AttributeData.new(500.0)
+var move_speed: AttributeData = AttributeData.new(11.0)
 var burn: AttributeData = AttributeData.new(0.0)
 var shield: AttributeData = AttributeData.new(0.0)
 var poison: AttributeData = AttributeData.new(0.0)
@@ -19,6 +20,8 @@ func pre_attribute_change(attribute_name: String, proposed_value: float) -> floa
 			return floorf(clampf(proposed_value, 0.0, max_health.current_value))
 		"max_health":
 			return floorf(proposed_value)
+		"move_speed":
+			return maxf(proposed_value, 0.0)
 		"burn", "shield", "poison", "regen":
 			return maxf(floorf(proposed_value), 0.0)
 

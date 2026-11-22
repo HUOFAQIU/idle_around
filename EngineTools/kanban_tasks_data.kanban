@@ -51,7 +51,6 @@
 			"title": "待办",
 			"tasks": [
 				"174839b6-79ea-47fd-ab25-08d96c04e39c",
-				"56d4e6fe-01ca-4d23-be20-e78006eaac35",
 				"3eef2ac3-3930-44df-91dd-74eca8792f3b",
 				"ca473143-68ad-4069-a29a-c5eda0b9927b",
 				"54bb935d-83a5-4589-954a-a1f6135bf07c",
@@ -67,7 +66,9 @@
 		{
 			"uuid": "3d8e3d00-a609-41c7-a684-c1dd2b26f8c7",
 			"title": "进行中",
-			"tasks": []
+			"tasks": [
+				"56d4e6fe-01ca-4d23-be20-e78006eaac35"
+			]
 		}
 	],
 	"tasks": [

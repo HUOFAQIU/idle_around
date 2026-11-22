@@ -1019,6 +1019,10 @@ func _add_unit_row(root: TreeItem, unit_data: Dictionary) -> void:
 		status.append("死亡")
 	if bool(unit_data.get("frozen", false)):
 		status.append("冻结")
+	if bool(unit_data.get("hasted", false)):
+		status.append("迅捷")
+	if bool(unit_data.get("slowed", false)):
+		status.append("迟缓")
 	if bool(unit_data.get("in_attack_range", false)):
 		status.append("范围内")
 	item.set_text(8, " ".join(status))

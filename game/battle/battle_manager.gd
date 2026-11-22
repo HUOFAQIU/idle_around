@@ -172,7 +172,7 @@ func _tick_enemy_movement(unit: BattleUnit, _delta: float, slices: int) -> void:
 	if distance <= 0.001:
 		return
 
-	unit.velocity = to_player / distance * unit.move_speed * float(slices)
+	unit.velocity = to_player / distance * unit.get_move_speed() * float(slices)
 	unit.move_and_slide()
 	spatial.update(unit)
 

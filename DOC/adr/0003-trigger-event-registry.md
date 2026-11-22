@@ -1,6 +1,6 @@
 # ADR 0003：触发器事件用 GAS 标签注册表，冻结/减速对称派发
 
-> 类型：记录 | 状态：有效 | 核对：2026-11-21
+> 类型：记录 | 状态：有效 | 核对：2026-11-22
 > 何时读：新增触发器事件、改冻结/减速派发，或排查触发器不触发
 > 关键词：ADR 触发器 GameplayEvent SoulTriggerAbility 监听者注册表 冻结 减速 max_range
 > 代码：`game/content/passive_trigger.gd`、`game/battle/soul_loadout.gd`、`game/battle/battle_unit.gd`、`game/battle/battle_manager.gd`
@@ -27,7 +27,7 @@
 
 - 好处：新增事件成本低；无监听者时不发事件，避免刷屏；冻结与减速共享同一套派发语义。
 - 代价：payload 约定必须稳定（至少 `target` / `trace`，事件特有字段按事件补）；触发器行为分散在事件产生处，排查时要顺着 `send_gameplay_event()` 找。
-- 已知边界：单位级 `State.Slowed` 尚未实现，目前只有魂灵级减速会发 `SlowApplied`；冻结不区分来源，重复冻结同一目标会重复触发。
+- 已知边界：单位级 `State.Slowed` 已实现，但由 `slow_unit.tres` 施加时不发 `SlowApplied`，目前只有魂灵级减速会触发；冻结不区分来源，重复冻结同一目标会重复触发。
 
 ## 替代方案
 

@@ -1,6 +1,6 @@
 # GAS 适配层
 
-> 类型：实现 | 状态：有效 | 核对：2026-11-21
+> 类型：实现 | 状态：有效 | 核对：2026-11-22
 > 何时读：改属性集、标签注册、Cue 清单
 > 关键词：GAS GameplayAbility AttributeSet Tag Cue godot_gas
 > 代码：godot_gas/、base_mods/core/mod.json
@@ -12,8 +12,8 @@
 
 | 文件 | 内容 |
 |---|---|
-| `attributes/player_stats_attribute_set.gd` | `max_health`、`health`、`damage_bonus`、`burn`、`shield`、`poison`、`regen`；`health` 钳制在 `[0, max_health]`，状态值钳制为不小于 0 |
-| `attributes/monster_stats_attribute_set.gd` | `max_health`、`health`、`burn`、`shield`、`poison`、`regen`；没有 `damage_bonus` |
+| `attributes/player_stats_attribute_set.gd` | `max_health`、`health`、`move_speed`、`damage_bonus`、`burn`、`shield`、`poison`、`regen`；`health` 钳制在 `[0, max_health]`，状态值钳制为不小于 0 |
+| `attributes/monster_stats_attribute_set.gd` | `max_health`、`health`、`move_speed`、`burn`、`shield`、`poison`、`regen`；没有 `damage_bonus` |
 | `attributes_draft.cfg` | GodotGAS 编辑器插件的属性草稿数据，不参与运行时 |
 | `tag_registry.tres` | 标签注册表：`Cue.*`、`Data.*`（SetByCaller）、`Event.*`（GameplayEvent）、`State.*`、`Team.*`、`Skill.<id>`、`Skill.Trigger.*`；完整列表以此文件为准 |
 | `gameplay_tags.gd` | 由插件根据注册表自动生成，**不要手改**；新增标签后通过插件重新生成 |
@@ -32,6 +32,7 @@
 | `Team.Player` / `Team.Enemy` | `BattleUnit._init_attributes()` 按 `team` 字段添加 |
 | `State.Burning` / `State.Poisoned` | 灼烧/剧毒周期效果的 `granted_tags` |
 | `State.Frozen` | `ChargedAbility.FROZEN_TAG`（`BattleBrain.FROZEN_TAG` 别名）；单位级冻结由 `freeze_unit.tres` 挂/摘，同时驱动 `Cue.Status.Freeze` |
+| `State.Hasted` / `State.Slowed` | 单位级迅捷/迟缓的 `granted_tags`（`haste_unit.tres` / `slow_unit.tres`）；用 `PERCENT_ADD ±0.5` 修饰 `move_speed`，不影响魂灵充能 |
 | `Cue.Status.Freeze` | 单位冻结持久光环（`base_mods/core/cues/freeze_cue.tscn`） |
 | `Cue.Combat.ClawSlash` | 命中爪痕（`base_mods/core/cues/claw_slash_cue.tscn`）；由技能资源的 `hit_cue_tag` 触发，带方向/位置 |
 | `Data.TriggerMagnitude` / `Data.SkillMagnitude` / `Data.CritMultiplier` / `Data.SuppressStateLog` | 触发数值 / 主动技能步骤数值 / 暴击倍率 / 批量日志抑制的 SetByCaller 键 |
@@ -42,11 +43,11 @@
 
 GAS 属性：
 
-- 两个 `AttributeSet` 的默认生命值都是 500，但 `BattleUnit._init_attributes()` 会先把场景根节点的 `max_health` 向下取整，再用它覆盖 `max_health` 和 `health` 的 `base_value`。
-- 所有战斗属性落地值都是整数：计算层（暴击、比例、百分比加成等）允许小数，写入属性前统一向下取整。`max_health` 受百分比加成影响时也按最终值取整。
+- 两个 `AttributeSet` 的默认生命值都是 500，但 `BattleUnit._init_attributes()` 会先把场景根节点的 `max_health` 向下取整，再用它覆盖 `max_health` 和 `health` 的 `base_value`；同一处把刷怪注入的 `BattleUnit.move_speed` 写入 `move_speed` 属性的 `base_value`。属性集没有 `move_speed` 时跳过写入，`BattleUnit.get_move_speed()` 回退到 `BattleUnit.move_speed`。
+- 战斗属性落地值默认是整数：计算层（暴击、比例、百分比加成等）允许小数，写入属性前统一向下取整。`max_health` 受百分比加成影响时也按最终值取整；`move_speed` 是例外，它是移动乘区，保留小数，只钳制到不小于 0。
 - `damage_bonus` 是己方魂灵直接伤害加成；`burn` 是当前灼烧层数，按整数层数结算；`shield` 是当前护盾值，无上限；`poison` 是当前剧毒值，按整数结算，每秒且不衰减；`regen` 是当前生命再生值，按整数结算，每秒恢复等量生命且不衰减。剧毒与生命再生属性各自保留原值，结算时直接相减，数值大的一方生效。
 - ASC 在 `_ready()` 时会深拷贝 `attribute_sets`，所以 `BattleUnit` 必须等节点入树后再取 `get_attribute()` 的引用。
-- `pre_attribute_change()` 负责向下取整（`health` 先 clamp 再 floor）与下限/上限钳制；`post_attribute_change()` 负责 `max_health` 变化时同步 `health`。
+- `pre_attribute_change()` 负责向下取整（`health` 先 clamp 再 floor）与下限/上限钳制；`move_speed` 不取整，只钳制到不小于 0；`post_attribute_change()` 负责 `max_health` 变化时同步 `health`。
 - `BattleUnit._apply_passive_effects()` 在被动最大生命变化后，用运行时 `INSTANT GameplayEffect`（health `ADD health_delta`）同步当前生命；同步目标生命同样向下取整。此时还没连接日志/血条，所以不会产生开场飘字。
 
 调试接入：`BattleUnit` 在 ASC 就绪时发 `BattleEventBus.unit_asc_ready`，`CombatTelemetryAdapter` 收到后调用 `CombatTelemetry.bind_unit()` 监听 ASC 的属性/标签/效果/能力/GameplayEvent 信号；项目侧创建的 spec 使用 `SoulEffectContext`（`GameplayEffectContext` 子类）携带 `CombatTrace`，调试窗口据此还原因果链。详见 `架构/调试与遥测.md`。

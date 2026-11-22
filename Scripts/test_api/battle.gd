@@ -9,6 +9,8 @@ const POISON_TICK : GameplayEffect = preload("res://base_mods/core/effects/poiso
 const REGEN_APPLY : GameplayEffect = preload("res://base_mods/core/effects/regen_apply.tres")
 const REGEN_TICK : GameplayEffect = preload("res://base_mods/core/effects/regen_tick.tres")
 const FREEZE_UNIT : GameplayEffect = preload("res://base_mods/core/effects/freeze_unit.tres")
+const HASTE_UNIT : GameplayEffect = preload("res://base_mods/core/effects/haste_unit.tres")
+const SLOW_UNIT : GameplayEffect = preload("res://base_mods/core/effects/slow_unit.tres")
 
 static func start_battle(map_id : StringName = MapCatalog.FOREST_MAP_ID) -> bool:
 	var window := _battle_window()
@@ -59,6 +61,21 @@ static func apply_freeze(target : String = "player", seconds : float = 3.0) -> b
 	unit.asc.apply_effect_spec(spec)
 	unit.notify_freeze_applied(unit)
 	return true
+
+
+static func apply_haste(target : String = "enemy", seconds : float = 3.0) -> bool:
+	return _apply_movement_status(HASTE_UNIT, target, seconds)
+
+
+static func apply_slow(target : String = "enemy", seconds : float = 3.0) -> bool:
+	return _apply_movement_status(SLOW_UNIT, target, seconds)
+
+
+static func get_move_speed(target : String = "enemy") -> float:
+	var unit: BattleUnit = COMMON.find_unit(target)
+	if unit == null:
+		return 0.0
+	return unit.get_move_speed()
 
 
 static func play_claw_cue(target : String = "enemy", direction : int = 1) -> bool:
@@ -227,6 +244,20 @@ static func get_battle_log() -> String:
 static func get_fps_text() -> String:
 	var window := _battle_window()
 	return "" if window == null else window.get_fps_text_for_test()
+
+
+static func _apply_movement_status(
+	effect : GameplayEffect, target : String, seconds : float
+) -> bool:
+	var unit: BattleUnit = COMMON.find_unit(target)
+	if unit == null or unit.asc == null or seconds <= 0.0:
+		return false
+	var context := GameplayEffectContext.new(unit, unit)
+	context.target_data.append_node(unit)
+	var spec := GameplayEffectSpec.new(effect, context)
+	spec.duration = seconds
+	unit.asc.apply_effect_spec(spec)
+	return true
 
 
 static func _apply_dot(

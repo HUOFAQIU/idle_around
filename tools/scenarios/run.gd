@@ -6,6 +6,7 @@ const CASES: Array[GDScript] = [
 	preload("res://tools/scenarios/cases/map_place.gd"),
 	preload("res://tools/scenarios/cases/battle_run.gd"),
 	preload("res://tools/scenarios/cases/battle_lightning_rod.gd"),
+	preload("res://tools/scenarios/cases/battle_movement_status.gd"),
 ]
 
 var _total: int = 0

@@ -42,6 +42,7 @@ var cell: Vector2i = Vector2i.ZERO
 var health_attr: AttributeData
 var max_health_attr: AttributeData
 var shield_attr: AttributeData
+var move_speed_attr: AttributeData
 
 
 static func opposing_team(team_id: Team) -> Team:
@@ -81,6 +82,9 @@ func _init_attributes() -> void:
 	health_attr = asc.get_attribute("health")
 	max_health_attr = asc.get_attribute("max_health")
 	shield_attr = asc.get_attribute("shield")
+	move_speed_attr = asc.get_attribute("move_speed")
+	if move_speed_attr != null:
+		move_speed_attr.base_value = maxf(move_speed, 0.0)
 
 	asc.add_tag(GameplayTags.Team_Player if team == Team.PLAYER else GameplayTags.Team_Enemy)
 
@@ -294,6 +298,12 @@ func is_unit_frozen() -> bool:
 
 func health_percent() -> float:
 	return health_attr.current_value / maxf(max_health_attr.current_value, 0.001)
+
+
+func get_move_speed() -> float:
+	if move_speed_attr != null:
+		return move_speed_attr.current_value
+	return maxf(move_speed, 0.0)
 
 
 func _on_attribute_changed(attribute_name: String, old_value: float, new_value: float, _spec: GameplayEffectSpec) -> void:

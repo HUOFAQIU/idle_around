@@ -575,6 +575,18 @@ static func apply_freeze(target : String = "player", seconds : float = 3.0) -> b
 	return BATTLE.apply_freeze(target, seconds)
 
 
+static func apply_haste(target : String = "enemy", seconds : float = 3.0) -> bool:
+	return BATTLE.apply_haste(target, seconds)
+
+
+static func apply_slow(target : String = "enemy", seconds : float = 3.0) -> bool:
+	return BATTLE.apply_slow(target, seconds)
+
+
+static func get_move_speed(target : String = "enemy") -> float:
+	return BATTLE.get_move_speed(target)
+
+
 static func play_claw_cue(target : String = "enemy", direction : int = 1) -> bool:
 	return BATTLE.play_claw_cue(target, direction)
 

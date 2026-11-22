@@ -25,9 +25,11 @@ const STATUS := {
 	"暴击": CRIT,
 	"暴击率": CRIT,
 	"冻结": FREEZE,
+	"迅捷": HASTE,
+	"迟缓": SLOW,
 	"护盾": SHIELD,
 }
-const STATUS_PATTERN : String = "生命再生|暴击率|灼烧|剧毒|治疗|护盾|冻结|加速|减速|充能|伤害|暴击"
+const STATUS_PATTERN : String = "生命再生|暴击率|灼烧|剧毒|治疗|护盾|冻结|迅捷|迟缓|加速|减速|充能|伤害|暴击"
 
 
 const TEXT_PRIMARY : String = "#ffffff"

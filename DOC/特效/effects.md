@@ -1,6 +1,6 @@
 # 给游戏加特效（GameplayCue）
 
-> 类型：指南 | 状态：有效 | 核对：2026-11-21
+> 类型：指南 | 状态：有效 | 核对：2026-11-23
 > 何时读：新增/调试 GameplayCue 特效
 > 关键词：特效 GameplayCue Cue 场景 对象池 补间 注册 挂钩 灼烧 剧毒 冻结 爪痕 hit_cue_tag 命中特效 mod 内置 core manifest
 > 代码：`base_mods/core/mod.json`、`godot_gas/cue_registry.tres`、`addons/GodotGAS/cues/`、`Scripts/mod/mod_cue_registrar.gd`
@@ -18,8 +18,7 @@
 - 播完自动还回**对象池**：同一个标签会反复复用同一个节点实例，不是每次都 `instantiate`
 - 单位一销毁，挂在上面的 cue 跟着没 —— 这正好满足"关窗＝全部还原"
 
-代码位置：`addons/GodotGAS/cues/gameplay_cue_notify.gd`（基类）、
-`GameplayCueManager`（GodotGAS autoload）启动时加载 `godot_gas/cue_registry.tres`（当前为空）；`ModCueRegistrar`（autoload）随后把 ModLoader 的 core 和第三方 mod Cue 注册进去。注册完成后会检查技能 `hit_cue_tag` 和效果里的 `application/persistent/periodic/removal_cue_tags` 是否指向已注册标签；缺失会写进 `ModLoader.get_errors()`。
+基类在 `addons/GodotGAS/cues/gameplay_cue_notify.gd`；`GameplayCueManager` 启动时加载 `godot_gas/cue_registry.tres`（当前为空），`ModCueRegistrar` 随后注册 core 和第三方 mod 的 Cue。注册完成后会检查技能 `hit_cue_tag` 和效果的四个 Cue 字段是否指向已注册标签，缺失写进 `ModLoader.get_errors()`。
 
 ---
 
@@ -144,9 +143,7 @@ func execute_cue(target: Node, payload: Dictionary = {}) -> void:
 所以你的可视节点要么是根节点的直接子节点，要么自己在 `play_cue`/`end_cue` 里管好显示。
 
 **3. 做小了、做快了，等于没做。**
-之前那个火花就是这样：半径 3→22 像素、0.25 秒、alpha 从头就在淡 —— 等它扩出来已经淡没了，
-怎么都看不见。三个数一起调：**尺寸、时长、透明度曲线**（别一上来就线性淡到 0，
-先保持一两帧满透明度再淡）。
+尺寸、时长、透明度曲线要一起调：别一上来就线性淡到 0，先保持一两帧满透明度再淡。
 
 **4. 标签不用注册。**
 框架不校验标签，`&"Cue.随便写"` 也能跑（只是不会自动出现补全）。
@@ -181,8 +178,7 @@ print(img.get_pixel(origin + Vector2i(x, y)))   # x, y 是面板内部坐标
 
 ## 七、现有示例
 
-- 注册表：官方在 `base_mods/core/mod.json` 的 `content.cues`，第三方在各自 `mod.json`；`GameplayCueManager`（addon autoload）持有注册结果，`ModCueRegistrar`（`Scripts/mod/mod_cue_registrar.gd`）负责注册。
-- 基类 `addons/GodotGAS/cues/gameplay_cue_notify.gd`；效果挂点在 `addons/GodotGAS/effects/gameplay_effect.gd` 的 Cue Management 一节（`application/persistent/periodic/removal_cue_tags`），技能侧挂点是 `UnitSkillStep.hit_cue_tag`。
+- 效果挂点在 `addons/GodotGAS/effects/gameplay_effect.gd` 的 Cue Management 一节，技能侧挂点是 `UnitSkillStep.hit_cue_tag`。
 - 内置 Cue 场景都在 `base_mods/core/cues/`；标签、场景路径和挂载关系以 `base_mods/core/mod.json` 与 `base_mods/core/effects/*.tres` 为准。
 
 魂灵格子被冻结时走的是 `ItemView` 的材质表现，不走 Cue：`SoulRuntime.freeze_seconds` 驱动 `soul_scanline.gdshader` 的 `freeze` 参数和 `game/content/Kits/bingdong.tscn` 徽章。原因是魂灵的显示对象是 UI `Control`，而不是可以挂 Cue 的战场节点。

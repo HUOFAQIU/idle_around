@@ -1,11 +1,10 @@
 # Mod 制作与打包
 
-> 类型：指南 | 状态：部分实现（内置 core 已接入） | 核对：2026-11-21
+> 类型：指南 | 状态：部分实现（内置 core 已接入） | 核对：2026-11-23
 > 何时读：制作、打包、调试 idle_around 的 mod，或新增官方内容
 > 关键词：mod.json content.pck modkit 示例 mod pack_example patch 导出 覆盖 加载顺序 内置 core content_root content_namespace validate_core_manifest manifest 校验 内容 ID 技能 ID 命名 PascalCase content_id 魂器 vessels
 > 代码：`Scripts/mod/`、`Scripts/collection_db.gd`、`base_mods/core/mod.json`
 > 相关：`架构/Mod系统.md`
-> 核对：2026-11-15
 
 ## 1. 最小 mod
 
@@ -146,10 +145,8 @@ user://mods/example_souls/
 
 ## 6. 加载顺序
 
-- 基础顺序在 Mod 窗口的“加载顺序”页用上移/下移调整，存在 `user://mods.cfg` 的 `[order]`；没有列出的 mod 按 id 追加到末尾。
-- 排序时先满足 `dependencies`，再满足 `load_after`，其余按基础顺序；两者会覆盖用户顺序，冲突时以依赖为准。
-- 顺序改动重启后生效；Mod 列表里的“顺序 N”是本次实际加载顺序。
-- 循环依赖会记录错误，但不会导致启动失败。
+- 基础顺序在 Mod 窗口的“加载顺序”页调整，存在 `user://mods.cfg` 的 `[order]`；没有列出的 mod 按 id 追加到末尾，循环依赖记录错误但不阻止启动。
+- 依赖、生效时机与两个顺序接口的语义见 `架构/Mod系统.md` §8.2。
 - 启用状态和已知 mod 记录在 `user://mods.cfg`。
 
 ## 7. 调试

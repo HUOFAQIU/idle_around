@@ -1,12 +1,11 @@
 # Mod 系统与创意工坊
 
-> 类型：设计 | 状态：部分实现（内置 core mod 已接入；Steam 后置） | 核对：2026-11-21
+> 类型：设计 | 状态：部分实现（内置 core mod 已接入；Steam 后置） | 核对：2026-11-23
 > 何时读：改 mod 加载、内容注册、存档兼容，或准备接 Steam 创意工坊
 > 关键词：mod ModLoader manifest PCK 创意工坊 Workshop content_id orphaned 加载顺序 内置 core content_namespace content_root validate_core_manifest manifest 校验 技能 ID 命名 PascalCase 魂器 vessels 常见排查 排障 症状 未生效 未注册 顺序不生效
 > 代码：`Scripts/mod/`、`Scripts/collection_db.gd`、`Scripts/save/`、`project.godot`、`base_mods/core/mod.json`
 > 相关：`架构/存档.md`、`架构/扩展点.md`、`指南/Mod制作.md`
 > 不覆盖：Steamworks 后台配置、GodotSteam 完整 API
-> 核对：2026-11-18
 
 ## 1. 目标与边界
 
@@ -132,7 +131,7 @@ res://mods/example_souls/content/monsters/fire_wolf_monster.tres
 - 魂灵 `types` / `tags` 必须用 `Soul.types.*` / `Soul.tags.*` 固定前缀；拼错不会报错，但筛选和触发规则会静默失效。
 - Cue 场景只实例化一次检查根节点是否实现 `execute_cue` / `cue_finished`；不加入场景树时只会触发 `_init`。
 - `content_namespace: "global"` 和 `content_root` 只允许内置来源；第三方写了会被拒绝并记入 `ModLoader.get_errors()`。
-- 加载顺序：内置 mod 固定在最前；第三方按用户在 Mod 窗口排的基础顺序，存在 `user://mods.cfg` 的 `[order]`。`dependencies` 是硬依赖，缺失/禁用时依赖方不加载；`load_after` 是软顺序。两者都会覆盖用户顺序，冲突时以依赖为准。
+- 加载顺序（内置固定最前、`dependencies` / `load_after` 覆盖用户顺序、生效时机）见 §8.2。
 - 路径覆盖：所有 PCK 先挂载，再加载内容；后挂载的 PCK 可以覆盖先挂载的资源。core 内容在 `res://base_mods/core/...`，第三方覆盖这些路径即可，但要在 `overrides` 里声明。
 - 冲突检测：重复内容 ID、重复 cue tag、同一路径被多个 mod 声明覆盖在加载阶段记录；重复 skill id 在 `CollectionDB` 构建目录时补充。都会出现在 `ModLoader.get_errors()`。
 - 内容路径必须落在该 mod 的根目录下：第三方是 `res://mods/<id>/` 或 `user://mods/<id>/`；内置是 `res://base_mods/<id>/` 或 manifest 的 `content_root`。`overrides` 是唯一允许指向其他 `res://` 路径的入口。
@@ -178,8 +177,7 @@ res://mods/example_souls/content/monsters/fire_wolf_monster.tres
 - 清单在 `base_mods/core/mod.json`，条目与 ID 以该文件为准；技能、触发器、effects 不单独登记，由资源内部引用。
 - `content_namespace: "global"` 保留原 ID；内容资源按 `souls/`、`monsters/`、`vessels/`、`effects/`、`cues/` 分目录存放。
 - 官方 Cue 场景在 `base_mods/core/cues/`，逻辑脚本仍在 `game/battle/cues/`；`godot_gas/cue_registry.tres` 为空。
-- 导出时 `export_presets.cfg` 的 `include_filter` 必须包含 `base_mods/*/mod.json`；`exclude_filter` 用 `mods/*,EngineTools/*`，不能写成 `*mods/*`，否则会误伤 `base_mods/`。
-- 改完官方内容后运行 `EngineTools/modkit/validate_core_manifest.gd`（或 `TestAPI.validate_core_manifest()`），检查 manifest 是否漏登记、路径不存在、ID 重复，以及资源是否误设中文 `resource_name`；内容种类、字段名与文件后缀来自 `ContentKindSpec`，校验器不再复制这些常量；技能由 `SkillDefinition.steps` 组成，步骤类型、目标规则与字段是否一致由 ModLoader 在加载期检查；执行器字段（`attribute_name`、数值范围、`burn_effect` 等）也在加载期校验；怪物会校验 `display_name`、`max_health`、`attack_range`、`move_speed` 和 `battle_scene`。
+- 官方内容的目录约定、导出过滤器和 `validate_core_manifest.gd` 清单校验步骤见 `指南/Mod制作.md` §9；步骤类型/目标规则/执行器字段是否一致由 ModLoader 在加载期检查，怪物还会校验 `display_name`、`max_health`、`attack_range`、`move_speed` 和 `battle_scene`。
 
 ## 9. 安全边界
 

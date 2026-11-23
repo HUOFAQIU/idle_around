@@ -1,11 +1,11 @@
 # Claude Code 项目结构（2026-11）
 
 > 类型：指南 | 状态：有效
-> 何时读：改 `.claude/` 配置（CLAUDE.md、settings、hooks、skills、agents、workflows）、排查 Claude Code 的加载/权限行为
+> 何时读：改 `.claude/` 配置（CLAUDE.md、rules、settings、hooks、skills、agents、workflows）、排查 Claude Code 的加载/权限行为
 > 关键词：Claude Code 项目结构 CLAUDE.md AGENTS.md settings.json mcp hooks skills agents workflows agent-memory rules 权限 优先级 2.1.329 Code Mode
 > 代码：—
-> 相关：`指导文件.md`；本仓库自己的约定以根 `CLAUDE.md` 为准，不在此重复
-> 核对：2026-11-21
+> 相关：`指南/代码检查.md`；本仓库自己的约定以根 `CLAUDE.md` 与 `.claude/rules/` 为准，不在此重复
+> 核对：2026-11-23
 
 ## 1. 基线
 

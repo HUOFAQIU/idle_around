@@ -56,7 +56,7 @@ python -X utf8 -I tools/lint/strip_comments.py --dry-run
 | 地图 | `DOC/战斗/地图.md` |
 | 颜色 | `DOC/架构/颜色与主题.md` |
 | 调试/遥测 | `DOC/架构/调试与遥测.md` |
-| 跨模块口径与坑 | `DOC/架构/现状与注意.md` §1.3 注意点 |
+| 跨模块口径与坑 | `DOC/架构/现状与注意.md` §2 跨域坑 |
 
 改文档时同步更新文档头的「核对」日期；新增文档才更新 `DOC/INDEX.md`。
 

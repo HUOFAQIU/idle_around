@@ -15,7 +15,7 @@ description: 审查一次改动：Standards 轴查项目规则（lint、注释�
 
 ## 1. Standards 轴（总是跑）
 
-规则来源：根 `CLAUDE.md`「必须遵守」、`DOC/INDEX.md` 写作约定、`DOC/指南/代码检查.md` 规则表。
+规则来源：`.claude/rules/`、`DOC/INDEX.md` 写作约定、`DOC/指南/代码检查.md` 规则表。
 
 ```bash
 bash tools/check.sh --all

@@ -1,159 +1,141 @@
-"""检查 DOC/INDEX.md 的文档清单与文档头元数据是否一致。"""
+"""自动扫描 DOC/**/*.md 元数据，并校验 DOC/INDEX.md 路由表路径有效性。"""
 
 import argparse
 import re
 import sys
-from dataclasses import dataclass
+from datetime import date
 from pathlib import Path
 
-META_SECTION = "## 文档清单"
-ROW_RE = re.compile(
-    r"^\|\s*`([^`]+)`\s*\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|\s*([^|]+?)\s*\|\s*$"
-)
 META_RE = re.compile(r"(类型|状态|核对|整理)[：:]\s*([^|\n]+)")
+ROUTE_DOC_RE = re.compile(r"`([^`\s]+\.md)`")
+HEADER_SCAN_LINES = 15
+DEFAULT_MAX_LINES = 200
+DEFAULT_MAX_BYTES = 12 * 1024
 
 
-@dataclass
-class IndexRow:
-    line: int
-    path: str
-    kind: str
-    status: str
-    date: str
-
-
-def read_rows(index_path: Path) -> list[IndexRow]:
-    rows: list[IndexRow] = []
-    in_section = False
-    for number, line in enumerate(index_path.read_text(encoding="utf-8").splitlines(), 1):
-        if line.startswith("## "):
-            in_section = line.strip() == META_SECTION
-            continue
-        if not in_section:
-            continue
-        match = ROW_RE.match(line)
-        if not match or match.group(1) == "文档":
-            continue
-        path, kind, status, date = (part.strip() for part in match.groups())
-        rows.append(IndexRow(number, path, kind, status, date))
-    return rows
+def iter_docs(doc_root: Path) -> list[Path]:
+    """返回 DOC/ 下除 INDEX.md 外的全部 Markdown 文档（按 POSIX 路径排序）。"""
+    if not doc_root.is_dir():
+        return []
+    docs = [
+        path
+        for path in doc_root.rglob("*.md")
+        if path.is_file() and path.resolve() != (doc_root / "INDEX.md").resolve()
+    ]
+    return sorted(docs, key=lambda p: p.relative_to(doc_root).as_posix())
 
 
 def read_header(path: Path) -> dict[str, str]:
+    """提取文档前 15 行中的元数据字段（类型/状态/核对/整理）。"""
     values: dict[str, str] = {}
-    for line in path.read_text(encoding="utf-8").splitlines()[:15]:
+    for line in path.read_text(encoding="utf-8").splitlines()[:HEADER_SCAN_LINES]:
         for key, value in META_RE.findall(line):
             values.setdefault(key, value.strip())
     return values
 
 
-def _type_matches(index_value: str, header_value: str) -> bool:
-    return index_value in [part.strip() for part in header_value.split("/")]
+def read_route_refs(index_path: Path) -> list[tuple[int, str]]:
+    """提取 DOC/INDEX.md 路由表中引用的所有相对 .md 路径。"""
+    refs: list[tuple[int, str]] = []
+    if not index_path.is_file():
+        return refs
+    in_table = False
+    for number, line in enumerate(index_path.read_text(encoding="utf-8").splitlines(), 1):
+        stripped = line.strip()
+        if stripped.startswith("## "):
+            in_table = "需求" in stripped or "路由" in stripped
+            continue
+        if not in_table or not stripped.startswith("|"):
+            continue
+        cells = [cell.strip() for cell in stripped.strip("|").split("|")]
+        if len(cells) < 2 or cells[0] == "你要做什么" or set(cells[0]) <= {"-"}:
+            continue
+        # 第 2 列为「先读」文档列
+        for ref in ROUTE_DOC_RE.findall(cells[1]):
+            refs.append((number, ref))
+    return refs
 
 
-def _status_base(value: str) -> str:
-    return value.split("（", 1)[0].split("(", 1)[0].strip()
-
-
-def _status_matches(index_value: str, header_value: str) -> bool:
-    return _status_base(index_value) == _status_base(header_value)
-
-
-def _format_row(row: IndexRow) -> str:
-    return f"| `{row.path}` | {row.kind} | {row.status} | {row.date} |"
-
-
-def check_index(root: Path) -> list[str]:
+def check_index(
+    root: Path,
+    *,
+    strict_budget: bool = False,
+    max_lines: int = DEFAULT_MAX_LINES,
+    max_bytes: int = DEFAULT_MAX_BYTES,
+) -> list[str]:
+    """校验所有文档头元数据、日期格式以及 INDEX.md 路由路径有效性。"""
     doc_root = root / "DOC"
+    index_path = doc_root / "INDEX.md"
     errors: list[str] = []
-    for row in read_rows(doc_root / "INDEX.md"):
-        if not row.path.endswith(".md"):
-            continue
-        path = doc_root / row.path
-        if not path.is_file():
-            errors.append(f"DOC/INDEX.md:{row.line}: 文档不存在：{row.path}")
-            continue
+
+    if not index_path.is_file():
+        errors.append("DOC/INDEX.md: 缺少文档入口文件")
+    else:
+        for line_no, ref in read_route_refs(index_path):
+            target = doc_root / ref
+            if not target.is_file():
+                errors.append(f"DOC/INDEX.md:{line_no}: 路由目标不存在：{ref}")
+
+    for path in iter_docs(doc_root):
+        rel = path.relative_to(doc_root).as_posix()
         header = read_header(path)
         kind = header.get("类型")
         status = header.get("状态")
-        date = header.get("核对") or header.get("整理")
+        checked_date = header.get("核对") or header.get("整理")
         missing = [
             name
-            for name, value in (("类型", kind), ("状态", status), ("核对/整理", date))
+            for name, value in (("类型", kind), ("状态", status), ("核对/整理", checked_date))
             if not value
         ]
         if missing:
-            errors.append(
-                f"DOC/INDEX.md:{row.line}: `{row.path}` 文档头缺少 {'、'.join(missing)}"
-            )
+            errors.append(f"DOC/{rel}: 文档头缺少 {'、'.join(missing)}")
             continue
-        if not _type_matches(row.kind, kind):
-            errors.append(
-                f"DOC/INDEX.md:{row.line}: `{row.path}` 类型 INDEX={row.kind} 文档头={kind}"
-            )
-        if not _status_matches(row.status, status):
-            errors.append(
-                f"DOC/INDEX.md:{row.line}: `{row.path}` 状态 INDEX={row.status} 文档头={status}"
-            )
-        if row.date != date:
-            errors.append(
-                f"DOC/INDEX.md:{row.line}: `{row.path}` 日期 INDEX={row.date} 文档头={date}"
-            )
+        try:
+            date.fromisoformat(checked_date)
+        except ValueError:
+            errors.append(f"DOC/{rel}: 核对/整理日期格式不是 YYYY-MM-DD：{checked_date}")
+
+        if strict_budget:
+            raw = path.read_bytes()
+            line_count = raw.decode("utf-8").count("\n") + (0 if raw.endswith(b"\n") else 1)
+            if line_count > max_lines:
+                errors.append(f"DOC/{rel}: 超出行数上限 ({line_count} > {max_lines})")
+            if len(raw) > max_bytes:
+                errors.append(f"DOC/{rel}: 超出体积上限 ({len(raw)}B > {max_bytes}B)")
+
     return errors
 
 
 def write_index(root: Path) -> int:
-    doc_root = root / "DOC"
-    index_path = doc_root / "INDEX.md"
-    lines = index_path.read_text(encoding="utf-8").splitlines()
-    changed = 0
-    for row in read_rows(index_path):
-        if not row.path.endswith(".md"):
-            continue
-        path = doc_root / row.path
-        if not path.is_file():
-            continue
-        header = read_header(path)
-        kind = header.get("类型")
-        status = header.get("状态")
-        date = header.get("核对") or header.get("整理")
-        if not kind or not status or not date:
-            continue
-        next_row = IndexRow(
-            row.line,
-            row.path,
-            row.kind if _type_matches(row.kind, kind) else kind.split("/")[0].strip(),
-            row.status if _status_matches(row.status, status) else status,
-            date,
-        )
-        if next_row == row:
-            continue
-        lines[row.line - 1] = _format_row(next_row)
-        changed += 1
-    if changed:
-        index_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
-    return changed
+    """兼容旧 --write 参数：自动扫描模式下无需手工回写清单，直接返回 0。"""
+    return 0
 
 
 def main(argv: list[str] | None = None) -> int:
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")
+    if hasattr(sys.stderr, "reconfigure"):
         sys.stderr.reconfigure(encoding="utf-8")
-    parser = argparse.ArgumentParser(description="检查 DOC/INDEX.md 元数据")
+
+    parser = argparse.ArgumentParser(description="自动扫描 DOC/ 元数据并校验 DOC/INDEX.md 路由")
     parser.add_argument("--root", default=str(Path(__file__).resolve().parents[2]))
-    parser.add_argument("--write", action="store_true")
+    parser.add_argument("--write", action="store_true", help="兼容保留参数（自动扫描模式无需回写）")
+    parser.add_argument("--strict-budget", action="store_true", help="同时校验单篇文档行数与字节预算")
     args = parser.parse_args(argv)
 
     root = Path(args.root).resolve()
     if args.write:
         print(f"INDEX_META_WRITTEN {write_index(root)}")
-    errors = check_index(root)
+
+    errors = check_index(root, strict_budget=args.strict_budget)
     for error in errors:
         print(error)
     if errors:
         print(f"\nINDEX_META_FAILED {len(errors)}")
         return 1
-    print(f"INDEX_META_OK {len(read_rows(root / 'DOC' / 'INDEX.md'))}")
+
+    doc_count = len(iter_docs(root / "DOC"))
+    print(f"INDEX_META_OK {doc_count}")
     return 0
 
 

@@ -1,9 +1,11 @@
-"""Claude Code PostToolUse 钩子：编辑后立即跑单文件 lint。"""
+"""Claude Code PostToolUse 钩子：仅对 Godot 源码/场景/资源文件跑单文件 lint。"""
 
 import json
 import subprocess
 import sys
 from pathlib import Path
+
+RELEVANT_SUFFIXES = {".gd", ".tscn", ".tres"}
 
 
 def main() -> int:
@@ -14,6 +16,10 @@ def main() -> int:
 
     file_path = (payload.get("tool_input") or {}).get("file_path")
     if not file_path:
+        return 0
+
+    # 编辑 .md / .json / .toml / .py 等非 Godot 文件直接短路返回，避免拉起 runner.py
+    if Path(file_path).suffix.lower() not in RELEVANT_SUFFIXES:
         return 0
 
     root = Path(__file__).resolve().parents[1]

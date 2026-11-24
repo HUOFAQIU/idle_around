@@ -4,7 +4,7 @@
 > 何时读：改属性集、标签注册、Cue 清单
 > 关键词：GAS GameplayAbility AttributeSet Tag Cue godot_gas
 > 代码：godot_gas/、base_mods/core/mod.json
-> 相关：`特效/effects.md`、`架构/调试与遥测.md`
+> 相关：`指南/特效与Cue.md`、`架构/调试与遥测.md`
 
 ## 1. GAS 适配层 `godot_gas/`
 

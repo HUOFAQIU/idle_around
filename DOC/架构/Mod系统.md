@@ -1,10 +1,10 @@
 # Mod 系统与创意工坊
 
-> 类型：设计 | 状态：部分实现（内置 core mod 已接入；Steam 后置） | 核对：2026-11-23
+> 类型：设计 | 状态：部分实现（内置 core mod 已接入；Steam 后置） | 核对：2026-11-24
 > 何时读：改 mod 加载、内容注册、存档兼容，或准备接 Steam 创意工坊
 > 关键词：mod ModLoader manifest PCK 创意工坊 Workshop content_id orphaned 加载顺序 内置 core content_namespace content_root validate_core_manifest manifest 校验 技能 ID 命名 PascalCase 魂器 vessels 常见排查 排障 症状 未生效 未注册 顺序不生效
 > 代码：`Scripts/mod/`、`Scripts/collection_db.gd`、`Scripts/save/`、`project.godot`、`base_mods/core/mod.json`
-> 相关：`架构/存档.md`、`架构/扩展点.md`、`指南/Mod制作.md`
+> 相关：`架构/存档.md`、`指南/扩展点.md`、`指南/Mod制作.md`
 > 不覆盖：Steamworks 后台配置、GodotSteam 完整 API
 
 ## 1. 目标与边界
@@ -143,7 +143,7 @@ res://mods/example_souls/content/monsters/fire_wolf_monster.tres
 - `SoulData` 和 `MonsterData` 新增 `content_id`；`SaveCodec` 编码时直接用它，`item_name` 只做显示和排查。
 - 这样两个 mod 的魂灵即使显示名相同，也不会串档。
 - **缺失内容不能静默丢**：读档时找不到的内容记录写入 `orphaned` 段；写档时原样带回。重新启用 mod 后，下一次读档会尝试放回原容器/仓库。
-- `version` 仍是 1。
+- 存档版本号与迁移规则以 `架构/存档.md` §2/§7 为准（当前 `version: 2`）。
 
 ## 8. 当前实现范围（Phase 1 + 内置 core）
 

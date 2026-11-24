@@ -4,7 +4,7 @@
 > 何时读：改背包/仓库/魂器容器/魂器网格、拖拽、商店容器、存档
 > 关键词：GBIS 背包 仓库 inventory container 物品大类 category 魂器 vessel vessel_cells 魂器网格 地图 MAP STONE 数量石 拖拽 Tooltip 存档 分页 Warehouse 商店 Shop
 > 代码：game/inventory/grid_base_inventory_system/、Scripts/warehouse.gd
-> 相关：`窗口/见闻窗口.md`、`魂灵/魂器.md`、`架构/存档.md`
+> 相关：`架构/见闻窗口.md`、`设计/魂器.md`、`架构/存档.md`
 
 ## 1. 背包 / 仓库系统（GBIS）
 
@@ -137,7 +137,7 @@ GBIS.add_item(inv_name, item_data)
 
 仓库页由 `Warehouse` autoload 启动时预注册，未翻到的页也在 `GBIS.inventory_names` 里，因此存档会覆盖全部页。`inventory_0` 仍是第 1 页。仓库窗口本体显示 10 页，顶部 1–10 按钮翻页；页数固定，扩仓改 `Scripts/warehouse.gd` 的 `PAGE_COUNT`。10 页全满时新掉落才会丢失。拿起物品后右键取消，优先放回原格；原格被占用时落到同一页第一个空位。
 
-魂器内部容器平时不在 `ContainerRepository` 里：打开魂器窗口时按实例名注册，供 `InventoryView`、拖拽服务和悬停提示使用；容器内容随魂器物品记录嵌套保存，详见 `魂灵/魂器.md` 和 `架构/存档.md`。
+魂器内部容器平时不在 `ContainerRepository` 里：打开魂器窗口时按实例名注册，供 `InventoryView`、拖拽服务和悬停提示使用；容器内容随魂器物品记录嵌套保存，详见 `设计/魂器.md` 和 `架构/存档.md`。
 
 ### 1.6 交互键位
 

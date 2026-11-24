@@ -1,6 +1,6 @@
 ---
 name: review
-description: 审查一次改动：Standards 轴查项目规则（lint、注释、TestAPI 与文档同步、依赖边界），Spec 轴查实现是否符合 DOC/spec 的行为清单。用户说 review、「审一下」「检查这次改动」「能不能提交」时使用。
+description: 双轴审查改动：Standards 轴查项目规则与边界，Spec 轴查 DOC/spec 行为清单。
 ---
 
 # 双轴审查
@@ -15,7 +15,7 @@ description: 审查一次改动：Standards 轴查项目规则（lint、注释�
 
 ## 1. Standards 轴（总是跑）
 
-规则来源：`.claude/rules/`、`DOC/INDEX.md` 写作约定、`DOC/指南/代码检查.md` 规则表。
+规则来源：`.claude/rules/`、`DOC/指南/文档规范.md`、`DOC/指南/代码检查.md` 规则表。
 
 ```bash
 bash tools/check.sh --all
@@ -30,7 +30,7 @@ bash tools/check.sh --all
 - 改功能时旧代码、旧命名、旧迁移、旧文档描述一并删除，没写兼容层。
 - 依赖边界：层次表以 `tools/lint/boundaries.toml` 为准，重点看 `Windows/` 不读 `Scripts/test_api`、`game/content/` 与 `game/` 单向。
 - `addons/` 未被改动；确需改动时事先说明。
-- 文档头「核对」日期与本次改动一致；改文档内容后先更新文档头日期，再跑 `index_meta.py --write` 同步 `DOC/INDEX.md` 对应行；新增或删除文档才增删清单行。
+- 文档头「核对」日期与本次改动一致；新增或移动文档已同步更新 `DOC/INDEX.md` 路由表（元数据与路径由 `index_meta.py` 自动扫描校验）。
 - 存档和设置格式可以破坏，但无头探针不能写真实 `user://`。
 
 ## 2. Spec 轴（有 spec 才跑）

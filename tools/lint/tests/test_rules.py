@@ -73,6 +73,14 @@ class NoCommentsRuleTest(unittest.TestCase):
     def test_allows_provenance(self) -> None:
         self.assertEqual(self.check("## @meta_license: MIT\n"), [])
 
+    def test_allows_why_and_invariant_contract_notes(self) -> None:
+        self.assertEqual(self.check("# why: DWM 延迟 3 帧收缩防残影\n"), [])
+        self.assertEqual(self.check("# invariant: advance_status 必须在 advance_charge 之后\n"), [])
+
+    def test_flags_overlong_or_empty_contract_note(self) -> None:
+        self.assertEqual(len(self.check("# why:\n")), 1)
+        self.assertEqual(len(self.check("# why: " + "x" * 120 + "\n")), 1)
+
     def test_ignores_comment_in_string(self) -> None:
         self.assertEqual(self.check('var text := "# TODO"\n'), [])
 

@@ -41,12 +41,12 @@
 
 触发器事件的 payload、派发点和条件见 `架构/战斗数据与魂灵.md` §魂灵触发器；GAS 侧只负责按标签唤醒 `SoulTriggerAbility`。
 
-执行器统一通过 `CritResolution`（`game/battle/crit_resolution.gd`）读取暴击倍率，并在暴击时注入 `Event.Combat.Critical`；SetByCaller 键统一使用自动生成的 `GameplayTags.Data_*`，不要手写字符串；`StatusApplyExecution` 的数值优先级见 `架构/战斗数据与魂灵.md` §1.5。
+执行器统一通过 `CritResolution`（`game/battle/crit_resolution.gd`）读取暴击倍率，并在暴击时注入 `Event.Combat.Critical`；SetByCaller 键统一使用自动生成的 `GameplayTags.Data_*`，不要手写字符串；`StatusApplyExecution` 的数值优先级见 `架构/战斗数据与魂灵.md` §4。
 
 GAS 属性：
 
 - 两个 `AttributeSet` 的默认生命值都是 500，但 `BattleUnit._init_attributes()` 会先把场景根节点的 `max_health` 向下取整，再用它覆盖 `max_health` 和 `health` 的 `base_value`；同一处把刷怪注入的 `BattleUnit.move_speed` 写入 `move_speed` 属性的 `base_value`。属性集没有 `move_speed` 时跳过写入，`BattleUnit.get_move_speed()` 回退到 `BattleUnit.move_speed`。
-- 战斗属性落地值口径见 `架构/战斗运行时_伤害与流程.md` §1.1；`move_speed` 是移动乘区，保留小数，只钳制到不小于 0。
+- 战斗属性落地值口径见 `架构/战斗运行时_伤害与流程.md` §1；`move_speed` 是移动乘区，保留小数，只钳制到不小于 0。
 - `damage_bonus` 是己方魂灵直接伤害加成；`burn` 是当前灼烧层数，按整数层数结算；`shield` 是当前护盾值，无上限；`poison` 是当前剧毒值，按整数结算，每秒且不衰减；`regen` 是当前生命再生值，按整数结算，每秒恢复等量生命且不衰减。剧毒与生命再生属性各自保留原值，结算时直接相减，数值大的一方生效。
 - ASC 在 `_ready()` 时会深拷贝 `attribute_sets`，所以 `BattleUnit` 必须等节点入树后再取 `get_attribute()` 的引用。
 - `pre_attribute_change()` 负责向下取整（`health` 先 clamp 再 floor）与下限/上限钳制；`move_speed` 不取整，只钳制到不小于 0；`post_attribute_change()` 负责 `max_health` 变化时同步 `health`。

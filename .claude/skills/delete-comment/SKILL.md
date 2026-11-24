@@ -11,9 +11,10 @@ description: 清理首方 GDScript 注释，把决策迁入 DOC/ 后用 no-comme
 
 - 只处理首方 6 个目录：`Scripts/`、`Main/`、`game/`、`godot_gas/`、`Windows/`、`EngineTools/modkit/`。
 - 不碰 `addons/`、`.godot/`、`base_mods/`、`mods/`。
-- 保留三类注释，不迁移也不删除：
-  - `@export` 及其变体（`@export_range` 等）正上方的 `##`（Godot Inspector 显示）。
+- 保留四类注释，不迁移也不删除：
+  - `@export` 及其变体（`@export_range` 等）正上方或行尾的 `##`（Godot Inspector 显示）。
   - `## @meta_addon` / `## @meta_author` / `## @meta_license` 来源标注。
+  - 单行 `# why:` / `# invariant:` 契约标注（总长 ≤120 字符，就近标注关键顺序/边界不变量）。
   - `godot_gas/gameplay_tags.gd`（插件生成，改完会再生成）。
 - 不压空行。
 
@@ -28,7 +29,8 @@ python -X utf8 -I tools/lint/strip_comments.py --dry-run
 | 类别 | 判定 | 处理 |
 |---|---|---|
 | 赘述 / 过时 | 只复述符号名、显而易见行为，或引用已删代码/旧命名 | 直接删 |
-| 决策记录 | 框架强约束、执行顺序原因、单位/边界/取整口径、引擎行为、已知坑 | 先迁文档，再删 |
+| 局部不变量 | 单行就能说清的关键顺序、防坑原因（≤120 字） | 改写成 `# why:` 或 `# invariant:` 保留 |
+| 长篇决策 | 跨文件流程、协议、多条边界与坑 | 先迁进 `DOC/`，再删 |
 
 ## 2. 迁移决策
 
@@ -47,4 +49,4 @@ git diff --stat
 
 ## 4. 汇报
 
-报告：删除的文件数与注释数、分类数量、迁移进文档的决策清单（文档 + 小节）、`check.sh --all` 结果及未处理保留项。
+报告：删除的文件数与注释数、保留的 `# why:`/`# invariant:` 数量、迁移进文档的决策清单（文档 + 小节）、`check.sh --all` 结果及未处理保留项。

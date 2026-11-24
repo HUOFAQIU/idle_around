@@ -25,7 +25,7 @@ bash tools/check.sh --all
 
 人工项：
 
-- 首方 GDScript 无注释，例外仅 `@export` 正上方的 Inspector 文档、`@meta` 标注、生成文件。
+- 首方 GDScript 禁普通注释，例外仅 `@export` 文档、`@meta_*` 来源、单行 `# why:`/`# invariant:`（≤120 字）与生成文件。
 - 新增功能或内容同步暴露 TestAPI：域模块实现 + `Scripts/test_api.gd` 门面转发；只有新增域或入口语义变化才改 `DOC/指南/AI测试接口.md`。
 - 改功能时旧代码、旧命名、旧迁移、旧文档描述一并删除，没写兼容层。
 - 依赖边界：层次表以 `tools/lint/boundaries.toml` 为准，重点看 `Windows/` 不读 `Scripts/test_api`、`game/content/` 与 `game/` 单向。

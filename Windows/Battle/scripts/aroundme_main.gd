@@ -1,5 +1,5 @@
 class_name AroundMeMain
-extends Node
+extends Control
 
 const CAM_YAW := PI * 0.25
 const CAM_ELEV := deg_to_rad(38.0)
@@ -75,7 +75,8 @@ func _ready() -> void:
 	game.init_game(mat_unit)
 	ui.init_ui(self, game, cam, sub_vp)
 	_on_window_resize()
-	get_viewport().size_changed.connect(_on_window_resize)
+	resized.connect(_on_window_resize)
+	_sync_render_mode(is_visible_in_tree())
 	print("[AroundMe] Morning Forest Clearing initialized.")
 
 
@@ -204,7 +205,7 @@ func _init_weather_controller() -> void:
 
 
 func _on_window_resize() -> void:
-	var win_sz := get_viewport().get_visible_rect().size
+	var win_sz := size
 	var dw := maxf(win_sz.x, 2.0)
 	var dh := maxf(win_sz.y, 2.0)
 	var texel := maxf(2.0, maxf(sqrt(dw * dh / MAX_PIX), minf(dw, dh) / float(MAX_IH)))
@@ -223,6 +224,11 @@ func _on_window_resize() -> void:
 
 
 func _process(delta: float) -> void:
+	var active := is_visible_in_tree()
+	_sync_render_mode(active)
+	if not active:
+		return
+
 	var rdt := minf(delta, 0.05)
 
 	if not paused:
@@ -263,8 +269,16 @@ func _process(delta: float) -> void:
 	)
 
 
+func _sync_render_mode(active: bool) -> void:
+	var mode: SubViewport.UpdateMode = SubViewport.UPDATE_DISABLED
+	if active:
+		mode = SubViewport.UPDATE_ALWAYS
+	if sub_vp.render_target_update_mode != mode:
+		sub_vp.render_target_update_mode = mode
+
+
 func _update_camera() -> void:
-	var win_sz := get_viewport().get_visible_rect().size
+	var win_sz := size
 	cam_aspect = maxf(0.5, win_sz.x / maxf(win_sz.y, 1.0))
 	cam_base = maxf(BASE_VIEW_H, 42.0 / cam_aspect)
 
@@ -321,6 +335,8 @@ func toggle_weather() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	if not is_visible_in_tree():
+		return
 	if event is InputEventKey and (event as InputEventKey).pressed and not (event as InputEventKey).echo:
 		var ke := event as InputEventKey
 		if ke.keycode == KEY_P or ke.keycode == KEY_SPACE:

@@ -1,5 +1,5 @@
 class_name AroundMeUI
-extends CanvasLayer
+extends Control
 
 const HP_FRAME := Color(0.04, 0.04, 0.06, 0.88)
 const SOLDIER_HP_BG := Color(0.16, 0.14, 0.12, 0.92)
@@ -46,7 +46,6 @@ func init_ui(main_ref: AroundMeMain, game_ref: AroundMeGame, cam_ref: Camera3D, 
 	_game = game_ref
 	_cam = cam_ref
 	_sub_vp = sub_vp_ref
-	layer = 10
 
 	var fnt := load("res://Windows/Battle/assets/fonts/pixel9.fnt")
 	if fnt is FontFile:
@@ -90,7 +89,7 @@ func update_perf_overlay(dt: float, fps: int, mons_n: int, kills_n: int, gpu_uni
 
 
 func update_ui(_dt: float) -> void:
-	var win_sz := get_viewport().get_visible_rect().size
+	var win_sz := size
 	ui_s = maxi(2, int(roundf(win_sz.y / 430.0)))
 	var lw := win_sz.x / float(ui_s)
 	var lh := win_sz.y / float(ui_s)
@@ -122,7 +121,7 @@ func update_ui(_dt: float) -> void:
 func _world_to_screen(p: Vector3) -> Vector2:
 	var sp := _cam.unproject_position(p)
 	var vp_sz := Vector2(_sub_vp.size)
-	var win_sz := get_viewport().get_visible_rect().size
+	var win_sz := size
 	if vp_sz.x < 1.0 or vp_sz.y < 1.0:
 		return Vector2(-9999.0, -9999.0)
 	return Vector2(sp.x / vp_sz.x * win_sz.x, sp.y / vp_sz.y * win_sz.y)

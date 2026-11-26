@@ -4,23 +4,26 @@
 [ext_resource type="PackedScene" uid="uid://33uxpqaakhs" path="res://Windows/Battle/Maps/tile.tscn" id="2_7qkyi"]
 [ext_resource type="Script" uid="uid://dhkg54ofvcs6i" path="res://Windows/Battle/player_health_bar.gd" id="3_healthbar"]
 [ext_resource type="Script" uid="uid://emshu1chhtjv" path="res://Windows/Battle/player_status_bar.gd" id="4_statusbar"]
+[ext_resource type="PackedScene" path="res://Windows/Battle/scenes/aroundme_main.tscn" id="5_arm"]
 
 [node name="BattleWindow" type="Control" unique_id=1101778887]
 layout_mode = 1
 anchors_preset = 0
 offset_left = 0.0
-offset_top = 36.0
-offset_right = 1000.0
-offset_bottom = 1066.0
+offset_top = 0.0
+offset_right = 1920.0
+offset_bottom = 1080.0
 script = ExtResource("1_nc1sn")
 
 [node name="Tile" parent="." unique_id=2019690502 instance=ExtResource("2_7qkyi")]
+visible = false
 position = Vector2(484, 440)
 metadata/_edit_lock_ = true
 
 [node name="Units" type="Node2D" parent="Tile" unique_id=544514597]
 
 [node name="UiOverlay" type="Control" parent="." unique_id=1626333118]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -243,3 +246,6 @@ theme_override_constants/outline_size = 3
 theme_override_font_sizes/font_size = 12
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="AroundMeMain" parent="." instance=ExtResource("5_arm")]
+layout_mode = 1

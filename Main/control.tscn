@@ -34,7 +34,6 @@ open_position = Vector2i(735, 20)
 
 [node name="BattleWindow" parent="." unique_id=1210820663 instance=ExtResource("7_e8vwd")]
 visible = false
-open_position = Vector2i(560, 20)
 
 [node name="ShopWindow" parent="." unique_id=1488491486 instance=ExtResource("8_mkciv")]
 visible = false

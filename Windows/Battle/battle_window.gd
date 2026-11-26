@@ -94,8 +94,9 @@ func _physics_process(_delta: float) -> void:
 	if not visible:
 		return
 
-	_update_coord_tooltip()
-	_push_scanlines()
+	if ground_tilemaplayer.is_visible_in_tree():
+		_update_coord_tooltip()
+		_push_scanlines()
 
 
 func start_battle(map_item: MapItemData, slot_index: int = -1) -> void:

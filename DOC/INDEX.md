@@ -7,7 +7,7 @@
 | 你要做什么 | 先读 | 代码入口 |
 |---|---|---|
 | 项目总览、Autoload、输入动作、开发约定与引擎工具 | `架构/00_总览.md`、`指南/开发约定.md` | `project.godot`、`Scripts/GameGlobal.gd`、`EngineTools/` |
-| 启动链、单窗口外壳、面板拖动/置顶/遮挡、Info/Item/Shop 窗口 | `架构/窗口与场景.md` | `Main/control.gd`、`Main/panel_manager.gd`、`Main/status_bar_container.gd`、`Windows/base_window.gd`、`Windows/Info/`、`Windows/Item/`、`Windows/Shop/`、`Scripts/ui/`、`Scripts/window_pin_settings.gd` |
+| 启动链、单窗口外壳、面板拖动/置顶/遮挡、Info/Item/Shop 窗口 | `架构/窗口与场景.md` | `Main/control.gd`、`Main/panel_manager.gd`、`Main/status_bar_container.gd`、`Windows/base_window.gd`、`Windows/Battle/battle_window.tscn`、`Windows/Info/`、`Windows/Item/`、`Windows/Shop/`、`Scripts/ui/`、`Scripts/window_pin_settings.gd` |
 | 3D 立方体旋转/翻面、面片/PetPanel、透明点击穿透、拖动圆点 | `架构/立方体外壳.md` | `Main/Cube/`、`Main/pet_panel.gd`、`Main/Cube/Scripts/window_passthrough.gd` |
 | 开局/新游戏/六槽存档选择/角色选择/面锁定 | `架构/开局流程.md`、`架构/存档.md` | `game/flow/game_flow.gd`、`game/content/Characters/`、`Main/Cube/Scenes/UI/` |
 | 终端字符网格、ANSI、命令控制台与 Tab 补全 | `架构/终端窗口.md`、`指南/命令控制台.md` | `Scripts/terminal/`、`Windows/Terminal/`、`Scripts/commands/` |

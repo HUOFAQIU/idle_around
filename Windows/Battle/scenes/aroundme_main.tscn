@@ -33,7 +33,15 @@ glow_intensity = 0.28
 glow_strength = 0.65
 glow_hdr_threshold = 1.45
 
-[node name="AroundMeMain" type="Node" unique_id=1667079122]
+[node name="AroundMeMain" type="Control" unique_id=1667079122]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+clip_contents = true
+mouse_filter = 2
 script = ExtResource("1_m6844")
 weather_presets = Array[Resource]([ExtResource("12_wsun"), ExtResource("13_wrain")])
 
@@ -84,21 +92,28 @@ mob_archetypes = Array[Resource]([ExtResource("14_mrat"), ExtResource("15_mskel"
 
 [node name="PostProcessRect" type="TextureRect" parent="." unique_id=1775917440]
 unique_name_in_owner = true
+layout_mode = 1
 texture_filter = 2
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 2
 
-[node name="AroundMeUI" type="CanvasLayer" parent="." unique_id=304176932]
+[node name="AroundMeUI" type="Control" parent="." unique_id=304176932]
 unique_name_in_owner = true
-layer = 10
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
 script = ExtResource("4_70sgx")
 
 [node name="WorldOverlay" type="Control" parent="AroundMeUI" unique_id=1190932550]
 unique_name_in_owner = true
 texture_filter = 1
-layout_mode = 3
+layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -109,7 +124,7 @@ mouse_filter = 2
 [node name="HudRoot" type="Control" parent="AroundMeUI" unique_id=568486925]
 unique_name_in_owner = true
 texture_filter = 1
-layout_mode = 3
+layout_mode = 1
 anchors_preset = 0
 mouse_filter = 2
 theme = ExtResource("5_blj52")

@@ -1,4 +1,4 @@
-class_name AroundMeWeatherPreset
+class_name WeatherPreset
 extends Resource
 
 @export_group("Identity")

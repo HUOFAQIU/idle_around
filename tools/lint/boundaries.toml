@@ -22,55 +22,55 @@ reads = ["*"]
 name = "windows"
 paths = ["Windows/"]
 reads = [
-    "Scripts/",
-    "game/",
-    "godot_gas/",
-    "addons/",
-    "base_mods/",
-    "Assets/",
-    "Main/panel_manager.gd",
+	"Scripts/",
+	"game/",
+	"godot_gas/",
+	"addons/",
+	"base_mods/",
+	"Assets/",
+	"Main/panel_manager.gd",
 ]
 
 [[layer]]
 name = "script"
 paths = ["Scripts/"]
 reads = [
-    "game/",
-    "godot_gas/",
-    "addons/",
-    "base_mods/",
-    "Assets/",
-    "Scripts/test_api.gd",
-    "Scripts/test_api/",
+	"game/",
+	"godot_gas/",
+	"addons/",
+	"base_mods/",
+	"Assets/",
+	"Scripts/test_api.gd",
+	"Scripts/test_api/",
 ]
 
 [[layer]]
 name = "content-def"
 paths = ["game/content/"]
 reads = [
-    "game/inventory/",
-    "godot_gas/",
-    "addons/",
-    "Assets/",
-    "Scripts/game_colors.gd",
-    "Scripts/debug/",
-    "Scripts/save/",
-    "Scripts/mod/",
-    "Scripts/collection_db.gd",
+	"game/inventory/",
+	"godot_gas/",
+	"addons/",
+	"Assets/",
+	"Scripts/game_colors.gd",
+	"Scripts/debug/",
+	"Scripts/save/",
+	"Scripts/mod/",
+	"Scripts/collection_db.gd",
 ]
 
 [[layer]]
 name = "domain"
 paths = ["game/"]
 reads = [
-    "game/content/",
-    "godot_gas/",
-    "addons/",
-    "Assets/",
-    "Scripts/game_colors.gd",
-    "Scripts/debug/",
-    "Scripts/save/",
-    "Scripts/collection_db.gd",
+	"game/content/",
+	"godot_gas/",
+	"addons/",
+	"Assets/",
+	"Scripts/game_colors.gd",
+	"Scripts/debug/",
+	"Scripts/save/",
+	"Scripts/collection_db.gd",
 ]
 
 [[layer]]
@@ -82,10 +82,10 @@ reads = ["addons/"]
 name = "content"
 paths = ["base_mods/"]
 reads = [
-    "game/",
-    "godot_gas/",
-    "addons/",
-    "Assets/",
+	"game/",
+	"godot_gas/",
+	"addons/",
+	"Assets/",
 ]
 
 [autoload]

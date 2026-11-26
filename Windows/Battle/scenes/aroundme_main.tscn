@@ -1,6 +1,7 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://Windows/Battle/scripts/aroundme_main.gd" id="1_m6844"]
+[ext_resource type="Script" path="res://Windows/Battle/view_3d/battle_view_3d.gd" id="22_v3d"]
 [ext_resource type="PackedScene" path="res://Windows/Battle/scenes/meadow_map.tscn" id="2_2bqx6"]
 [ext_resource type="Script" path="res://Windows/Battle/scripts/aroundme_game.gd" id="3_x5m21"]
 [ext_resource type="Script" path="res://Windows/Battle/scripts/aroundme_ui.gd" id="4_70sgx"]
@@ -43,22 +44,33 @@ grow_vertical = 2
 clip_contents = true
 mouse_filter = 2
 script = ExtResource("1_m6844")
+
+[node name="BattleView3D" type="Control" parent="." unique_id=1667079200]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("22_v3d")
 weather_presets = Array[Resource]([ExtResource("12_wsun"), ExtResource("13_wrain")])
 
-[node name="SubViewport" type="SubViewport" parent="." unique_id=2113089904]
+[node name="SubViewport" type="SubViewport" parent="BattleView3D" unique_id=2113089904]
 unique_name_in_owner = true
 use_hdr_2d = true
 size = Vector2i(960, 540)
 render_target_update_mode = 4
 
-[node name="World" type="Node3D" parent="SubViewport" unique_id=1614984966]
+[node name="World" type="Node3D" parent="BattleView3D/SubViewport" unique_id=1614984966]
 unique_name_in_owner = true
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="SubViewport/World" unique_id=1560779785]
+[node name="WorldEnvironment" type="WorldEnvironment" parent="BattleView3D/SubViewport/World" unique_id=1560779785]
 unique_name_in_owner = true
 environment = SubResource("Environment_53d0w")
 
-[node name="MorningSunLight" type="DirectionalLight3D" parent="SubViewport/World" unique_id=695105418]
+[node name="MorningSunLight" type="DirectionalLight3D" parent="BattleView3D/SubViewport/World" unique_id=695105418]
 transform = Transform3D(-0.5407578, 0.594803, -0.594803, 0, 0.7071068, 0.7071068, 0.8411784, 0.3823735, -0.3823735, -24, 28, -16)
 light_color = Color(1, 0.91, 0.72, 1)
 light_energy = 1.8
@@ -69,12 +81,12 @@ shadow_blur = 0.25
 directional_shadow_mode = 0
 directional_shadow_max_distance = 72.0
 
-[node name="SkyFillLight" type="DirectionalLight3D" parent="SubViewport/World" unique_id=314569500]
+[node name="SkyFillLight" type="DirectionalLight3D" parent="BattleView3D/SubViewport/World" unique_id=314569500]
 transform = Transform3D(0.6757246, -0.38584405, 0.62810874, 0, 0.8520725, 0.52342385, -0.7371541, -0.3536904, 0.5757664, 24, 20, 22)
 light_color = Color(0.58, 0.8, 1, 1)
 light_energy = 0.56
 
-[node name="Camera3D" type="Camera3D" parent="SubViewport/World" unique_id=1661436570]
+[node name="Camera3D" type="Camera3D" parent="BattleView3D/SubViewport/World" unique_id=1661436570]
 unique_name_in_owner = true
 projection = 1
 current = true
@@ -82,15 +94,15 @@ size = 25.0
 near = 1.0
 far = 210.0
 
-[node name="MeadowMap" type="Node3D" parent="SubViewport/World" unique_id=1538544234 instance=ExtResource("2_2bqx6")]
+[node name="MeadowMap" type="Node3D" parent="BattleView3D/SubViewport/World" unique_id=1538544234 instance=ExtResource("2_2bqx6")]
 unique_name_in_owner = true
 
-[node name="AroundMeGame" type="Node3D" parent="SubViewport/World" unique_id=1281625064]
+[node name="AroundMeGame" type="Node3D" parent="BattleView3D/SubViewport/World" unique_id=1281625064]
 unique_name_in_owner = true
 script = ExtResource("3_x5m21")
 mob_archetypes = Array[Resource]([ExtResource("14_mrat"), ExtResource("15_mskel"), ExtResource("16_mslime"), ExtResource("17_mspider"), ExtResource("18_mghoul"), ExtResource("19_mwolf"), ExtResource("20_mknight"), ExtResource("21_mbrute")])
 
-[node name="PostProcessRect" type="TextureRect" parent="." unique_id=1775917440]
+[node name="PostProcessRect" type="TextureRect" parent="BattleView3D" unique_id=1775917440]
 unique_name_in_owner = true
 layout_mode = 1
 texture_filter = 2
@@ -213,7 +225,7 @@ text = "0"
 layout_mode = 0
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -172.0
+offset_left = -286.0
 offset_top = 5.0
 offset_right = -5.0
 offset_bottom = 22.0
@@ -251,6 +263,27 @@ custom_minimum_size = Vector2(36, 0)
 layout_mode = 2
 focus_mode = 0
 text = "SUN"
+
+[node name="StressBtn" type="Button" parent="AroundMeUI/HudRoot/CtrlBox" unique_id=344168672]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(34, 0)
+layout_mode = 2
+focus_mode = 0
+text = "+100"
+
+[node name="PerfBtn" type="Button" parent="AroundMeUI/HudRoot/CtrlBox" unique_id=344168673]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(38, 0)
+layout_mode = 2
+focus_mode = 0
+text = "PERF"
+
+[node name="ResetBtn" type="Button" parent="AroundMeUI/HudRoot/CtrlBox" unique_id=344168674]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(30, 0)
+layout_mode = 2
+focus_mode = 0
+text = "RST"
 
 [node name="PerfPlate" type="PanelContainer" parent="AroundMeUI/HudRoot" unique_id=1046652962]
 unique_name_in_owner = true
@@ -293,18 +326,3 @@ grow_horizontal = 2
 theme_override_colors/font_color = Color(0.98, 0.82, 0.42, 1)
 horizontal_alignment = 1
 
-[node name="HintPlate" type="PanelContainer" parent="AroundMeUI/HudRoot" unique_id=1310310503]
-layout_mode = 0
-anchor_top = 1.0
-anchor_bottom = 1.0
-offset_left = 5.0
-offset_top = -18.0
-offset_right = 240.0
-offset_bottom = -5.0
-grow_vertical = 0
-mouse_filter = 2
-
-[node name="@Label@12" type="Label" parent="AroundMeUI/HudRoot/HintPlate" unique_id=723852103]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.76, 0.72, 0.65, 1)
-text = "K:+100 Mobs  L:Perf  M:Mute  Space:Pause  Tab:Speed  R:Reset"

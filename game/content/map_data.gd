@@ -11,6 +11,8 @@ class_name MapData
 @export var spawn_entries: Array[MapSpawnEntry] = []
 ## 地图稀有度 1~5；决定掉落魂灵的有效情绪总量区间
 @export_range(1, 5) var rarity: int = 1
+## 地图默认天气预设（留空时由战斗视图使用默认晴天）
+@export var weather_preset: WeatherPreset
 
 
 func collect_problems() -> Array[String]:

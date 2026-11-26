@@ -1,4 +1,4 @@
-class_name AroundMeSfxPool
+class_name BattleSfxPool
 extends RefCounted
 
 var muted: bool = false

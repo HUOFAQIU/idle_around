@@ -10,8 +10,7 @@ const MOB_HP_FILL := Color(0.95, 0.42, 0.24)
 
 var _main: AroundMeMain
 var _game: AroundMeGame
-var _cam: Camera3D
-var _sub_vp: SubViewport
+var _view_3d: BattleView3D
 
 var ui_s: int = 3
 var show_perf: bool = false
@@ -35,17 +34,19 @@ var _ic_mute: Texture2D
 @onready var mute_btn: Button = %MuteBtn
 @onready var dof_btn: Button = %DofBtn
 @onready var weather_btn: Button = %WeatherBtn
+@onready var stress_btn: Button = %StressBtn
+@onready var perf_btn: Button = %PerfBtn
+@onready var reset_btn: Button = %ResetBtn
 @onready var perf_plate: PanelContainer = %PerfPlate
 @onready var perf_line1: Label = %PerfLine1
 @onready var perf_line2: Label = %PerfLine2
 @onready var banner_lbl: Label = %BannerLabel
 
 
-func init_ui(main_ref: AroundMeMain, game_ref: AroundMeGame, cam_ref: Camera3D, sub_vp_ref: SubViewport) -> void:
+func init_ui(main_ref: AroundMeMain, game_ref: AroundMeGame, view_ref: BattleView3D) -> void:
 	_main = main_ref
 	_game = game_ref
-	_cam = cam_ref
-	_sub_vp = sub_vp_ref
+	_view_3d = view_ref
 
 	var fnt := load("res://Windows/Battle/assets/fonts/pixel9.fnt")
 	if fnt is FontFile:
@@ -65,6 +66,9 @@ func init_ui(main_ref: AroundMeMain, game_ref: AroundMeGame, cam_ref: Camera3D, 
 	mute_btn.pressed.connect(func(): _main.toggle_mute())
 	dof_btn.pressed.connect(func(): _main.toggle_dof())
 	weather_btn.pressed.connect(func(): _main.toggle_weather())
+	stress_btn.pressed.connect(func(): _main.spawn_stress_wave())
+	perf_btn.pressed.connect(func(): _main.toggle_perf_overlay())
+	reset_btn.pressed.connect(func(): _main.reset_run())
 	perf_plate.visible = false
 	banner_lbl.visible = false
 
@@ -103,8 +107,9 @@ func update_ui(_dt: float) -> void:
 	speed_btn.text = "%dx" % _main.sim_speed
 	pause_btn.icon = _ic_play if _main.paused else _ic_pause
 	mute_btn.icon = _ic_mute if _game.muted else _ic_sound
-	dof_btn.text = "DOF:ON" if _main.dof_enabled else "DOF:OFF"
+	dof_btn.text = "DOF:ON" if _main.is_dof_enabled() else "DOF:OFF"
 	weather_btn.text = _main.get_weather_label()
+	perf_btn.text = "PERF*" if show_perf else "PERF"
 
 	if _game.soldier_dead:
 		banner_lbl.visible = true
@@ -118,22 +123,13 @@ func update_ui(_dt: float) -> void:
 	overlay.queue_redraw()
 
 
-func _world_to_screen(p: Vector3) -> Vector2:
-	var sp := _cam.unproject_position(p)
-	var vp_sz := Vector2(_sub_vp.size)
-	var win_sz := size
-	if vp_sz.x < 1.0 or vp_sz.y < 1.0:
-		return Vector2(-9999.0, -9999.0)
-	return Vector2(sp.x / vp_sz.x * win_sz.x, sp.y / vp_sz.y * win_sz.y)
-
-
 func _on_overlay_draw() -> void:
-	if _game == null or _cam == null:
+	if _game == null or _view_3d == null:
 		return
 	var s := float(ui_s)
 
 	if not _game.soldier_dead:
-		var sp := _world_to_screen(_game.soldier_pos + Vector3(0.0, 2.05, 0.0))
+		var sp := _view_3d.world_to_screen(_game.soldier_pos + Vector3(0.0, 2.05, 0.0))
 		var bw := 16.0 * s
 		var bh := 2.0 * s
 		var bx := roundf(sp.x - bw * 0.5)
@@ -151,7 +147,7 @@ func _on_overlay_draw() -> void:
 		if hp >= mhp - 0.01:
 			continue
 		var mp := m.pos + Vector3(0.0, m.archetype.hit_height + 0.45, 0.0)
-		var sp := _world_to_screen(mp)
+		var sp := _view_3d.world_to_screen(mp)
 		var bw := 11.0 * s
 		var bh := 1.5 * s
 		var bx := roundf(sp.x - bw * 0.5)

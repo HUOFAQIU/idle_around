@@ -1,4 +1,4 @@
-class_name AroundMeFxPool
+class_name BattleFxPool
 extends RefCounted
 
 const MAX_DEBRIS := 260

@@ -74,12 +74,14 @@ var perf_batch_ms: float = 0.0
 var mons: Array[MobState] = []
 var _grid: Dictionary = {}
 
-var _sfx := AroundMeSfxPool.new()
-var _fx := AroundMeFxPool.new()
-var _renderer := AroundMeUnitBatchRenderer.new()
+var _sfx := BattleSfxPool.new()
+var _fx := BattleFxPool.new()
+var _renderer := BattleUnitBatchRenderer.new()
+var _height_fn: Callable = Callable()
 
 
-func init_game(mat_unit: ShaderMaterial) -> void:
+func init_game(mat_unit: ShaderMaterial, height_fn: Callable = Callable()) -> void:
+	_height_fn = height_fn
 	_ensure_default_archetypes()
 	_sfx.init(self, ["sword", "clash", "hit", "kill", "horn", "ui_click"], 10)
 	_fx.init(self)
@@ -124,11 +126,24 @@ func get_gpu_unit_count() -> int:
 
 
 func height_at(x: float, z: float) -> float:
-	var r := sqrt(x * x + z * z)
-	var center_flat := clampf((r - 3.2) / 4.2, 0.0, 1.0)
-	var roll := (sin(x * 0.16) * cos(z * 0.14) * 0.34 + sin((x + z) * 0.085) * 0.22) * center_flat
-	var rim_rise := clampf((r - 17.0) / 14.0, 0.0, 1.0) * 0.55
-	return 0.08 * (1.0 - center_flat) + roll + rim_rise
+	if _height_fn.is_valid():
+		return float(_height_fn.call(x, z))
+	return 0.0
+
+
+func collect_trample_targets() -> Array[Vector4]:
+	var targets: Array[Vector4] = []
+	if not soldier_dead:
+		targets.append(Vector4(soldier_pos.x, soldier_pos.y, soldier_pos.z, 1.35))
+	var n := mons.size()
+	var step := maxi(1, int(float(n) / 63.0))
+	var i := 0
+	while i < n and targets.size() < 64:
+		var m := mons[i]
+		if m.pos.x * m.pos.x + m.pos.z * m.pos.z < 24.5 * 24.5:
+			targets.append(Vector4(m.pos.x, m.pos.y, m.pos.z, 0.95 * m.archetype.visual_scale))
+		i += step
+	return targets
 
 
 func reset_run() -> void:

@@ -17,7 +17,7 @@ const INERTIA_SOFT_STOP_SPEED := 1.2
 const INERTIA_LOW_SPEED_DAMPING := 6.0
 const INERTIA_STOP_SPEED := 0.06
 const RELEASE_VELOCITY_WINDOW_US := 90_000
-const ALIGN_MAX_ANGLE_DEG := 25.0
+const ALIGN_MAX_ANGLE_DEG := 60.0
 const SNAP_MIN_DURATION := 0.28
 const SNAP_MAX_DURATION := 0.55
 
@@ -155,7 +155,7 @@ func _begin_snap(target_quaternion: Quaternion) -> void:
 	_snap_elapsed = 0.0
 
 	var angle := _snap_from.angle_to(_snap_to)
-	_snap_duration = clampf(0.24 + angle * 0.22, SNAP_MIN_DURATION, SNAP_MAX_DURATION)
+	_snap_duration = clampf(0.12 + angle * 0.22, SNAP_MIN_DURATION, SNAP_MAX_DURATION)
 	if angle < 0.002:
 		quaternion = _snap_to
 		_finish_motion()

@@ -1,4 +1,4 @@
-class_name AroundMeUnitBatchRenderer
+class_name BattleUnitBatchRenderer
 extends RefCounted
 
 var _owner: Node3D

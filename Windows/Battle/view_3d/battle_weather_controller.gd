@@ -1,9 +1,9 @@
-class_name AroundMeWeatherController
+class_name BattleWeatherController
 extends RefCounted
 
 const MAX_PARTICLES := 650
 
-var presets: Array[AroundMeWeatherPreset] = []
+var presets: Array[WeatherPreset] = []
 var active_index: int = 0
 var lightning_enabled: bool = true
 
@@ -23,7 +23,7 @@ var _lightning_flash: float = 0.0
 
 func init(
 	world: Node3D,
-	preset_list: Array[AroundMeWeatherPreset],
+	preset_list: Array[WeatherPreset],
 	start_index: int,
 	focus_dist: float,
 	world_env: WorldEnvironment,
@@ -48,19 +48,32 @@ func init(
 		if p != null:
 			presets.append(p)
 	if presets.is_empty():
-		presets.append(AroundMeWeatherPreset.new())
+		presets.append(WeatherPreset.new())
 
 	active_index = clampi(start_index, 0, presets.size() - 1)
 	_setup_particle_multimesh(world)
 	apply_active_preset()
 
 
-func get_active_preset() -> AroundMeWeatherPreset:
+func get_active_preset() -> WeatherPreset:
 	return presets[active_index]
 
 
 func get_button_label() -> String:
 	return get_active_preset().button_label
+
+
+func set_preset(preset: WeatherPreset) -> void:
+	if preset == null:
+		return
+	var idx := presets.find(preset)
+	if idx < 0:
+		presets.append(preset)
+		idx = presets.size() - 1
+	active_index = idx
+	_lightning_flash = 0.0
+	_lightning_timer = randf_range(1.5, minf(4.5, preset.lightning_interval_min))
+	apply_active_preset()
 
 
 func cycle_weather() -> void:
@@ -69,47 +82,6 @@ func cycle_weather() -> void:
 	_lightning_flash = 0.0
 	_lightning_timer = randf_range(1.5, minf(4.5, p.lightning_interval_min))
 	apply_active_preset()
-
-
-func toggle_lightning() -> void:
-	lightning_enabled = not lightning_enabled
-	var p := get_active_preset()
-	if lightning_enabled and p.allow_lightning:
-		_lightning_flash = 1.0
-		_lightning_timer = randf_range(p.lightning_interval_min, p.lightning_interval_max)
-	else:
-		_lightning_flash = 0.0
-
-
-func _setup_particle_multimesh(world: Node3D) -> void:
-	var wx_sh := load("res://Windows/Battle/shaders/weather.gdshader") as Shader
-	if wx_sh == null:
-		return
-	var qm := QuadMesh.new()
-	qm.size = Vector2.ONE
-	var mm := MultiMesh.new()
-	mm.transform_format = MultiMesh.TRANSFORM_3D
-	mm.use_custom_data = true
-	mm.mesh = qm
-	mm.instance_count = MAX_PARTICLES
-	var rng := RandomNumberGenerator.new()
-	rng.seed = 4242
-	for wi in range(MAX_PARTICLES):
-		mm.set_instance_transform(wi, Transform3D.IDENTITY)
-		mm.set_instance_custom_data(wi, Color(rng.randf(), rng.randf(), rng.randf(), (float(wi) + 0.5) / float(MAX_PARTICLES)))
-
-	_wx_mat = ShaderMaterial.new()
-	_wx_mat.shader = wx_sh
-	_wx_mat.set_shader_parameter("u_light_count", 0)
-	_wx_mat.set_shader_parameter("u_focus_dist", _focus_dist)
-
-	var mmi := MultiMeshInstance3D.new()
-	mmi.name = "WeatherParticles"
-	mmi.multimesh = mm
-	mmi.material_override = _wx_mat
-	mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	mmi.extra_cull_margin = 16384.0
-	world.add_child(mmi)
 
 
 func apply_active_preset() -> void:
@@ -172,3 +144,34 @@ func update(rdt: float, paused: bool, screen_fade: float) -> void:
 	if _post_mat != null:
 		_post_mat.set_shader_parameter("u_grade", Vector4(p.exposure + bolt * p.lightning_exposure_boost, p.saturation, p.vignette, screen_fade))
 		_post_mat.set_shader_parameter("u_lift", p.shadow_lift)
+
+
+func _setup_particle_multimesh(world: Node3D) -> void:
+	var wx_sh := load("res://Windows/Battle/shaders/weather.gdshader") as Shader
+	if wx_sh == null:
+		return
+	var qm := QuadMesh.new()
+	qm.size = Vector2.ONE
+	var mm := MultiMesh.new()
+	mm.transform_format = MultiMesh.TRANSFORM_3D
+	mm.use_custom_data = true
+	mm.mesh = qm
+	mm.instance_count = MAX_PARTICLES
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 4242
+	for wi in range(MAX_PARTICLES):
+		mm.set_instance_transform(wi, Transform3D.IDENTITY)
+		mm.set_instance_custom_data(wi, Color(rng.randf(), rng.randf(), rng.randf(), (float(wi) + 0.5) / float(MAX_PARTICLES)))
+
+	_wx_mat = ShaderMaterial.new()
+	_wx_mat.shader = wx_sh
+	_wx_mat.set_shader_parameter("u_light_count", 0)
+	_wx_mat.set_shader_parameter("u_focus_dist", _focus_dist)
+
+	var mmi := MultiMeshInstance3D.new()
+	mmi.name = "WeatherParticles"
+	mmi.multimesh = mm
+	mmi.material_override = _wx_mat
+	mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	mmi.extra_cull_margin = 16384.0
+	world.add_child(mmi)

@@ -1,4 +1,4 @@
-class_name AroundMeUI
+class_name BattleHud
 extends Control
 
 const HP_FRAME := Color(0.04, 0.04, 0.06, 0.88)
@@ -8,8 +8,8 @@ const SOLDIER_HP_LOW := Color(0.96, 0.34, 0.24)
 const MOB_HP_FRAME := Color(0.04, 0.04, 0.06, 0.82)
 const MOB_HP_FILL := Color(0.95, 0.42, 0.24)
 
-var _main: AroundMeMain
-var _game: AroundMeGame
+var _main: BattleArena
+var _game: BattleSim
 var _view_3d: BattleView3D
 
 var ui_s: int = 3
@@ -30,7 +30,6 @@ var _ic_mute: Texture2D
 @onready var hp_lbl: Label = %HpLabel
 @onready var mobs_lbl: Label = %MobsLabel
 @onready var pause_btn: Button = %PauseBtn
-@onready var speed_btn: Button = %SpeedBtn
 @onready var mute_btn: Button = %MuteBtn
 @onready var dof_btn: Button = %DofBtn
 @onready var weather_btn: Button = %WeatherBtn
@@ -43,7 +42,7 @@ var _ic_mute: Texture2D
 @onready var banner_lbl: Label = %BannerLabel
 
 
-func init_ui(main_ref: AroundMeMain, game_ref: AroundMeGame, view_ref: BattleView3D) -> void:
+func init_ui(main_ref: BattleArena, game_ref: BattleSim, view_ref: BattleView3D) -> void:
 	_main = main_ref
 	_game = game_ref
 	_view_3d = view_ref
@@ -62,7 +61,6 @@ func init_ui(main_ref: AroundMeMain, game_ref: AroundMeGame, view_ref: BattleVie
 
 	overlay.draw.connect(_on_overlay_draw)
 	pause_btn.pressed.connect(func(): _main.toggle_pause())
-	speed_btn.pressed.connect(func(): _main.cycle_speed())
 	mute_btn.pressed.connect(func(): _main.toggle_mute())
 	dof_btn.pressed.connect(func(): _main.toggle_dof())
 	weather_btn.pressed.connect(func(): _main.toggle_weather())
@@ -104,7 +102,6 @@ func update_ui(_dt: float) -> void:
 	kills_lbl.text = "%d" % _game.kills
 	hp_lbl.text = "%d/%d" % [int(ceilf(_game.soldier_hp)), int(_game.soldier_max_hp)]
 	mobs_lbl.text = "%d" % _game.mons.size()
-	speed_btn.text = "%dx" % _main.sim_speed
 	pause_btn.icon = _ic_play if _main.paused else _ic_pause
 	mute_btn.icon = _ic_mute if _game.muted else _ic_sound
 	dof_btn.text = "DOF:ON" if _main.is_dof_enabled() else "DOF:OFF"

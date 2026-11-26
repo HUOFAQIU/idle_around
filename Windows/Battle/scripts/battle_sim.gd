@@ -1,5 +1,7 @@
-class_name AroundMeGame
+class_name BattleSim
 extends Node3D
+
+signal battle_logged(line: String)
 
 const MAX_MONS := 2000
 const BATCH_CAP := 512
@@ -10,7 +12,7 @@ const SPARK_BLOOD := Color(2.0, 0.65, 0.45)
 const SOLDIER_SHATTER := Color(0.55, 0.68, 0.92)
 
 class MobState:
-	var archetype: AroundMeMobArchetype
+	var archetype: BattleMobArchetype
 	var pos := Vector3.ZERO
 	var yaw: float = 0.0
 	var hp: float = 1.0
@@ -24,7 +26,7 @@ class MobState:
 
 @export_group("Monster Archetypes")
 ## 参与刷怪的怪物预设列表（拖入 .tres 资源即可新增或调整怪物）
-@export var mob_archetypes: Array[AroundMeMobArchetype] = []
+@export var mob_archetypes: Array[BattleMobArchetype] = []
 
 @export_group("Wave & Spawning")
 ## 怪物在地图外围刷出的最小半径（米）
@@ -93,11 +95,11 @@ func init_game(mat_unit: ShaderMaterial, height_fn: Callable = Callable()) -> vo
 		if arch != null:
 			_renderer.register_batch(arch.id, arch.mesh, BATCH_CAP)
 
-	reset_run()
+	reset_run(true)
 
 
 func _ensure_default_archetypes() -> void:
-	var valid: Array[AroundMeMobArchetype] = []
+	var valid: Array[BattleMobArchetype] = []
 	for a in mob_archetypes:
 		if a != null:
 			valid.append(a)
@@ -108,7 +110,7 @@ func _ensure_default_archetypes() -> void:
 	for mid in default_ids:
 		var path := "res://Windows/Battle/assets/mobs/mob_%s.tres" % mid
 		if ResourceLoader.exists(path):
-			var res := load(path) as AroundMeMobArchetype
+			var res := load(path) as BattleMobArchetype
 			if res != null:
 				mob_archetypes.append(res)
 
@@ -146,7 +148,7 @@ func collect_trample_targets() -> Array[Vector4]:
 	return targets
 
 
-func reset_run() -> void:
+func reset_run(silent: bool = false) -> void:
 	mons.clear()
 	_fx.clear()
 	soldier_pos = Vector3(0.0, height_at(0.0, 0.0), 0.0)
@@ -164,11 +166,14 @@ func reset_run() -> void:
 	_spawn_cd = 0.4
 	shake_mag = 0.0
 	shake_offset = Vector2.ZERO
-	_sfx.play("horn", 0.45)
+	if not silent:
+		_sfx.play("horn", 0.45)
 
 	for i in range(initial_monster_count):
 		var a := TAU * float(i) / float(maxi(initial_monster_count, 1)) + randf_range(-0.18, 0.18)
 		_spawn_outer_monster(a, false)
+	if not silent:
+		battle_logged.emit("[战斗] 新一轮防守开始")
 
 
 func spawn_stress_wave(count: int = 100) -> void:
@@ -197,7 +202,10 @@ func step_sim(dt: float) -> void:
 
 func _step_wave_and_spawning(dt: float) -> void:
 	elapsed += dt
-	wave = 1 + int(elapsed / maxf(wave_duration_sec, 1.0))
+	var next_wave := 1 + int(elapsed / maxf(wave_duration_sec, 1.0))
+	if next_wave > wave:
+		wave = next_wave
+		battle_logged.emit("[波次] 进入第 %d 波" % wave)
 
 	shake_mag = maxf(0.0, shake_mag - dt * 3.2)
 	var sh := shake_mag * shake_mag * 0.22
@@ -234,10 +242,10 @@ func _spawn_outer_monster(angle: float = -1.0, all_types: bool = false) -> void:
 	mons.append(mob)
 
 
-func _pick_archetype(all_types: bool) -> AroundMeMobArchetype:
+func _pick_archetype(all_types: bool) -> BattleMobArchetype:
 	if all_types:
 		return mob_archetypes[randi() % mob_archetypes.size()]
-	var eligible: Array[AroundMeMobArchetype] = []
+	var eligible: Array[BattleMobArchetype] = []
 	for a in mob_archetypes:
 		if a.unlock_wave <= wave:
 			eligible.append(a)
@@ -310,6 +318,8 @@ func _resolve_soldier_strike() -> void:
 
 		if mob.hp <= 0.0:
 			kills += 1
+			if kills % 10 == 0:
+				battle_logged.emit("[击杀] 累计击杀 %d" % kills)
 			killed_any = true
 			_fx.spawn_shatter(mob.pos, mob.archetype.visual_scale, mob.archetype.debris_color, knock * 2.8)
 			shake_mag = minf(0.40, shake_mag + 0.07)
@@ -425,6 +435,7 @@ func _attack_soldier_from_monster(mob: MobState) -> void:
 		_fx.spawn_sparks(soldier_pos + Vector3(0.0, 0.9, 0.0), 3, SPARK_BLOOD, 3.0)
 		if soldier_hp <= 0.0:
 			soldier_dead = true
+			battle_logged.emit("[阵亡] 中心士兵倒下，等待重生")
 			soldier_respawn_t = 2.6
 			_fx.spawn_shatter(soldier_pos, 1.2, SOLDIER_SHATTER, Vector3(0.0, 2.5, 0.0))
 			_sfx.play("kill", 0.65)

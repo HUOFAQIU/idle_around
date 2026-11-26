@@ -1,6 +1,6 @@
-[gd_resource type="Resource" script_class="AroundMeMobArchetype" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="BattleMobArchetype" load_steps=3 format=3]
 
-[ext_resource type="Script" path="res://Windows/Battle/scripts/mob_archetype.gd" id="1_ma"]
+[ext_resource type="Script" path="res://game/content/battle_mob_archetype.gd" id="1_ma"]
 [ext_resource type="ArrayMesh" path="res://Windows/Battle/assets/models/units/slime.res" id="2_mesh"]
 
 [resource]

@@ -9,12 +9,6 @@
 
 [[allow]]
 rule = "dependency-boundary"
-path = "Windows/Battle/battle_window.gd"
-reason = "战斗窗口读外壳输入面的鼠标捕获状态；待把输入门控抽成独立接口"
-expires = "2027-03-01"
-
-[[allow]]
-rule = "dependency-boundary"
 path = "game/inventory/grid_base_inventory_system/core/view/drag_presenter.gd"
 reason = "GBIS 拖拽表现直接开物品窗口；待开窗收敛到统一入口"
 expires = "2027-03-01"

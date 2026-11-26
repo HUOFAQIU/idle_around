@@ -1,19 +1,21 @@
-class_name AroundMeMain
+class_name BattleArena
 extends Control
 
+signal battle_logged(line: String)
+
 @onready var view_3d: BattleView3D = %BattleView3D
-@onready var game: AroundMeGame = %AroundMeGame
-@onready var ui: AroundMeUI = %AroundMeUI
+@onready var game: BattleSim = %BattleSim
+@onready var ui: BattleHud = %BattleHud
 
 var paused: bool = false
-var sim_speed: int = 1
 
 
 func _ready() -> void:
 	view_3d.initialize()
+	game.battle_logged.connect(func(line: String) -> void: battle_logged.emit(line))
 	game.init_game(view_3d.get_unit_material(), view_3d.height_at)
 	ui.init_ui(self, game, view_3d)
-	print("[AroundMe] Morning Forest Clearing initialized.")
+	print("[BattleArena] Morning Forest Clearing initialized.")
 
 
 func _process(delta: float) -> void:
@@ -24,8 +26,7 @@ func _process(delta: float) -> void:
 
 	var rdt := minf(delta, 0.05)
 	if not paused:
-		for _s in range(sim_speed):
-			game.step_sim(rdt)
+		game.step_sim(rdt)
 
 	view_3d.set_trample_targets(game.collect_trample_targets())
 	view_3d.set_camera_shake(game.shake_offset)
@@ -57,12 +58,6 @@ func toggle_pause() -> void:
 	game.play_ui_click()
 
 
-func cycle_speed() -> void:
-	sim_speed = (sim_speed % 3) + 1
-	paused = false
-	game.play_ui_click()
-
-
 func toggle_mute() -> void:
 	game.toggle_mute()
 
@@ -85,6 +80,15 @@ func spawn_stress_wave() -> void:
 func toggle_perf_overlay() -> void:
 	ui.toggle_perf_overlay()
 	game.play_ui_click()
+
+
+func start_run() -> void:
+	paused = false
+	game.reset_run()
+
+
+func set_weather_preset(preset: WeatherPreset) -> void:
+	view_3d.set_weather_preset(preset)
 
 
 func reset_run() -> void:

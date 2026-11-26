@@ -1,10 +1,10 @@
 [gd_scene format=3]
 
-[ext_resource type="Script" path="res://Windows/Battle/scripts/aroundme_main.gd" id="1_m6844"]
+[ext_resource type="Script" path="res://Windows/Battle/scripts/battle_arena.gd" id="1_m6844"]
 [ext_resource type="Script" path="res://Windows/Battle/view_3d/battle_view_3d.gd" id="22_v3d"]
 [ext_resource type="PackedScene" path="res://Windows/Battle/scenes/meadow_map.tscn" id="2_2bqx6"]
-[ext_resource type="Script" path="res://Windows/Battle/scripts/aroundme_game.gd" id="3_x5m21"]
-[ext_resource type="Script" path="res://Windows/Battle/scripts/aroundme_ui.gd" id="4_70sgx"]
+[ext_resource type="Script" path="res://Windows/Battle/scripts/battle_sim.gd" id="3_x5m21"]
+[ext_resource type="Script" path="res://Windows/Battle/scripts/battle_hud.gd" id="4_70sgx"]
 [ext_resource type="Theme" path="res://Windows/Battle/assets/themes/pixel_theme.tres" id="5_blj52"]
 [ext_resource type="Texture2D" path="res://Windows/Battle/assets/icons/banner.png" id="6_53d0w"]
 [ext_resource type="Texture2D" path="res://Windows/Battle/assets/icons/flame.png" id="7_fn4jk"]
@@ -34,7 +34,7 @@ glow_intensity = 0.28
 glow_strength = 0.65
 glow_hdr_threshold = 1.45
 
-[node name="AroundMeMain" type="Control" unique_id=1667079122]
+[node name="BattleArena" type="Control" unique_id=1667079122]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -97,7 +97,7 @@ far = 210.0
 [node name="MeadowMap" type="Node3D" parent="BattleView3D/SubViewport/World" unique_id=1538544234 instance=ExtResource("2_2bqx6")]
 unique_name_in_owner = true
 
-[node name="AroundMeGame" type="Node3D" parent="BattleView3D/SubViewport/World" unique_id=1281625064]
+[node name="BattleSim" type="Node3D" parent="BattleView3D/SubViewport/World" unique_id=1281625064]
 unique_name_in_owner = true
 script = ExtResource("3_x5m21")
 mob_archetypes = Array[Resource]([ExtResource("14_mrat"), ExtResource("15_mskel"), ExtResource("16_mslime"), ExtResource("17_mspider"), ExtResource("18_mghoul"), ExtResource("19_mwolf"), ExtResource("20_mknight"), ExtResource("21_mbrute")])
@@ -111,7 +111,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 mouse_filter = 2
 
-[node name="AroundMeUI" type="Control" parent="." unique_id=304176932]
+[node name="BattleHud" type="Control" parent="." unique_id=304176932]
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 15
@@ -122,7 +122,7 @@ grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("4_70sgx")
 
-[node name="WorldOverlay" type="Control" parent="AroundMeUI" unique_id=1190932550]
+[node name="WorldOverlay" type="Control" parent="BattleHud" unique_id=1190932550]
 unique_name_in_owner = true
 texture_filter = 1
 layout_mode = 1
@@ -133,7 +133,7 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="HudRoot" type="Control" parent="AroundMeUI" unique_id=568486925]
+[node name="HudRoot" type="Control" parent="BattleHud" unique_id=568486925]
 unique_name_in_owner = true
 texture_filter = 1
 layout_mode = 1
@@ -141,7 +141,7 @@ anchors_preset = 0
 mouse_filter = 2
 theme = ExtResource("5_blj52")
 
-[node name="StatsPlate" type="PanelContainer" parent="AroundMeUI/HudRoot" unique_id=1147717157]
+[node name="StatsPlate" type="PanelContainer" parent="BattleHud/HudRoot" unique_id=1147717157]
 layout_mode = 0
 offset_left = 5.0
 offset_top = 5.0
@@ -149,143 +149,137 @@ offset_right = 5.0
 offset_bottom = 5.0
 mouse_filter = 2
 
-[node name="@HBoxContainer@2" type="HBoxContainer" parent="AroundMeUI/HudRoot/StatsPlate" unique_id=630640736]
+[node name="@HBoxContainer@2" type="HBoxContainer" parent="BattleHud/HudRoot/StatsPlate" unique_id=630640736]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="@HBoxContainer@3" type="HBoxContainer" parent="AroundMeUI/HudRoot/StatsPlate/@HBoxContainer@2" unique_id=2137727756]
+[node name="@HBoxContainer@3" type="HBoxContainer" parent="BattleHud/HudRoot/StatsPlate/@HBoxContainer@2" unique_id=2137727756]
 layout_mode = 2
 theme_override_constants/separation = 2
 
-[node name="@TextureRect@4" type="TextureRect" parent="AroundMeUI/HudRoot/StatsPlate/@HBoxContainer@2/@HBoxContainer@3" unique_id=608257772]
+[node name="@TextureRect@4" type="TextureRect" parent="BattleHud/HudRoot/StatsPlate/@HBoxContainer@2/@HBoxContainer@3" unique_id=608257772]
 custom_minimum_size = Vector2(9, 9)
 layout_mode = 2
 texture = ExtResource("6_53d0w")
 stretch_mode = 3
 
-[node name="WaveLabel" type="Label" parent="AroundMeUI/HudRoot/StatsPlate/@HBoxContainer@2/@HBoxContainer@3" unique_id=847094095]
+[node name="WaveLabel" type="Label" parent="BattleHud/HudRoot/StatsPlate/@HBoxContainer@2/@HBoxContainer@3" unique_id=847094095]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(18, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.95, 0.78, 0.36, 1)
 text = "W1"
 
-[node name="@HBoxContainer@5" type="HBoxContainer" parent="AroundMeUI/HudRoot/StatsPlate/@HBoxContainer@2" unique_id=2054988698]
+[node name="@HBoxContainer@5" type="HBoxContainer" parent="BattleHud/HudRoot/StatsPlate/@HBoxContainer@2" unique_id=2054988698]
 layout_mode = 2
 theme_override_constants/separation = 2
 
-[node name="@TextureRect@6" type="TextureRect" parent="AroundMeUI/HudRoot/StatsPlate/@HBoxContainer@2/@HBoxContainer@5" unique_id=386058356]
+[node name="@TextureRect@6" type="TextureRect" parent="BattleHud/HudRoot/StatsPlate/@HBoxContainer@2/@HBoxContainer@5" unique_id=386058356]
 custom_minimum_size = Vector2(9, 9)
 layout_mode = 2
 texture = ExtResource("7_fn4jk")
 stretch_mode = 3
 
-[node name="HpLabel" type="Label" parent="AroundMeUI/HudRoot/StatsPlate/@HBoxContainer@2/@HBoxContainer@5" unique_id=924279067]
+[node name="HpLabel" type="Label" parent="BattleHud/HudRoot/StatsPlate/@HBoxContainer@2/@HBoxContainer@5" unique_id=924279067]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(44, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.45, 0.88, 0.96, 1)
 text = "360/360"
 
-[node name="@HBoxContainer@7" type="HBoxContainer" parent="AroundMeUI/HudRoot/StatsPlate/@HBoxContainer@2" unique_id=1571342096]
+[node name="@HBoxContainer@7" type="HBoxContainer" parent="BattleHud/HudRoot/StatsPlate/@HBoxContainer@2" unique_id=1571342096]
 layout_mode = 2
 theme_override_constants/separation = 2
 
-[node name="@TextureRect@8" type="TextureRect" parent="AroundMeUI/HudRoot/StatsPlate/@HBoxContainer@2/@HBoxContainer@7" unique_id=895745297]
+[node name="@TextureRect@8" type="TextureRect" parent="BattleHud/HudRoot/StatsPlate/@HBoxContainer@2/@HBoxContainer@7" unique_id=895745297]
 custom_minimum_size = Vector2(9, 9)
 layout_mode = 2
 texture = ExtResource("8_vwtpn")
 stretch_mode = 3
 
-[node name="KillsLabel" type="Label" parent="AroundMeUI/HudRoot/StatsPlate/@HBoxContainer@2/@HBoxContainer@7" unique_id=866548244]
+[node name="KillsLabel" type="Label" parent="BattleHud/HudRoot/StatsPlate/@HBoxContainer@2/@HBoxContainer@7" unique_id=866548244]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(26, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.95, 0.88, 0.76, 1)
 text = "0"
 
-[node name="@HBoxContainer@9" type="HBoxContainer" parent="AroundMeUI/HudRoot/StatsPlate/@HBoxContainer@2" unique_id=1101943572]
+[node name="@HBoxContainer@9" type="HBoxContainer" parent="BattleHud/HudRoot/StatsPlate/@HBoxContainer@2" unique_id=1101943572]
 layout_mode = 2
 theme_override_constants/separation = 2
 
-[node name="@TextureRect@10" type="TextureRect" parent="AroundMeUI/HudRoot/StatsPlate/@HBoxContainer@2/@HBoxContainer@9" unique_id=1430590191]
+[node name="@TextureRect@10" type="TextureRect" parent="BattleHud/HudRoot/StatsPlate/@HBoxContainer@2/@HBoxContainer@9" unique_id=1430590191]
 custom_minimum_size = Vector2(9, 9)
 layout_mode = 2
 texture = ExtResource("9_k76y7")
 stretch_mode = 3
 
-[node name="MobsLabel" type="Label" parent="AroundMeUI/HudRoot/StatsPlate/@HBoxContainer@2/@HBoxContainer@9" unique_id=950454181]
+[node name="MobsLabel" type="Label" parent="BattleHud/HudRoot/StatsPlate/@HBoxContainer@2/@HBoxContainer@9" unique_id=950454181]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(26, 0)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.96, 0.56, 0.38, 1)
 text = "0"
 
-[node name="CtrlBox" type="HBoxContainer" parent="AroundMeUI/HudRoot" unique_id=1373135536]
+[node name="CtrlBox" type="HBoxContainer" parent="BattleHud/HudRoot" unique_id=1373135536]
 layout_mode = 0
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -286.0
+offset_left = -256.0
 offset_top = 5.0
 offset_right = -5.0
 offset_bottom = 22.0
 grow_horizontal = 0
 theme_override_constants/separation = 3
 
-[node name="PauseBtn" type="Button" parent="AroundMeUI/HudRoot/CtrlBox" unique_id=9554627]
+[node name="PauseBtn" type="Button" parent="BattleHud/HudRoot/CtrlBox" unique_id=9554627]
 unique_name_in_owner = true
 layout_mode = 2
 focus_mode = 0
 icon = ExtResource("10_ipuer")
 
-[node name="SpeedBtn" type="Button" parent="AroundMeUI/HudRoot/CtrlBox" unique_id=203091820]
-unique_name_in_owner = true
-layout_mode = 2
-focus_mode = 0
-text = "1x"
-
-[node name="MuteBtn" type="Button" parent="AroundMeUI/HudRoot/CtrlBox" unique_id=911681886]
+[node name="MuteBtn" type="Button" parent="BattleHud/HudRoot/CtrlBox" unique_id=911681886]
 unique_name_in_owner = true
 layout_mode = 2
 focus_mode = 0
 icon = ExtResource("11_fn4jk")
 
-[node name="DofBtn" type="Button" parent="AroundMeUI/HudRoot/CtrlBox" unique_id=344168668]
+[node name="DofBtn" type="Button" parent="BattleHud/HudRoot/CtrlBox" unique_id=344168668]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(44, 0)
 layout_mode = 2
 focus_mode = 0
 text = "DOF:ON"
 
-[node name="WeatherBtn" type="Button" parent="AroundMeUI/HudRoot/CtrlBox" unique_id=344168670]
+[node name="WeatherBtn" type="Button" parent="BattleHud/HudRoot/CtrlBox" unique_id=344168670]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(36, 0)
 layout_mode = 2
 focus_mode = 0
 text = "SUN"
 
-[node name="StressBtn" type="Button" parent="AroundMeUI/HudRoot/CtrlBox" unique_id=344168672]
+[node name="StressBtn" type="Button" parent="BattleHud/HudRoot/CtrlBox" unique_id=344168672]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(34, 0)
 layout_mode = 2
 focus_mode = 0
 text = "+100"
 
-[node name="PerfBtn" type="Button" parent="AroundMeUI/HudRoot/CtrlBox" unique_id=344168673]
+[node name="PerfBtn" type="Button" parent="BattleHud/HudRoot/CtrlBox" unique_id=344168673]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(38, 0)
 layout_mode = 2
 focus_mode = 0
 text = "PERF"
 
-[node name="ResetBtn" type="Button" parent="AroundMeUI/HudRoot/CtrlBox" unique_id=344168674]
+[node name="ResetBtn" type="Button" parent="BattleHud/HudRoot/CtrlBox" unique_id=344168674]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(30, 0)
 layout_mode = 2
 focus_mode = 0
 text = "RST"
 
-[node name="PerfPlate" type="PanelContainer" parent="AroundMeUI/HudRoot" unique_id=1046652962]
+[node name="PerfPlate" type="PanelContainer" parent="BattleHud/HudRoot" unique_id=1046652962]
 unique_name_in_owner = true
 visible = false
 custom_minimum_size = Vector2(238, 0)
@@ -299,23 +293,23 @@ offset_bottom = 52.0
 grow_horizontal = 0
 mouse_filter = 2
 
-[node name="@VBoxContainer@11" type="VBoxContainer" parent="AroundMeUI/HudRoot/PerfPlate" unique_id=1661824468]
+[node name="@VBoxContainer@11" type="VBoxContainer" parent="BattleHud/HudRoot/PerfPlate" unique_id=1661824468]
 layout_mode = 2
 theme_override_constants/separation = 1
 
-[node name="PerfLine1" type="Label" parent="AroundMeUI/HudRoot/PerfPlate/@VBoxContainer@11" unique_id=2064553995]
+[node name="PerfLine1" type="Label" parent="BattleHud/HudRoot/PerfPlate/@VBoxContainer@11" unique_id=2064553995]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.95, 0.85, 0.45, 1)
 text = "FPS 60 · Mons 0 · Kills 0 · Units 0"
 
-[node name="PerfLine2" type="Label" parent="AroundMeUI/HudRoot/PerfPlate/@VBoxContainer@11" unique_id=1534005303]
+[node name="PerfLine2" type="Label" parent="BattleHud/HudRoot/PerfPlate/@VBoxContainer@11" unique_id=1534005303]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.75, 0.82, 0.9, 1)
 text = "CPU Sim 0.0ms · Batch 0.0ms · VP 960x540"
 
-[node name="BannerLabel" type="Label" parent="AroundMeUI/HudRoot" unique_id=3616187]
+[node name="BannerLabel" type="Label" parent="BattleHud/HudRoot" unique_id=3616187]
 unique_name_in_owner = true
 visible = false
 layout_mode = 0

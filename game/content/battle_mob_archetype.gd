@@ -1,4 +1,4 @@
-class_name AroundMeMobArchetype
+class_name BattleMobArchetype
 extends Resource
 
 @export_group("Identity & Visual")

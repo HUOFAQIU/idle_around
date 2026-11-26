@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="AroundMeMobArchetype" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://Windows/Battle/scripts/mob_archetype.gd" id="1_ma"]
+[ext_resource type="ArrayMesh" path="res://Windows/Battle/assets/models/units/knight.res" id="2_mesh"]
+
+[resource]
+script = ExtResource("1_ma")
+id = "knight"
+mesh = ExtResource("2_mesh")
+visual_scale = 1.1
+hit_height = 1.05
+debris_color = Color(0.55, 0.58, 0.64, 1)
+max_hp = 85.0
+move_speed = 1.85
+damage = 11.0
+attack_cooldown = 1.28
+attack_reach = 1.38
+unlock_wave = 3

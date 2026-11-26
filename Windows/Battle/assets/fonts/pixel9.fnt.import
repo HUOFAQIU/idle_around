@@ -1,0 +1,17 @@
+[remap]
+
+importer="font_data_bmfont"
+type="FontFile"
+uid="uid://dch3mdlcvcqtb"
+path="res://.godot/imported/pixel9.fnt-de30237e3f22a50c86f51d9890086245.fontdata"
+
+[deps]
+
+source_file="res://Windows/Battle/assets/fonts/pixel9.fnt"
+dest_files=["res://.godot/imported/pixel9.fnt-de30237e3f22a50c86f51d9890086245.fontdata"]
+
+[params]
+
+fallbacks=[]
+compress=true
+scaling_mode=2

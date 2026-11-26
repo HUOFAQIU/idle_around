@@ -1,0 +1,6 @@
+[gd_resource type="Resource" script_class="AroundMeWeatherPreset" format=3 uid="uid://bxfnk4x3xo0ji"]
+
+[ext_resource type="Script" uid="uid://75fges1fvwla" path="res://Windows/Battle/scripts/weather_preset.gd" id="1_wp"]
+
+[resource]
+script = ExtResource("1_wp")

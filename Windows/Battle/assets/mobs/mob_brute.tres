@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="AroundMeMobArchetype" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://Windows/Battle/scripts/mob_archetype.gd" id="1_ma"]
+[ext_resource type="ArrayMesh" path="res://Windows/Battle/assets/models/units/brute.res" id="2_mesh"]
+
+[resource]
+script = ExtResource("1_ma")
+id = "brute"
+mesh = ExtResource("2_mesh")
+visual_scale = 1.22
+hit_height = 1.18
+debris_color = Color(0.54, 0.36, 0.3, 1)
+max_hp = 135.0
+move_speed = 1.55
+damage = 15.0
+attack_cooldown = 1.48
+attack_reach = 1.52
+unlock_wave = 4

@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="AroundMeMobArchetype" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://Windows/Battle/scripts/mob_archetype.gd" id="1_ma"]
+[ext_resource type="ArrayMesh" path="res://Windows/Battle/assets/models/units/spider.res" id="2_mesh"]
+
+[resource]
+script = ExtResource("1_ma")
+id = "spider"
+mesh = ExtResource("2_mesh")
+visual_scale = 0.96
+hit_height = 0.48
+debris_color = Color(0.32, 0.28, 0.38, 1)
+max_hp = 30.0
+move_speed = 3.25
+damage = 5.5
+attack_cooldown = 0.95
+attack_reach = 1.18
+unlock_wave = 1

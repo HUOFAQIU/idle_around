@@ -1,0 +1,53 @@
+[gd_resource type="Resource" script_class="AroundMeWeatherPreset" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://Windows/Battle/scripts/weather_preset.gd" id="1_wp"]
+
+[resource]
+script = ExtResource("1_wp")
+id = "rain"
+button_label = "RAIN"
+sun_color = Color(0.68, 0.78, 0.94, 1)
+sun_energy = 0.74
+fill_color = Color(0.48, 0.62, 0.8, 1)
+fill_energy = 0.48
+ambient_color = Color(0.44, 0.54, 0.68, 1)
+ambient_energy = 0.56
+background_color = Color(0.07, 0.1, 0.14, 1)
+mist_color = Color(0.32, 0.42, 0.52, 1)
+mist_base_y = -0.15
+mist_scale_h = 0.58
+mist_density = 0.92
+mist_gain = 0.11
+ground_wetness = 1.0
+grass_rain_amount = 1.0
+exposure = 0.86
+saturation = 0.78
+vignette = 0.42
+shadow_lift = Vector3(0.014, 0.022, 0.032)
+allow_lightning = true
+lightning_interval_min = 6.0
+lightning_interval_max = 12.5
+lightning_sun_color = Color(0.88, 0.94, 1, 1)
+lightning_sun_boost = 2.1
+lightning_fill_boost = 0.95
+lightning_ambient_boost = 0.45
+lightning_exposure_boost = 0.24
+particle_ambient = Color(0.58, 0.68, 0.8, 1)
+particle_a_ratio = 0.88
+particle_a_vel = Vector3(-3.2, -16.5, -1.8)
+particle_a_sway = Vector2(0.1, 1.2)
+particle_a_size = Vector2(0.015, 0.024)
+particle_a_color = Color(0.74, 0.84, 0.96, 1)
+particle_a_alpha = 0.55
+particle_a_twinkle = 0.0
+particle_a_stretch = 0.85
+particle_a_y_range = Vector2(-1, 14)
+particle_b_ratio = 0.12
+particle_b_vel = Vector3(-0.85, -1.2, -0.45)
+particle_b_sway = Vector2(0.65, 1.4)
+particle_b_size = Vector2(0.04, 0.07)
+particle_b_color = Color(0.62, 0.74, 0.86, 1)
+particle_b_alpha = 0.28
+particle_b_twinkle = 0.0
+particle_b_stretch = 0.0
+particle_b_y_range = Vector2(-0.5, 5.5)

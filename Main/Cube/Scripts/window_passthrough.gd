@@ -98,22 +98,29 @@ func _process(_delta: float) -> void:
 		_last_cube_viewport_size = cube_viewport_size
 		_dirty = true
 
-	var ui_rects := _collect_ui_rects()
-	if ui_rects != _last_ui_rects:
-		_last_ui_rects = ui_rects
-		_dirty = true
-
+	var tooltip_visible := _tooltip != null and _tooltip.is_visible_in_tree()
 	if _locked:
 		if _mouse_buttons_down():
 			return
 		if _cube_orientation != null and _cube_orientation.is_rotating():
 			return
+		if tooltip_visible:
+			return
 		_locked = false
 		_dirty = true
+
+	if tooltip_visible:
+		_lock_full_region()
+		return
 
 	if _cube_orientation != null and _cube_orientation.is_rotating():
 		_lock_full_region()
 		return
+
+	var ui_rects := _collect_ui_rects()
+	if ui_rects != _last_ui_rects:
+		_last_ui_rects = ui_rects
+		_dirty = true
 
 	if not _dirty:
 		return

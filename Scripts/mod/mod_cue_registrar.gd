@@ -1,5 +1,13 @@
 extends Node
 
+const BUILTIN_3D_CUE_TAGS: Array[StringName] = [
+	&"Cue.Combat.ClawSlash",
+	&"Cue.Status.Burn",
+	&"Cue.Combat.PoisonApply",
+	&"Cue.Status.Poison",
+	&"Cue.Status.Freeze",
+]
+
 var _mod_registered_tags: Array[StringName] = []
 var _checked_cue_tags: Dictionary = {}
 var _checked_effect_ids: Dictionary = {}
@@ -80,7 +88,7 @@ func _check_cue_tag(entry: ModContentEntry, tag: StringName) -> void:
 	if tag.is_empty() or _checked_cue_tags.has(tag):
 		return
 	_checked_cue_tags[tag] = true
-	if GameplayCueManager._cue_scenes.has(tag):
+	if GameplayCueManager._cue_scenes.has(tag) or BUILTIN_3D_CUE_TAGS.has(tag):
 		return
 	ModLoader.report_warning("%s: Cue 标签未注册：%s（%s）" % [entry.mod_id, tag, entry.content_id])
 

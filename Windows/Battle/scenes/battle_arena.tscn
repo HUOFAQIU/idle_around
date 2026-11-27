@@ -14,14 +14,6 @@
 [ext_resource type="Texture2D" path="res://Windows/Battle/assets/icons/sound.png" id="11_fn4jk"]
 [ext_resource type="Resource" path="res://Windows/Battle/assets/weather/weather_sunny_morning.tres" id="12_wsun"]
 [ext_resource type="Resource" path="res://Windows/Battle/assets/weather/weather_storm_rain.tres" id="13_wrain"]
-[ext_resource type="Resource" path="res://Windows/Battle/assets/mobs/mob_rat.tres" id="14_mrat"]
-[ext_resource type="Resource" path="res://Windows/Battle/assets/mobs/mob_skel.tres" id="15_mskel"]
-[ext_resource type="Resource" path="res://Windows/Battle/assets/mobs/mob_slime.tres" id="16_mslime"]
-[ext_resource type="Resource" path="res://Windows/Battle/assets/mobs/mob_spider.tres" id="17_mspider"]
-[ext_resource type="Resource" path="res://Windows/Battle/assets/mobs/mob_ghoul.tres" id="18_mghoul"]
-[ext_resource type="Resource" path="res://Windows/Battle/assets/mobs/mob_wolf.tres" id="19_mwolf"]
-[ext_resource type="Resource" path="res://Windows/Battle/assets/mobs/mob_knight.tres" id="20_mknight"]
-[ext_resource type="Resource" path="res://Windows/Battle/assets/mobs/mob_brute.tres" id="21_mbrute"]
 
 [sub_resource type="Environment" id="Environment_53d0w"]
 background_mode = 1
@@ -100,7 +92,6 @@ unique_name_in_owner = true
 [node name="BattleSim" type="Node3D" parent="BattleView3D/SubViewport/World" unique_id=1281625064]
 unique_name_in_owner = true
 script = ExtResource("3_x5m21")
-mob_archetypes = Array[Resource]([ExtResource("14_mrat"), ExtResource("15_mskel"), ExtResource("16_mslime"), ExtResource("17_mspider"), ExtResource("18_mghoul"), ExtResource("19_mwolf"), ExtResource("20_mknight"), ExtResource("21_mbrute")])
 
 [node name="PostProcessRect" type="TextureRect" parent="BattleView3D" unique_id=1775917440]
 unique_name_in_owner = true

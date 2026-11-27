@@ -3,7 +3,6 @@ class_name BattleManager extends Node
 const MOVE_BUDGET_PER_FRAME : int = 200
 const TICK_END_PHYSICS_PRIORITY : int = 128
 
-var map: TileMapLayer
 var spawn_enemy: Callable = Callable()
 var loot_sink: Callable = Callable()
 var loot_rarity: int = SoulEmotion.DEFAULT_RARITY
@@ -47,7 +46,7 @@ func setup() -> void:
 	clock = BattleClock.new()
 	clock.name = "BattleClock"
 	add_child(clock)
-	grid = BattleGrid.new(map)
+	grid = BattleGrid.new()
 	_loot = LootRoller.new(events, loot_sink)
 
 

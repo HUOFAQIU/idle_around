@@ -7,7 +7,6 @@ signal player_spawned(unit: BattleUnit)
 const REVIVE_DELAY: float = 3.0
 const MAP_RESTART_DELAY: float = 5.0
 var units_root: Node
-var map: TileMapLayer
 var attach_observers: Callable = Callable()
 var spawn_radius_min_logic: float = 0.0
 var spawn_radius_max_logic: float = 0.0
@@ -26,7 +25,6 @@ var _manual_time: bool = false
 var _map_kills: Dictionary = {}
 var _test_monster_id: StringName = &""
 var _next_spawn_is_test: bool = false
-var _spawn_cells_by_distance: Dictionary = {}
 
 
 func start(p_slots: Array[SoulSlot], map_item: MapItemData) -> void:
@@ -45,7 +43,6 @@ func start(p_slots: Array[SoulSlot], map_item: MapItemData) -> void:
 	battle = BattleManager.new()
 	battle.name = "BattleManager"
 	add_child(battle)
-	battle.map = map
 	battle.spawn_enemy = _spawn_enemy
 	battle.loot_sink = Warehouse.add_item
 	battle.setup()
@@ -63,7 +60,6 @@ func start(p_slots: Array[SoulSlot], map_item: MapItemData) -> void:
 	CombatTelemetry.begin_run(run_id, battle, battle.player.loadout)
 	CombatTelemetry.watch_unit(battle.player)
 	battle.begin()
-	_rebuild_spawn_cells()
 	battle.log_line("========== 战斗开始 ==========", "yellow")
 	for unit in battle.units:
 		battle.log_line("%s  HP %.0f" % [unit.unit_name, unit.health_attr.current_value], "white")
@@ -272,11 +268,6 @@ func _spawn_enemy() -> void:
 
 
 func _place_spawned_enemy(unit: BattleUnit, monster: MonsterData) -> void:
-	var cells := _pick_spawn_cell(monster)
-	if not cells.is_empty():
-		unit.set_cell(cells[0])
-		unit.position += Vector2.from_angle(battle.rng.randf() * TAU) * battle.rng.randf_range(0.0, 12.0)
-		return
 	var radius: float
 	if spawn_radius_min_logic > 0.0 and spawn_radius_max_logic >= spawn_radius_min_logic:
 		radius = battle.rng.randf_range(spawn_radius_min_logic, spawn_radius_max_logic)
@@ -309,47 +300,6 @@ func _take_next_monster() -> MonsterData:
 func _enqueue_spawns(monster_ids: Array[StringName]) -> void:
 	for monster_id in monster_ids:
 		_pending_spawn_ids.append(monster_id)
-
-
-func _rebuild_spawn_cells() -> void:
-	_spawn_cells_by_distance.clear()
-	if battle == null or battle.grid == null or battle.player == null:
-		return
-	_spawn_cells_by_distance = battle.grid.cells_by_distance(battle.player_cell())
-
-
-func _pick_spawn_cell(monster: MonsterData) -> Array[Vector2i]:
-	var wanted: Array[int] = monster.spawn_distances.duplicate()
-	if wanted.is_empty():
-		wanted.append(3)
-	var candidates: Array[Vector2i] = []
-	for distance in wanted:
-		if _spawn_cells_by_distance.has(distance):
-			candidates.append_array(_spawn_cells_by_distance[distance])
-	if candidates.is_empty():
-		candidates = _nearest_spawn_cells(wanted)
-	if candidates.is_empty():
-		return []
-	var picked: Array[Vector2i] = []
-	picked.append(candidates[battle.rng.randi_range(0, candidates.size() - 1)])
-	return picked
-
-
-func _nearest_spawn_cells(wanted: Array[int]) -> Array[Vector2i]:
-	var best_distance := -1
-	var best_delta := 1 << 30
-	for key in _spawn_cells_by_distance.keys():
-		var available := int(key)
-		for requested in wanted:
-			var delta := absi(available - requested)
-			if delta < best_delta:
-				best_delta = delta
-				best_distance = available
-	if best_distance < 0:
-		return []
-	var result: Array[Vector2i] = []
-	result.append_array(_spawn_cells_by_distance[best_distance])
-	return result
 
 
 func _on_enemy_died(_unit: BattleUnit, monster: MonsterData, is_test: bool) -> void:

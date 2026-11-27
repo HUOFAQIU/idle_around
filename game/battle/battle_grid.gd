@@ -1,43 +1,17 @@
 class_name BattleGrid extends RefCounted
 
-const MIN_CELL_SIZE_PX: float = 1.0
+const DEFAULT_CELL_SIZE_PX: float = 32.0
 
-var map: TileMapLayer
-var cell_size_px: float = 32.0
+var cell_size_px: float = DEFAULT_CELL_SIZE_PX
 
 
-func _init(p_map: TileMapLayer = null) -> void:
-	map = p_map
-	_measure_cell_size()
+func _init(p_cell_size_px: float = DEFAULT_CELL_SIZE_PX) -> void:
+	cell_size_px = maxf(p_cell_size_px, 1.0)
 
 
 func cell_to_world(cell: Vector2i) -> Vector2:
-	if map == null:
-		return Vector2(float(cell.x) * cell_size_px, float(cell.y) * cell_size_px)
-	return map.map_to_local(cell)
+	return Vector2(float(cell.x) * cell_size_px, float(cell.y) * cell_size_px)
 
 
 func world_to_cell(pos: Vector2) -> Vector2i:
-	if map == null:
-		return Vector2i(floori(pos.x / cell_size_px), floori(pos.y / cell_size_px))
-	return map.local_to_map(pos)
-
-
-func cells_by_distance(anchor: Vector2i) -> Dictionary:
-	var result: Dictionary = {}
-	if map == null:
-		return result
-	for cell in map.get_used_cells():
-		var distance := Hex.distance(cell, anchor)
-		if not result.has(distance):
-			result[distance] = [] as Array[Vector2i]
-		result[distance].append(cell)
-	return result
-
-
-func _measure_cell_size() -> void:
-	if map == null:
-		return
-	var origin := map.map_to_local(Vector2i.ZERO)
-	var right := map.map_to_local(Vector2i(1, 0))
-	cell_size_px = maxf(origin.distance_to(right), MIN_CELL_SIZE_PX)
+	return Vector2i(floori(pos.x / cell_size_px), floori(pos.y / cell_size_px))

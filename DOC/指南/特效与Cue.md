@@ -12,7 +12,7 @@ Cue 是「标签 → 场景」映射，挂在目标单位下（`(0, 0)` 即单�
 
 | 步骤 | 做法 | 约束 / 入口 |
 |---|---|---|
-| 1. 写场景 | 根节点继承 `GameplayCueNotify`，重写 `play_cue()` | 官方放 `base_mods/core/cues/`（脚本可放 `game/battle/cues/`）；第三方放 `content/cues/`。因对象池复用，`play_cue()` 开头必须 `kill()` 旧 `_tween` 并复位属性 |
+| 1. 写场景 | 根节点继承 `GameplayCueNotify`，重写 `play_cue()` | 3D 内置特效由 `Windows/Battle/view_3d/battle_3d_bridge.gd` 与 `battle_fx_pool.gd` 驱动；第三方 2D/自定义 Cue 放 `content/cues/`。因对象池复用，`play_cue()` 开头必须 `kill()` 旧 `_tween` 并复位属性 |
 | 2. 登记 | 在 `mod.json` 的 `content.cues` 填 `{ "tag", "scene" }` | 官方写 `base_mods/core/mod.json`（全局标签无前缀）；第三方标签须为 `Cue.Mod.<PascalModId>.<Name>`；勿往 `godot_gas/cue_registry.tres` 加官方 Cue |
 | 3. 挂钩 | 挂到 `GameplayEffect` 四类字段或技能 `UnitSkillStep.hit_cue_tag` | 见下表与 §2；内置示例以 `base_mods/core/mod.json` 和 `effects/*.tres` 为准 |
 

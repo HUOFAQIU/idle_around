@@ -112,27 +112,6 @@
 		"path": "vessels/mei_you_deng/mei_you_deng_vessel.tres"
 	  }
 	],
-	"cues": [
-	  {
-		"tag": "Cue.Combat.ClawSlash",
-		"scene": "cues/claw_slash_cue.tscn"
-	  },
-	  {
-		"tag": "Cue.Status.Burn",
-		"scene": "cues/burn_cue.tscn"
-	  },
-	  {
-		"tag": "Cue.Combat.PoisonApply",
-		"scene": "cues/poison_splash_cue.tscn"
-	  },
-	  {
-		"tag": "Cue.Status.Poison",
-		"scene": "cues/poison_aura_cue.tscn"
-	  },
-	  {
-		"tag": "Cue.Status.Freeze",
-		"scene": "cues/freeze_cue.tscn"
-	  }
-	]
+	"cues": []
   }
 }

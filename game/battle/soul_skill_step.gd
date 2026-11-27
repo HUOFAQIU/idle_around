@@ -16,21 +16,23 @@ func execute(ctx: SkillCastContext) -> SkillStepResult:
 
 	var targets := target_rule.resolve(ctx.ability, ctx.battle.rng)
 	if targets.is_empty():
-		ctx.ability.record_step("release_empty", ctx.trace, {
-			"reason": "没有可施加状态的魂灵",
+		if ctx.ability.should_record_detail():
+			ctx.ability.record_step("release_empty", ctx.trace, {
+				"reason": "没有可施加状态的魂灵",
+				"release_index": ctx.release_index,
+				"release_count": ctx.release_count,
+			})
+		return SkillStepResult.empty("没有可施加状态的魂灵")
+
+	if ctx.ability.should_record_detail():
+		var names: Array[String] = []
+		for target in targets:
+			names.append(target.ability_name)
+		ctx.ability.record_step("soul_targets", ctx.trace, {
+			"targets": names,
 			"release_index": ctx.release_index,
 			"release_count": ctx.release_count,
 		})
-		return SkillStepResult.empty("没有可施加状态的魂灵")
-
-	var names: Array[String] = []
-	for target in targets:
-		names.append(target.ability_name)
-	ctx.ability.record_step("soul_targets", ctx.trace, {
-		"targets": names,
-		"release_index": ctx.release_index,
-		"release_count": ctx.release_count,
-	})
 
 	for target in targets:
 		if not is_instance_valid(target):

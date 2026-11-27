@@ -57,17 +57,26 @@ func resolve(caster_asc: AbilitySystemComponent, battle: BattleManager) -> Array
 		wanted_team = BattleUnit.opposing_team(caster.team)
 
 	var candidates: Array = []
-	var source: Array[BattleUnit]
-	if max_range > 0:
-		source = battle.units_near(caster.position, float(max_range) * battle.cell_size_px)
+	var team_units := battle.units_of_team(wanted_team)
+	if max_range <= 0 or team_units.size() <= 32:
+		var max_r := float(max_range) * battle.cell_size_px if max_range > 0 else 0.0
+		var max_r2 := max_r * max_r
+		for unit in team_units:
+			if unit.is_dead:
+				continue
+			if unit == caster and not include_self:
+				continue
+			if max_range > 0 and caster.position.distance_squared_to(unit.position) > max_r2:
+				continue
+			candidates.append(unit)
 	else:
-		source = battle.units_of_team(wanted_team)
-	for unit in source:
-		if unit.is_dead or unit.team != wanted_team:
-			continue
-		if unit == caster and not include_self:
-			continue
-		candidates.append(unit)
+		var source := battle.units_near(caster.position, float(max_range) * battle.cell_size_px)
+		for unit in source:
+			if unit.is_dead or unit.team != wanted_team:
+				continue
+			if unit == caster and not include_self:
+				continue
+			candidates.append(unit)
 
 	if candidates.is_empty():
 		return groups

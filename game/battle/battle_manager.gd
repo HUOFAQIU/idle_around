@@ -172,10 +172,11 @@ func _update_enemy_steering(unit: BattleUnit, player_pos: Vector2) -> void:
 			unit.ensure_soul_abilities_loaded()
 			unit.brain.set_physics_process(true)
 			unit.sync_asc_processing()
-			events.emit_event(BattleEvent.CATEGORY_BATTLE, "enemy_in_range", {
-				"actor_unit": unit,
-				"distance": distance,
-			}, BattleEvent.IMPORTANCE_DETAIL)
+			if CombatTelemetry.is_unit_detailed(unit):
+				events.emit_event(BattleEvent.CATEGORY_BATTLE, "enemy_in_range", {
+					"actor_unit": unit,
+					"distance": distance,
+				}, BattleEvent.IMPORTANCE_DETAIL)
 	else:
 		var max_sep := maxf(unit.get_move_speed() * 0.85, 8.0)
 		var raw_sep := spatial.compute_separation(unit, 10, 32, max_sep)
@@ -183,10 +184,11 @@ func _update_enemy_steering(unit: BattleUnit, player_pos: Vector2) -> void:
 		if unit.brain.is_physics_processing():
 			unit.brain.set_physics_process(false)
 			unit.sync_asc_processing()
-			events.emit_event(BattleEvent.CATEGORY_BATTLE, "enemy_out_of_range", {
-				"actor_unit": unit,
-				"distance": distance,
-			}, BattleEvent.IMPORTANCE_DETAIL)
+			if CombatTelemetry.is_unit_detailed(unit):
+				events.emit_event(BattleEvent.CATEGORY_BATTLE, "enemy_out_of_range", {
+					"actor_unit": unit,
+					"distance": distance,
+				}, BattleEvent.IMPORTANCE_DETAIL)
 
 	spatial.update(unit)
 	var new_cell := grid.world_to_cell(unit.position)

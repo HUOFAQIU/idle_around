@@ -397,25 +397,30 @@ func _apply_effect_to_target(
 			soul_runtime.add_counter("freezes_applied")
 
 
+func should_record_detail() -> bool:
+	return CombatTelemetry.is_unit_detailed(_caster_unit())
+
+
 func _notify_soul_used(trace: CombatTrace) -> void:
 	var caster := _caster_unit()
 	var battle := _get_battle()
 	if caster == null or battle == null:
 		return
-	var soul_label := ""
-	if soul_runtime != null:
-		soul_label = soul_runtime.display_name()
-	elif soul_data != null:
-		soul_label = soul_data.item_name
-	var importance := BattleEvent.IMPORTANCE_DETAIL
-	if caster.team == BattleUnit.Team.PLAYER:
-		importance = BattleEvent.IMPORTANCE_IMPORTANT
-	battle.events.emit_event(BattleEvent.CATEGORY_SOUL, "used", {
-		"actor_unit": caster,
-		"soul": soul_label,
-		"ability": ability_name,
-		"trace": trace,
-	}, importance)
+	if CombatTelemetry.is_unit_detailed(caster):
+		var soul_label := ""
+		if soul_runtime != null:
+			soul_label = soul_runtime.display_name()
+		elif soul_data != null:
+			soul_label = soul_data.item_name
+		var importance := BattleEvent.IMPORTANCE_DETAIL
+		if caster.team == BattleUnit.Team.PLAYER:
+			importance = BattleEvent.IMPORTANCE_IMPORTANT
+		battle.events.emit_event(BattleEvent.CATEGORY_SOUL, "used", {
+			"actor_unit": caster,
+			"soul": soul_label,
+			"ability": ability_name,
+			"trace": trace,
+		}, importance)
 	caster.notify_soul_used(self, trace)
 
 
@@ -454,6 +459,10 @@ func _record_cast(type: String, trace: CombatTrace, fields: Dictionary = {}) -> 
 	if battle == null:
 		return
 	var caster := _caster_unit()
+	if not CombatTelemetry.is_unit_detailed(caster):
+		if type == "release" and caster != null:
+			caster.swing = 1.0
+		return
 	fields["actor_unit"] = caster
 	fields["ability"] = ability_name
 	fields["ability_tag"] = String(ability_tag)

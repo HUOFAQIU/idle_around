@@ -1,6 +1,10 @@
 class_name CombatNarrator extends RefCounted
 
+const PLAYER_HIT_LOG_INTERVAL_MSEC: int = 150
+const ENEMY_DEATH_LOG_LIMIT: int = 16
+
 var _battle: BattleManager
+var _last_player_hit_log_msec: int = -1000
 
 
 func _init(battle: BattleManager) -> void:
@@ -15,19 +19,23 @@ func _init(battle: BattleManager) -> void:
 func _on_unit_asc_ready(unit: BattleUnit) -> void:
 	if unit == null or unit.asc == null:
 		return
+	unit.died.connect(_on_unit_died)
+	if not _should_narrate_unit(unit):
+		return
 	unit.asc.effect_received.connect(_on_effect_received.bind(unit))
 	unit.asc.periodic_effect_ticked.connect(_on_periodic_effect_ticked.bind(unit))
 	unit.asc.active_effect_added.connect(_on_active_effect_added.bind(unit))
 	unit.asc.active_effect_removed.connect(_on_active_effect_removed.bind(unit))
-	unit.died.connect(_on_unit_died)
 
 
 func _on_soul_runtime_created(
-	_unit: BattleUnit,
+	unit: BattleUnit,
 	ability: ChargedAbility,
 	_runtime: SoulRuntime
 ) -> void:
 	if ability == null:
+		return
+	if unit != null and not _should_narrate_unit(unit):
 		return
 	ability.status_applied.connect(_on_status_applied.bind(ability))
 	ability.status_expired.connect(_on_status_expired.bind(ability))
@@ -48,6 +56,8 @@ func _on_event(event: BattleEvent) -> void:
 
 func _on_cast_event(event: BattleEvent) -> void:
 	var caster: BattleUnit = event.fields.get("actor_unit", null)
+	if caster != null and not _should_narrate_unit(caster):
+		return
 	var ability := String(event.fields.get("ability", ""))
 	match event.type:
 		"targets":
@@ -111,6 +121,16 @@ func _on_effect_received(
 	var shield_delta := float(spec.calculated_deltas.get("shield", 0.0))
 	if is_zero_approx(health_delta) and shield_delta >= 0.0:
 		return
+	if (
+		unit.team == BattleUnit.Team.PLAYER
+		and health_delta < 0.0
+		and not CombatTelemetry.record_detail_globally
+		and unit.health_attr.current_value > 0.0
+	):
+		var now_msec := Time.get_ticks_msec()
+		if now_msec - _last_player_hit_log_msec < PLAYER_HIT_LOG_INTERVAL_MSEC:
+			return
+		_last_player_hit_log_msec = now_msec
 
 	var current := unit.health_attr.current_value
 	var old_value := current - health_delta
@@ -223,6 +243,14 @@ func _has_suppressed_state_log(active_effect: ActiveGameplayEffect) -> bool:
 
 
 func _on_unit_died(unit: BattleUnit) -> void:
+	if (
+		unit != null
+		and unit.team == BattleUnit.Team.ENEMY
+		and not _should_narrate_unit(unit)
+		and _battle != null
+		and _battle.enemies.size() > ENEMY_DEATH_LOG_LIMIT
+	):
+		return
 	_log("%s 倒下了！" % unit.unit_name, "#ffcc44")
 
 
@@ -256,3 +284,9 @@ func _log(text: String, color: String = "white") -> void:
 
 func _unit_label(unit: BattleUnit) -> String:
 	return unit.unit_name if unit != null and is_instance_valid(unit) else "???"
+
+
+func _should_narrate_unit(unit: BattleUnit) -> bool:
+	if unit == null:
+		return true
+	return CombatTelemetry.is_unit_detailed(unit)

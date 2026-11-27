@@ -132,10 +132,23 @@ func record(
 	return event
 
 
+func is_unit_detailed(unit: BattleUnit) -> bool:
+	if unit == null:
+		return record_detail_globally
+	return (
+		unit.team == BattleUnit.Team.PLAYER
+		or record_detail_globally
+		or unit.get_instance_id() == watch_unit_id
+	)
+
+
 func watch_unit(unit: BattleUnit) -> void:
 	watch_unit_id = unit.get_instance_id() if unit != null and is_instance_valid(unit) else 0
 	if unit != null and is_instance_valid(unit):
 		bind_unit(unit)
+		for runtime in unit.loadout:
+			if runtime != null and runtime.ability != null:
+				bind_ability(runtime.ability, unit, runtime)
 
 
 func bind_unit(unit: BattleUnit) -> void:
@@ -179,6 +192,8 @@ func bind_unit(unit: BattleUnit) -> void:
 
 func bind_ability(ability: GameplayAbility, unit: BattleUnit, runtime: SoulRuntime) -> void:
 	if ability == null or not is_instance_valid(ability):
+		return
+	if unit != null and not is_unit_detailed(unit):
 		return
 	var ability_id := ability.get_instance_id()
 	if _bound_abilities.has(ability_id):

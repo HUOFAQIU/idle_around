@@ -137,16 +137,29 @@ func is_frozen() -> bool:
 
 
 func units_until_work() -> int:
-	if has_haste() or has_slow() or is_frozen() or is_active:
+	if is_active or cooldown <= 0.0:
 		return 0
-	if cooldown <= 0.0:
+	if owner_asc != null and owner_asc.has_tag(FROZEN_TAG):
+		return 0
+	if freeze_units > 0:
+		return 0
+	var charge_left := _cooldown_units() - charge_units
+	if charge_left <= 0 and activation_lock_units <= 0:
 		return 0
 	var best := 0x7FFFFFFF
-	var charge_left := _cooldown_units() - charge_units
 	if charge_left > 0:
-		best = charge_left
+		var charge_eta := charge_left
+		if has_haste() and not has_slow():
+			charge_eta = maxi((charge_left + 1) >> 1, 1)
+		elif has_slow() and not has_haste():
+			charge_eta = charge_left * 2
+		best = charge_eta
 	if activation_lock_units > 0:
 		best = mini(best, activation_lock_units)
+	if haste_units > 0:
+		best = mini(best, haste_units)
+	if slow_units > 0:
+		best = mini(best, slow_units)
 	return 0 if best == 0x7FFFFFFF else best
 
 

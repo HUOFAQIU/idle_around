@@ -64,15 +64,16 @@ func request_activation(ability: ChargedAbility, trace: CombatTrace = null) -> v
 	_work_dirty = true
 	if unit != null and unit.battle != null:
 		unit.battle.mark_brain_dirty(self)
-	for runtime in unit.loadout:
-		if runtime != null and runtime.ability == ability:
-			unit.battle.events.emit_event(BattleEvent.CATEGORY_SOUL, "pending", {
-				"actor_unit": unit,
-				"soul": runtime.display_name(),
-				"ability": ability.ability_name,
-				"trace": trace,
-			}, BattleEvent.IMPORTANCE_DETAIL)
-			break
+	if CombatTelemetry.is_unit_detailed(unit):
+		for runtime in unit.loadout:
+			if runtime != null and runtime.ability == ability:
+				unit.battle.events.emit_event(BattleEvent.CATEGORY_SOUL, "pending", {
+					"actor_unit": unit,
+					"soul": runtime.display_name(),
+					"ability": ability.ability_name,
+					"trace": trace,
+				}, BattleEvent.IMPORTANCE_DETAIL)
+				break
 	if trace != null:
 		_pending_traces[ability.get_instance_id()] = trace
 
@@ -118,12 +119,13 @@ func flush_pending_activations() -> void:
 		if not ability.can_activate_now():
 			continue
 		if not unit.asc.can_activate_ability(ability):
-			unit.battle.events.emit_event(BattleEvent.CATEGORY_SOUL, "flush_skip", {
-				"actor_unit": unit,
-				"ability": ability.ability_name,
-				"detail": "ASC 门卫拒绝",
-				"trace": trace,
-			}, BattleEvent.IMPORTANCE_DETAIL)
+			if CombatTelemetry.is_unit_detailed(unit):
+				unit.battle.events.emit_event(BattleEvent.CATEGORY_SOUL, "flush_skip", {
+					"actor_unit": unit,
+					"ability": ability.ability_name,
+					"detail": "ASC 门卫拒绝",
+					"trace": trace,
+				}, BattleEvent.IMPORTANCE_DETAIL)
 			continue
 		@warning_ignore("missing_await")
 		ability.try_activate(trace)
@@ -218,12 +220,14 @@ func _flush_deferred_units() -> void:
 		return
 	var units := _deferred_units
 	_deferred_units = 0
+	# why: 冻结期间不攒刻（units_until_work 返回 0），补投的刻都属于可充能期
 	for ability in abilities:
 		var charged := ability as ChargedAbility
 		if charged == null:
 			continue
 		charged.advance_activation_lock(units)
 		charged.advance_charge(units)
+		charged.advance_status(units)
 
 
 func _mark_work_dirty() -> void:

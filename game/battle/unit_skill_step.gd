@@ -22,19 +22,21 @@ func execute(ctx: SkillCastContext) -> SkillStepResult:
 
 	var groups := target_rule.resolve(ctx.caster_asc, ctx.battle)
 	if groups.is_empty():
-		ctx.ability.record_step("release_empty", ctx.trace, {
-			"reason": "范围内没目标",
+		if ctx.ability.should_record_detail():
+			ctx.ability.record_step("release_empty", ctx.trace, {
+				"reason": "范围内没目标",
+				"release_index": ctx.release_index,
+				"release_count": ctx.release_count,
+			})
+		return SkillStepResult.empty("范围内没目标")
+
+	if ctx.ability.should_record_detail():
+		ctx.ability.record_step("targets", ctx.trace, {
+			"targets": ctx.ability.targets_summary(groups),
+			"count": ctx.ability.target_count(groups),
 			"release_index": ctx.release_index,
 			"release_count": ctx.release_count,
 		})
-		return SkillStepResult.empty("范围内没目标")
-
-	ctx.ability.record_step("targets", ctx.trace, {
-		"targets": ctx.ability.targets_summary(groups),
-		"count": ctx.ability.target_count(groups),
-		"release_index": ctx.release_index,
-		"release_count": ctx.release_count,
-	})
 
 	if projectile_scene != null:
 		ctx.ability.launch_projectiles(self, groups, ctx)
@@ -52,7 +54,7 @@ func apply_to_target(ctx: SkillCastContext, target: BattleUnit) -> void:
 	if target == null or ctx.battle == null:
 		return
 	var crit_multiplier := ctx.ability.roll_crit(ctx.battle)
-	if crit_multiplier > 1.0:
+	if crit_multiplier > 1.0 and ctx.ability.should_record_detail():
 		ctx.ability.record_step("crit", ctx.trace, {"target_unit": target})
 	ctx.ability.apply_effects(
 		effects, target, crit_multiplier, ctx.trace, status_magnitude, effect_duration

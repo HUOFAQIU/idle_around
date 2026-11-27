@@ -1,7 +1,7 @@
 shader_type spatial;
 render_mode blend_mix, depth_draw_opaque, cull_back, diffuse_burley, specular_schlick_ggx;
 
-// GPU Procedural Skeletal Rigging Shader for Cinderwatch Units
+// GPU Procedural Skeletal Rigging Shader for Battle Units
 // Each unit is 1 MultiMesh instance (100% baked geometry per archetype).
 // Vertex CUSTOM0 = vec4(pivot.x, pivot.y, pivot.z, part_id)
 // INSTANCE_CUSTOM = vec4(phase, swing, flash, mv)

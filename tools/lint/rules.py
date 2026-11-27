@@ -36,7 +36,7 @@ class Rule:
 
 class NoCommentsRule(Rule):
     id = "no-comments"
-    description = "首方代码不写注释，why 放 DOC/"
+    description = "首方代码不写普通注释，长篇 why 放 DOC/"
     severity = "error"
     extensions = frozenset({".gd"})
 
@@ -58,8 +58,8 @@ class NoCommentsRule(Rule):
                     comment.line,
                     comment.column,
                     self.id,
-                    "首方代码不写注释；why、边界、坑写进 DOC/。"
-                    "仅 @export 的 Inspector 文档、@meta_* 来源标注和生成文件例外",
+                    "首方代码不写普通注释；长篇 why、边界、坑写进 DOC/。"
+                    "仅 @export 的 Inspector 文档、@meta_* 来源标注、单行 # why:/# invariant:（≤120 字）和生成文件例外",
                     self.severity,
                 )
             )

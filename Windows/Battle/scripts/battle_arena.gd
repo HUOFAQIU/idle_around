@@ -15,7 +15,6 @@ func _ready() -> void:
 	game.battle_logged.connect(func(line: String) -> void: battle_logged.emit(line))
 	game.init_game(view_3d.get_unit_material(), view_3d.height_at)
 	ui.init_ui(self, game, view_3d)
-	print("[BattleArena] Morning Forest Clearing initialized.")
 
 
 func _process(delta: float) -> void:

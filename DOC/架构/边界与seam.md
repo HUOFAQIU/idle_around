@@ -1,6 +1,6 @@
 # 边界与 seam
 
-> 类型：实现 | 状态：有效 | 核对：2026-11-21
+> 类型：实现 | 状态：有效 | 核对：2026-11-27
 > 何时读：改模块边界、拆分或深化模块、收敛入口、判断某处该不该加 seam 时
 > 关键词：seam interface module adapter locality 深模块 边界 autoload TestAPI 重构 入口 命名
 > 代码：`Scripts/`、`game/`、`Windows/`、`Main/`
@@ -51,7 +51,7 @@
 
 ### P2：浅但可接受（低优先）
 
-`TestAPI` 门面与 commands actions 的纯转发（稳定入口，有意为之）；`GameGlobal` 单常量；`ContentKind` 枚举；`WindowPinSettings`；`CollectionSaveParticipant`。`Warehouse.page_index` 疑似死代码，未确认。
+`TestAPI` 门面与 commands actions 的纯转发（稳定入口，有意为之）；`GameGlobal` 单常量；`ContentKind` 枚举；`WindowPinSettings`；`CollectionSaveParticipant`。
 
 ## 4. 命名与入口
 
@@ -80,7 +80,6 @@
 - `Scripts/ui/` 是否需要 TestAPI 入口。
 - Shop 窗口是占位还是由 GBIS 驱动。
 - GBIS 的 `inventory_names`/`opened_containers` 是否官方扩展点。
-- `Warehouse.page_index` 是否死代码。
 - `EngineTools/modkit/` 是否直接调用 ModLoader/SaveManager。
 
 ## 7. 维护

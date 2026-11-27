@@ -22,8 +22,8 @@
 | GAS 属性集、标签注册与 Cue 特效接入 | `架构/GAS.md`、`指南/特效与Cue.md` | `godot_gas/`、`godot_gas/attributes/`、`addons/GodotGAS/`、`Scripts/mod/mod_cue_registrar.gd` |
 | Mod 系统架构、加载顺序、内置 core 与 Mod 制作打包 | `架构/Mod系统.md`、`指南/Mod制作.md` | `Scripts/mod/`、`base_mods/core/mod.json`、`mods/example_souls/`、`EngineTools/modkit/`、`Windows/ModWindow/` |
 | 扩展点（新增魂灵/怪物/魂器/技能/窗口/特效） | `指南/扩展点.md` | `base_mods/core/`、`game/content/`、`Main/control.gd` |
-| 魂灵规则（尺寸/标签/主动冷却/被动触发/Tooltip 格式） | `设计/魂灵.md` | `soul_data.gd`、`passive_soul_data.gd`、`Windows/Tooltip/` |
-| 魂器、角色魂器网格与情绪抽签系统 | `设计/魂器.md`、`设计/情绪系统.md` | `soul_vessel_data.gd`、`game/content/soul_emotion*.gd`、`Windows/Vessel/`、`Windows/Character/`、`game/battle/loot_roller.gd` |
+| 魂灵规则（尺寸/标签/主动冷却/被动触发/Tooltip 格式） | `设计/魂灵.md` | `game/inventory/grid_base_inventory_system/core/model/item/soul_data.gd`、`game/content/passive_soul_data.gd`、`Windows/Tooltip/` |
+| 魂器、角色魂器网格与情绪抽签系统 | `设计/魂器.md`、`设计/情绪系统.md` | `game/inventory/grid_base_inventory_system/core/model/item/soul_vessel_data.gd`、`game/content/soul_emotion*.gd`、`Windows/Vessel/`、`Windows/Character/`、`game/battle/loot_roller.gd` |
 | 怪物设计、刷新距离、掉落与玩家/怪物属性池 | `设计/单位与属性.md` | `base_mods/core/monsters/`、`game/content/monster_data.gd`、`godot_gas/attributes/` |
 | 地图物品、05 面地图板、刷怪配额、数量石与战斗设计 | `设计/地图与战斗.md` | `game/content/map_*.gd`、`Scripts/map_board.gd`、`Main/Cube/Scripts/map_board_content.gd`、`game/battle/map_run.gd` |
 | 颜色规范与色板插件 | `架构/颜色与主题.md` | `Scripts/game_colors.gd`、`Scripts/game_color_catalog.gd`、`EngineTools/color_catalog/` |

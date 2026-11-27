@@ -1,6 +1,6 @@
 shader_type canvas_item;
 
-// Cinderwatch miniature post-processing:
+// Miniature post-processing:
 // Sub-texel crisp upscaling + tilt-shift DoF + ACES Filmic + vignette + 8x8 Bayer ordered dither + film grain
 uniform vec2 u_tex_size = vec2(960.0, 540.0);
 uniform vec2 u_out_size = vec2(1920.0, 1080.0);

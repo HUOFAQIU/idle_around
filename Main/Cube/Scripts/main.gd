@@ -38,11 +38,10 @@ func _ready() -> void:
 
 
 func _on_face_identified(
-		face_index: int,
+		_face_index: int,
 		face_name: String,
 		accent_color: Color,
 ) -> void:
-	print("[立方体] 点击面 %d：%s" % [face_index + 1, face_name])
 	_hud.show_face_identified(face_name, accent_color)
 
 

@@ -17,17 +17,6 @@ static func page_name(page: int) -> String:
 	return CONTAINER_IDS.warehouse_page(page)
 
 
-static func page_index(container_name: String) -> int:
-	if not container_name.begins_with(CONTAINER_IDS.WAREHOUSE_PREFIX):
-		return -1
-	var index_text := container_name.trim_prefix(CONTAINER_IDS.WAREHOUSE_PREFIX)
-	if not index_text.is_valid_int():
-		return -1
-	var page := index_text.to_int()
-	if page < 0 or page >= PAGE_COUNT:
-		return -1
-	return page
-
 
 func add_item(item_data: ItemData) -> bool:
 	for page in PAGE_COUNT:

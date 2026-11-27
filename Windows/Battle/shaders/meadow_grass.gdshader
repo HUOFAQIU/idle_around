@@ -1,5 +1,5 @@
 // Adapted from Dylearn's Grass.gdshader & clouds.gdshaderinc (MIT License)
-// Tuned for Cinderwatch AroundMe Morning Forest Clearing:
+// Tuned for Battle Morning Forest Clearing:
 // - Seamless velvety overlapping pixel-art grass carpet (5fps stepped wind waves)
 // - Cohesive 3-patch lush green palette + subtle sunlit sprout accents
 // - Real-time 64-unit trampling displacement

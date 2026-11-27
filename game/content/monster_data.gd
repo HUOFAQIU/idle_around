@@ -31,6 +31,8 @@ class_name MonsterData extends Resource
 @export_range(0.1, 3.0, 0.05) var hit_height: float = 0.6
 ## 3D 击杀碎块颜色
 @export var debris_color: Color = Color(0.55, 0.52, 0.48, 1.0)
+## 3D GPU 动画配置（留空则使用默认参数）
+@export var anim_config: UnitAnimConfig
 
 
 func soul_list() -> Array[SoulData]:

@@ -16,7 +16,7 @@ func has_batch(key: String) -> bool:
 	return _batches.has(key)
 
 
-func register_batch(key: String, mesh: Mesh, capacity: int) -> void:
+func register_batch(key: String, mesh: Mesh, capacity: int, anim_config: UnitAnimConfig = null) -> void:
 	if mesh == null:
 		return
 	var mm := MultiMesh.new()
@@ -30,7 +30,12 @@ func register_batch(key: String, mesh: Mesh, capacity: int) -> void:
 	var mmi := MultiMeshInstance3D.new()
 	mmi.name = "Batch_" + key
 	mmi.multimesh = mm
-	mmi.material_override = _material
+	if anim_config != null and _material != null:
+		var batch_mat := _material.duplicate() as ShaderMaterial
+		anim_config.apply_to_material(batch_mat)
+		mmi.material_override = batch_mat
+	else:
+		mmi.material_override = _material
 	mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 	mmi.extra_cull_margin = 16384.0
 	_owner.add_child(mmi)

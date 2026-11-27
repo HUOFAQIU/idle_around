@@ -7,6 +7,9 @@ render_mode blend_mix, depth_draw_opaque, cull_back, diffuse_burley, specular_sc
 // INSTANCE_CUSTOM = vec4(phase, swing, flash, mv)
 
 uniform sampler2DArray u_tex_a : filter_linear_mipmap, repeat_enable;
+uniform vec3 u_anim_move = vec3(1.0, 1.0, 1.0);
+uniform vec3 u_anim_atk = vec3(0.40, 0.65, 1.0);
+uniform vec4 u_flash_style = vec4(1.0, 0.8, 0.55, 0.55);
 
 varying float v_flash;
 
@@ -47,24 +50,27 @@ void vertex() {
 	float atk_twist = 0.0;
 	float atk_lunge = 0.0;
 	if (swing > 0.01) {
+		float wu = max(u_anim_atk.x, 0.05);
+		float st = max(u_anim_atk.y, wu + 0.05);
+		float lg = u_anim_atk.z;
 		float atk_u = 1.0 - clamp(swing, 0.0, 1.0);
-		if (atk_u < 0.40) {
-			float w = atk_u / 0.40;
+		if (atk_u < wu) {
+			float w = atk_u / wu;
 			float ew = w * w * (3.0 - 2.0 * w);
-			atk_arm = -2.15 * ew;
-			atk_twist = -0.40 * ew;
-			atk_lunge = -0.08 * ew;
-		} else if (atk_u < 0.65) {
-			float w = (atk_u - 0.40) / 0.25;
+			atk_arm = -2.15 * ew * lg;
+			atk_twist = -0.40 * ew * lg;
+			atk_lunge = -0.08 * ew * lg;
+		} else if (atk_u < st) {
+			float w = (atk_u - wu) / (st - wu);
 			float ew = 1.0 - pow(1.0 - w, 3.0);
-			atk_arm = mix(-2.15, 0.80, ew);
-			atk_twist = mix(-0.40, 0.50, ew);
-			atk_lunge = mix(-0.08, 0.22, ew);
+			atk_arm = mix(-2.15, 0.80, ew) * lg;
+			atk_twist = mix(-0.40, 0.50, ew) * lg;
+			atk_lunge = mix(-0.08, 0.22, ew) * lg;
 		} else {
-			float w = (atk_u - 0.65) / 0.35;
-			atk_arm = mix(0.80, 0.0, w);
-			atk_twist = mix(0.50, 0.0, w);
-			atk_lunge = mix(0.22, 0.0, w);
+			float w = (atk_u - st) / max(1.0 - st, 0.05);
+			atk_arm = mix(0.80, 0.0, w) * lg;
+			atk_twist = mix(0.50, 0.0, w) * lg;
+			atk_lunge = mix(0.22, 0.0, w) * lg;
 		}
 	}
 
@@ -175,12 +181,12 @@ void vertex() {
 		v.y += lng * 0.12;
 		v.z += lng * 0.24;
 	} else if (pid > 49.5 && pid < 50.5) {
-		// Serpent (Snake, Fu): S-curve slither + coiled head lunge
+		// Serpent (Snake, Fu): S-curve slither + coiled head lunge driven by UnitAnimConfig
 		float hw = clamp(piv.y, 0.0, 1.0);
-		float slither = sin(phase * 1.15 - v.z * 4.2) * 0.085 * mv;
-		float sway = sin(phase * 0.75) * 0.03 * hw;
+		float slither = sin(phase * 1.15 - v.z * 4.2 * u_anim_move.y) * 0.085 * u_anim_move.x * mv;
+		float sway = sin(phase * 0.75) * 0.03 * u_anim_move.z * hw;
 		v.x += slither + sway;
-		v.y += sin(phase * 0.9) * 0.02 * hw;
+		v.y += sin(phase * 0.9) * 0.02 * u_anim_move.z * hw;
 		if (swing > 0.01) {
 			v.z += atk_lunge * 1.65 * hw;
 			v.y += max(atk_lunge, 0.0) * 0.55 * hw;
@@ -199,6 +205,6 @@ void fragment() {
 	ROUGHNESS = clamp(0.84 * (1.15 - 0.3 * tex_a.a), 0.1, 1.0);
 	METALLIC = 0.0;
 	if (v_flash > 0.01) {
-		EMISSION = vec3(1.0, 0.8, 0.55) * v_flash * 0.55;
+		EMISSION = u_flash_style.rgb * v_flash * u_flash_style.a;
 	}
 }

@@ -26,6 +26,10 @@ class MobState:
 	var damage: float = 6.0
 	var attack_cooldown: float = 0.95
 	var attack_reach: float = 1.35
+	var move_phase_scale: float = 3.8
+	var attack_anim_speed: float = 1.95
+	var attack_impact_u: float = SWING_IMPACT_U
+	var flash_decay: float = 5.0
 	var anim_phase: float = 0.0
 	var swing: float = 0.0
 	var hit_pending: bool = false
@@ -343,6 +347,11 @@ func _spawn_map_monster(monster_id: StringName) -> void:
 	mob.damage = clampf(data.max_health * 0.03, 5.0, 24.0)
 	mob.attack_cooldown = 1.15 if data.max_health >= 500.0 else 0.95
 	mob.attack_reach = clampf(data.attack_range * 0.048, 1.35, 3.2)
+	if data.anim_config != null:
+		mob.move_phase_scale = data.anim_config.move_phase_scale
+		mob.attack_anim_speed = data.anim_config.attack_speed
+		mob.attack_impact_u = data.anim_config.attack_impact_u
+		mob.flash_decay = data.anim_config.flash_decay
 	mob.anim_phase = randf() * TAU
 	mob.attack_cd = randf_range(0.15, 0.55)
 	mons.append(mob)
@@ -353,7 +362,7 @@ func _ensure_monster_batch(data: MonsterData) -> String:
 	if data.mesh_3d != null:
 		var key := "monster:" + String(data.content_id)
 		if not _renderer.has_batch(key):
-			_renderer.register_batch(key, data.mesh_3d, BATCH_CAP)
+			_renderer.register_batch(key, data.mesh_3d, BATCH_CAP, data.anim_config)
 		return key
 	return mob_archetypes[0].id if not mob_archetypes.is_empty() else ""
 
@@ -506,8 +515,8 @@ func _step_monsters(dt: float) -> void:
 	var inv_cell := 1.0 / GRID_CELL
 	for i in range(mons.size()):
 		var mob := mons[i]
-		mob.flash = maxf(0.0, mob.flash - dt * 5.0)
-		mob.swing = maxf(0.0, mob.swing - dt * 1.95)
+		mob.flash = maxf(0.0, mob.flash - dt * mob.flash_decay)
+		mob.swing = maxf(0.0, mob.swing - dt * mob.attack_anim_speed)
 		mob.attack_cd = maxf(0.0, mob.attack_cd - dt)
 
 		var dist := sqrt(mob.pos.x * mob.pos.x + mob.pos.z * mob.pos.z)
@@ -529,7 +538,7 @@ func _move_monster_inward(mob: MobState, idx: int, dist: float, dt: float, inv_c
 
 	mob.pos = Vector3(mx, height_at(mx, mz), mz)
 	mob.yaw = atan2(-mx, -mz)
-	mob.anim_phase += dt * mob.move_speed * 3.8
+	mob.anim_phase += dt * mob.move_speed * mob.move_phase_scale
 	mob.is_moving = true
 
 
@@ -575,7 +584,7 @@ func _attack_soldier_from_monster(mob: MobState) -> void:
 		mob.swing = 1.0
 		mob.hit_pending = true
 
-	if mob.hit_pending and (1.0 - mob.swing) >= SWING_IMPACT_U:
+	if mob.hit_pending and (1.0 - mob.swing) >= mob.attack_impact_u:
 		mob.hit_pending = false
 		soldier_hp = maxf(0.0, soldier_hp - mob.damage)
 		soldier_flash = 0.50

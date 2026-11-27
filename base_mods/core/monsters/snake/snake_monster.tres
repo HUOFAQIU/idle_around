@@ -7,6 +7,7 @@
 [ext_resource type="Texture2D" uid="uid://deaj7ddfwbqwh" path="res://Assets/tokens.png" id="6_icon"]
 [ext_resource type="Script" uid="uid://c2igyvamknn3f" path="res://game/content/monster_data.gd" id="7_data"]
 [ext_resource type="ArrayMesh" path="res://base_mods/core/monsters/snake/snake.res" id="8_mesh3d"]
+[ext_resource type="Resource" path="res://base_mods/core/monsters/snake/snake_anim.tres" id="9_anim"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_snake"]
 atlas = ExtResource("6_icon")
@@ -36,3 +37,4 @@ mesh_3d = ExtResource("8_mesh3d")
 visual_scale = 1.05
 hit_height = 0.48
 debris_color = Color(0.45, 0.64, 0.28, 1)
+anim_config = ExtResource("9_anim")

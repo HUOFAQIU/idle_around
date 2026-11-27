@@ -84,6 +84,17 @@ func is_finished() -> bool:
 	return true
 
 
+func progress() -> Vector2i:
+	var spawned := 0
+	var total := 0
+	for runtime in _entries:
+		if runtime.entry.condition != MapSpawnEntry.Condition.TIME_INTERVAL:
+			continue
+		spawned += runtime.spawned
+		total += _effective_count(runtime.entry)
+	return Vector2i(spawned, total)
+
+
 func state() -> Dictionary:
 	var entries: Array = []
 	for runtime in _entries:

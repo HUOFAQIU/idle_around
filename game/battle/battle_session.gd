@@ -139,6 +139,12 @@ func step_ticks(count: int) -> bool:
 	return true
 
 
+func get_map_progress() -> Vector2i:
+	if _map_run == null:
+		return Vector2i.ZERO
+	return _map_run.progress()
+
+
 func get_state() -> Dictionary:
 	var state := {
 		"running": false,

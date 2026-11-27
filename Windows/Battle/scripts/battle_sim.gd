@@ -117,15 +117,8 @@ func get_enemy_count() -> int:
 func get_progress_label() -> String:
 	if not _is_session_mode():
 		return "IDLE"
-	var st := _session.get_state()
-	var map_st: Dictionary = st.get("map", {})
-	var total := 0
-	var spawned := 0
-	for e in map_st.get("entries", []):
-		if String(e.get("condition", "")) == "time":
-			total += int(e.get("count", 0))
-			spawned += int(e.get("spawned", 0))
-	return "%d/%d" % [spawned, total] if total > 0 else "MAP"
+	var progress := _session.get_map_progress()
+	return "%d/%d" % [progress.x, progress.y] if progress.y > 0 else "MAP"
 
 
 func get_hp_bar_entries() -> Array[Dictionary]:

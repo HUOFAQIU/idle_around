@@ -12,17 +12,34 @@ var abilities: Array[GameplayAbility] = []
 var _pending_activations: Array[ChargedAbility] = []
 var _pending_traces: Dictionary = {}
 var _flushing : bool = false
+var _units_until_work: int = 0
+var _deferred_units: int = 0
+var _work_dirty: bool = true
 
 
 func add_ability(ability: GameplayAbility) -> void:
+	_flush_deferred_units()
 	ability.owner_asc = unit.asc
 	unit.asc.grant_ability(ability)
 	abilities.append(ability)
+	var charged := ability as ChargedAbility
+	if charged != null:
+		charged.charge_added.connect(
+			func(_s: float, _old: float, _new: float, _trace: CombatTrace) -> void:
+				_mark_work_dirty()
+		)
+		charged.status_applied.connect(
+			func(_name: String, _s: float, _trace: CombatTrace) -> void:
+				_mark_work_dirty()
+		)
+	_work_dirty = true
 
 
 func begin_charge() -> void:
 	_pending_activations.clear()
 	_pending_traces.clear()
+	_deferred_units = 0
+	_work_dirty = true
 	for ability in abilities:
 		var charged := ability as ChargedAbility
 		if charged:
@@ -44,6 +61,7 @@ func request_activation(ability: ChargedAbility, trace: CombatTrace = null) -> v
 	if _pending_activations.has(ability):
 		return
 	_pending_activations.append(ability)
+	_work_dirty = true
 	if unit != null and unit.battle != null:
 		unit.battle.mark_brain_dirty(self)
 	for runtime in unit.loadout:
@@ -123,14 +141,30 @@ func _physics_process(_delta: float) -> void:
 func advance() -> void:
 	if unit == null or unit.is_dead or unit.battle == null or not unit.battle.is_running:
 		return
-	if unit.team == BattleUnit.Team.ENEMY and unit.battle.player != null:
+	var is_enemy := unit.team == BattleUnit.Team.ENEMY
+	if is_enemy and unit.battle.player != null:
 		if not unit.is_in_attack_range(unit.battle.player):
+			_flush_deferred_units()
+			_work_dirty = true
 			return
 
 	var frozen := unit.asc.has_tag(FROZEN_TAG)
+	if frozen:
+		# why: 冻结前攒下的刻必须补投，否则冻结会吞掉整段冷却进度
+		_flush_deferred_units()
+		_work_dirty = true
 	var base_units := int(round(
 		float(ChargedAbility.UNITS_PER_SECOND) * unit.battle.tick_seconds()
 	))
+
+	# why: 无可推进内容时按刻攒账，到点或状态变化时用补投一次追平，语义与逐帧推进一致
+	if is_enemy and not frozen and not _work_dirty and _units_until_work > base_units:
+		_units_until_work -= base_units
+		_deferred_units += base_units
+		return
+
+	base_units += _deferred_units
+	_deferred_units = 0
 
 	for ability in abilities:
 		var charged := ability as ChargedAbility
@@ -146,6 +180,7 @@ func advance() -> void:
 
 	for ability in abilities:
 		if unit.is_dead or unit.battle == null or not unit.battle.is_running:
+			_work_dirty = true
 			return
 		var charged := ability as ChargedAbility
 		if charged != null and (
@@ -159,3 +194,38 @@ func advance() -> void:
 			ability.try_activate()
 
 	flush_pending_activations()
+	_work_dirty = false
+	_units_until_work = _compute_units_until_work()
+
+
+func _compute_units_until_work() -> int:
+	if unit.team != BattleUnit.Team.ENEMY:
+		return 0
+	var best := 0x7FFFFFFF
+	for ability in abilities:
+		var charged := ability as ChargedAbility
+		if charged == null:
+			return 0
+		var units := charged.units_until_work()
+		if units <= 0:
+			return 0
+		best = mini(best, units)
+	return 0 if best == 0x7FFFFFFF else best
+
+
+func _flush_deferred_units() -> void:
+	if _deferred_units <= 0:
+		return
+	var units := _deferred_units
+	_deferred_units = 0
+	for ability in abilities:
+		var charged := ability as ChargedAbility
+		if charged == null:
+			continue
+		charged.advance_activation_lock(units)
+		charged.advance_charge(units)
+
+
+func _mark_work_dirty() -> void:
+	_flush_deferred_units()
+	_work_dirty = true

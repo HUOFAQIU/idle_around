@@ -86,6 +86,27 @@ class IndexMetaTest(unittest.TestCase):
         self.assertEqual(len(errors), 1)
         self.assertIn("代码入口不存在", errors[0])
 
+    def test_non_path_code_entry_is_ignored(self) -> None:
+        self.write_doc("架构/foo.md")
+        (self.root / "Scripts").mkdir()
+        (self.root / "Scripts" / "foo.gd").write_text("", encoding="utf-8")
+        self.write_index([("测试", "`架构/foo.md`", "`Scripts/foo.gd`、`GameFlow`、`test_api.gd::run`")])
+        self.assertEqual(check_index(self.root), [])
+
+    def test_parent_code_entry_is_reported(self) -> None:
+        self.write_doc("架构/foo.md")
+        self.write_index([("测试", "`架构/foo.md`", "`/Scripts/foo.gd`、`../outsider.gd`")])
+        errors = check_index(self.root)
+        self.assertEqual(len(errors), 2)
+        self.assertTrue(all("仓库相对路径" in error for error in errors))
+
+    def test_absolute_route_target_is_reported(self) -> None:
+        self.write_doc("架构/foo.md")
+        self.write_index([("测试", "`/架构/foo.md`", "—")])
+        errors = check_index(self.root)
+        self.assertEqual(len(errors), 1)
+        self.assertIn("路由目标必须是仓库相对路径", errors[0])
+
     def test_strict_budget_flags_oversized_doc(self) -> None:
         self.write_doc("架构/big.md", body="\n".join(f"line {i}" for i in range(210)))
         self.write_index([("大文档", "`架构/big.md`", "—")])

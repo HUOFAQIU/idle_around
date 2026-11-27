@@ -9,9 +9,24 @@ from pathlib import Path
 META_RE = re.compile(r"(类型|状态|核对|整理)[：:]\s*([^|\n]+)")
 ROUTE_DOC_RE = re.compile(r"`([^`\s]+\.md)`")
 ROUTE_CODE_RE = re.compile(r"`([^`\s]+)`")
+DRIVE_RE = re.compile(r"^[A-Za-z]:")
 HEADER_SCAN_LINES = 15
 DEFAULT_MAX_LINES = 200
 DEFAULT_MAX_BYTES = 12 * 1024
+
+
+def looks_like_path(ref: str) -> bool:
+    """判断「代码入口」列的内联代码是否像路径：含路径分隔符或末段带扩展名，`::` 符号引用不算。"""
+    if "::" in ref:
+        return False
+    return "/" in ref or "\\" in ref or "." in ref.rsplit("/", 1)[-1]
+
+
+def is_repo_relative(ref: str) -> bool:
+    """路由引用必须是仓库相对路径，排除绝对路径、盘符与 `..` 回溯。"""
+    if ref.startswith(("/", "\\")) or DRIVE_RE.match(ref):
+        return False
+    return ".." not in ref.replace("\\", "/").split("/")
 
 
 def iter_docs(doc_root: Path) -> list[Path]:
@@ -74,7 +89,7 @@ def read_route_code_refs(index_path: Path) -> list[tuple[int, str]]:
         if len(cells) < 3 or cells[0] == "你要做什么" or set(cells[0]) <= {"-"}:
             continue
         for ref in ROUTE_CODE_RE.findall(cells[2]):
-            if "*" in ref:
+            if "*" in ref or not looks_like_path(ref):
                 continue
             refs.append((number, ref))
     return refs
@@ -96,10 +111,16 @@ def check_index(
         errors.append("DOC/INDEX.md: 缺少文档入口文件")
     else:
         for line_no, ref in read_route_refs(index_path):
+            if not is_repo_relative(ref):
+                errors.append(f"DOC/INDEX.md:{line_no}: 路由目标必须是仓库相对路径：{ref}")
+                continue
             target = doc_root / ref
             if not target.is_file():
                 errors.append(f"DOC/INDEX.md:{line_no}: 路由目标不存在：{ref}")
         for line_no, ref in read_route_code_refs(index_path):
+            if not is_repo_relative(ref):
+                errors.append(f"DOC/INDEX.md:{line_no}: 代码入口必须是仓库相对路径：{ref}")
+                continue
             target = root / ref
             if not target.exists():
                 errors.append(f"DOC/INDEX.md:{line_no}: 代码入口不存在：{ref}")

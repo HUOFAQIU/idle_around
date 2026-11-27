@@ -15,6 +15,8 @@ class_name MonsterData extends Resource
 @export_range(0.0, 1000.0, 0.1) var attack_range: float = 30.0
 ## 移动速度（像素/秒）
 @export_range(0.0, 1000.0, 0.1) var move_speed: float = 11.0
+## 逻辑碰撞半径（像素，用于单位占位与防穿模）
+@export_range(2.0, 128.0, 0.5) var body_radius: float = 8.0
 ## 可用的刷新距离（格）；刷怪时从这些距离环的格子中合并随机选一格。
 ## 默认 [3]；ModLoader 要求非空且每个距离 >= 1。
 @export var spawn_distances: Array[int] = [3]

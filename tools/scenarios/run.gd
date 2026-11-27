@@ -5,6 +5,7 @@ const CASES: Array[GDScript] = [
 	preload("res://tools/scenarios/cases/save_roundtrip.gd"),
 	preload("res://tools/scenarios/cases/map_place.gd"),
 	preload("res://tools/scenarios/cases/soul_emotion_roll.gd"),
+	preload("res://tools/scenarios/cases/battle_kong_lang_gas.gd"),
 ]
 
 var _total: int = 0

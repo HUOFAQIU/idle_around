@@ -44,6 +44,8 @@ func request_activation(ability: ChargedAbility, trace: CombatTrace = null) -> v
 	if _pending_activations.has(ability):
 		return
 	_pending_activations.append(ability)
+	if unit != null and unit.battle != null:
+		unit.battle.mark_brain_dirty(self)
 	for runtime in unit.loadout:
 		if runtime != null and runtime.ability == ability:
 			unit.battle.events.emit_event(BattleEvent.CATEGORY_SOUL, "pending", {

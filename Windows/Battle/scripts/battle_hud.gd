@@ -101,7 +101,7 @@ func update_ui(_dt: float) -> void:
 	wave_lbl.text = _game.get_progress_label()
 	kills_lbl.text = "%d" % _game.kills
 	hp_lbl.text = "%d/%d" % [int(ceilf(_game.soldier_hp)), int(_game.soldier_max_hp)]
-	mobs_lbl.text = "%d" % _game.mons.size()
+	mobs_lbl.text = "%d" % _game.get_enemy_count()
 	pause_btn.icon = _ic_play if _main.paused else _ic_pause
 	mute_btn.icon = _ic_mute if _game.muted else _ic_sound
 	dof_btn.text = "DOF:ON" if _main.is_dof_enabled() else "DOF:OFF"
@@ -141,12 +141,12 @@ func _on_overlay_draw() -> void:
 		overlay.draw_rect(Rect2(bx, by, bw * frac, bh), col)
 
 	var drawn := 0
-	for m in _game.mons:
-		var hp := m.hp
-		var mhp := m.max_hp
+	for m in _game.get_hp_bar_entries():
+		var hp: float = m["hp"]
+		var mhp: float = m["max_hp"]
 		if hp >= mhp - 0.01:
 			continue
-		var mp := m.pos + Vector3(0.0, m.hit_height + 0.45, 0.0)
+		var mp: Vector3 = m["pos"]
 		var sp := _view_3d.world_to_screen(mp)
 		var bw := 11.0 * s
 		var bh := 1.5 * s

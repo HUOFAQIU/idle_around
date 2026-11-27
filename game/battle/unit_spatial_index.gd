@@ -1,6 +1,19 @@
 class_name UnitSpatialIndex extends RefCounted
 
-const BUCKET_PX: float = 64.0
+const BUCKET_PX: float = 28.0
+const SOFT_RADIUS_RATIO: float = 0.65
+const SOFT_STIFFNESS: float = 1.45
+const NEIGHBOR_OFFSETS: Array[Vector2i] = [
+	Vector2i(0, 0),
+	Vector2i(1, 0),
+	Vector2i(-1, 0),
+	Vector2i(0, 1),
+	Vector2i(0, -1),
+	Vector2i(1, 1),
+	Vector2i(-1, 1),
+	Vector2i(1, -1),
+	Vector2i(-1, -1),
+]
 
 var _buckets: Dictionary = {}
 var _bucket_of_unit: Dictionary = {}
@@ -59,3 +72,45 @@ func clear() -> void:
 
 func _bucket_key(pos: Vector2) -> Vector2i:
 	return Vector2i(floori(pos.x / BUCKET_PX), floori(pos.y / BUCKET_PX))
+
+
+func compute_separation(
+	unit: BattleUnit,
+	max_hits: int = 10,
+	max_scan: int = 32,
+	max_speed: float = 12.0
+) -> Vector2:
+	var sep := Vector2.ZERO
+	var pos := unit.position
+	var team := unit.team
+	var my_r := unit.body_radius
+	var center := _bucket_key(pos)
+	var max_sq := max_speed * max_speed
+	var hits := 0
+	var scanned := 0
+	for offset in NEIGHBOR_OFFSETS:
+		var bucket = _buckets.get(center + offset)
+		if bucket == null:
+			continue
+		for other in bucket:
+			if other == unit or other == null or other.is_dead or other.team != team:
+				continue
+			scanned += 1
+			var min_d: float = (my_r + other.body_radius) * SOFT_RADIUS_RATIO
+			var diff: Vector2 = pos - other.position
+			var d2 := diff.length_squared()
+			if d2 > 0.001 and d2 < min_d * min_d:
+				var d := sqrt(d2)
+				sep += (diff / d) * (min_d - d) * SOFT_STIFFNESS
+				hits += 1
+				if hits >= max_hits:
+					if sep.length_squared() > max_sq:
+						sep = sep.normalized() * max_speed
+					return sep
+			if scanned >= max_scan:
+				if sep.length_squared() > max_sq:
+					sep = sep.normalized() * max_speed
+				return sep
+	if sep.length_squared() > max_sq:
+		sep = sep.normalized() * max_speed
+	return sep

@@ -96,8 +96,9 @@ func record(
 ) -> Dictionary:
 	if not enabled:
 		return {}
-	if importance == CombatTelemetrySchema.DETAIL and not record_detail_globally and watch_unit_id == 0:
-		return {}
+	if importance == CombatTelemetrySchema.DETAIL and not record_detail_globally:
+		if watch_unit_id == 0 or not _raw_detail_matches_watch(fields):
+			return {}
 
 	var event: Dictionary = fields.duplicate()
 	_normalize_units(event)
@@ -768,3 +769,15 @@ func _close_file() -> void:
 		_file.close()
 		_file = null
 	_file_lines = 0
+
+
+func _raw_detail_matches_watch(fields: Dictionary) -> bool:
+	for key in ["actor_unit", "target_unit", "unit"]:
+		var raw = fields.get(key)
+		if raw is Object and is_instance_valid(raw) and (raw as Object).get_instance_id() == watch_unit_id:
+			return true
+	for key in ["actor", "target", "unit"]:
+		var info = fields.get(key)
+		if info is Dictionary and int(info.get("id", 0)) == watch_unit_id:
+			return true
+	return false

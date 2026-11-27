@@ -5,7 +5,9 @@ extends BaseWindow
 
 var _map_item: MapItemData
 var _map_slot: int = -1
-var _session: BattleSession
+var _session: BattleSession:
+	get:
+		return battle_arena.get_battle_session() if battle_arena != null else null
 var _battle: BattleManager:
 	get:
 		return _session.battle if _session != null else null
@@ -39,10 +41,11 @@ func start_battle(map_item: MapItemData, slot_index: int = -1) -> void:
 	if InfoWindow.instance != null:
 		InfoWindow.instance.clear_log()
 		InfoWindow.instance.append_line("[战斗] 进入地图：%s" % map_item.map_data.display_name)
+	var equipped_slots := _collect_equipped_soul_slots()
 	if battle_arena != null:
 		if map_item.map_data.weather_preset != null:
 			battle_arena.set_weather_preset(map_item.map_data.weather_preset)
-		battle_arena.start_run(map_item.map_data)
+		battle_arena.start_run(map_item, equipped_slots)
 
 
 func is_battling_slot(slot_index: int) -> bool:
@@ -53,7 +56,7 @@ func stop_battle() -> void:
 	_map_item = null
 	_map_slot = -1
 	if battle_arena != null:
-		battle_arena.paused = true
+		battle_arena.stop_run()
 
 
 func get_battle_session() -> BattleSession:
@@ -74,9 +77,9 @@ func get_fps_text_for_test() -> String:
 	return "FPS %d" % int(Engine.get_frames_per_second())
 
 
-func _on_battle_logged(line: String) -> void:
+func _on_battle_logged(line: String, color: String = "white") -> void:
 	if InfoWindow.instance != null:
-		InfoWindow.instance.append_line(line)
+		InfoWindow.instance.append_line(line, color)
 
 
 func _on_info_pressed() -> void:
@@ -93,5 +96,32 @@ func _on_visibility_changed() -> void:
 	if not visible:
 		if TooltipWindow.instance != null:
 			TooltipWindow.instance.hide_tip(self)
+		if battle_arena != null:
+			battle_arena.stop_run()
 		_map_item = null
 		_map_slot = -1
+
+
+func _collect_equipped_soul_slots() -> Array[SoulSlot]:
+	var result: Array[SoulSlot] = []
+	if ContainerRepository.instance == null:
+		return result
+	var grid := ContainerRepository.instance.get_container(ContainerIds.VESSEL_GRID)
+	if grid == null:
+		return result
+	for vessel in SoulVesselData.combat_vessels_in(grid):
+		var contents := vessel.ensure_contents()
+		for item in contents.items:
+			if not (item is SoulData):
+				continue
+			var soul := item as SoulData
+			var grids := contents.find_grids_by_item_data(soul)
+			var anchor := ContainerData.anchor_of(grids) if not grids.is_empty() else Vector2i.ZERO
+			var slot := SoulSlot.new()
+			slot.soul = soul
+			slot.vessel = vessel
+			slot.container_name = contents.container_name
+			slot.column = anchor.x
+			slot.width = maxi(soul.get_shape().x, 1)
+			result.append(slot)
+	return result

@@ -1,7 +1,7 @@
-[gd_resource type="Resource" script_class="CharacterDefinition" format=3]
+[gd_resource type="Resource" script_class="CharacterDefinition" format=3 uid="uid://cj4fbta521igl"]
 
-[ext_resource type="Script" path="res://game/content/Characters/character_definition.gd" id="1_definition"]
-[ext_resource type="Resource" path="res://game/content/Player/player_profile.tres" id="2_profile"]
+[ext_resource type="Script" uid="uid://cplnu257cpjis" path="res://game/content/Characters/character_definition.gd" id="1_definition"]
+[ext_resource type="Resource" uid="uid://c1cdmq1pe1lo" path="res://game/content/Player/player_profile.tres" id="2_profile"]
 
 [resource]
 script = ExtResource("1_definition")

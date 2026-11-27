@@ -1,4 +1,4 @@
-class_name BattleUnit extends CharacterBody2D
+class_name BattleUnit extends Node
 
 signal died(unit: BattleUnit)
 @warning_ignore("unused_signal")
@@ -7,6 +7,8 @@ signal moved(unit: BattleUnit, from_cell: Vector2i, to_cell: Vector2i)
 enum Team { PLAYER, ENEMY }
 
 const SUPPRESS_STATE_LOG_TAG : StringName = &"Data.SuppressStateLog"
+const PLAYER_STATS_SCRIPT: GDScript = preload("res://godot_gas/attributes/player_stats_attribute_set.gd")
+const MONSTER_STATS_SCRIPT: GDScript = preload("res://godot_gas/attributes/monster_stats_attribute_set.gd")
 
 @export var unit_name: String = ""
 @export var team: Team = Team.PLAYER
@@ -22,13 +24,37 @@ const SUPPRESS_STATE_LOG_TAG : StringName = &"Data.SuppressStateLog"
 @export var attack_range: float = 30.0
 ## 移动速度（像素/秒）。默认约等于 3 秒走一格。
 @export var move_speed: float = 11.0
+## 逻辑碰撞半径（像素，用于单位占位与防穿模）。
+@export var body_radius: float = 8.0
 
 var battle: BattleManager
 var asc: AbilitySystemComponent
 var brain: BattleBrain
-var _presenter: UnitPresenter
+var monster_data: MonsterData
+var position: Vector2 = Vector2.ZERO
+var global_position: Vector2:
+	get:
+		return position
+var velocity: Vector2 = Vector2.ZERO
+var cached_sep: Vector2 = Vector2.ZERO
+var yaw: float = 0.0
+var anim_phase: float = 0.0
+var swing: float = 0.0
+var flash: float = 0.0
+var is_moving: bool = false
+var batch_key: String = ""
+var visual_scale: float = 1.0
+var hit_height: float = 0.6
+var debris_color: Color = Color(0.55, 0.52, 0.48, 1.0)
+var move_phase_scale: float = 3.8
+var attack_anim_speed: float = 1.95
+var flash_decay: float = 5.0
+var cached_ground_y: float = 0.0
+var ground_y_dirty: bool = true
 var is_dead: bool = false
 var _death_queued: bool = false
+var _active_effect_count: int = 0
+var _souls_loaded: bool = false
 var soul_loadout: SoulLoadout
 
 var loadout: Array[SoulRuntime]:
@@ -49,6 +75,25 @@ static func opposing_team(team_id: Team) -> Team:
 	return Team.ENEMY if team_id == Team.PLAYER else Team.PLAYER
 
 
+static func create_headless(p_team: Team) -> BattleUnit:
+	var unit := BattleUnit.new()
+	unit.team = p_team
+	unit.body_radius = 10.0 if p_team == Team.PLAYER else 8.0
+	var asc_node := AbilitySystemComponent.new()
+	asc_node.name = "AbilitySystemComponent"
+	var stats_set: AttributeSet = (
+		PLAYER_STATS_SCRIPT.new()
+		if p_team == Team.PLAYER
+		else MONSTER_STATS_SCRIPT.new()
+	)
+	asc_node.attribute_sets = [stats_set]
+	unit.add_child(asc_node)
+	var brain_node := BattleBrain.new()
+	brain_node.name = "BattleBrain"
+	unit.add_child(brain_node)
+	return unit
+
+
 func setup_from_scene(
 	p_battle: BattleManager,
 	passive_effects: Array[GameplayEffect] = []
@@ -62,16 +107,17 @@ func setup_from_scene(
 
 	brain = get_node("BattleBrain")
 	brain.unit = self
+	if team == Team.ENEMY:
+		brain.set_physics_process(false)
 	for child in asc.get_children():
 		if child is GameplayAbility:
 			brain.abilities.append(child as GameplayAbility)
-	add_soul_abilities(souls)
-
-	_presenter = UnitPresenter.new(self)
-	_presenter.name = "Presenter"
-	add_child(_presenter)
+	if team == Team.PLAYER:
+		add_soul_abilities(souls)
+		_souls_loaded = true
 
 	_connect_asc()
+	sync_asc_processing()
 
 
 func _init_attributes() -> void:
@@ -230,6 +276,28 @@ func apply_trigger_effect(
 		notify_freeze_applied(target, trace)
 
 
+func ensure_soul_abilities_loaded() -> void:
+	if _souls_loaded:
+		return
+	_souls_loaded = true
+	if not souls.is_empty():
+		add_soul_abilities(souls)
+
+
+func cache_monster_visuals(data: MonsterData) -> void:
+	monster_data = data
+	if data == null:
+		return
+	body_radius = data.body_radius
+	visual_scale = data.visual_scale
+	hit_height = data.hit_height
+	debris_color = data.debris_color
+	if data.anim_config != null:
+		move_phase_scale = data.anim_config.move_phase_scale
+		attack_anim_speed = data.anim_config.attack_speed
+		flash_decay = data.anim_config.flash_decay
+
+
 func add_soul_abilities(
 	soul_list: Array[SoulData],
 	slots: Array[SoulSlot] = []
@@ -271,9 +339,32 @@ func unregister_soul_runtimes() -> void:
 	soul_loadout = null
 
 
+func sync_asc_processing() -> void:
+	if asc == null:
+		return
+	if team == Team.PLAYER or is_dead:
+		asc.process_mode = Node.PROCESS_MODE_INHERIT
+		return
+	var brain_active := brain != null and brain.is_physics_processing()
+	var should_run := brain_active or _active_effect_count > 0
+	asc.process_mode = Node.PROCESS_MODE_INHERIT if should_run else Node.PROCESS_MODE_DISABLED
+
+
 func _connect_asc() -> void:
 	asc.attribute_changed.connect(_on_attribute_changed)
 	asc.periodic_effect_ticked.connect(_on_periodic_effect_ticked)
+	asc.active_effect_added.connect(_on_active_effect_added)
+	asc.active_effect_removed.connect(_on_active_effect_removed)
+
+
+func _on_active_effect_added(_active_effect: ActiveGameplayEffect) -> void:
+	_active_effect_count += 1
+	sync_asc_processing()
+
+
+func _on_active_effect_removed(_active_effect: ActiveGameplayEffect) -> void:
+	_active_effect_count = maxi(_active_effect_count - 1, 0)
+	sync_asc_processing()
 
 
 func set_cell(p_cell: Vector2i) -> void:

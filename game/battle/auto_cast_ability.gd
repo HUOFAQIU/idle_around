@@ -340,12 +340,14 @@ func play_hit_cue(tag: StringName, target: BattleUnit, step_key: int) -> void:
 	var count := int(_hit_cue_counts.get(step_key, 0))
 	var direction := -1.0 if count % 2 == 0 else 1.0
 	_hit_cue_counts[step_key] = count + 1
-	var payload := {"direction": direction}
-	if target.is_dying() and target.get_parent() != null:
-		payload["position"] = target.global_position
-		GameplayCueManager.execute_cue(tag, target.get_parent(), payload)
-		return
-	target.asc.execute_cue(tag, payload)
+	var caster := _caster_unit()
+	if caster != null and caster.battle != null:
+		caster.battle.events.emit_event(BattleEvent.CATEGORY_CUE, "hit_cue", {
+			"actor_unit": caster,
+			"target_unit": target,
+			"cue_tag": String(tag),
+			"direction": direction,
+		}, BattleEvent.IMPORTANCE_DETAIL)
 
 
 func _apply_effect_list_to_target(

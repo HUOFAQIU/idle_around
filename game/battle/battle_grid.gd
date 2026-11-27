@@ -12,10 +12,14 @@ func _init(p_map: TileMapLayer = null) -> void:
 
 
 func cell_to_world(cell: Vector2i) -> Vector2:
+	if map == null:
+		return Vector2(float(cell.x) * cell_size_px, float(cell.y) * cell_size_px)
 	return map.map_to_local(cell)
 
 
 func world_to_cell(pos: Vector2) -> Vector2i:
+	if map == null:
+		return Vector2i(floori(pos.x / cell_size_px), floori(pos.y / cell_size_px))
 	return map.local_to_map(pos)
 
 

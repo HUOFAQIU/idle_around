@@ -31,6 +31,7 @@ drop_chance = 0.01
 [resource]
 script = ExtResource("7_data")
 display_name = "蛇"
+body_radius = 7.5
 icon = SubResource("AtlasTexture_snake")
 soul_entries = Array[ExtResource("2_entry")]([SubResource("Resource_soul_duya"), SubResource("Resource_soul_jianya"), SubResource("Resource_soul_hualiushen")])
 mesh_3d = ExtResource("8_mesh3d")

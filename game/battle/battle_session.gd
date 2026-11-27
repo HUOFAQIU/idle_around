@@ -6,11 +6,11 @@ signal player_spawned(unit: BattleUnit)
 
 const REVIVE_DELAY: float = 3.0
 const MAP_RESTART_DELAY: float = 5.0
-const PLAYER_SCENE := preload("res://game/battle/player.tscn")
-
-var units_root: Node2D
+var units_root: Node
 var map: TileMapLayer
 var attach_observers: Callable = Callable()
+var spawn_radius_min_logic: float = 0.0
+var spawn_radius_max_logic: float = 0.0
 
 var run_id: int = 0
 var player_profile: PlayerProfile
@@ -77,6 +77,10 @@ func stop() -> void:
 	run_id += 1
 	_manual_time = false
 	CombatTelemetry.end_run("clear")
+	for rt in SoulRuntimeDB.player_runtimes():
+		if rt.soul != null:
+			rt.soul.set_scanline_enabled(false)
+		rt.clear_display()
 	SoulRuntimeDB.clear()
 	for child in units_root.get_children():
 		if child is BattleUnit:
@@ -208,14 +212,17 @@ func advance(delta: float) -> void:
 
 
 func _advance_projectiles(delta: float) -> void:
-	for projectile in get_tree().get_nodes_in_group(SoulProjectile.GROUP):
+	var tree := get_tree()
+	if tree == null:
+		return
+	for projectile in tree.get_nodes_in_group(SoulProjectile.GROUP):
 		if projectile is SoulProjectile and is_instance_valid(projectile):
 			projectile.advance(delta)
 
 
 func _spawn_player() -> BattleUnit:
 	var passive_effects := SoulLoadout.collect_passive_effects(souls)
-	var unit := PLAYER_SCENE.instantiate() as BattleUnit
+	var unit := BattleUnit.create_headless(BattleUnit.Team.PLAYER)
 	var profile := player_profile
 	if profile == null:
 		profile = GameFlow.get_player_profile()
@@ -228,6 +235,10 @@ func _spawn_player() -> BattleUnit:
 	battle.add_unit(unit)
 
 	unit.add_soul_abilities(souls, slots)
+	for rt in SoulRuntimeDB.player_runtimes():
+		if rt.soul != null and rt.ability != null:
+			rt.soul.set_scanline_enabled(true)
+			rt.refresh_from_ability()
 
 	var granted := 0
 	for ability in unit.soul_loadout.abilities:
@@ -243,33 +254,41 @@ func _spawn_enemy() -> void:
 	if monster == null:
 		return
 	var is_test := _next_spawn_is_test
-	var cells := _pick_spawn_cell(monster)
-	if cells.is_empty():
-		return
-	var cell: Vector2i = cells[0]
-	if monster.battle_scene == null:
-		return
-	var unit := monster.battle_scene.instantiate() as BattleUnit
-	if unit == null:
-		push_warning("见闻：怪物场景根节点不是 BattleUnit")
-		return
+	var unit := BattleUnit.create_headless(BattleUnit.Team.ENEMY)
+	unit.cache_monster_visuals(monster)
 	unit.unit_name = monster.display_name
 	unit.max_health = monster.max_health
 	unit.attack_range = monster.attack_range
 	unit.move_speed = monster.move_speed
 	unit.drops = monster.drop_entries()
 	unit.souls = monster.soul_list()
-	var body := unit.get_node_or_null("Body") as Sprite2D
-	if body != null and monster.icon != null:
-		body.texture = monster.icon
-		body.region_enabled = false
+	unit.anim_phase = battle.rng.randf() * TAU
 	units_root.add_child(unit)
 	unit.setup_from_scene(battle)
-	unit.set_cell(cell)
-	unit.position += Vector2.from_angle(battle.rng.randf() * TAU) * battle.rng.randf_range(0.0, 12.0)
+	_place_spawned_enemy(unit, monster)
 	battle.add_unit(unit)
 	unit.died.connect(_on_enemy_died.bind(monster, is_test))
 	CollectionDB.mark_monster_seen(monster)
+
+
+func _place_spawned_enemy(unit: BattleUnit, monster: MonsterData) -> void:
+	var cells := _pick_spawn_cell(monster)
+	if not cells.is_empty():
+		unit.set_cell(cells[0])
+		unit.position += Vector2.from_angle(battle.rng.randf() * TAU) * battle.rng.randf_range(0.0, 12.0)
+		return
+	var radius: float
+	if spawn_radius_min_logic > 0.0 and spawn_radius_max_logic >= spawn_radius_min_logic:
+		radius = battle.rng.randf_range(spawn_radius_min_logic, spawn_radius_max_logic)
+	else:
+		var wanted: Array[int] = monster.spawn_distances
+		var dist_cells: int = wanted[battle.rng.randi() % wanted.size()] if not wanted.is_empty() else 3
+		radius = maxf(float(dist_cells), 1.0) * battle.cell_size_px * battle.rng.randf_range(0.92, 1.12)
+	var ang: float = battle.rng.randf() * TAU
+	var origin: Vector2 = battle.player.position if battle.player != null else Vector2.ZERO
+	unit.position = origin + Vector2.from_angle(ang) * radius
+	unit.ground_y_dirty = true
+	unit.cell = battle.grid.world_to_cell(unit.position)
 
 
 func _take_next_monster() -> MonsterData:

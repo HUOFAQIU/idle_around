@@ -12,6 +12,10 @@ func init(owner: Node3D, unit_material: ShaderMaterial) -> void:
 	_batches.clear()
 
 
+func has_batch(key: String) -> bool:
+	return _batches.has(key)
+
+
 func register_batch(key: String, mesh: Mesh, capacity: int) -> void:
 	if mesh == null:
 		return

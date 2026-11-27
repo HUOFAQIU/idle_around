@@ -7,16 +7,25 @@ const MAX_MONS := 2000
 const BATCH_CAP := 512
 const GRID_CELL := 1.25
 const SWING_IMPACT_U := 0.52
+const MAP_RESTART_DELAY := 5.0
 const SPARK_GOLD := Color(2.4, 1.7, 0.6)
 const SPARK_BLOOD := Color(2.0, 0.65, 0.45)
 const SOLDIER_SHATTER := Color(0.55, 0.68, 0.92)
 
 class MobState:
-	var archetype: BattleMobArchetype
+	var batch_key: String = ""
+	var monster_data: MonsterData
+	var visual_scale: float = 1.0
+	var hit_height: float = 0.6
+	var debris_color: Color = Color(0.55, 0.52, 0.48, 1.0)
 	var pos := Vector3.ZERO
 	var yaw: float = 0.0
 	var hp: float = 1.0
 	var max_hp: float = 1.0
+	var move_speed: float = 2.6
+	var damage: float = 6.0
+	var attack_cooldown: float = 0.95
+	var attack_reach: float = 1.35
 	var anim_phase: float = 0.0
 	var swing: float = 0.0
 	var hit_pending: bool = false
@@ -57,6 +66,7 @@ var soldier_cd: float = 0.0
 var soldier_swing: float = 0.0
 var soldier_hit_pending: bool = false
 var soldier_flash: float = 0.0
+var _claw_slash_dir: float = 1.0
 var soldier_dead: bool = false
 var soldier_respawn_t: float = 0.0
 
@@ -65,7 +75,12 @@ var kills: int = 0
 var elapsed: float = 0.0
 var shake_mag: float = 0.0
 var shake_offset := Vector2.ZERO
+var map_clear_restart_t: float = 0.0
 var _spawn_cd: float = 0.45
+var _map_data: MapData
+var _map_run: MapRun
+var _pending_monster_ids: Array[StringName] = []
+var _rng := RandomNumberGenerator.new()
 
 var muted: bool:
 	get: return _sfx.muted
@@ -83,6 +98,7 @@ var _height_fn: Callable = Callable()
 
 
 func init_game(mat_unit: ShaderMaterial, height_fn: Callable = Callable()) -> void:
+	_rng.randomize()
 	_height_fn = height_fn
 	_ensure_default_archetypes()
 	_sfx.init(self, ["sword", "clash", "hit", "kill", "horn", "ui_click"], 10)
@@ -143,14 +159,35 @@ func collect_trample_targets() -> Array[Vector4]:
 	while i < n and targets.size() < 64:
 		var m := mons[i]
 		if m.pos.x * m.pos.x + m.pos.z * m.pos.z < 24.5 * 24.5:
-			targets.append(Vector4(m.pos.x, m.pos.y, m.pos.z, 0.95 * m.archetype.visual_scale))
+			targets.append(Vector4(m.pos.x, m.pos.y, m.pos.z, 0.95 * m.visual_scale))
 		i += step
 	return targets
+
+
+func start_map(map_data: MapData) -> void:
+	_map_data = map_data
+	reset_run(false)
+
+
+func get_progress_label() -> String:
+	if _map_data == null:
+		return "W%d" % wave
+	var total := 0
+	var spawned := 0
+	if _map_run != null:
+		var st := _map_run.state()
+		for e in st.get("entries", []):
+			if String(e.get("condition", "")) == "time":
+				total += int(e.get("count", 0))
+				spawned += int(e.get("spawned", 0))
+	return "%d/%d" % [spawned, total] if total > 0 else "MAP"
 
 
 func reset_run(silent: bool = false) -> void:
 	mons.clear()
 	_fx.clear()
+	_pending_monster_ids.clear()
+	map_clear_restart_t = 0.0
 	soldier_pos = Vector3(0.0, height_at(0.0, 0.0), 0.0)
 	soldier_yaw = 0.0
 	soldier_hp = soldier_max_hp
@@ -158,6 +195,7 @@ func reset_run(silent: bool = false) -> void:
 	soldier_swing = 0.0
 	soldier_hit_pending = false
 	soldier_flash = 0.0
+	_claw_slash_dir = 1.0
 	soldier_dead = false
 	soldier_respawn_t = 0.0
 	wave = 1
@@ -169,11 +207,19 @@ func reset_run(silent: bool = false) -> void:
 	if not silent:
 		_sfx.play("horn", 0.45)
 
-	for i in range(initial_monster_count):
-		var a := TAU * float(i) / float(maxi(initial_monster_count, 1)) + randf_range(-0.18, 0.18)
-		_spawn_outer_monster(a, false)
-	if not silent:
-		battle_logged.emit("[战斗] 新一轮防守开始")
+	if _map_data != null:
+		_map_run = MapRun.new(_map_data)
+		_enqueue_map_spawns(_map_run.take_initial_spawns())
+		_flush_pending_map_spawns()
+		if not silent:
+			battle_logged.emit("[战斗] 地图【%s】开战" % _map_data.display_name)
+	else:
+		_map_run = null
+		for i in range(initial_monster_count):
+			var a := TAU * float(i) / float(maxi(initial_monster_count, 1)) + randf_range(-0.18, 0.18)
+			_spawn_outer_monster(a, false)
+		if not silent:
+			battle_logged.emit("[战斗] 新一轮防守开始")
 
 
 func spawn_stress_wave(count: int = 100) -> void:
@@ -202,17 +248,29 @@ func step_sim(dt: float) -> void:
 
 func _step_wave_and_spawning(dt: float) -> void:
 	elapsed += dt
-	var next_wave := 1 + int(elapsed / maxf(wave_duration_sec, 1.0))
-	if next_wave > wave:
-		wave = next_wave
-		battle_logged.emit("[波次] 进入第 %d 波" % wave)
-
 	shake_mag = maxf(0.0, shake_mag - dt * 3.2)
 	var sh := shake_mag * shake_mag * 0.22
 	shake_offset = Vector2(sin(elapsed * 47.0), cos(elapsed * 53.0)) * sh if sh > 1e-5 else Vector2.ZERO
 
 	if soldier_dead:
 		return
+	if _map_run != null:
+		if map_clear_restart_t > 0.0:
+			map_clear_restart_t -= dt
+			if map_clear_restart_t <= 0.0:
+				reset_run(false)
+			return
+		_enqueue_map_spawns(_map_run.advance(dt))
+		_flush_pending_map_spawns()
+		if _map_run.is_finished() and _pending_monster_ids.is_empty() and mons.is_empty():
+			map_clear_restart_t = MAP_RESTART_DELAY
+			battle_logged.emit("[战斗] 地图【%s】已清空，%.0f 秒后自动重开" % [_map_data.display_name, MAP_RESTART_DELAY])
+		return
+
+	var next_wave := 1 + int(elapsed / maxf(wave_duration_sec, 1.0))
+	if next_wave > wave:
+		wave = next_wave
+		battle_logged.emit("[波次] 进入第 %d 波" % wave)
 	_spawn_cd -= dt
 	if _spawn_cd <= 0.0:
 		var pack := 2 + mini(4, int(float(wave) / 2.0))
@@ -232,14 +290,101 @@ func _spawn_outer_monster(angle: float = -1.0, all_types: bool = false) -> void:
 	var mz := sin(a) * rad
 
 	var mob := MobState.new()
-	mob.archetype = arch
+	mob.batch_key = arch.id
+	mob.visual_scale = arch.visual_scale
+	mob.hit_height = arch.hit_height
+	mob.debris_color = arch.debris_color
 	mob.pos = Vector3(mx, height_at(mx, mz), mz)
 	mob.yaw = atan2(-mx, -mz)
 	mob.max_hp = arch.max_hp * (1.0 + float(wave - 1) * 0.14)
 	mob.hp = mob.max_hp
+	mob.move_speed = arch.move_speed
+	mob.damage = arch.damage
+	mob.attack_cooldown = arch.attack_cooldown
+	mob.attack_reach = arch.attack_reach
 	mob.anim_phase = randf() * TAU
 	mob.attack_cd = randf_range(0.15, 0.55)
 	mons.append(mob)
+
+
+func _enqueue_map_spawns(ids: Array[StringName]) -> void:
+	for mid in ids:
+		_pending_monster_ids.append(mid)
+
+
+func _flush_pending_map_spawns() -> void:
+	while not _pending_monster_ids.is_empty() and mons.size() < MAX_MONS:
+		var mid: StringName = _pending_monster_ids.pop_front()
+		_spawn_map_monster(mid)
+
+
+func _spawn_map_monster(monster_id: StringName) -> void:
+	var data: MonsterData = CollectionDB.get_monster(monster_id)
+	if data == null:
+		return
+	var batch_key := _ensure_monster_batch(data)
+	if batch_key.is_empty():
+		return
+	var a := randf() * TAU
+	var rad := randf_range(spawn_radius_min, spawn_radius_max)
+	var mx := cos(a) * rad
+	var mz := sin(a) * rad
+	var mob := MobState.new()
+	mob.batch_key = batch_key
+	mob.monster_data = data
+	mob.visual_scale = data.visual_scale
+	mob.hit_height = data.hit_height
+	mob.debris_color = data.debris_color
+	mob.pos = Vector3(mx, height_at(mx, mz), mz)
+	mob.yaw = atan2(-mx, -mz)
+	mob.max_hp = maxf(data.max_health, 1.0)
+	mob.hp = mob.max_hp
+	mob.move_speed = clampf(data.move_speed * 0.28, 1.6, 5.2)
+	mob.damage = clampf(data.max_health * 0.03, 5.0, 24.0)
+	mob.attack_cooldown = 1.15 if data.max_health >= 500.0 else 0.95
+	mob.attack_reach = clampf(data.attack_range * 0.048, 1.35, 3.2)
+	mob.anim_phase = randf() * TAU
+	mob.attack_cd = randf_range(0.15, 0.55)
+	mons.append(mob)
+	CollectionDB.mark_monster_seen(data)
+
+
+func _ensure_monster_batch(data: MonsterData) -> String:
+	if data.mesh_3d != null:
+		var key := "monster:" + String(data.content_id)
+		if not _renderer.has_batch(key):
+			_renderer.register_batch(key, data.mesh_3d, BATCH_CAP)
+		return key
+	return mob_archetypes[0].id if not mob_archetypes.is_empty() else ""
+
+
+func _on_map_monster_killed(data: MonsterData) -> void:
+	if _map_run != null:
+		var triggered := _map_run.on_monster_killed(data.content_id)
+		if not triggered.is_empty():
+			_enqueue_map_spawns(triggered)
+			_flush_pending_map_spawns()
+			for tid in triggered:
+				var td := CollectionDB.get_monster(tid)
+				var tname := td.display_name if td != null and not td.display_name.is_empty() else String(tid)
+				battle_logged.emit("[精英] %s 现身！" % tname)
+	var rarity := _map_data.rarity if _map_data != null else SoulEmotion.DEFAULT_RARITY
+	for entry in data.drop_entries():
+		if entry == null or entry.item == null:
+			continue
+		if _rng.randf() > entry.chance:
+			continue
+		var item: ItemData = entry.item
+		if item is SoulData:
+			var soul := (item as SoulData).make_instance() as SoulData
+			SoulEmotionRoller.roll(soul, rarity, _rng)
+			item = soul
+		var added := Warehouse.add_item(item)
+		var mname := data.display_name if not data.display_name.is_empty() else String(data.content_id)
+		if added:
+			battle_logged.emit("[掉落] 击败 %s 获得【%s】" % [mname, item.item_name])
+		else:
+			battle_logged.emit("[掉落] 仓库已满，丢失【%s】" % item.item_name)
 
 
 func _pick_archetype(all_types: bool) -> BattleMobArchetype:
@@ -314,22 +459,28 @@ func _resolve_soldier_strike() -> void:
 		var knock := Vector3(mob.pos.x, 0.0, mob.pos.z).normalized()
 		mob.pos.x += knock.x * 0.28
 		mob.pos.z += knock.z * 0.28
-		_fx.spawn_sparks(mob.pos + Vector3(0.0, mob.archetype.hit_height, 0.0), 4, SPARK_GOLD, 4.0)
+		var hit_pos := mob.pos + Vector3(0.0, mob.hit_height, 0.0)
+		_fx.spawn_claw_slash(hit_pos, _claw_slash_dir, clampf(mob.visual_scale * 1.45, 1.35, 2.2))
+		_fx.spawn_sparks(hit_pos, 4, SPARK_GOLD, 4.0)
 
 		if mob.hp <= 0.0:
 			kills += 1
 			if kills % 10 == 0:
 				battle_logged.emit("[击杀] 累计击杀 %d" % kills)
 			killed_any = true
-			_fx.spawn_shatter(mob.pos, mob.archetype.visual_scale, mob.archetype.debris_color, knock * 2.8)
+			_fx.spawn_shatter(mob.pos, mob.visual_scale, mob.debris_color, knock * 2.8)
 			shake_mag = minf(0.40, shake_mag + 0.07)
+			var killed_data := mob.monster_data
 			mons.remove_at(i)
+			if killed_data != null:
+				_on_map_monster_killed(killed_data)
 
 		hit_n += 1
 		if hit_n >= soldier_max_cleave:
 			break
 
 	if hit_n > 0:
+		_claw_slash_dir = -_claw_slash_dir
 		_sfx.play("sword", 0.48)
 		if killed_any:
 			_sfx.play("kill", 0.42)
@@ -355,22 +506,20 @@ func _step_monsters(dt: float) -> void:
 	var inv_cell := 1.0 / GRID_CELL
 	for i in range(mons.size()):
 		var mob := mons[i]
-		var arch := mob.archetype
 		mob.flash = maxf(0.0, mob.flash - dt * 5.0)
 		mob.swing = maxf(0.0, mob.swing - dt * 1.95)
 		mob.attack_cd = maxf(0.0, mob.attack_cd - dt)
 
 		var dist := sqrt(mob.pos.x * mob.pos.x + mob.pos.z * mob.pos.z)
-		if dist > arch.attack_reach:
+		if dist > mob.attack_reach:
 			_move_monster_inward(mob, i, dist, dt, inv_cell)
 		else:
 			_attack_soldier_from_monster(mob)
 
 
 func _move_monster_inward(mob: MobState, idx: int, dist: float, dt: float, inv_cell: float) -> void:
-	var arch := mob.archetype
 	mob.hit_pending = false
-	var step_d := minf(dist - arch.attack_reach * 0.9, arch.move_speed * dt)
+	var step_d := minf(dist - mob.attack_reach * 0.9, mob.move_speed * dt)
 	var mx := mob.pos.x - (mob.pos.x / dist) * step_d
 	var mz := mob.pos.z - (mob.pos.z / dist) * step_d
 
@@ -380,7 +529,7 @@ func _move_monster_inward(mob: MobState, idx: int, dist: float, dt: float, inv_c
 
 	mob.pos = Vector3(mx, height_at(mx, mz), mz)
 	mob.yaw = atan2(-mx, -mz)
-	mob.anim_phase += dt * arch.move_speed * 3.8
+	mob.anim_phase += dt * mob.move_speed * 3.8
 	mob.is_moving = true
 
 
@@ -416,20 +565,19 @@ func _compute_separation(mx: float, mz: float, self_idx: int, inv_cell: float) -
 
 
 func _attack_soldier_from_monster(mob: MobState) -> void:
-	var arch := mob.archetype
 	mob.is_moving = false
 	mob.yaw = atan2(-mob.pos.x, -mob.pos.z)
 	if soldier_dead:
 		return
 
 	if mob.attack_cd <= 0.0 and not mob.hit_pending:
-		mob.attack_cd = arch.attack_cooldown
+		mob.attack_cd = mob.attack_cooldown
 		mob.swing = 1.0
 		mob.hit_pending = true
 
 	if mob.hit_pending and (1.0 - mob.swing) >= SWING_IMPACT_U:
 		mob.hit_pending = false
-		soldier_hp = maxf(0.0, soldier_hp - arch.damage)
+		soldier_hp = maxf(0.0, soldier_hp - mob.damage)
 		soldier_flash = 0.50
 		_sfx.play("clash", 0.30)
 		_fx.spawn_sparks(soldier_pos + Vector3(0.0, 0.9, 0.0), 3, SPARK_BLOOD, 3.0)
@@ -448,10 +596,10 @@ func _render_units() -> void:
 		_renderer.push_unit("soldier", soldier_pos, soldier_yaw, 1.18, 0.0, soldier_swing, soldier_flash, 0.0)
 	for mob in mons:
 		_renderer.push_unit(
-			mob.archetype.id,
+			mob.batch_key,
 			mob.pos,
 			mob.yaw,
-			mob.archetype.visual_scale,
+			mob.visual_scale,
 			mob.anim_phase,
 			mob.swing,
 			mob.flash,

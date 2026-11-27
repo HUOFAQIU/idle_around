@@ -1,9 +1,9 @@
 [gd_resource type="Resource" script_class="MonsterData" format=3 uid="uid://dra6gad8ttia0"]
 
-[ext_resource type="PackedScene" uid="uid://sk7b3fq1l7t" path="res://base_mods/core/monsters/fu/fu.tscn" id="1_scene"]
 [ext_resource type="Texture2D" uid="uid://deaj7ddfwbqwh" path="res://Assets/tokens.png" id="2_icon"]
 [ext_resource type="Script" uid="uid://c2igyvamknn3f" path="res://game/content/monster_data.gd" id="3_data"]
 [ext_resource type="Script" uid="uid://bl81pxa0sjvj1" path="res://game/content/monster_soul_entry.gd" id="4_mqurn"]
+[ext_resource type="ArrayMesh" path="res://base_mods/core/monsters/fu/fu.res" id="5_mesh3d"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_fu"]
 atlas = ExtResource("2_icon")
@@ -16,4 +16,7 @@ icon = SubResource("AtlasTexture_fu")
 max_health = 1000.0
 attack_range = 60.0
 move_speed = 8.0
-battle_scene = ExtResource("1_scene")
+mesh_3d = ExtResource("5_mesh3d")
+visual_scale = 1.25
+hit_height = 0.85
+debris_color = Color(0.92, 0.47, 0.14, 1)

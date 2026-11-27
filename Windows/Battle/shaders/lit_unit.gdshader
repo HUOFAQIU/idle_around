@@ -174,6 +174,17 @@ void vertex() {
 		}
 		v.y += lng * 0.12;
 		v.z += lng * 0.24;
+	} else if (pid > 49.5 && pid < 50.5) {
+		// Serpent (Snake, Fu): S-curve slither + coiled head lunge
+		float hw = clamp(piv.y, 0.0, 1.0);
+		float slither = sin(phase * 1.15 - v.z * 4.2) * 0.085 * mv;
+		float sway = sin(phase * 0.75) * 0.03 * hw;
+		v.x += slither + sway;
+		v.y += sin(phase * 0.9) * 0.02 * hw;
+		if (swing > 0.01) {
+			v.z += atk_lunge * 1.65 * hw;
+			v.y += max(atk_lunge, 0.0) * 0.55 * hw;
+		}
 	}
 
 	VERTEX = v;

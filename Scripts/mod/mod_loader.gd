@@ -646,8 +646,8 @@ func _validate_monster_config(mod: ModInfo, monster: MonsterData) -> void:
 	for distance in monster.spawn_distances:
 		if distance < 1:
 			_mod_error(mod, "怪物 %s 的刷新距离必须 >= 1：%d" % [monster.content_id, distance])
-	if monster.battle_scene == null:
-		_mod_error(mod, "怪物 %s 缺少 battle_scene" % monster.content_id)
+	if monster.mesh_3d == null and monster.battle_scene == null:
+		_mod_error(mod, "怪物 %s 缺少 mesh_3d" % monster.content_id)
 
 
 func _validate_vessel_config(mod: ModInfo, vessel: SoulVesselData) -> void:

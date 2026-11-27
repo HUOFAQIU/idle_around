@@ -247,6 +247,8 @@ func _spawn_enemy() -> void:
 	if cells.is_empty():
 		return
 	var cell: Vector2i = cells[0]
+	if monster.battle_scene == null:
+		return
 	var unit := monster.battle_scene.instantiate() as BattleUnit
 	if unit == null:
 		push_warning("见闻：怪物场景根节点不是 BattleUnit")

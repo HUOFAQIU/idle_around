@@ -22,6 +22,15 @@ class_name MonsterData extends Resource
 @export var soul_entries: Array[MonsterSoulEntry] = []
 ## 战斗时实例化的场景
 @export var battle_scene: PackedScene
+@export_group("3D 表现")
+## 3D 战斗网格模型（支持官方与第三方 Mod 自包含）
+@export var mesh_3d: Mesh
+## 3D 战斗缩放倍率
+@export_range(0.2, 4.0, 0.05) var visual_scale: float = 1.0
+## 3D 受击特效与头顶血条高度（米）
+@export_range(0.1, 3.0, 0.05) var hit_height: float = 0.6
+## 3D 击杀碎块颜色
+@export var debris_color: Color = Color(0.55, 0.52, 0.48, 1.0)
 
 
 func soul_list() -> Array[SoulData]:

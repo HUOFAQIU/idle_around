@@ -42,7 +42,7 @@ func start_battle(map_item: MapItemData, slot_index: int = -1) -> void:
 	if battle_arena != null:
 		if map_item.map_data.weather_preset != null:
 			battle_arena.set_weather_preset(map_item.map_data.weather_preset)
-		battle_arena.start_run()
+		battle_arena.start_run(map_item.map_data)
 
 
 func is_battling_slot(slot_index: int) -> bool:

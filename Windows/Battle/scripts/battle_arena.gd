@@ -81,9 +81,9 @@ func toggle_perf_overlay() -> void:
 	game.play_ui_click()
 
 
-func start_run() -> void:
+func start_run(map_data: MapData = null) -> void:
 	paused = false
-	game.reset_run()
+	game.start_map(map_data)
 
 
 func set_weather_preset(preset: WeatherPreset) -> void:

@@ -98,7 +98,7 @@ func update_ui(_dt: float) -> void:
 	hud_root.scale = Vector2(ui_s, ui_s)
 	hud_root.size = Vector2(lw, lh)
 
-	wave_lbl.text = "W%d" % _game.wave
+	wave_lbl.text = _game.get_progress_label()
 	kills_lbl.text = "%d" % _game.kills
 	hp_lbl.text = "%d/%d" % [int(ceilf(_game.soldier_hp)), int(_game.soldier_max_hp)]
 	mobs_lbl.text = "%d" % _game.mons.size()
@@ -111,6 +111,9 @@ func update_ui(_dt: float) -> void:
 	if _game.soldier_dead:
 		banner_lbl.visible = true
 		banner_lbl.text = "SOLDIER FALLEN · RESPAWNING %.1fs" % maxf(0.0, _game.soldier_respawn_t)
+	elif _game.map_clear_restart_t > 0.0:
+		banner_lbl.visible = true
+		banner_lbl.text = "MAP CLEARED · RESTARTING %.1fs" % maxf(0.0, _game.map_clear_restart_t)
 	elif _main.paused:
 		banner_lbl.visible = true
 		banner_lbl.text = "PAUSED"
@@ -143,7 +146,7 @@ func _on_overlay_draw() -> void:
 		var mhp := m.max_hp
 		if hp >= mhp - 0.01:
 			continue
-		var mp := m.pos + Vector3(0.0, m.archetype.hit_height + 0.45, 0.0)
+		var mp := m.pos + Vector3(0.0, m.hit_height + 0.45, 0.0)
 		var sp := _view_3d.world_to_screen(mp)
 		var bw := 11.0 * s
 		var bh := 1.5 * s

@@ -3,6 +3,9 @@ extends RefCounted
 
 const MAX_DEBRIS := 260
 const MAX_SPARKS := 260
+const MAX_SLASHES := 32
+const SLASH_DURATION := 0.24
+const CLAW_SLASH_SHADER: Shader = preload("res://Windows/Battle/shaders/claw_slash_3d.gdshader")
 
 var _debris_mm: MultiMesh
 var _debris_buf := PackedFloat32Array()
@@ -11,6 +14,10 @@ var _debris: Array[Dictionary] = []
 var _sparks_mm: MultiMesh
 var _sparks_buf := PackedFloat32Array()
 var _sparks: Array[Dictionary] = []
+
+var _slashes_mm: MultiMesh
+var _slashes_buf := PackedFloat32Array()
+var _slashes: Array[Dictionary] = []
 
 
 func init(owner: Node3D) -> void:
@@ -58,10 +65,35 @@ func init(owner: Node3D) -> void:
 	smmi.extra_cull_margin = 16384.0
 	owner.add_child(smmi)
 
+	var slash_q := QuadMesh.new()
+	slash_q.size = Vector2.ONE
+	_slashes_mm = MultiMesh.new()
+	_slashes_mm.transform_format = MultiMesh.TRANSFORM_3D
+	_slashes_mm.use_custom_data = true
+	_slashes_mm.mesh = slash_q
+	_slashes_mm.instance_count = MAX_SLASHES
+	_slashes_mm.visible_instance_count = 0
+	_slashes_buf.resize(MAX_SLASHES * 16)
+	var clmmi := MultiMeshInstance3D.new()
+	clmmi.multimesh = _slashes_mm
+	var clmat := ShaderMaterial.new()
+	clmat.shader = CLAW_SLASH_SHADER
+	clmmi.material_override = clmat
+	clmmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	clmmi.extra_cull_margin = 16384.0
+	owner.add_child(clmmi)
+
 
 func clear() -> void:
 	_debris.clear()
 	_sparks.clear()
+	_slashes.clear()
+	if _debris_mm != null:
+		_debris_mm.visible_instance_count = 0
+	if _sparks_mm != null:
+		_sparks_mm.visible_instance_count = 0
+	if _slashes_mm != null:
+		_slashes_mm.visible_instance_count = 0
 
 
 func spawn_sparks(pos: Vector3, count: int, col: Color, spd: float = 3.8) -> void:
@@ -77,6 +109,19 @@ func spawn_sparks(pos: Vector3, count: int, col: Color, spd: float = 3.8) -> voi
 			"dur": randf_range(0.18, 0.38),
 			"sz": randf_range(0.7, 1.4),
 		})
+
+
+func spawn_claw_slash(pos: Vector3, direction: float = 1.0, scale: float = 1.65) -> void:
+	if _slashes.size() >= MAX_SLASHES:
+		_slashes.remove_at(0)
+	_slashes.append({
+		"p": pos,
+		"dir": -1.0 if direction < 0.0 else 1.0,
+		"tilt": randf_range(-0.14, 0.14),
+		"sc": scale,
+		"t": 0.0,
+		"dur": SLASH_DURATION,
+	})
 
 
 func spawn_shatter(pos: Vector3, sc: float, col: Color, dir: Vector3) -> void:
@@ -151,3 +196,22 @@ func step(dt: float, height_fn: Callable) -> void:
 	_sparks_mm.visible_instance_count = sc
 	if sc > 0:
 		_sparks_mm.buffer = _sparks_buf
+
+	var clc := 0
+	for i in range(_slashes.size() - 1, -1, -1):
+		var sl := _slashes[i]
+		sl["t"] = float(sl["t"]) + dt
+		if float(sl["t"]) >= float(sl["dur"]):
+			_slashes.remove_at(i)
+			continue
+		var p: Vector3 = sl["p"]
+		var u := clampf(float(sl["t"]) / float(sl["dur"]), 0.0, 1.0)
+		var off := clc * 16
+		_slashes_buf[off] = 1.0; _slashes_buf[off + 1] = 0.0; _slashes_buf[off + 2] = 0.0; _slashes_buf[off + 3] = p.x
+		_slashes_buf[off + 4] = 0.0; _slashes_buf[off + 5] = 1.0; _slashes_buf[off + 6] = 0.0; _slashes_buf[off + 7] = p.y
+		_slashes_buf[off + 8] = 0.0; _slashes_buf[off + 9] = 0.0; _slashes_buf[off + 10] = 1.0; _slashes_buf[off + 11] = p.z
+		_slashes_buf[off + 12] = u; _slashes_buf[off + 13] = float(sl["dir"]); _slashes_buf[off + 14] = float(sl["tilt"]); _slashes_buf[off + 15] = float(sl["sc"])
+		clc += 1
+	_slashes_mm.visible_instance_count = clc
+	if clc > 0:
+		_slashes_mm.buffer = _slashes_buf

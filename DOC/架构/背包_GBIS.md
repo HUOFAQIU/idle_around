@@ -1,11 +1,20 @@
 # 背包 / 仓库系统（GBIS）
 
-> 类型：实现 | 状态：有效 | 核对：2026-11-24
+> 类型：实现 | 状态：有效 | 核对：2026-11-27
 > 何时读：改背包/仓库/魂器容器/魂器网格、拖拽、商店容器或 GBIS 接入边界
 > 关键词：GBIS Warehouse ContainerData MovingItemService RefreshableView vessel_cells 仓库 拖拽 商店
 > 代码：`game/inventory/grid_base_inventory_system/`、`Scripts/warehouse.gd`、`Scripts/container_ids.gd`
 > 相关：`架构/窗口与场景.md`、`架构/存档.md`、`架构/见闻窗口.md`、`设计/魂器.md`
 > 不覆盖：单窗口浮层 `ItemWindow` / `TooltipWindow` 细节（见 `架构/窗口与场景.md` §3）
+
+## 符号地图
+
+| 文件 | 核心入口 | 职责 |
+|---|---|---|
+| `Scripts/warehouse.gd` | `page_name` / `add_item` / `add_item_to_page` | 预注册 10 页仓库与跨页入库 |
+| `Scripts/container_ids.gd` | `warehouse_page` / 常量表 | 全项目容器 ID 单一真相 |
+| `game/inventory/grid_base_inventory_system/core/grid_base_inventory_system.gd` | `GBIS` autoload / `add_item` / `sig_inv_*` | 背包网格服务与刷新信号 |
+| `Windows/Inventory/inventory_window.gd` / `Windows/Vessel/vessel_window.gd` | 面板视图 | 仓库分页与魂器内部网格展示 |
 
 ## 1. 接入方式与分层
 

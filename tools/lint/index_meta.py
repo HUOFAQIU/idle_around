@@ -8,6 +8,7 @@ from pathlib import Path
 
 META_RE = re.compile(r"(类型|状态|核对|整理)[：:]\s*([^|\n]+)")
 ROUTE_DOC_RE = re.compile(r"`([^`\s]+\.md)`")
+ROUTE_CODE_RE = re.compile(r"`([^`\s]+)`")
 HEADER_SCAN_LINES = 15
 DEFAULT_MAX_LINES = 200
 DEFAULT_MAX_BYTES = 12 * 1024
@@ -56,6 +57,29 @@ def read_route_refs(index_path: Path) -> list[tuple[int, str]]:
     return refs
 
 
+def read_route_code_refs(index_path: Path) -> list[tuple[int, str]]:
+    """提取 DOC/INDEX.md 路由表第 3 列「代码入口」中的文件/目录路径。"""
+    refs: list[tuple[int, str]] = []
+    if not index_path.is_file():
+        return refs
+    in_table = False
+    for number, line in enumerate(index_path.read_text(encoding="utf-8").splitlines(), 1):
+        stripped = line.strip()
+        if stripped.startswith("## "):
+            in_table = "需求" in stripped or "路由" in stripped
+            continue
+        if not in_table or not stripped.startswith("|"):
+            continue
+        cells = [cell.strip() for cell in stripped.strip("|").split("|")]
+        if len(cells) < 3 or cells[0] == "你要做什么" or set(cells[0]) <= {"-"}:
+            continue
+        for ref in ROUTE_CODE_RE.findall(cells[2]):
+            if "*" in ref:
+                continue
+            refs.append((number, ref))
+    return refs
+
+
 def check_index(
     root: Path,
     *,
@@ -75,6 +99,10 @@ def check_index(
             target = doc_root / ref
             if not target.is_file():
                 errors.append(f"DOC/INDEX.md:{line_no}: 路由目标不存在：{ref}")
+        for line_no, ref in read_route_code_refs(index_path):
+            target = root / ref
+            if not target.exists():
+                errors.append(f"DOC/INDEX.md:{line_no}: 代码入口不存在：{ref}")
 
     for path in iter_docs(doc_root):
         rel = path.relative_to(doc_root).as_posix()

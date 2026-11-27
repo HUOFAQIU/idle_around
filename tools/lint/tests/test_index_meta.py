@@ -51,7 +51,9 @@ class IndexMetaTest(unittest.TestCase):
     def test_valid_docs_and_routes_pass(self) -> None:
         self.write_doc("架构/foo.md")
         self.write_doc("指南/bar.md", kind="指南", status="有效", date_str="2026-11-23")
-        self.write_index([("测试", "`架构/foo.md`、`指南/bar.md`", "`Scripts/foo.gd`")])
+        (self.root / "Scripts").mkdir()
+        (self.root / "Scripts" / "foo.gd").write_text("", encoding="utf-8")
+        self.write_index([("测试", "`架构/foo.md`、`指南/bar.md`", "`Scripts/foo.gd`、`Scripts/*.gd`")])
         self.assertEqual(check_index(self.root), [])
 
     def test_unlisted_doc_is_still_checked_for_header(self) -> None:
@@ -76,6 +78,13 @@ class IndexMetaTest(unittest.TestCase):
         errors = check_index(self.root)
         self.assertEqual(len(errors), 1)
         self.assertIn("路由目标不存在", errors[0])
+
+    def test_broken_code_entry_is_reported(self) -> None:
+        self.write_doc("架构/foo.md")
+        self.write_index([("测试", "`架构/foo.md`", "`Scripts/missing.gd`")])
+        errors = check_index(self.root)
+        self.assertEqual(len(errors), 1)
+        self.assertIn("代码入口不存在", errors[0])
 
     def test_strict_budget_flags_oversized_doc(self) -> None:
         self.write_doc("架构/big.md", body="\n".join(f"line {i}" for i in range(210)))

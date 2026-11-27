@@ -1,11 +1,20 @@
 # Mod 系统与创意工坊
 
-> 类型：实现 | 状态：部分实现（内置 core 已接入；Steam 后置） | 核对：2026-11-24
+> 类型：实现 | 状态：部分实现（内置 core 已接入；Steam 后置） | 核对：2026-11-27
 > 何时读：改 ModLoader 启动时序、内容注册校验、覆盖与冲突检测、Mod 窗口、加载顺序或 Steam 接入规划
 > 关键词：ModLoader ModCueRegistrar ContentKindSpec PCK manifest overrides 加载顺序 orphaned Steam 常见排查
 > 代码：`Scripts/mod/`、`Scripts/collection_db.gd`、`Scripts/save/`、`base_mods/core/mod.json`、`Windows/ModWindow/`
 > 相关：`指南/Mod制作.md`、`架构/存档.md`、`指南/扩展点.md`、`指南/AI测试接口.md`
 > 不覆盖：`mod.json` 完整字段、命名规则表、打包命令与 core 新增步骤（权威见 `指南/Mod制作.md`）
+
+## 符号地图
+
+| 文件 | 核心入口 | 职责 |
+|---|---|---|
+| `Scripts/mod/mod_loader.gd` | `get_mods` / `get_*_entries` / `get_errors` | 两段式发现、PCK 挂载、排序与注册 |
+| `Scripts/mod/mod_cue_registrar.gd` | `register_cue` / `get_mod_cues` | Mod 特效 Cue 注册进 GAS |
+| `Scripts/collection_db.gd` | `get_soul` / `get_monster` / `get_vessel` / `is_seen` | 从 ModLoader 构建内容索引与见闻 |
+| `base_mods/core/mod.json` | — | 内置官方内容唯一清单真相 |
 
 ## 1. 目标、架构与替代 YARD
 

@@ -57,7 +57,12 @@ func run(ctx: ScenarioContext) -> void:
 		SOUL_ID, {"damage": 25, "cast_times": 25, "cooldown": 50}
 	)
 	ctx.equal(int(applied["damage"]), 32, "伤害占比 25 映射到 32")
-	ctx.near(float(applied["cooldown"]), _cooldown_for(50), 0.0001, "冷却占比 50 映射到 4.5 秒")
+	ctx.near(
+		float(applied["cooldown"]),
+		_cooldown_for(50),
+		0.0001,
+		"冷却占比 50 映射到 %.1f 秒" % _cooldown_for(50)
+	)
 	ctx.equal(int(applied["cast_times"]), 2, "多重触发占比 25 映射到 2 次")
 
 	var tooltip := TestAPI.get_soul_tooltip_with_emotions(SOUL_ID, emotions)
@@ -154,5 +159,10 @@ func _emotion_line_widths(tooltip: String) -> Array[int]:
 
 
 func _cooldown_for(share: int) -> float:
-	var value := 8.0 + (1.0 - 8.0) * float(share) / 100.0
+	var bounds: Array = TestAPI.get_soul_emotion_ranges(SOUL_ID).get("cooldown", [])
+	if bounds.size() < 2:
+		return 0.0
+	var slowest := float(bounds[0])
+	var fastest := float(bounds[1])
+	var value := slowest + (fastest - slowest) * float(share) / 100.0
 	return roundi(value * 120.0) / 120.0

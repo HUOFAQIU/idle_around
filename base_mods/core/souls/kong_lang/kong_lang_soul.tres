@@ -28,7 +28,7 @@ types = Array[StringName]([&"Soul.types.Wolf", &"Soul.types.Animal"])
 tags = Array[StringName]([&"Soul.tags.Large", &"Soul.tags.Damage"])
 emotion_ranges = {
 &"cast_times": Vector2(2, 4),
-&"cooldown": Vector2(8, 1),
+&"cooldown": Vector2(4, 1),
 &"damage": Vector2(10, 100)
 }
 item_name = "恐狼"

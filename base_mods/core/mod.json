@@ -102,6 +102,10 @@
 		"path": "monsters/fu/fu_monster.tres"
 	  },
 	  {
+		"id": "slime_monster",
+		"path": "monsters/slime/slime_monster.tres"
+	  },
+	  {
 		"id": "snake_monster",
 		"path": "monsters/snake/snake_monster.tres"
 	  }

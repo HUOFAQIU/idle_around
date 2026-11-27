@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="MonsterData" format=3]
+
+[ext_resource type="Texture2D" uid="uid://deaj7ddfwbqwh" path="res://Assets/tokens.png" id="1_icon"]
+[ext_resource type="Script" uid="uid://c2igyvamknn3f" path="res://game/content/monster_data.gd" id="2_data"]
+[ext_resource type="ArrayMesh" path="res://base_mods/core/monsters/slime/slime.res" id="3_mesh3d"]
+[ext_resource type="Resource" path="res://base_mods/core/monsters/slime/slime_anim.tres" id="4_anim"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_slime"]
+atlas = ExtResource("1_icon")
+region = Rect2(64, 0, 32, 32)
+
+[resource]
+script = ExtResource("2_data")
+display_name = "史莱姆"
+icon = SubResource("AtlasTexture_slime")
+max_health = 100.0
+attack_range = 30.0
+move_speed = 11.0
+body_radius = 8.5
+mesh_3d = ExtResource("3_mesh3d")
+visual_scale = 1.0
+hit_height = 0.48
+debris_color = Color(0.24, 0.72, 0.98, 1)
+anim_config = ExtResource("4_anim")

@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://cuwcav40al724" path="res://game/content/map_data.gd" id="1_map"]
 [ext_resource type="Script" uid="uid://co6t2r8tlnsju" path="res://game/content/map_spawn_entry.gd" id="2_entry"]
-[ext_resource type="Texture2D" uid="uid://cqeab360k7nle" path="res://Assets/map_22.png" id="3_icon"]
+[ext_resource type="Texture2D" uid="uid://cqeab360k7nle" path="res://assets/map_22.png" id="3_icon"]
 
 [sub_resource type="Resource" id="Resource_snake"]
 script = ExtResource("2_entry")

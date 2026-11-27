@@ -15,12 +15,12 @@ from diagnostics import Diagnostic
 from rules import Rule, build_rules
 
 FIRST_PARTY_ROOTS = (
-    "Scripts",
-    "Main",
+    "scripts",
+    "main",
     "game",
     "godot_gas",
-    "Windows",
-    "EngineTools/modkit",
+    "windows",
+    "engine_tools/modkit",
     "tools/scenarios",
 )
 RELEVANT_SUFFIXES = {".gd", ".tscn", ".tres"}

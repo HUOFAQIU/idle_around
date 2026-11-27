@@ -1,0 +1,131 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://main/Cube/Scripts/face_ui.gd" id="1_face_ui"]
+[ext_resource type="Shader" path="res://main/Cube/Resources/UI/face_backdrop.gdshader" id="2_backdrop"]
+[ext_resource type="Theme" path="res://main/Cube/Resources/UI/cube_theme.tres" id="4_theme"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_backdrop"]
+shader = ExtResource("2_backdrop")
+shader_parameter/accent_color = Color(0.31, 0.72, 1, 1)
+shader_parameter/base_color = Color(0.031, 0.043, 0.063, 1)
+
+[node name="FaceUI" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme = ExtResource("4_theme")
+script = ExtResource("1_face_ui")
+backdrop_path = NodePath("Backdrop")
+
+[node name="Backdrop" type="ColorRect" parent="."]
+material = SubResource("ShaderMaterial_backdrop")
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.031, 0.043, 0.063, 1)
+
+[node name="Frame" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 18.0
+offset_top = 18.0
+offset_right = -18.0
+offset_bottom = -18.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="ContentMargin" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 42.0
+offset_top = 42.0
+offset_right = -42.0
+offset_bottom = -42.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Layout" type="VBoxContainer" parent="ContentMargin"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 14
+
+[node name="Header" type="HBoxContainer" parent="ContentMargin/Layout"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 10
+
+[node name="HeaderSpacer" type="Control" parent="ContentMargin/Layout/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+
+[node name="StateLabel" type="Label" parent="ContentMargin/Layout/Header"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.55, 0.63, 0.73, 1)
+theme_override_font_sizes/font_size = 14
+text = "可交互"
+vertical_alignment = 1
+
+[node name="HeaderRule" type="ColorRect" parent="ContentMargin/Layout"]
+custom_minimum_size = Vector2(0, 1)
+layout_mode = 2
+mouse_filter = 2
+color = Color(0.31, 0.72, 1, 0.22)
+
+[node name="TopSpacer" type="Control" parent="ContentMargin/Layout"]
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
+
+[node name="FaceButton" type="Button" parent="ContentMargin/Layout"]
+custom_minimum_size = Vector2(0, 156)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_font_sizes/font_size = 54
+text = "正面"
+
+[node name="HintLabel" type="Label" parent="ContentMargin/Layout"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.55, 0.63, 0.73, 1)
+theme_override_font_sizes/font_size = 16
+text = "点击按钮，识别当前面"
+horizontal_alignment = 1
+
+[node name="BottomSpacer" type="Control" parent="ContentMargin/Layout"]
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
+
+[node name="Footer" type="HBoxContainer" parent="ContentMargin/Layout"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 10
+
+[node name="AccentLine" type="ColorRect" parent="ContentMargin/Layout/Footer"]
+custom_minimum_size = Vector2(24, 2)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+color = Color(0.31, 0.72, 1, 0.72)
+
+[node name="FooterLabel" type="Label" parent="ContentMargin/Layout/Footer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.55, 0.63, 0.73, 1)
+theme_override_font_sizes/font_size = 13
+text = "立方体面识别"
+vertical_alignment = 1

@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="MonsterData" format=3]
 
-[ext_resource type="Texture2D" uid="uid://deaj7ddfwbqwh" path="res://Assets/tokens.png" id="1_icon"]
+[ext_resource type="Texture2D" uid="uid://deaj7ddfwbqwh" path="res://assets/tokens.png" id="1_icon"]
 [ext_resource type="Script" uid="uid://c2igyvamknn3f" path="res://game/content/monster_data.gd" id="2_data"]
 [ext_resource type="ArrayMesh" path="res://base_mods/core/monsters/slime/slime.res" id="3_mesh3d"]
 [ext_resource type="Resource" path="res://base_mods/core/monsters/slime/slime_anim.tres" id="4_anim"]

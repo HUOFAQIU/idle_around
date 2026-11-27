@@ -1,0 +1,48 @@
+[gd_scene format=3 uid="uid://cf2t8qpdn820p"]
+
+[ext_resource type="Script" uid="uid://bykipvqgfvhwl" path="res://main/control.gd" id="1_6fago"]
+[ext_resource type="PackedScene" uid="uid://da2scdocynbkk" path="res://windows/Character/character_window.tscn" id="4_pa2rv"]
+[ext_resource type="PackedScene" path="res://windows/Vessel/vessel_window.tscn" id="5_vessel"]
+[ext_resource type="PackedScene" uid="uid://f6jom4nfishp" path="res://windows/Inventory/inventory_window.tscn" id="6_2mfgw"]
+[ext_resource type="PackedScene" uid="uid://duibpbpnx3f6x" path="res://windows/Tooltip/tooltip_window.tscn" id="9_c4peb"]
+[ext_resource type="PackedScene" uid="uid://bc0rml4pkml2k" path="res://windows/Info/info_window.tscn" id="10_gdtoh"]
+[ext_resource type="PackedScene" uid="uid://b87wi6f58te5u" path="res://windows/Item/item_window.tscn" id="11_n2hic"]
+[ext_resource type="Script" uid="uid://cvrphgarwhs83" path="res://main/panel_manager.gd" id="14_panel_manager"]
+
+[node name="Control" type="Control" unique_id=887310324]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_6fago")
+
+[node name="CharacterWindow" parent="." unique_id=1235136498 instance=ExtResource("4_pa2rv")]
+visible = false
+
+[node name="InventoryWindow" parent="." unique_id=111619256 instance=ExtResource("6_2mfgw")]
+visible = false
+open_position = Vector2i(735, 20)
+
+[node name="VesselWindow" parent="." unique_id=675089360 instance=ExtResource("5_vessel")]
+visible = false
+
+[node name="InfoWindow" parent="." unique_id=158491879 instance=ExtResource("10_gdtoh")]
+
+[node name="PanelManager" type="Node" parent="." unique_id=1449830164]
+script = ExtResource("14_panel_manager")
+
+[node name="DragLayer" type="CanvasLayer" parent="." unique_id=269600030]
+layer = 1025
+
+[node name="ItemWindow" parent="DragLayer" unique_id=61833472 instance=ExtResource("11_n2hic")]
+layout_mode = 3
+anchors_preset = 0
+
+[node name="TooltipLayer" type="CanvasLayer" parent="." unique_id=1977854818]
+layer = 1026
+
+[node name="TooltipWindow" parent="TooltipLayer" unique_id=143098148 instance=ExtResource("9_c4peb")]
+visible = false

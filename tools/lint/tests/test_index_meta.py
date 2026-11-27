@@ -1,4 +1,4 @@
-"""DOC/ 自动元数据扫描与 DOC/INDEX.md 路由校验的单元测试。"""
+"""docs/ 自动元数据扫描与 docs/INDEX.md 路由校验的单元测试。"""
 
 import sys
 import tempfile
@@ -14,7 +14,7 @@ class IndexMetaTest(unittest.TestCase):
     def setUp(self) -> None:
         self.temp = tempfile.TemporaryDirectory()
         self.root = Path(self.temp.name)
-        (self.root / "DOC").mkdir()
+        (self.root / "docs").mkdir()
 
     def tearDown(self) -> None:
         self.temp.cleanup()
@@ -28,7 +28,7 @@ class IndexMetaTest(unittest.TestCase):
         *,
         body: str = "",
     ) -> None:
-        path = self.root / "DOC" / name
+        path = self.root / "docs" / name
         path.parent.mkdir(parents=True, exist_ok=True)
         content = f"# 文档\n\n> 类型：{kind} | 状态：{status} | 核对：{date_str}\n"
         if body:
@@ -46,24 +46,24 @@ class IndexMetaTest(unittest.TestCase):
         ]
         for task, docs, code in routes:
             lines.append(f"| {task} | {docs} | {code} |")
-        (self.root / "DOC" / "INDEX.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+        (self.root / "docs" / "INDEX.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
     def test_valid_docs_and_routes_pass(self) -> None:
         self.write_doc("架构/foo.md")
         self.write_doc("指南/bar.md", kind="指南", status="有效", date_str="2026-11-23")
-        (self.root / "Scripts").mkdir()
-        (self.root / "Scripts" / "foo.gd").write_text("", encoding="utf-8")
-        self.write_index([("测试", "`架构/foo.md`、`指南/bar.md`", "`Scripts/foo.gd`、`Scripts/*.gd`")])
+        (self.root / "scripts").mkdir()
+        (self.root / "scripts" / "foo.gd").write_text("", encoding="utf-8")
+        self.write_index([("测试", "`架构/foo.md`、`指南/bar.md`", "`scripts/foo.gd`、`scripts/*.gd`")])
         self.assertEqual(check_index(self.root), [])
 
     def test_unlisted_doc_is_still_checked_for_header(self) -> None:
         self.write_index([])
-        bad = self.root / "DOC" / "架构" / "orphan.md"
+        bad = self.root / "docs" / "架构" / "orphan.md"
         bad.parent.mkdir(parents=True, exist_ok=True)
         bad.write_text("# 缺头文档\n\n只有正文\n", encoding="utf-8")
         errors = check_index(self.root)
         self.assertEqual(len(errors), 1)
-        self.assertIn("DOC/架构/orphan.md", errors[0])
+        self.assertIn("docs/架构/orphan.md", errors[0])
         self.assertIn("文档头缺少", errors[0])
 
     def test_invalid_date_format_is_reported(self) -> None:
@@ -81,16 +81,16 @@ class IndexMetaTest(unittest.TestCase):
 
     def test_broken_code_entry_is_reported(self) -> None:
         self.write_doc("架构/foo.md")
-        self.write_index([("测试", "`架构/foo.md`", "`Scripts/missing.gd`")])
+        self.write_index([("测试", "`架构/foo.md`", "`scripts/missing.gd`")])
         errors = check_index(self.root)
         self.assertEqual(len(errors), 1)
         self.assertIn("代码入口不存在", errors[0])
 
     def test_non_path_code_entry_is_ignored(self) -> None:
         self.write_doc("架构/foo.md")
-        (self.root / "Scripts").mkdir()
-        (self.root / "Scripts" / "foo.gd").write_text("", encoding="utf-8")
-        self.write_index([("测试", "`架构/foo.md`", "`Scripts/foo.gd`、`GameFlow`、`test_api.gd::run`")])
+        (self.root / "scripts").mkdir()
+        (self.root / "scripts" / "foo.gd").write_text("", encoding="utf-8")
+        self.write_index([("测试", "`架构/foo.md`", "`scripts/foo.gd`、`GameFlow`、`test_api.gd::run`")])
         self.assertEqual(check_index(self.root), [])
 
     def test_parent_code_entry_is_reported(self) -> None:

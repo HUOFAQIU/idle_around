@@ -12,10 +12,10 @@ RESOURCE_NAME = re.compile(r"resource_name\s*=\s*([\"'])(.*?)\1")
 FILE_ACCESS = re.compile(r"\b(FileAccess|DirAccess)\b")
 
 FILE_ACCESS_ALLOWED = (
-    "Scripts/save/",
-    "Scripts/mod/",
-    "Scripts/debug/",
-    "EngineTools/modkit/",
+    "scripts/save/",
+    "scripts/mod/",
+    "scripts/debug/",
+    "engine_tools/modkit/",
 )
 
 
@@ -36,7 +36,7 @@ class Rule:
 
 class NoCommentsRule(Rule):
     id = "no-comments"
-    description = "首方代码不写普通注释，长篇 why 放 DOC/"
+    description = "首方代码不写普通注释，长篇 why 放 docs/"
     severity = "error"
     extensions = frozenset({".gd"})
 
@@ -58,7 +58,7 @@ class NoCommentsRule(Rule):
                     comment.line,
                     comment.column,
                     self.id,
-                    "首方代码不写普通注释；长篇 why、边界、坑写进 DOC/。"
+                    "首方代码不写普通注释；长篇 why、边界、坑写进 docs/。"
                     "仅 @export 的 Inspector 文档、@meta_* 来源标注、单行 # why:/# invariant:（≤120 字）和生成文件例外",
                     self.severity,
                 )
@@ -135,7 +135,7 @@ class ModPathRule(Rule):
     severity = "error"
     extensions = frozenset({".gd"})
 
-    ALLOWED_FILE = "Scripts/mod/mod_paths.gd"
+    ALLOWED_FILE = "scripts/mod/mod_paths.gd"
     ROOT_LITERAL = re.compile(
         r"""["'](?:res://base_mods|user://mods|res://mods|user://mods\.cfg)["']"""
     )
@@ -152,7 +152,7 @@ class ModPathRule(Rule):
         relative = path.resolve().relative_to(root.resolve()).as_posix()
         if (
             relative == self.ALLOWED_FILE
-            or relative.startswith("EngineTools/modkit/")
+            or relative.startswith("engine_tools/modkit/")
         ):
             return []
 

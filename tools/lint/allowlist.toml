@@ -3,7 +3,7 @@
 #
 # [[allow]]
 # rule = "no-comments"
-# path = "Scripts/example.gd"
+# path = "scripts/example.gd"
 # reason = "这里保留旧实现对照，2027 年前删除"
 # expires = "2027-01-01"
 

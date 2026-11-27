@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="PassiveSoulData" format=3]
 
-[ext_resource type="Texture2D" path="res://Assets/soul_large.png" id="1_icon"]
-[ext_resource type="Shader" path="res://Assets/Shader/soul_scanline.gdshader" id="2_shader"]
+[ext_resource type="Texture2D" path="res://assets/soul_large.png" id="1_icon"]
+[ext_resource type="Shader" path="res://assets/Shader/soul_scanline.gdshader" id="2_shader"]
 [ext_resource type="Script" path="res://game/content/passive_soul_data.gd" id="3_soul"]
 [ext_resource type="Script" path="res://game/content/passive_trigger.gd" id="4_trigger_script"]
 [ext_resource type="Resource" path="res://base_mods/core/souls/bi_lei_zhen/bi_lei_zhen_freeze_trigger.tres" id="5_trigger"]

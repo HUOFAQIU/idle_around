@@ -1,0 +1,45 @@
+[gd_scene format=3 uid="uid://da2scdocynbkk"]
+
+[ext_resource type="Script" uid="uid://7siqbpean10a" path="res://windows/Character/character_window.gd" id="1_vc8vg"]
+[ext_resource type="Script" uid="uid://b3x4mwtjmm4tp" path="res://game/inventory/grid_base_inventory_system/core/view/container/inventory/inventory_view.gd" id="2_view"]
+
+[node name="CharacterWindow" type="Control" unique_id=1910727813]
+layout_mode = 1
+anchors_preset = 0
+offset_left = 0.0
+offset_top = 36.0
+offset_right = 360.0
+offset_bottom = 276.0
+script = ExtResource("1_vc8vg")
+open_position = Vector2i(20, 20)
+
+[node name="VBox" type="VBoxContainer" parent="." unique_id=369359917]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 8
+
+[node name="InfoLabel" type="RichTextLabel" parent="VBox" unique_id=1037626567]
+layout_mode = 2
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
+
+[node name="VesselGrid" type="Control" parent="VBox" unique_id=137238694]
+custom_minimum_size = Vector2(288, 96)
+layout_mode = 2
+size_flags_horizontal = 0
+script = ExtResource("2_view")
+avilable_types = Array[String](["VESSEL"])
+vessel_kind = "COMBAT"
+container_name = "vessel_cells"
+container_columns = 9
+container_rows = 3
+grid_border_color = Color(0.5019608, 0.5019608, 0.5019608, 1)
+gird_background_color_empty = Color(0.18431373, 0.30980393, 0.30980393, 1)
+gird_background_color_taken = Color(0.46666667, 0.53333336, 0.6, 1)
+gird_background_color_conflict = Color(0.8039216, 0.36078432, 0.36078432, 1)
+grid_background_color_avilable = Color(0.27450982, 0.50980395, 0.7058824, 1)
+stack_num_color = Color(1, 1, 1, 1)

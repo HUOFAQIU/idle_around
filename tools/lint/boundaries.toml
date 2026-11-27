@@ -1,47 +1,47 @@
 # 层表：谁可以读谁。
-# 同层永远放行；目标不属于任何层时默认放行（Assets/、mods/、user://）。
+# 同层永远放行；目标不属于任何层时默认放行（assets/、mods/、user://）。
 # 层按最长前缀匹配，子层因此能从父目录里独立出来。
 # 目标写目录前缀（带 /）或具体文件；reads 写 "*" 表示全部放行。
 
 [[layer]]
 name = "tools"
-paths = ["tools/", "EngineTools/"]
+paths = ["tools/", "engine_tools/"]
 reads = ["*"]
 
 [[layer]]
 name = "main"
-paths = ["Main/"]
+paths = ["main/"]
 reads = ["*"]
 
 [[layer]]
 name = "test-api"
-paths = ["Scripts/test_api.gd", "Scripts/test_api/"]
+paths = ["scripts/test_api.gd", "scripts/test_api/"]
 reads = ["*"]
 
 [[layer]]
 name = "windows"
-paths = ["Windows/"]
+paths = ["windows/"]
 reads = [
-	"Scripts/",
+	"scripts/",
 	"game/",
 	"godot_gas/",
 	"addons/",
 	"base_mods/",
-	"Assets/",
-	"Main/panel_manager.gd",
+	"assets/",
+	"main/panel_manager.gd",
 ]
 
 [[layer]]
 name = "script"
-paths = ["Scripts/"]
+paths = ["scripts/"]
 reads = [
 	"game/",
 	"godot_gas/",
 	"addons/",
 	"base_mods/",
-	"Assets/",
-	"Scripts/test_api.gd",
-	"Scripts/test_api/",
+	"assets/",
+	"scripts/test_api.gd",
+	"scripts/test_api/",
 ]
 
 [[layer]]
@@ -51,12 +51,12 @@ reads = [
 	"game/inventory/",
 	"godot_gas/",
 	"addons/",
-	"Assets/",
-	"Scripts/game_colors.gd",
-	"Scripts/debug/",
-	"Scripts/save/",
-	"Scripts/mod/",
-	"Scripts/collection_db.gd",
+	"assets/",
+	"scripts/game_colors.gd",
+	"scripts/debug/",
+	"scripts/save/",
+	"scripts/mod/",
+	"scripts/collection_db.gd",
 ]
 
 [[layer]]
@@ -66,11 +66,11 @@ reads = [
 	"game/content/",
 	"godot_gas/",
 	"addons/",
-	"Assets/",
-	"Scripts/game_colors.gd",
-	"Scripts/debug/",
-	"Scripts/save/",
-	"Scripts/collection_db.gd",
+	"assets/",
+	"scripts/game_colors.gd",
+	"scripts/debug/",
+	"scripts/save/",
+	"scripts/collection_db.gd",
 ]
 
 [[layer]]
@@ -85,19 +85,19 @@ reads = [
 	"game/",
 	"godot_gas/",
 	"addons/",
-	"Assets/",
+	"assets/",
 ]
 
 [autoload]
-ModLoader = "Scripts/mod/mod_loader.gd"
-GameGlobal = "Scripts/GameGlobal.gd"
+ModLoader = "scripts/mod/mod_loader.gd"
+GameGlobal = "scripts/GameGlobal.gd"
 GBIS = "game/inventory/grid_base_inventory_system/core/grid_base_inventory_system.gd"
 GameplayCueManager = "addons/GodotGAS/managers/gameplay_cue_manager.gd"
-ModCueRegistrar = "Scripts/mod/mod_cue_registrar.gd"
-CollectionDB = "Scripts/collection_db.gd"
-CombatTelemetry = "Scripts/debug/combat_telemetry.gd"
+ModCueRegistrar = "scripts/mod/mod_cue_registrar.gd"
+CollectionDB = "scripts/collection_db.gd"
+CombatTelemetry = "scripts/debug/combat_telemetry.gd"
 SoulRuntimeDB = "game/battle/soul_runtime_db.gd"
-Warehouse = "Scripts/warehouse.gd"
-MapBoard = "Scripts/map_board.gd"
-SaveManager = "Scripts/save/save_manager.gd"
+Warehouse = "scripts/warehouse.gd"
+MapBoard = "scripts/map_board.gd"
+SaveManager = "scripts/save/save_manager.gd"
 GameFlow = "game/flow/game_flow.gd"

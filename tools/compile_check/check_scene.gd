@@ -1,12 +1,12 @@
 extends Node
 
 const SCAN_DIRS: Array[String] = [
-	"res://Scripts",
-	"res://Main",
+	"res://scripts",
+	"res://main",
 	"res://game",
 	"res://godot_gas",
-	"res://Windows",
-	"res://EngineTools/modkit",
+	"res://windows",
+	"res://engine_tools/modkit",
 	"res://tools/scenarios",
 ]
 

@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="SoulData" format=3 uid="uid://bs25wre0jeslj"]
 
-[ext_resource type="Texture2D" uid="uid://ud0woxy1e8dy" path="res://Assets/soul_small.png" id="1_icon"]
-[ext_resource type="Shader" uid="uid://c7gxmyf484kcn" path="res://Assets/Shader/soul_scanline.gdshader" id="2_shader"]
+[ext_resource type="Texture2D" uid="uid://ud0woxy1e8dy" path="res://assets/soul_small.png" id="1_icon"]
+[ext_resource type="Shader" uid="uid://c7gxmyf484kcn" path="res://assets/Shader/soul_scanline.gdshader" id="2_shader"]
 [ext_resource type="Script" uid="uid://bbcxwqb4ef1cg" path="res://game/inventory/grid_base_inventory_system/core/model/item/soul_data.gd" id="3_soul"]
 [ext_resource type="Resource" uid="uid://xv5q7my0mboe" path="res://base_mods/core/souls/ka_fei/ka_fei_skill.tres" id="4_skill"]
 

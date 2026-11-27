@@ -1,0 +1,73 @@
+[gd_scene format=3 uid="uid://dcymb2xgnhr2c"]
+
+[ext_resource type="Script" uid="uid://ccnlh3othlrsn" path="res://windows/Collection/collection_window.gd" id="1_okmvx"]
+
+[node name="CollectionWindow" type="Control" unique_id=1627520982]
+layout_mode = 1
+anchors_preset = 0
+offset_left = 0.0
+offset_top = 36.0
+offset_right = 600.0
+offset_bottom = 636.0
+script = ExtResource("1_okmvx")
+
+[node name="Root" type="MarginContainer" parent="." unique_id=1628027167]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="VBox" type="VBoxContainer" parent="Root" unique_id=224335190]
+layout_mode = 2
+
+[node name="KindRow" type="HBoxContainer" parent="Root/VBox" unique_id=79992925]
+layout_mode = 2
+
+[node name="MonsterButton" type="Button" parent="Root/VBox/KindRow" unique_id=1131338578]
+layout_mode = 2
+toggle_mode = true
+text = "怪物"
+
+[node name="SoulButton" type="Button" parent="Root/VBox/KindRow" unique_id=584031568]
+layout_mode = 2
+toggle_mode = true
+text = "魂灵"
+
+[node name="VesselButton" type="Button" parent="Root/VBox/KindRow" unique_id=584031569]
+layout_mode = 2
+toggle_mode = true
+text = "魂器"
+
+[node name="Body" type="HBoxContainer" parent="Root/VBox" unique_id=631710448]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Scroll" type="ScrollContainer" parent="Root/VBox/Body" unique_id=1261668872]
+layout_mode = 2
+size_flags_horizontal = 3
+horizontal_scroll_mode = 0
+
+[node name="EntryGrid" type="GridContainer" parent="Root/VBox/Body/Scroll" unique_id=1839493943]
+layout_mode = 2
+size_flags_horizontal = 3
+columns = 3
+
+[node name="FilterPanel" type="VBoxContainer" parent="Root/VBox/Body"]
+custom_minimum_size = Vector2(240, 0)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="HintLabel" type="Label" parent="Root/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "右键已遇见魂灵：放入仓库"
+
+[node name="FlyLayer" type="Control" parent="Root"]
+layout_mode = 2
+mouse_filter = 2
+z_index = 100

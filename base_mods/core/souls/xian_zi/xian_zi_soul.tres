@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="SoulData" format=3 uid="uid://wexn2ojsabyn"]
 
-[ext_resource type="Texture2D" uid="uid://ud0woxy1e8dy" path="res://Assets/soul_small.png" id="1_u3fqi"]
-[ext_resource type="Shader" uid="uid://c7gxmyf484kcn" path="res://Assets/Shader/soul_scanline.gdshader" id="2_okn4k"]
+[ext_resource type="Texture2D" uid="uid://ud0woxy1e8dy" path="res://assets/soul_small.png" id="1_u3fqi"]
+[ext_resource type="Shader" uid="uid://c7gxmyf484kcn" path="res://assets/Shader/soul_scanline.gdshader" id="2_okn4k"]
 [ext_resource type="Script" uid="uid://bbcxwqb4ef1cg" path="res://game/inventory/grid_base_inventory_system/core/model/item/soul_data.gd" id="3_d16bo"]
 [ext_resource type="Resource" uid="uid://wvru5kmb1x0j" path="res://base_mods/core/souls/xian_zi/xian_zi_skill.tres" id="4_u34yl"]
 [ext_resource type="Script" uid="uid://bgbp4lpfyqub" path="res://game/content/passive_trigger.gd" id="5_u3fqi"]

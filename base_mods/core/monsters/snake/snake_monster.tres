@@ -4,7 +4,7 @@
 [ext_resource type="Resource" uid="uid://5h1c7x0o6fwl" path="res://base_mods/core/souls/du_ya/du_ya_soul.tres" id="3_duya"]
 [ext_resource type="Resource" uid="uid://bgqrj3i0tufqg" path="res://base_mods/core/souls/jian_ya/jian_ya_soul.tres" id="4_jianya"]
 [ext_resource type="Resource" uid="uid://coduc2kbaetoy" path="res://base_mods/core/souls/hua_liu_shen/hua_liu_shen_soul.tres" id="5_hualiushen"]
-[ext_resource type="Texture2D" uid="uid://deaj7ddfwbqwh" path="res://Assets/tokens.png" id="6_icon"]
+[ext_resource type="Texture2D" uid="uid://deaj7ddfwbqwh" path="res://assets/tokens.png" id="6_icon"]
 [ext_resource type="Script" uid="uid://c2igyvamknn3f" path="res://game/content/monster_data.gd" id="7_data"]
 [ext_resource type="ArrayMesh" path="res://base_mods/core/monsters/snake/snake.res" id="8_mesh3d"]
 [ext_resource type="Resource" path="res://base_mods/core/monsters/snake/snake_anim.tres" id="9_anim"]

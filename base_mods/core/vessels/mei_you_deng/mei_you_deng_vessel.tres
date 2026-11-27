@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://byqtuku2rmne5" path="res://game/inventory/grid_base_inventory_system/core/model/item/soul_vessel_data.gd" id="1_vessel"]
 [ext_resource type="Script" uid="uid://bdpa3dyl415g7" path="res://game/content/soul_vessel_effect.gd" id="2_effect"]
-[ext_resource type="Texture2D" uid="uid://cd5f3v7eq6ylb" path="res://Assets/soul_medium.png" id="3_icon"]
+[ext_resource type="Texture2D" uid="uid://cd5f3v7eq6ylb" path="res://assets/soul_medium.png" id="3_icon"]
 
 [sub_resource type="Resource" id="Resource_effect"]
 script = ExtResource("2_effect")

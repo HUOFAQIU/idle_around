@@ -1,8 +1,0 @@
-[gd_scene format=3 uid="uid://b87wi6f58te5u"]
-
-[ext_resource type="Script" uid="uid://be0ek2p83blw0" path="res://Windows/Item/item_window.gd" id="1_66h7q"]
-
-[node name="ItemWindow" type="Control"]
-visible = false
-mouse_filter = 2
-script = ExtResource("1_66h7q")

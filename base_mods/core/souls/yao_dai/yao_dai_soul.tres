@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="PassiveSoulData" format=3 uid="uid://cirircrfmrfl6"]
 
-[ext_resource type="Texture2D" uid="uid://cd5f3v7eq6ylb" path="res://Assets/soul_medium.png" id="1_icon"]
-[ext_resource type="Shader" uid="uid://c7gxmyf484kcn" path="res://Assets/Shader/soul_scanline.gdshader" id="2_shader"]
+[ext_resource type="Texture2D" uid="uid://cd5f3v7eq6ylb" path="res://assets/soul_medium.png" id="1_icon"]
+[ext_resource type="Shader" uid="uid://c7gxmyf484kcn" path="res://assets/Shader/soul_scanline.gdshader" id="2_shader"]
 [ext_resource type="Script" uid="uid://cxry7rbw3nnqy" path="res://game/content/passive_soul_data.gd" id="3_soul"]
 [ext_resource type="Resource" uid="uid://bqgalwp17j6n3" path="res://base_mods/core/souls/yao_dai/yao_dai_effect.tres" id="4_effect"]
 [ext_resource type="Script" uid="uid://c81papidngxvg" path="res://addons/GodotGAS/effects/gameplay_effect.gd" id="5_effect_script"]

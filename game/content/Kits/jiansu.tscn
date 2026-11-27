@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://dlop5vpiclei0"]
 
-[ext_resource type="Texture2D" uid="uid://dam3lpp2j3mv0" path="res://Assets/jiansu_bg.png" id="1_woljs"]
+[ext_resource type="Texture2D" uid="uid://dam3lpp2j3mv0" path="res://assets/jiansu_bg.png" id="1_woljs"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_ycphl"]
 font_size = 13

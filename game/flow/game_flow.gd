@@ -17,7 +17,7 @@ const FACE_ENTRY: int = 0
 const FACE_MENU: int = 1
 const FACE_CHARACTER: int = 3
 const FACE_MAP: int = 4
-const STARTUP_TIMING: GDScript = preload("res://Scripts/debug/startup_timing.gd")
+const STARTUP_TIMING: GDScript = preload("res://scripts/debug/startup_timing.gd")
 
 var _state: State = State.NO_SESSION
 var _active_character: CharacterDefinition

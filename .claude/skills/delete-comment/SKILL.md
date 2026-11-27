@@ -1,15 +1,15 @@
 ---
 name: delete-comment
-description: 清理首方 GDScript 注释，把决策迁入 DOC/ 后用 no-comments lint 守住。
+description: 清理首方 GDScript 注释，把决策迁入 docs/ 后用 no-comments lint 守住。
 ---
 
 # 删除注释并迁移决策
 
-规则以 `DOC/指南/代码检查.md` 为准；这里只放执行步骤。
+规则以 `docs/指南/代码检查.md` 为准；这里只放执行步骤。
 
 ## 边界
 
-- 只处理首方 6 个目录：`Scripts/`、`Main/`、`game/`、`godot_gas/`、`Windows/`、`EngineTools/modkit/`。
+- 只处理首方 6 个目录：`scripts/`、`main/`、`game/`、`godot_gas/`、`windows/`、`engine_tools/modkit/`。
 - 不碰 `addons/`、`.godot/`、`base_mods/`、`mods/`。
 - 保留四类注释，不迁移也不删除：
   - `@export` 及其变体（`@export_range` 等）正上方或行尾的 `##`（Godot Inspector 显示）。
@@ -30,11 +30,11 @@ python -X utf8 -I tools/lint/strip_comments.py --dry-run
 |---|---|---|
 | 赘述 / 过时 | 只复述符号名、显而易见行为，或引用已删代码/旧命名 | 直接删 |
 | 局部不变量 | 单行就能说清的关键顺序、防坑原因（≤120 字） | 改写成 `# why:` 或 `# invariant:` 保留 |
-| 长篇决策 | 跨文件流程、协议、多条边界与坑 | 先迁进 `DOC/`，再删 |
+| 长篇决策 | 跨文件流程、协议、多条边界与坑 | 先迁进 `docs/`，再删 |
 
 ## 2. 迁移决策
 
-通过 `DOC/INDEX.md` 路由表定位目标文档（跨模块口径与坑写入 `DOC/架构/现状与注意.md` §2）。先 grep 目标文档确认未重复，只补文档里没有的内容，改完同步更新文档头「核对」日期。
+通过 `docs/INDEX.md` 路由表定位目标文档（跨模块口径与坑写入 `docs/架构/现状与注意.md` §2）。先 grep 目标文档确认未重复，只补文档里没有的内容，改完同步更新文档头「核对」日期。
 
 ## 3. 删除与验证
 

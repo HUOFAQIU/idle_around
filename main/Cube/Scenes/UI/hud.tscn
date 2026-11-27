@@ -1,0 +1,75 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://main/Cube/Scripts/hud.gd" id="1_hud"]
+[ext_resource type="SystemFont" path="res://main/Cube/Resources/UI/font_cjk_bold.tres" id="2_bold"]
+[ext_resource type="Theme" path="res://main/Cube/Resources/UI/cube_theme.tres" id="3_theme"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_toast"]
+content_margin_left = 22.0
+content_margin_top = 14.0
+content_margin_right = 26.0
+content_margin_bottom = 14.0
+bg_color = Color(0.039, 0.055, 0.078, 0.94)
+border_width_left = 3
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.31, 0.72, 1, 0.5)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+shadow_color = Color(0, 0, 0, 0.35)
+shadow_size = 12
+
+[node name="HUD" type="CanvasLayer"]
+layer = 10
+script = ExtResource("1_hud")
+
+[node name="Root" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme = ExtResource("3_theme")
+
+[node name="ToastAnchor" type="Control" parent="Root"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Toast" type="PanelContainer" parent="Root/ToastAnchor"]
+visible = false
+custom_minimum_size = Vector2(240, 0)
+layout_mode = 0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_toast")
+
+[node name="Content" type="HBoxContainer" parent="Root/ToastAnchor/Toast"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="Dot" type="Label" parent="Root/ToastAnchor/Toast/Content"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.31, 0.72, 1, 1)
+theme_override_font_sizes/font_size = 12
+text = "●"
+vertical_alignment = 1
+
+[node name="Message" type="Label" parent="Root/ToastAnchor/Toast/Content"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_fonts/font = ExtResource("2_bold")
+theme_override_font_sizes/font_size = 21
+text = "这是：正面"
+vertical_alignment = 1

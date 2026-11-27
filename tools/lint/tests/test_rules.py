@@ -43,7 +43,7 @@ class NoCommentsRuleTest(unittest.TestCase):
     def setUp(self) -> None:
         self.rule = NoCommentsRule()
 
-    def check(self, source: str, path: str = "Scripts/example.gd") -> list:
+    def check(self, source: str, path: str = "scripts/example.gd") -> list:
         return self.rule.check(Path(path), source, Path("."))
 
     def test_flags_plain_comment(self) -> None:
@@ -96,7 +96,7 @@ class ResourceNameRuleTest(unittest.TestCase):
 
     def test_flags_chinese_name(self) -> None:
         findings = self.rule.check(
-            Path("Scripts/example.tres"),
+            Path("scripts/example.tres"),
             'resource_name = "中文名"\n',
             Path("."),
         )
@@ -104,7 +104,7 @@ class ResourceNameRuleTest(unittest.TestCase):
 
     def test_allows_english_name(self) -> None:
         findings = self.rule.check(
-            Path("Scripts/example.tres"),
+            Path("scripts/example.tres"),
             'resource_name = "Example"\n',
             Path("."),
         )
@@ -112,7 +112,7 @@ class ResourceNameRuleTest(unittest.TestCase):
 
     def test_ignores_comment_in_gd(self) -> None:
         findings = self.rule.check(
-            Path("Scripts/example.gd"),
+            Path("scripts/example.gd"),
             '# resource_name = "中文名"\n',
             Path("."),
         )
@@ -127,28 +127,28 @@ class FileAccessBoundaryRuleTest(unittest.TestCase):
         self.rule = FileAccessBoundaryRule(self.root)
 
     def test_flags_outside_allowed_dirs(self) -> None:
-        path = self.root / "Scripts/example.gd"
+        path = self.root / "scripts/example.gd"
         findings = self.rule.check(
             path, "var file := FileAccess.open(path, FileAccess.READ)\n", self.root
         )
         self.assertEqual(len(findings), 1)
 
     def test_allows_save_dir(self) -> None:
-        path = self.root / "Scripts/save/example.gd"
+        path = self.root / "scripts/save/example.gd"
         findings = self.rule.check(
             path, "var file := FileAccess.open(path, FileAccess.READ)\n", self.root
         )
         self.assertEqual(findings, [])
 
     def test_allows_modkit(self) -> None:
-        path = self.root / "EngineTools/modkit/example.gd"
+        path = self.root / "engine_tools/modkit/example.gd"
         findings = self.rule.check(
             path, "var file := FileAccess.open(path, FileAccess.READ)\n", self.root
         )
         self.assertEqual(findings, [])
 
     def test_ignores_comment(self) -> None:
-        path = self.root / "Scripts/example.gd"
+        path = self.root / "scripts/example.gd"
         findings = self.rule.check(
             path, "# FileAccess 只允许在存档层\n", self.root
         )
@@ -163,21 +163,21 @@ class ModPathRuleTest(unittest.TestCase):
         self.rule = ModPathRule()
 
     def test_flags_root_literal(self) -> None:
-        path = self.root / "Scripts/example.gd"
+        path = self.root / "scripts/example.gd"
         findings = self.rule.check(
             path, 'const MODS_DIR := "user://mods"\n', self.root
         )
         self.assertEqual(len(findings), 1)
 
     def test_flags_format_literal(self) -> None:
-        path = self.root / "Scripts/example.gd"
+        path = self.root / "scripts/example.gd"
         findings = self.rule.check(
             path, 'return "res://base_mods/%s/" % mod_id\n', self.root
         )
         self.assertEqual(len(findings), 1)
 
     def test_allows_specific_resource(self) -> None:
-        path = self.root / "Scripts/example.gd"
+        path = self.root / "scripts/example.gd"
         findings = self.rule.check(
             path,
             'const EFFECT := preload("res://base_mods/core/effects/burn.tres")\n',
@@ -186,21 +186,21 @@ class ModPathRuleTest(unittest.TestCase):
         self.assertEqual(findings, [])
 
     def test_allows_canonical_file(self) -> None:
-        path = self.root / "Scripts/mod/mod_paths.gd"
+        path = self.root / "scripts/mod/mod_paths.gd"
         findings = self.rule.check(
             path, 'const MODS_DIR := "user://mods"\n', self.root
         )
         self.assertEqual(findings, [])
 
     def test_allows_modkit(self) -> None:
-        path = self.root / "EngineTools/modkit/pack.gd"
+        path = self.root / "engine_tools/modkit/pack.gd"
         findings = self.rule.check(
             path, 'const MODS_DIR := "user://mods"\n', self.root
         )
         self.assertEqual(findings, [])
 
     def test_ignores_comment(self) -> None:
-        path = self.root / "Scripts/example.gd"
+        path = self.root / "scripts/example.gd"
         findings = self.rule.check(
             path, '# 路径是 "user://mods"\n', self.root
         )
@@ -213,7 +213,7 @@ class InlineColorRuleTest(unittest.TestCase):
 
     def test_allows_named_constant(self) -> None:
         findings = self.rule.check(
-            Path("Scripts/example.gd"),
+            Path("scripts/example.gd"),
             "const BG : Color = Color(0.1, 0.1, 0.1, 1.0)\n",
             Path("."),
         )
@@ -221,7 +221,7 @@ class InlineColorRuleTest(unittest.TestCase):
 
     def test_flags_assignment(self) -> None:
         findings = self.rule.check(
-            Path("Scripts/example.gd"),
+            Path("scripts/example.gd"),
             "style.bg_color = Color(0.1, 0.1, 0.1, 1.0)\n",
             Path("."),
         )
@@ -229,7 +229,7 @@ class InlineColorRuleTest(unittest.TestCase):
 
     def test_flags_call_argument(self) -> None:
         findings = self.rule.check(
-            Path("Scripts/example.gd"),
+            Path("scripts/example.gd"),
             "draw_rect(rect, Color(0.1, 0.1, 0.1, 1.0), true)\n",
             Path("."),
         )
@@ -237,7 +237,7 @@ class InlineColorRuleTest(unittest.TestCase):
 
     def test_allows_copy_constructor(self) -> None:
         findings = self.rule.check(
-            Path("Scripts/example.gd"),
+            Path("scripts/example.gd"),
             "style.bg_color = Color(style.bg_color, 1.0)\n",
             Path("."),
         )
@@ -245,7 +245,7 @@ class InlineColorRuleTest(unittest.TestCase):
 
     def test_allows_export_default(self) -> None:
         findings = self.rule.check(
-            Path("Scripts/example.gd"),
+            Path("scripts/example.gd"),
             '@export var accent: Color = Color("#4fb8ff")\n',
             Path("."),
         )
@@ -257,20 +257,20 @@ class DependencyBoundaryRuleTest(unittest.TestCase):
 [[layer]]
 name = "domain"
 paths = ["game/"]
-reads = ["Scripts/game_colors.gd"]
+reads = ["scripts/game_colors.gd"]
 
 [[layer]]
 name = "content-def"
 paths = ["game/content/"]
-reads = ["Scripts/"]
+reads = ["scripts/"]
 
 [[layer]]
 name = "script"
-paths = ["Scripts/"]
+paths = ["scripts/"]
 reads = []
 
 [autoload]
-Warehouse = "Scripts/warehouse.gd"
+Warehouse = "scripts/warehouse.gd"
 """
 
     def setUp(self) -> None:
@@ -278,14 +278,14 @@ Warehouse = "Scripts/warehouse.gd"
         self.addCleanup(self.tmp.cleanup)
         self.root = Path(self.tmp.name)
         (self.root / "project.godot").write_text(
-            '[autoload]\n\nWarehouse="*res://Scripts/warehouse.gd"\n',
+            '[autoload]\n\nWarehouse="*res://scripts/warehouse.gd"\n',
             encoding="utf-8",
         )
         self.config = self.root / "boundaries.toml"
         self.config.write_text(self.CONFIG, encoding="utf-8")
-        self.write("Scripts/warehouse.gd", "")
-        self.write("Scripts/soul.gd", "class_name SoulData\n")
-        self.write("Scripts/game_colors.gd", "")
+        self.write("scripts/warehouse.gd", "")
+        self.write("scripts/soul.gd", "class_name SoulData\n")
+        self.write("scripts/game_colors.gd", "")
         self.rule = DependencyBoundaryRule(self.root, self.config)
 
     def write(self, relative: str, source: str) -> Path:
@@ -301,22 +301,22 @@ Warehouse = "Scripts/warehouse.gd"
     def test_flags_res_literal_across_layers(self) -> None:
         findings = self.check(
             "game/battle/a.gd",
-            'const W := preload("res://Scripts/warehouse.gd")\n',
+            'const W := preload("res://scripts/warehouse.gd")\n',
         )
         self.assertEqual(len(findings), 1)
-        self.assertIn("Scripts/warehouse.gd", findings[0].message)
+        self.assertIn("scripts/warehouse.gd", findings[0].message)
 
     def test_flags_class_reference_across_layers(self) -> None:
         findings = self.check("game/battle/a.gd", "var soul: SoulData\n")
         self.assertEqual(len(findings), 1)
-        self.assertIn("Scripts/soul.gd", findings[0].message)
+        self.assertIn("scripts/soul.gd", findings[0].message)
 
     def test_flags_autoload_reference(self) -> None:
         findings = self.check(
             "game/battle/a.gd", "Warehouse.add_item(null)\n"
         )
         self.assertEqual(len(findings), 1)
-        self.assertIn("Scripts/warehouse.gd", findings[0].message)
+        self.assertIn("scripts/warehouse.gd", findings[0].message)
 
     def test_allows_same_layer(self) -> None:
         findings = self.check(
@@ -328,21 +328,21 @@ Warehouse = "Scripts/warehouse.gd"
     def test_allows_declared_target(self) -> None:
         findings = self.check(
             "game/battle/a.gd",
-            'const C := preload("res://Scripts/game_colors.gd")\n',
+            'const C := preload("res://scripts/game_colors.gd")\n',
         )
         self.assertEqual(findings, [])
 
     def test_allows_unconfigured_target(self) -> None:
         findings = self.check(
             "game/battle/a.gd",
-            'const A := preload("res://Assets/icon.png")\n',
+            'const A := preload("res://assets/icon.png")\n',
         )
         self.assertEqual(findings, [])
 
     def test_longest_prefix_wins(self) -> None:
         findings = self.check(
             "game/content/a.gd",
-            'const W := preload("res://Scripts/soul.gd")\n',
+            'const W := preload("res://scripts/soul.gd")\n',
         )
         self.assertEqual(findings, [])
 
@@ -360,8 +360,8 @@ Warehouse = "Scripts/warehouse.gd"
     def test_one_diagnostic_per_target(self) -> None:
         findings = self.check(
             "game/battle/a.gd",
-            'const A := preload("res://Scripts/soul.gd")\n'
-            'const B := preload("res://Scripts/soul.gd")\n',
+            'const A := preload("res://scripts/soul.gd")\n'
+            'const B := preload("res://scripts/soul.gd")\n',
         )
         self.assertEqual(len(findings), 1)
         self.assertIn("2 处引用", findings[0].message)
@@ -369,9 +369,9 @@ Warehouse = "Scripts/warehouse.gd"
     def test_autoload_drift(self) -> None:
         self.config.write_text(
             self.CONFIG.replace(
-                'Warehouse = "Scripts/warehouse.gd"',
-                'Warehouse = "Scripts/warehouse.gd"\n'
-                'MapBoard = "Scripts/map_board.gd"',
+                'Warehouse = "scripts/warehouse.gd"',
+                'Warehouse = "scripts/warehouse.gd"\n'
+                'MapBoard = "scripts/map_board.gd"',
             ),
             encoding="utf-8",
         )

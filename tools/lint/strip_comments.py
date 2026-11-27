@@ -4,7 +4,7 @@
     python -I tools/lint/strip_comments.py --dry-run
     python -I tools/lint/strip_comments.py --check
     python -I tools/lint/strip_comments.py --write
-    python -I tools/lint/strip_comments.py --write Scripts game
+    python -I tools/lint/strip_comments.py --write scripts game
 """
 
 import argparse

@@ -1,6 +1,6 @@
 extends Node
 
-const MAIN_SCENE: PackedScene = preload("res://Main/Cube/Scenes/main.tscn")
+const MAIN_SCENE: PackedScene = preload("res://main/Cube/Scenes/main.tscn")
 const CASES: Array[GDScript] = [
 	preload("res://tools/scenarios/cases/save_roundtrip.gd"),
 	preload("res://tools/scenarios/cases/map_place.gd"),

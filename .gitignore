@@ -26,6 +26,5 @@ __pycache__/
 # Office 锁文件
 ~$*
 
-# Google Drive 缓存文件
-.tmp.driveupload/
-.tmp.drivedownload/
+# 本地缓存
+Windows/Battle/assets/models/meadow_grass.res

@@ -4,7 +4,7 @@ extends Node3D
 signal battle_logged(line: String, color: String)
 
 const MAX_MONS := 2000
-const BATCH_CAP := 512
+const BATCH_CAP := 1024
 const LOGIC_TO_3D_SCALE := 0.095
 
 @export_group("Wave & Spawning")
@@ -144,8 +144,6 @@ func get_hp_bar_entries() -> Array[Dictionary]:
 			"hp": hp,
 			"max_hp": mhp,
 		})
-		if entries.size() >= 48:
-			break
 	return entries
 
 

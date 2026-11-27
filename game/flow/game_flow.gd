@@ -24,6 +24,10 @@ var _active_character: CharacterDefinition
 var _profile: PlayerProfile
 
 
+func _init() -> void:
+	STARTUP_TIMING.mark("autoload 脚本加载完成")
+
+
 func _ready() -> void:
 	STARTUP_TIMING.mark("autoload 全部就绪")
 	SaveManager.slot_list_changed.connect(_on_slot_list_changed)

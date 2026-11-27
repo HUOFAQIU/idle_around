@@ -1,7 +1,6 @@
 [gd_scene format=3 uid="uid://bqug1f88ap7hb"]
 
 [ext_resource type="Script" uid="uid://dxwno0glbet88" path="res://Windows/Battle/battle_window.gd" id="1_nc1sn"]
-[ext_resource type="PackedScene" path="res://Windows/Battle/scenes/battle_arena.tscn" id="2_arm"]
 
 [node name="BattleWindow" type="Control" unique_id=1101778887]
 layout_mode = 1
@@ -11,6 +10,3 @@ offset_top = 0.0
 offset_right = 1920.0
 offset_bottom = 1080.0
 script = ExtResource("1_nc1sn")
-
-[node name="BattleArena" parent="." instance=ExtResource("2_arm")]
-layout_mode = 1

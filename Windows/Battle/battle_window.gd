@@ -1,8 +1,10 @@
 class_name BattleWindow
 extends BaseWindow
 
-@onready var battle_arena: BattleArena = $BattleArena
+const ARENA_SCENE_PATH := "res://Windows/Battle/scenes/battle_arena.tscn"
 
+var battle_arena: BattleArena
+var _arena_preload_requested: bool = false
 var _map_item: MapItemData
 var _map_slot: int = -1
 var _session: BattleSession:
@@ -24,11 +26,9 @@ func _ready() -> void:
 	log_btn.pressed.connect(_on_info_pressed)
 	add_title_bar_button(log_btn)
 
-	if battle_arena != null:
-		battle_arena.battle_logged.connect(_on_battle_logged)
-
 	MapBoard.item_removed.connect(_on_map_board_item_removed)
 	visibility_changed.connect(_on_visibility_changed)
+	_begin_arena_preload.call_deferred()
 
 
 func start_battle(map_item: MapItemData, slot_index: int = -1) -> void:
@@ -42,10 +42,11 @@ func start_battle(map_item: MapItemData, slot_index: int = -1) -> void:
 		InfoWindow.instance.clear_log()
 		InfoWindow.instance.append_line("[战斗] 进入地图：%s" % map_item.map_data.display_name)
 	var equipped_slots := _collect_equipped_soul_slots()
-	if battle_arena != null:
+	var arena := _ensure_arena()
+	if arena != null:
 		if map_item.map_data.weather_preset != null:
-			battle_arena.set_weather_preset(map_item.map_data.weather_preset)
-		battle_arena.start_run(map_item, equipped_slots)
+			arena.set_weather_preset(map_item.map_data.weather_preset)
+		arena.start_run(map_item, equipped_slots)
 
 
 func is_battling_slot(slot_index: int) -> bool:
@@ -77,6 +78,34 @@ func get_fps_text_for_test() -> String:
 	return "FPS %d" % int(Engine.get_frames_per_second())
 
 
+func _begin_arena_preload() -> void:
+	if _arena_preload_requested or battle_arena != null:
+		return
+	if ResourceLoader.load_threaded_request(ARENA_SCENE_PATH) == OK:
+		_arena_preload_requested = true
+
+
+func _ensure_arena() -> BattleArena:
+	if battle_arena != null:
+		return battle_arena
+	var packed: PackedScene = null
+	if _arena_preload_requested:
+		packed = ResourceLoader.load_threaded_get(ARENA_SCENE_PATH) as PackedScene
+		_arena_preload_requested = false
+	if packed == null:
+		packed = load(ARENA_SCENE_PATH) as PackedScene
+	if packed == null:
+		return null
+	battle_arena = packed.instantiate() as BattleArena
+	if battle_arena == null:
+		return null
+	battle_arena.name = "BattleArena"
+	battle_arena.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_content_root.add_child(battle_arena)
+	battle_arena.battle_logged.connect(_on_battle_logged)
+	return battle_arena
+
+
 func _on_battle_logged(line: String, color: String = "white") -> void:
 	if InfoWindow.instance != null:
 		InfoWindow.instance.append_line(line, color)
@@ -93,13 +122,15 @@ func _on_map_board_item_removed(slot_index: int) -> void:
 
 
 func _on_visibility_changed() -> void:
-	if not visible:
-		if TooltipWindow.instance != null:
-			TooltipWindow.instance.hide_tip(self)
-		if battle_arena != null:
-			battle_arena.stop_run()
-		_map_item = null
-		_map_slot = -1
+	if visible:
+		_ensure_arena()
+		return
+	if TooltipWindow.instance != null:
+		TooltipWindow.instance.hide_tip(self)
+	if battle_arena != null:
+		battle_arena.stop_run()
+	_map_item = null
+	_map_slot = -1
 
 
 func _collect_equipped_soul_slots() -> Array[SoulSlot]:

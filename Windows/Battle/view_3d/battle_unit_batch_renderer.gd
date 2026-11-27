@@ -1,6 +1,8 @@
 class_name BattleUnitBatchRenderer
 extends RefCounted
 
+const STRIDE: int = 16
+
 var _owner: Node3D
 var _material: ShaderMaterial
 var _batches: Dictionary = {}
@@ -21,7 +23,7 @@ func register_batch(key: String, mesh: Mesh, capacity: int, anim_config: UnitAni
 		return
 	var mm := MultiMesh.new()
 	mm.transform_format = MultiMesh.TRANSFORM_3D
-	mm.use_colors = true
+	mm.use_colors = false
 	mm.use_custom_data = true
 	mm.mesh = mesh
 	mm.instance_count = capacity
@@ -41,7 +43,7 @@ func register_batch(key: String, mesh: Mesh, capacity: int, anim_config: UnitAni
 	_owner.add_child(mmi)
 
 	var buf := PackedFloat32Array()
-	buf.resize(capacity * 20)
+	buf.resize(capacity * STRIDE)
 	_batches[key] = {"mm": mm, "buf": buf, "cap": capacity, "cnt": 0}
 
 
@@ -65,24 +67,22 @@ func push_unit(
 	var batch: Dictionary = _batches[key]
 	var cnt: int = batch["cnt"]
 	if cnt >= int(batch["cap"]):
-		return
+		_grow_batch(batch)
 
 	var buf: PackedFloat32Array = batch["buf"]
 	var cy := cos(yaw) * scale_val
 	var sy := sin(yaw) * scale_val
-	var off := cnt * 20
+	var off := cnt * STRIDE
 
 	# invariant: buf[off+0..11] 是 3x4 变换基与平移
 	buf[off + 0] = cy;   buf[off + 1] = 0.0;       buf[off + 2] = sy;   buf[off + 3] = pos.x
 	buf[off + 4] = 0.0;  buf[off + 5] = scale_val; buf[off + 6] = 0.0;  buf[off + 7] = pos.y
 	buf[off + 8] = -sy;  buf[off + 9] = 0.0;       buf[off + 10] = cy;  buf[off + 11] = pos.z
-	# invariant: buf[off+12..15] 是顶点色乘子（白）
-	buf[off + 12] = 1.0; buf[off + 13] = 1.0; buf[off + 14] = 1.0; buf[off + 15] = 1.0
-	# invariant: buf[off+16..19] 对应 shader INSTANCE_CUSTOM
-	buf[off + 16] = anim_phase
-	buf[off + 17] = swing
-	buf[off + 18] = flash
-	buf[off + 19] = move_blend
+	# invariant: buf[off+12..15] 对应 shader INSTANCE_CUSTOM
+	buf[off + 12] = anim_phase
+	buf[off + 13] = swing
+	buf[off + 14] = flash
+	buf[off + 15] = move_blend
 
 	batch["cnt"] = cnt + 1
 
@@ -102,3 +102,13 @@ func get_total_visible_units() -> int:
 	for key in _batches.keys():
 		total += int(_batches[key]["cnt"])
 	return total
+
+
+func _grow_batch(batch: Dictionary) -> void:
+	var new_cap := maxi(int(batch["cap"]) * 2, 16)
+	var mm: MultiMesh = batch["mm"]
+	var buf: PackedFloat32Array = batch["buf"]
+	mm.instance_count = new_cap
+	buf.resize(new_cap * STRIDE)
+	batch["cap"] = new_cap
+	batch["buf"] = buf

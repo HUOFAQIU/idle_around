@@ -293,4 +293,8 @@ static func _find_equipped_ability(soul_name : String, target : String) -> Charg
 
 
 static func _battle_window() -> BattleWindow:
-	return COMMON.find_node_in_scene(BattleWindow) as BattleWindow
+	var window := COMMON.find_node_in_scene(BattleWindow) as BattleWindow
+	if window != null:
+		return window
+	var ui := COMMON.find_node_in_scene(GameUI) as GameUI
+	return ui.ensure_panel(&"battle") as BattleWindow if ui != null else null

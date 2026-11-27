@@ -43,7 +43,7 @@ func run(ctx: ScenarioContext) -> void:
 		ctx.near(float(rolled["cooldown"]), _cooldown_for(0), 0.0001, "未抽到冷却时取最慢端")
 
 	var cast_share := int(emotions.get("cast_times", 0))
-	var expected_times := 1 if cast_share < 50 else (2 if cast_share < 100 else 3)
+	var expected_times := 2 if cast_share < 50 else (3 if cast_share < 100 else 4)
 	ctx.equal(int(rolled["cast_times"]), expected_times, "多重触发分段")
 
 	var bounds := SoulEmotion.total_range(RARITY)
@@ -58,7 +58,7 @@ func run(ctx: ScenarioContext) -> void:
 	)
 	ctx.equal(int(applied["damage"]), 32, "伤害占比 25 映射到 32")
 	ctx.near(float(applied["cooldown"]), _cooldown_for(50), 0.0001, "冷却占比 50 映射到 4.5 秒")
-	ctx.equal(int(applied["cast_times"]), 1, "多重触发占比 25 映射到 1 次")
+	ctx.equal(int(applied["cast_times"]), 2, "多重触发占比 25 映射到 2 次")
 
 	var tooltip := TestAPI.get_soul_tooltip_with_emotions(SOUL_ID, emotions)
 	ctx.check(tooltip.contains("情绪"), "tooltip 显示情绪段")

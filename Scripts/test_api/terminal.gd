@@ -164,4 +164,8 @@ static func _terminal_view() -> TerminalView:
 
 
 static func _terminal_window() -> TerminalWindow:
-	return COMMON.find_node_in_scene(TerminalWindow) as TerminalWindow
+	var window := COMMON.find_node_in_scene(TerminalWindow) as TerminalWindow
+	if window != null:
+		return window
+	var ui := COMMON.find_node_in_scene(GameUI) as GameUI
+	return ui.ensure_panel(&"terminal") as TerminalWindow if ui != null else null

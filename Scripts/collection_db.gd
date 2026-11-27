@@ -14,7 +14,7 @@ var _seen: Dictionary = {}
 
 
 func _ready() -> void:
-	STARTUP_TIMING.mark("GBIS 等前置 autoload 完成")
+	STARTUP_TIMING.mark("主场景加载编译与前置 autoload 完成")
 	_reset_seen()
 	_load_catalog()
 	GBIS.sig_inv_item_added.connect(_on_inv_item_added)

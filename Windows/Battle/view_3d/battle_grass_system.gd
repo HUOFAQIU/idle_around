@@ -2,6 +2,7 @@ class_name BattleGrassSystem
 extends RefCounted
 
 const MAX_TRAMPLE_UNITS := 64
+const BAKED_GRASS_PATH := "res://Windows/Battle/assets/models/meadow_grass.res"
 
 var grass_mat: ShaderMaterial
 var _chars: Array[Vector4] = []
@@ -35,6 +36,43 @@ func setup(
 	grass_mat.set_shader_parameter("albedo3_noise", _make_seamless_noise(202, 0.015, 128))
 	grass_mat.set_shader_parameter("wind_noise", _make_seamless_noise(303, 0.024, 128))
 
+	var mm := _load_baked_multimesh(spacing, blade_size, dirt_radius)
+	if mm == null:
+		mm = _build_procedural_multimesh(height_fn, spacing, blade_size, dirt_radius)
+
+	var mmi := MultiMeshInstance3D.new()
+	mmi.name = "ForestGrassCarpet"
+	mmi.multimesh = mm
+	mmi.material_override = grass_mat
+	mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	mmi.extra_cull_margin = 16384.0
+	world.add_child(mmi)
+
+
+func _load_baked_multimesh(
+	spacing: float,
+	blade_size: Vector2,
+	dirt_radius: float
+) -> MultiMesh:
+	if not ResourceLoader.exists(BAKED_GRASS_PATH):
+		return null
+	var mm := load(BAKED_GRASS_PATH) as MultiMesh
+	if mm == null:
+		return null
+	var sp := float(mm.get_meta("grass_spacing", -1.0))
+	var bs: Vector2 = mm.get_meta("blade_size", Vector2.ZERO)
+	var dr := float(mm.get_meta("dirt_radius", -1.0))
+	if not is_equal_approx(sp, spacing) or not bs.is_equal_approx(blade_size) or not is_equal_approx(dr, dirt_radius):
+		return null
+	return mm
+
+
+func _build_procedural_multimesh(
+	height_fn: Callable,
+	spacing: float,
+	blade_size: Vector2,
+	dirt_radius: float
+) -> MultiMesh:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 20261126
 	var half := 33.0
@@ -88,14 +126,7 @@ func setup(
 	mm.instance_count = cnt
 	if cnt > 0:
 		mm.buffer = buf
-
-	var mmi := MultiMeshInstance3D.new()
-	mmi.name = "ForestGrassCarpet"
-	mmi.multimesh = mm
-	mmi.material_override = grass_mat
-	mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	mmi.extra_cull_margin = 16384.0
-	world.add_child(mmi)
+	return mm
 
 
 func set_trample_targets(targets: Array[Vector4]) -> void:

@@ -440,7 +440,11 @@ static func _inventory_window() -> InventoryWindow:
 
 
 static func _shop_window() -> BaseWindow:
-	return COMMON.find_node_in_scene(BaseWindow, &"ShopWindow") as BaseWindow
+	var window := COMMON.find_node_in_scene(BaseWindow, &"ShopWindow") as BaseWindow
+	if window != null:
+		return window
+	var ui := COMMON.find_node_in_scene(GameUI) as GameUI
+	return ui.ensure_panel(&"shop") if ui != null else null
 
 
 static func _player_runtime_for(id : StringName) -> SoulRuntime:

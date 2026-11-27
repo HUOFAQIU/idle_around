@@ -4,16 +4,10 @@
 [ext_resource type="PackedScene" uid="uid://da2scdocynbkk" path="res://Windows/Character/character_window.tscn" id="4_pa2rv"]
 [ext_resource type="PackedScene" path="res://Windows/Vessel/vessel_window.tscn" id="5_vessel"]
 [ext_resource type="PackedScene" uid="uid://f6jom4nfishp" path="res://Windows/Inventory/inventory_window.tscn" id="6_2mfgw"]
-[ext_resource type="PackedScene" uid="uid://bqug1f88ap7hb" path="res://Windows/Battle/battle_window.tscn" id="7_e8vwd"]
-[ext_resource type="PackedScene" uid="uid://byuffsddecjhf" path="res://Windows/Shop/shop_window.tscn" id="8_mkciv"]
-[ext_resource type="Script" uid="uid://cwvp8ltmwje07" path="res://Windows/ModWindow/mod_window.gd" id="9_70kn5"]
 [ext_resource type="PackedScene" uid="uid://duibpbpnx3f6x" path="res://Windows/Tooltip/tooltip_window.tscn" id="9_c4peb"]
-[ext_resource type="PackedScene" uid="uid://dcymb2xgnhr2c" path="res://Windows/Collection/collection_window.tscn" id="9_nu5lx"]
 [ext_resource type="PackedScene" uid="uid://bc0rml4pkml2k" path="res://Windows/Info/info_window.tscn" id="10_gdtoh"]
 [ext_resource type="PackedScene" uid="uid://b87wi6f58te5u" path="res://Windows/Item/item_window.tscn" id="11_n2hic"]
-[ext_resource type="PackedScene" uid="uid://cj4ex21pfm4qa" path="res://Windows/Debug/debug_window.tscn" id="12_debug"]
 [ext_resource type="Script" uid="uid://cvrphgarwhs83" path="res://Main/panel_manager.gd" id="14_panel_manager"]
-[ext_resource type="PackedScene" path="res://Windows/Terminal/terminal_window.tscn" id="16_terminal"]
 
 [node name="Control" type="Control" unique_id=887310324]
 layout_mode = 3
@@ -32,31 +26,7 @@ visible = false
 visible = false
 open_position = Vector2i(735, 20)
 
-[node name="BattleWindow" parent="." unique_id=1210820663 instance=ExtResource("7_e8vwd")]
-visible = false
-
-[node name="ShopWindow" parent="." unique_id=1488491486 instance=ExtResource("8_mkciv")]
-visible = false
-
-[node name="ModWindow" type="Control" parent="." unique_id=829175154]
-visible = false
-layout_mode = 1
-anchors_preset = 0
-offset_top = 36.0
-offset_right = 640.0
-offset_bottom = 392.0
-script = ExtResource("9_70kn5")
-
-[node name="DebugWindow" parent="." unique_id=1698870524 instance=ExtResource("12_debug")]
-open_position = Vector2i(200, 80)
-
-[node name="CollectionWindow" parent="." unique_id=1694343200 instance=ExtResource("9_nu5lx")]
-visible = false
-
 [node name="VesselWindow" parent="." unique_id=675089360 instance=ExtResource("5_vessel")]
-visible = false
-
-[node name="TerminalWindow" parent="." unique_id=1698684277 instance=ExtResource("16_terminal")]
 visible = false
 
 [node name="InfoWindow" parent="." unique_id=158491879 instance=ExtResource("10_gdtoh")]

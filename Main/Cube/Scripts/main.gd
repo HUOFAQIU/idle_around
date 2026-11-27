@@ -35,6 +35,7 @@ func _ready() -> void:
 	STARTUP_TIMING.mark("主场景就绪")
 	await RenderingServer.frame_post_draw
 	STARTUP_TIMING.mark("首帧绘制")
+	_preload_battle_after_first_frame()
 
 
 func _on_face_identified(
@@ -66,11 +67,13 @@ func _on_map_battle_requested(slot_index: int) -> void:
 	var map_item := MapBoard.get_slot(slot_index)
 	if map_item == null:
 		return
-	var battle := _game_ui.battle_window
-	if battle.is_battling_slot(slot_index):
+	var battle := _game_ui.ensure_panel(&"battle")
+	if battle == null:
+		return
+	if bool(battle.call("is_battling_slot", slot_index)):
 		_game_ui.panel_manager.raise(battle)
 		return
-	battle.start_battle(map_item, slot_index)
+	battle.call("start_battle", map_item, slot_index)
 	_game_ui.panel_manager.raise(battle)
 
 
@@ -80,9 +83,18 @@ func _on_toast_requested(text: String) -> void:
 
 func _on_session_will_change() -> void:
 	_game_ui.close_all_panels()
-	_game_ui.battle_window.stop_battle()
+	var battle := _game_ui.get_panel(&"battle")
+	if battle != null:
+		battle.call("stop_battle")
 
 
 func _on_quit_requested() -> void:
 	SaveManager.save_now()
 	get_tree().quit()
+
+
+func _preload_battle_after_first_frame() -> void:
+	_game_ui.preload_panel(&"battle")
+	var arena_path := "res://Windows/Battle/scenes/battle_arena.tscn"
+	if ResourceLoader.load_threaded_get_status(arena_path) == ResourceLoader.THREAD_LOAD_INVALID_RESOURCE:
+		ResourceLoader.load_threaded_request(arena_path)

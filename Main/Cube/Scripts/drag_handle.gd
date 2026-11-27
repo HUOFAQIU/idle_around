@@ -6,7 +6,7 @@ const HIT_RADIUS := 16.0
 const HOVER_SCALE := 1.22
 const ACTIVE_SCALE := 1.32
 const CORE_COLOR := Color(0.82, 0.96, 1.0, 0.96)
-const SCREEN_GAP := 130.0
+const SCREEN_GAP := 40.0
 const SCREEN_MARGIN := 32.0
 
 @export var anchor_path: NodePath = ^"../.."

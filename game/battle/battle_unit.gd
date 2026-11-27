@@ -52,7 +52,9 @@ var flash_decay: float = 5.0
 var cached_ground_y: float = 0.0
 var ground_y_dirty: bool = true
 var is_dead: bool = false
+var is_test_spawn: bool = false
 var _death_queued: bool = false
+var _pooled: bool = false
 var _active_effect_count: int = 0
 var _souls_loaded: bool = false
 var soul_loadout: SoulLoadout
@@ -439,6 +441,59 @@ func cleanup_asc() -> void:
 	unregister_soul_runtimes()
 	if asc != null:
 		asc.cleanup()
+
+
+func recycle_to_pool() -> void:
+	if _pooled:
+		return
+	_pooled = true
+	is_dead = true
+	_death_queued = false
+	cleanup_asc()
+	if brain != null:
+		brain.abilities.clear()
+		brain.begin_charge()
+		brain.set_process(false)
+		brain.set_physics_process(false)
+	if asc != null:
+		asc.process_mode = Node.PROCESS_MODE_DISABLED
+	souls.clear()
+	drops.clear()
+	monster_data = null
+	batch_key = ""
+	velocity = Vector2.ZERO
+	cached_sep = Vector2.ZERO
+	swing = 0.0
+	flash = 0.0
+	is_moving = false
+	ground_y_dirty = true
+	_active_effect_count = 0
+	_souls_loaded = false
+	is_test_spawn = false
+
+
+func activate_from_pool(p_battle: BattleManager) -> void:
+	_pooled = false
+	battle = p_battle
+	is_dead = false
+	_death_queued = false
+	_active_effect_count = 0
+	_souls_loaded = false
+	_reset_status_attributes()
+	_init_attributes()
+	if brain != null:
+		brain.unit = self
+		brain.set_physics_process(false)
+	sync_asc_processing()
+
+
+func _reset_status_attributes() -> void:
+	if asc == null:
+		return
+	for attr_name in ["burn", "shield", "poison", "regen"]:
+		var attr := asc.get_attribute(attr_name)
+		if attr != null:
+			attr.base_value = 0.0
 
 
 func _die() -> void:

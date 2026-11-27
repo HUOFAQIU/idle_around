@@ -140,7 +140,6 @@ func _on_overlay_draw() -> void:
 		var col := SOLDIER_HP_FILL if frac > 0.35 else SOLDIER_HP_LOW
 		overlay.draw_rect(Rect2(bx, by, bw * frac, bh), col)
 
-	var drawn := 0
 	for m in _game.get_hp_bar_entries():
 		var hp: float = m["hp"]
 		var mhp: float = m["max_hp"]
@@ -155,6 +154,3 @@ func _on_overlay_draw() -> void:
 		var frac := clampf(hp / maxf(mhp, 1.0), 0.0, 1.0)
 		overlay.draw_rect(Rect2(bx - s * 0.5, by - s * 0.5, bw + s, bh + s), MOB_HP_FRAME)
 		overlay.draw_rect(Rect2(bx, by, bw * frac, bh), MOB_HP_FILL)
-		drawn += 1
-		if drawn >= 48:
-			break

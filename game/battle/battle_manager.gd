@@ -4,6 +4,7 @@ const MOVE_BUDGET_PER_FRAME : int = 200
 const TICK_END_PHYSICS_PRIORITY : int = 128
 
 var spawn_enemy: Callable = Callable()
+var recycle_enemy: Callable = Callable()
 var loot_sink: Callable = Callable()
 var loot_rarity: int = SoulEmotion.DEFAULT_RARITY
 var player: BattleUnit
@@ -59,8 +60,10 @@ func add_unit(unit: BattleUnit) -> void:
 		"souls": unit.loadout.map(func(runtime): return runtime.display_name() if runtime != null else ""),
 	}, BattleEvent.IMPORTANCE_DETAIL)
 
-	unit.died.connect(_on_unit_died)
-	unit.moved.connect(_on_unit_moved)
+	if not unit.died.is_connected(_on_unit_died):
+		unit.died.connect(_on_unit_died)
+	if not unit.moved.is_connected(_on_unit_moved):
+		unit.moved.connect(_on_unit_moved)
 	if is_running:
 		unit.brain.begin_charge()
 	if unit.team == BattleUnit.Team.ENEMY and unit.brain != null:
@@ -307,6 +310,9 @@ func _on_unit_died(unit: BattleUnit) -> void:
 	spatial.unregister(unit)
 	registry.remove(unit)
 	_loot.roll(unit, rng, loot_rarity)
-	unit.cleanup_asc()
-	unit.queue_free()
+	if recycle_enemy.is_valid():
+		recycle_enemy.call_deferred(unit)
+	else:
+		unit.cleanup_asc()
+		unit.queue_free()
 

@@ -6,6 +6,7 @@ signal player_spawned(unit: BattleUnit)
 
 const REVIVE_DELAY: float = 3.0
 const MAP_RESTART_DELAY: float = 5.0
+const MAX_ENEMY_POOL: int = 512
 var units_root: Node
 var attach_observers: Callable = Callable()
 var spawn_radius_min_logic: float = 0.0
@@ -25,6 +26,7 @@ var _manual_time: bool = false
 var _map_kills: Dictionary = {}
 var _test_monster_id: StringName = &""
 var _next_spawn_is_test: bool = false
+var _enemy_pool: Array[BattleUnit] = []
 
 
 func start(p_slots: Array[SoulSlot], map_item: MapItemData) -> void:
@@ -44,6 +46,7 @@ func start(p_slots: Array[SoulSlot], map_item: MapItemData) -> void:
 	battle.name = "BattleManager"
 	add_child(battle)
 	battle.spawn_enemy = _spawn_enemy
+	battle.recycle_enemy = _recycle_enemy
 	battle.loot_sink = Warehouse.add_item
 	battle.setup()
 	battle.loot_rarity = (
@@ -78,6 +81,7 @@ func stop() -> void:
 			rt.soul.set_scanline_enabled(false)
 		rt.clear_display()
 	SoulRuntimeDB.clear()
+	_enemy_pool.clear()
 	for child in units_root.get_children():
 		if child is BattleUnit:
 			(child as BattleUnit).cleanup_asc()
@@ -250,7 +254,10 @@ func _spawn_enemy() -> void:
 	if monster == null:
 		return
 	var is_test := _next_spawn_is_test
-	var unit := BattleUnit.create_headless(BattleUnit.Team.ENEMY)
+	var unit := _acquire_enemy_unit()
+	var is_pooled := unit != null
+	if not is_pooled:
+		unit = BattleUnit.create_headless(BattleUnit.Team.ENEMY)
 	unit.cache_monster_visuals(monster)
 	unit.unit_name = monster.display_name
 	unit.max_health = monster.max_health
@@ -259,12 +266,35 @@ func _spawn_enemy() -> void:
 	unit.drops = monster.drop_entries()
 	unit.souls = monster.soul_list()
 	unit.anim_phase = battle.rng.randf() * TAU
-	units_root.add_child(unit)
-	unit.setup_from_scene(battle)
+	unit.is_test_spawn = is_test
+	if is_pooled:
+		unit.activate_from_pool(battle)
+	else:
+		units_root.add_child(unit)
+		unit.setup_from_scene(battle)
+		unit.died.connect(_on_enemy_died)
 	_place_spawned_enemy(unit, monster)
 	battle.add_unit(unit)
-	unit.died.connect(_on_enemy_died.bind(monster, is_test))
 	CollectionDB.mark_monster_seen(monster)
+
+
+func _acquire_enemy_unit() -> BattleUnit:
+	while not _enemy_pool.is_empty():
+		var candidate: BattleUnit = _enemy_pool.pop_back()
+		if candidate != null and is_instance_valid(candidate):
+			return candidate
+	return null
+
+
+func _recycle_enemy(unit: BattleUnit) -> void:
+	if unit == null or not is_instance_valid(unit):
+		return
+	if battle == null or not is_instance_valid(battle) or _enemy_pool.size() >= MAX_ENEMY_POOL:
+		unit.cleanup_asc()
+		unit.queue_free()
+		return
+	unit.recycle_to_pool()
+	_enemy_pool.append(unit)
 
 
 func _place_spawned_enemy(unit: BattleUnit, monster: MonsterData) -> void:
@@ -302,9 +332,10 @@ func _enqueue_spawns(monster_ids: Array[StringName]) -> void:
 		_pending_spawn_ids.append(monster_id)
 
 
-func _on_enemy_died(_unit: BattleUnit, monster: MonsterData, is_test: bool) -> void:
-	if is_test or battle == null or not battle.is_running or _map_run == null:
+func _on_enemy_died(unit: BattleUnit) -> void:
+	if unit == null or unit.is_test_spawn or battle == null or not battle.is_running or _map_run == null:
 		return
+	var monster := unit.monster_data
 	if monster == null:
 		return
 	var monster_id: StringName = monster.content_id

@@ -92,4 +92,8 @@ static func get_orphaned_records() -> Array[Dictionary]:
 
 
 static func _mod_window() -> ModWindow:
-	return COMMON.find_node_in_scene(ModWindow) as ModWindow
+	var window := COMMON.find_node_in_scene(ModWindow) as ModWindow
+	if window != null:
+		return window
+	var ui := COMMON.find_node_in_scene(GameUI) as GameUI
+	return ui.ensure_panel(&"mod") as ModWindow if ui != null else null

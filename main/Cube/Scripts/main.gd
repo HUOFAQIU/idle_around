@@ -95,6 +95,7 @@ func _on_quit_requested() -> void:
 
 func _preload_battle_after_first_frame() -> void:
 	_game_ui.preload_panel(&"battle")
+	_game_ui.preload_panel(&"terminal")
 	var arena_path := "res://windows/Battle/scenes/battle_arena.tscn"
 	if ResourceLoader.load_threaded_get_status(arena_path) == ResourceLoader.THREAD_LOAD_INVALID_RESOURCE:
 		ResourceLoader.load_threaded_request(arena_path)

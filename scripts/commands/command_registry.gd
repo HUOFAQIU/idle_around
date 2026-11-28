@@ -17,7 +17,9 @@ static func run(line: String) -> Dictionary:
 	if command == "help":
 		return CommandResult.ok(help(args[0] if not args.is_empty() else ""))
 	if command == "clear":
-		return CommandResult.ok()
+		var clear_result := CommandResult.ok()
+		clear_result["action"] = "clear"
+		return clear_result
 	if command == "echo":
 		return CommandResult.ok(" ".join(args))
 	var entry: Dictionary = CATALOG.get_entry(command)

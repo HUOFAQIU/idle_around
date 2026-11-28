@@ -6,8 +6,6 @@ const GAP : float = 10.0
 const BODY_FONT_SIZE : int = 16
 const TITLE_SPAN_ROWS : int = 2
 
-const CONTAINER_IDS: GDScript = preload("res://scripts/container_ids.gd")
-
 enum Layer { COORD, ITEM }
 
 var _want_visible : bool = false
@@ -94,35 +92,10 @@ func _set_text(title_text: String, body_text: String) -> void:
 
 
 func _on_item_focused(item_data: ItemData, container_name: String) -> void:
-	var body := ""
-	if item_data is SoulData:
-		var soul := item_data as SoulData
-		body = SoulTooltip.build(
-			soul, TooltipText.Format.PLAIN, _soul_preview(soul, container_name)
-		)
-	elif item_data is SoulVesselData:
-		body = VesselTooltip.build(item_data as SoulVesselData, TooltipText.Format.PLAIN)
-	elif item_data is MapItemData:
-		body = MapTooltip.build(item_data as MapItemData, TooltipText.Format.PLAIN)
-	elif item_data is QuantityStoneData:
-		body = QuantityStoneTooltip.build(
-			item_data as QuantityStoneData, TooltipText.Format.PLAIN
-		)
+	var body := ItemTooltipRegistry.build(
+		item_data, container_name, TooltipText.Format.PLAIN
+	)
 	show_tip(self, Layer.ITEM, item_data.tooltip_title(), body)
-
-
-func _soul_preview(soul: SoulData, container_name: String) -> SoulDamagePreview:
-	var container := ContainerRepository.instance.get_container(container_name)
-	if container == null:
-		return null
-	var vessel := container.get_owner_item() as SoulVesselData
-	if vessel == null or vessel.vessel_kind != "COMBAT":
-		return null
-	var runtime := SoulRuntimeDB.get_runtime(soul)
-	if runtime != null:
-		return SoulDamagePreview.for_soul(soul, runtime)
-	var grid := ContainerRepository.instance.get_container(CONTAINER_IDS.VESSEL_GRID)
-	return SoulDamagePreview.preview_for(soul, vessel, SoulVesselData.combat_souls_in(grid))
 
 
 func _on_item_focus_lost(_item_data: ItemData) -> void:

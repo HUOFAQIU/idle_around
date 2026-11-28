@@ -30,9 +30,11 @@ var _prompt_style: TerminalStyle
 func _ready() -> void:
 	super()
 	title = "终端"
+	_build_clear_button()
 	_build_styles()
 	_setup_input()
 	_setup_completion()
+	terminal.gui_input.connect(_on_terminal_gui_input)
 	terminal.resized.connect(_try_write_welcome)
 	_try_write_welcome()
 	visibility_changed.connect(_on_visibility_changed)
@@ -66,12 +68,29 @@ func submit_command(line: String) -> void:
 	_history_index = _history.size()
 	input.clear()
 	terminal.write_line("> " + text, _prompt_style)
-	if text == "clear":
+	var result: Dictionary = COMMAND_REGISTRY.run(text)
+	if String(result.get("action", "")) == "clear":
 		terminal.clear()
+		input.grab_focus.call_deferred()
 		return
-	_write_result(COMMAND_REGISTRY.run(text))
+	_write_result(result)
 	terminal.scroll_to_bottom()
 	input.grab_focus()
+
+
+func _build_clear_button() -> void:
+	var clear_button := Button.new()
+	clear_button.name = "ClearButton"
+	clear_button.text = "清空"
+	clear_button.tooltip_text = "清空终端输出"
+	clear_button.custom_minimum_size = Vector2i(0, TITLE_BUTTON_SIZE.y)
+	clear_button.pressed.connect(_on_clear_pressed)
+	add_title_bar_button(clear_button)
+
+
+func _on_clear_pressed() -> void:
+	terminal.clear()
+	input.grab_focus.call_deferred()
 
 
 func _build_styles() -> void:
@@ -136,6 +155,8 @@ func _on_input_gui_input(event: InputEvent) -> void:
 	var mouse := event as InputEventMouseButton
 	if mouse != null and mouse.pressed:
 		_hide_completion()
+		if mouse.button_index == MOUSE_BUTTON_LEFT and not input.has_focus():
+			input.grab_focus.call_deferred()
 		return
 	var key := event as InputEventKey
 	if key == null or not key.pressed:
@@ -316,9 +337,20 @@ func _navigate_history(delta: int) -> void:
 	input.caret_column = input.text.length()
 
 
+func on_panel_activated() -> void:
+	if visible and is_instance_valid(input):
+		input.grab_focus.call_deferred()
+
+
+func _on_terminal_gui_input(event: InputEvent) -> void:
+	var mouse := event as InputEventMouseButton
+	if mouse != null and mouse.pressed and mouse.button_index == MOUSE_BUTTON_LEFT:
+		input.grab_focus.call_deferred()
+
+
 func _on_visibility_changed() -> void:
 	if visible:
-		input.grab_focus()
+		input.grab_focus.call_deferred()
 	else:
 		_hide_completion()
 

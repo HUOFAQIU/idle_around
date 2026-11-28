@@ -41,6 +41,15 @@ func _ready() -> void:
 		register_overlay(item_window, false)
 
 
+func _input(event: InputEvent) -> void:
+	var key := event as InputEventKey
+	if key == null or not key.pressed or key.echo:
+		return
+	if key.keycode == KEY_QUOTELEFT:
+		open_panel(&"terminal")
+		get_viewport().set_input_as_handled()
+
+
 func register_panel_spec(panel_id: StringName, spec: Dictionary) -> void:
 	if panel_id.is_empty():
 		return

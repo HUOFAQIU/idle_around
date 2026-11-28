@@ -36,6 +36,6 @@ layout_mode = 2
 mouse_filter = 2
 script = ExtResource("2_terminal_view")
 cursor_visible = false
-debug_grid = true
+debug_grid = false
 transparent_background = true
 scrollback_lines = 0

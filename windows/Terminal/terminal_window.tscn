@@ -27,7 +27,8 @@ layout_mode = 2
 size_flags_vertical = 3
 script = ExtResource("2_terminal_view")
 font_size = 16
-debug_grid = true
+cursor_visible = false
+debug_grid = false
 
 [node name="Input" type="LineEdit" parent="Layout"]
 layout_mode = 2

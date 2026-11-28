@@ -25,6 +25,9 @@ const DEBUG_GRID_COLOR: Color = Color(1.0, 1.0, 1.0, 0.05)
 ## 回看历史上限（行）；0 表示不保留历史
 @export var scrollback_lines: int = 1000
 
+static var _shared_font: Font
+static var _shared_cjk_font: Font
+
 var buffer: TerminalBuffer
 var view_offset: int = 0
 var auto_scroll: bool = true
@@ -36,19 +39,19 @@ var _bold_cjk_font: FontVariation
 var _ansi_parser: TerminalAnsiParser
 var _cursor_on: bool = true
 var _blink_timer: Timer
-var _spans: Array[TerminalSpan] = []
-var _span_rects: Array[Rect2i] = []
+var _span_renderer := TerminalSpanRenderer.new()
 
 
 func _ready() -> void:
 	clip_contents = true
 	_ensure_font()
 	_refresh_metrics()
-	_blink_timer = Timer.new()
-	_blink_timer.wait_time = CURSOR_BLINK_INTERVAL
-	_blink_timer.autostart = true
-	_blink_timer.timeout.connect(_on_blink_timeout)
-	add_child(_blink_timer)
+	if cursor_visible:
+		_blink_timer = Timer.new()
+		_blink_timer.wait_time = CURSOR_BLINK_INTERVAL
+		_blink_timer.autostart = true
+		_blink_timer.timeout.connect(_on_blink_timeout)
+		add_child(_blink_timer)
 	resized.connect(_sync_grid_to_size)
 	_sync_grid_to_size()
 
@@ -205,35 +208,29 @@ func set_debug_grid(enabled: bool) -> void:
 func set_spans(spans: Array[TerminalSpan]) -> void:
 	_ensure_font()
 	_refresh_metrics()
-	_spans.clear()
-	for span in spans:
-		if span != null and not span.text.is_empty():
-			_spans.append(span)
-	_rebuild_span_rects()
+	_span_renderer.set_spans(spans, font, cjk_font, font_size, _cell_size, _pick_font)
 	queue_redraw()
 
 
 func clear_spans() -> void:
-	_spans.clear()
-	_span_rects.clear()
+	_span_renderer.clear()
 	queue_redraw()
 
 
 func get_spans() -> Array[TerminalSpan]:
-	return _spans.duplicate()
+	return _span_renderer.get_spans()
 
 
 func get_span_rects() -> Array[Rect2i]:
-	return _span_rects.duplicate()
+	return _span_renderer.get_rects()
 
 
 func measure_span(text: String, rows: int = 2, style: TerminalStyle = null) -> Vector2i:
 	_ensure_font()
 	_refresh_metrics()
-	var span_rows := maxi(rows, 1)
-	var scaled_size := _span_font_size(span_rows)
-	var columns := _measure_span_columns(_normalize_span_text(text), scaled_size, style)
-	return Vector2i(maxi(columns, 1), span_rows)
+	return _span_renderer.measure_span(
+		text, rows, style, font, cjk_font, font_size, _cell_size, _pick_font
+	)
 
 
 func fit_text(text: String, reserved_rows: int = 0, min_cols: int = 1) -> Vector2i:
@@ -312,7 +309,7 @@ func _draw() -> void:
 			_draw_row_background(row, cols, screen_fg, screen_bg, screen_attrs, screen_base)
 			_draw_row_glyphs(row, cols, screen_chars, screen_fg, screen_bg, screen_attrs, screen_base)
 	if view_offset == 0:
-		_draw_spans()
+		_span_renderer.draw_spans(self, font, cjk_font, font_size, _cell_size, _pick_font)
 		_draw_cursor(cols, rows, screen_chars, screen_fg, screen_bg, screen_attrs)
 	if debug_grid:
 		_draw_grid(cols, rows)
@@ -364,7 +361,7 @@ func _draw_row_glyphs(
 ) -> void:
 	var cell := _cell_size
 	for col in cols:
-		if view_offset == 0 and not _span_rects.is_empty() and _cell_in_span(view_row, col):
+		if view_offset == 0 and not _span_renderer.is_empty() and _span_renderer.cell_in_span(view_row, col):
 			continue
 		var index := base + col
 		var code := chars[index]
@@ -407,9 +404,8 @@ func _draw_cursor(
 	var code := chars[index]
 	var wide := (attr & TerminalBuffer.ATTR_WIDE) != 0 and code > 0
 	var cursor_rect := Rect2i(col, row, 2 if wide else 1, 1)
-	for span_rect in _span_rects:
-		if span_rect.intersects(cursor_rect):
-			return
+	if _span_renderer.intersects_rect(cursor_rect):
+		return
 	var cursor_color := fg_colors[index]
 	var text_color := bg_colors[index]
 	if (attr & TerminalBuffer.ATTR_REVERSE) != 0:
@@ -446,7 +442,7 @@ func _vertical_grid_segments(col: int, max_y: float) -> Array[Vector2]:
 	var segments: Array[Vector2] = [Vector2(0.0, max_y)]
 	if view_offset != 0:
 		return segments
-	for rect in _span_rects:
+	for rect in _span_renderer.span_rects:
 		if col <= rect.position.x or col >= rect.end.x:
 			continue
 		segments = _subtract_interval(
@@ -459,7 +455,7 @@ func _horizontal_grid_segments(row: int, max_x: float) -> Array[Vector2]:
 	var segments: Array[Vector2] = [Vector2(0.0, max_x)]
 	if view_offset != 0:
 		return segments
-	for rect in _span_rects:
+	for rect in _span_renderer.span_rects:
 		if row <= rect.position.y or row >= rect.end.y:
 			continue
 		segments = _subtract_interval(
@@ -483,129 +479,6 @@ func _subtract_interval(
 	return result
 
 
-func _draw_spans() -> void:
-	for span in _spans:
-		_draw_span(span)
-
-
-func _draw_span(span: TerminalSpan) -> void:
-	var text := _normalize_span_text(span.text)
-	if text.is_empty():
-		return
-	var span_rows := maxi(span.rows, 1)
-	var scaled_size := _span_font_size(span_rows)
-	var block_x := span.col * _cell_size.x
-	var block_y := span.row * _cell_size.y
-	var block_height := span_rows * _cell_size.y
-	var columns := _measure_span_columns(text, scaled_size, span.style)
-	var block_width := columns * _cell_size.x
-	var color := TerminalPalette.default_fg()
-	var background := TerminalPalette.default_bg()
-	var bold := false
-	if span.style != null:
-		color = span.style.fg
-		background = span.style.bg
-		bold = span.style.bold
-		if span.style.reverse:
-			var swap := color
-			color = background
-			background = swap
-	if background != TerminalPalette.default_bg():
-		draw_rect(
-			Rect2(Vector2(block_x, block_y), Vector2(block_width, block_height)),
-			background,
-			true
-		)
-	var cursor_col := 0
-	for i in text.length():
-		var code := text.unicode_at(i)
-		if code < 32:
-			continue
-		var wide := TerminalWidth.columns(code) == 2
-		var draw_font := _pick_font(code, wide, bold)
-		var advance := draw_font.get_char_size(code, scaled_size).x
-		if advance <= 0.0:
-			advance = _cell_size.x * (2.0 if wide else 1.0)
-		var glyph_cols := maxi(ceili(advance / _cell_size.x), 1)
-		if code != TerminalBuffer.SPACE:
-			var x := block_x + cursor_col * _cell_size.x
-			x += (glyph_cols * _cell_size.x - advance) * 0.5
-			var line_height := draw_font.get_height(scaled_size)
-			var top := block_y + maxf((block_height - line_height) * 0.5, 0.0)
-			var origin := Vector2(x, top + draw_font.get_ascent(scaled_size))
-			draw_font.draw_char(get_canvas_item(), origin, code, scaled_size, color)
-			if span.style != null and span.style.underline:
-				draw_rect(
-					Rect2(
-						Vector2(
-							block_x + cursor_col * _cell_size.x,
-							block_y + block_height - 1.0
-						),
-						Vector2(glyph_cols * _cell_size.x, 1.0)
-					),
-					color,
-					true
-				)
-		cursor_col += glyph_cols
-
-
-func _normalize_span_text(text: String) -> String:
-	return text.replace("\r\n", "\n").replace("\r", "").replace("\n", " ")
-
-
-func _span_font_size(rows: int) -> int:
-	var span_rows := maxi(rows, 1)
-	var scaled_size := font_size * span_rows
-	var max_height := span_rows * _cell_size.y
-	while scaled_size > 1:
-		var line_height := font.get_height(scaled_size) if font != null else 0.0
-		if cjk_font != null:
-			line_height = maxf(line_height, cjk_font.get_height(scaled_size))
-		if line_height <= max_height:
-			break
-		scaled_size -= 1
-	return maxi(scaled_size, 1)
-
-
-func _measure_span_columns(text: String, scaled_size: int, style: TerminalStyle) -> int:
-	var columns := 0
-	var bold := style != null and style.bold
-	for i in text.length():
-		var code := text.unicode_at(i)
-		if code < 32:
-			continue
-		var wide := TerminalWidth.columns(code) == 2
-		var draw_font := _pick_font(code, wide, bold)
-		var advance := draw_font.get_char_size(code, scaled_size).x
-		if advance <= 0.0:
-			advance = _cell_size.x * (2.0 if wide else 1.0)
-		columns += maxi(ceili(advance / _cell_size.x), 1)
-	return columns
-
-
-func _rebuild_span_rects() -> void:
-	_span_rects.clear()
-	for span in _spans:
-		var span_rows := maxi(span.rows, 1)
-		var scaled_size := _span_font_size(span_rows)
-		var columns := _measure_span_columns(
-			_normalize_span_text(span.text), scaled_size, span.style
-		)
-		_span_rects.append(Rect2i(span.col, span.row, maxi(columns, 1), span_rows))
-
-
-func _cell_in_span(row: int, col: int) -> bool:
-	for rect in _span_rects:
-		if (
-			col >= rect.position.x
-			and col < rect.end.x
-			and row >= rect.position.y
-			and row < rect.end.y
-		):
-			return true
-	return false
-
-
 func _pick_font(code: int, wide: bool, bold: bool) -> Font:
 	if wide and cjk_font != null and cjk_font.has_char(code):
 		if bold and _bold_cjk_font != null:
@@ -627,13 +500,17 @@ func _glyph_origin(col: int, row: int, code: int, wide: bool, draw_font: Font) -
 
 func _ensure_font() -> void:
 	if font == null:
-		var system_font := SystemFont.new()
-		system_font.font_names = PackedStringArray(FALLBACK_FONTS)
-		font = system_font
+		if _shared_font == null:
+			var system_font := SystemFont.new()
+			system_font.font_names = PackedStringArray(FALLBACK_FONTS)
+			_shared_font = system_font
+		font = _shared_font
 	if cjk_font == null:
-		var cjk_system_font := SystemFont.new()
-		cjk_system_font.font_names = PackedStringArray(CJK_FALLBACK_FONTS)
-		cjk_font = cjk_system_font
+		if _shared_cjk_font == null:
+			var cjk_system_font := SystemFont.new()
+			cjk_system_font.font_names = PackedStringArray(CJK_FALLBACK_FONTS)
+			_shared_cjk_font = cjk_system_font
+		cjk_font = _shared_cjk_font
 
 
 func _refresh_metrics() -> void:
@@ -652,7 +529,7 @@ func _refresh_metrics() -> void:
 			_bold_cjk_font = FontVariation.new()
 		_bold_cjk_font.base_font = cjk_font
 		_bold_cjk_font.variation_embolden = BOLD_EMBOLDEN
-	_rebuild_span_rects()
+	_span_renderer.rebuild_rects(font, cjk_font, font_size, _cell_size, _pick_font)
 
 
 func _sync_grid_to_size() -> void:
@@ -698,6 +575,8 @@ func _after_write(history_before: int) -> void:
 
 
 func _restart_cursor_blink() -> void:
+	if not cursor_visible:
+		return
 	_cursor_on = true
 	if _blink_timer != null:
 		_blink_timer.start()

@@ -40,8 +40,11 @@ func open(panel : BaseWindow) -> void:
 func raise(panel : BaseWindow) -> void:
 	if panel == null or not panel.is_visible_in_tree():
 		return
+	var was_active := _active == panel
 	panel.move_to_front()
 	_active = panel
+	if not was_active and panel.has_method("on_panel_activated"):
+		panel.call("on_panel_activated")
 
 
 func is_active(panel : BaseWindow) -> bool:

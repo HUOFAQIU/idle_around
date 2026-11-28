@@ -1,15 +1,18 @@
 extends RefCounted
 class_name DragPresenter
 
+static var hold_item_view: Callable = Callable()
+static var clear_item_view: Callable = Callable()
+
 var _view: ItemView
 var _drop_area: DropAreaView
 
 
 func begin(item_data: ItemData, grab_offset: Vector2i, base_size: int) -> void:
 	_view = null
-	if ItemWindow.instance:
+	if hold_item_view.is_valid():
 		_view = ItemView.new(item_data, base_size)
-		ItemWindow.instance.hold(_view, grab_offset, base_size)
+		hold_item_view.call(_view, grab_offset, base_size)
 	if _drop_area:
 		_drop_area.show()
 
@@ -17,8 +20,8 @@ func begin(item_data: ItemData, grab_offset: Vector2i, base_size: int) -> void:
 func end() -> void:
 	if _view != null and not _view.is_inside_tree():
 		_view.queue_free()
-	if ItemWindow.instance:
-		ItemWindow.instance.clear()
+	if clear_item_view.is_valid():
+		clear_item_view.call()
 	_view = null
 	if _drop_area:
 		_drop_area.hide()

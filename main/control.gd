@@ -2,6 +2,8 @@ class_name GameUI
 extends Control
 
 const LAZY_SCENE_PANELS := {
+	&"character": "res://windows/Character/character_window.tscn",
+	&"inventory": "res://windows/Inventory/inventory_window.tscn",
 	&"battle": "res://windows/Battle/battle_window.tscn",
 	&"shop": "res://windows/Shop/shop_window.tscn",
 	&"collection": "res://windows/Collection/collection_window.tscn",
@@ -12,11 +14,15 @@ const MOD_WINDOW_SCRIPT_PATH := "res://windows/ModWindow/mod_window.gd"
 
 var _panels: Dictionary = {}
 
-@onready var character_window: CharacterWindow = $CharacterWindow
-@onready var inventory_window: InventoryWindow = $InventoryWindow
 @onready var panel_manager: PanelManager = $PanelManager
 
-# why: 懒加载窗口统一标注为 BaseWindow，避免编译期拉起终端/战斗/测试脚本整条依赖链
+# why: 懒加载窗口统一标注为 BaseWindow，避免编译期拉起各窗口与测试脚本依赖链
+var character_window: BaseWindow:
+	get:
+		return ensure_panel(&"character")
+var inventory_window: BaseWindow:
+	get:
+		return ensure_panel(&"inventory")
 var battle_window: BaseWindow:
 	get:
 		return ensure_panel(&"battle")
@@ -35,13 +41,6 @@ var mod_window: BaseWindow:
 var terminal_window: BaseWindow:
 	get:
 		return ensure_panel(&"terminal")
-
-
-func _ready() -> void:
-	_panels = {
-		&"character": character_window,
-		&"inventory": inventory_window,
-	}
 
 
 func get_panel(panel_id: StringName) -> BaseWindow:
@@ -68,7 +67,9 @@ func ensure_panel(panel_id: StringName) -> BaseWindow:
 		var packed := _load_lazy_scene(String(LAZY_SCENE_PANELS[panel_id]))
 		if packed != null:
 			created = packed.instantiate() as BaseWindow
-		if created != null and panel_id == &"debug":
+		if created != null and panel_id == &"inventory":
+			created.open_position = Vector2i(735, 20)
+		elif created != null and panel_id == &"debug":
 			created.open_position = Vector2i(200, 80)
 	elif panel_id == &"mod":
 		var mod_script := load(MOD_WINDOW_SCRIPT_PATH) as Script

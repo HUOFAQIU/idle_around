@@ -66,6 +66,7 @@ func init_game(mat_unit: ShaderMaterial, height_fn: Callable = Callable()) -> vo
 	_session.spawn_radius_min_logic = spawn_radius_min / LOGIC_TO_3D_SCALE
 	_session.spawn_radius_max_logic = spawn_radius_max / LOGIC_TO_3D_SCALE
 	_session.attach_observers = _attach_session_observers
+	_session.loot_sink = Warehouse.add_item
 	add_child(_session)
 
 	reset_run(true)

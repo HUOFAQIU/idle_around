@@ -13,6 +13,15 @@ func _ready() -> void:
 	instance = self
 	visible = false
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
+	DragPresenter.hold_item_view = hold
+	DragPresenter.clear_item_view = clear
+
+
+func _exit_tree() -> void:
+	if DragPresenter.hold_item_view == Callable(self, "hold"):
+		DragPresenter.hold_item_view = Callable()
+	if DragPresenter.clear_item_view == Callable(self, "clear"):
+		DragPresenter.clear_item_view = Callable()
 
 
 func hold(view: ItemView, grab_offset_cells: Vector2i, base_size: int) -> void:

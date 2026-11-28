@@ -436,7 +436,11 @@ static func _equipped_vessel(vessel_slot : int) -> SoulVesselData:
 
 
 static func _inventory_window() -> InventoryWindow:
-	return COMMON.find_node_in_scene(InventoryWindow) as InventoryWindow
+	var window := COMMON.find_node_in_scene(InventoryWindow) as InventoryWindow
+	if window != null:
+		return window
+	var ui := COMMON.find_node_in_scene(GameUI) as GameUI
+	return ui.ensure_panel(&"inventory") as InventoryWindow if ui != null else null
 
 
 static func _shop_window() -> BaseWindow:

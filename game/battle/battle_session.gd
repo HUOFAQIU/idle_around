@@ -9,6 +9,7 @@ const MAP_RESTART_DELAY: float = 5.0
 const MAX_ENEMY_POOL: int = 512
 var units_root: Node
 var attach_observers: Callable = Callable()
+var loot_sink: Callable = Callable()
 var spawn_radius_min_logic: float = 0.0
 var spawn_radius_max_logic: float = 0.0
 
@@ -48,7 +49,7 @@ func start(p_slots: Array[SoulSlot], map_item: MapItemData) -> void:
 	add_child(battle)
 	battle.spawn_enemy = _spawn_enemy
 	battle.recycle_enemy = _recycle_enemy
-	battle.loot_sink = Warehouse.add_item
+	battle.loot_sink = loot_sink
 	battle.setup()
 	battle.loot_rarity = (
 		_map_item.map_data.rarity

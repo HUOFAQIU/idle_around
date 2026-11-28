@@ -87,10 +87,6 @@ const FREEZE_BADGE_BORDER : String = "#d1f0ff"
 
 const DEBUG_TEXT : String = "#b3bfcc"
 const DEBUG_HINT : String = "#a6b3bf"
-const DEBUG_COUNTER : String = "#bfc7cc"
-const DEBUG_NAME : String = "#d9d9d9"
-const DEBUG_STATUS : String = "#66d9f2"
-const DEBUG_HIGHLIGHT : String = "#66ff80"
 
 
 const GROUPS := {
@@ -162,10 +158,6 @@ const GROUPS := {
 	"调试面板": [
 		"DEBUG_TEXT",
 		"DEBUG_HINT",
-		"DEBUG_COUNTER",
-		"DEBUG_NAME",
-		"DEBUG_STATUS",
-		"DEBUG_HIGHLIGHT",
 	],
 }
 

@@ -73,11 +73,6 @@ func toggle_weather() -> void:
 	game.play_ui_click()
 
 
-func spawn_stress_wave() -> void:
-	game.spawn_stress_wave(100)
-	game.play_ui_click()
-
-
 func toggle_perf_overlay() -> void:
 	ui.toggle_perf_overlay()
 	game.play_ui_click()

@@ -33,7 +33,6 @@ var _ic_mute: Texture2D
 @onready var mute_btn: Button = %MuteBtn
 @onready var dof_btn: Button = %DofBtn
 @onready var weather_btn: Button = %WeatherBtn
-@onready var stress_btn: Button = %StressBtn
 @onready var perf_btn: Button = %PerfBtn
 @onready var reset_btn: Button = %ResetBtn
 @onready var perf_plate: PanelContainer = %PerfPlate
@@ -64,7 +63,6 @@ func init_ui(main_ref: BattleArena, game_ref: BattleSim, view_ref: BattleView3D)
 	mute_btn.pressed.connect(func(): _main.toggle_mute())
 	dof_btn.pressed.connect(func(): _main.toggle_dof())
 	weather_btn.pressed.connect(func(): _main.toggle_weather())
-	stress_btn.pressed.connect(func(): _main.spawn_stress_wave())
 	perf_btn.pressed.connect(func(): _main.toggle_perf_overlay())
 	reset_btn.pressed.connect(func(): _main.reset_run())
 	perf_plate.visible = false

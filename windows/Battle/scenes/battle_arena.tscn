@@ -249,13 +249,6 @@ layout_mode = 2
 focus_mode = 0
 text = "SUN"
 
-[node name="StressBtn" type="Button" parent="BattleHud/HudRoot/CtrlBox" unique_id=344168672]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(34, 0)
-layout_mode = 2
-focus_mode = 0
-text = "+100"
-
 [node name="PerfBtn" type="Button" parent="BattleHud/HudRoot/CtrlBox" unique_id=344168673]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(38, 0)

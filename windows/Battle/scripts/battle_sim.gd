@@ -3,7 +3,6 @@ extends Node3D
 
 signal battle_logged(line: String, color: String)
 
-const MAX_MONS := 2000
 const BATCH_CAP := 1024
 const LOGIC_TO_3D_SCALE := 0.095
 
@@ -193,15 +192,6 @@ func reset_run(silent: bool = false) -> void:
 
 	if _session != null:
 		_session.stop()
-
-
-func spawn_stress_wave(count: int = 100) -> void:
-	if not _is_session_mode():
-		return
-	for _i in range(count):
-		if _session.battle == null or _session.battle.enemy_count() >= MAX_MONS:
-			break
-		_session.spawn_monster_for_test(&"snake_monster")
 
 
 func step_sim(dt: float) -> void:

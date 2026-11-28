@@ -4,7 +4,8 @@ const BATTLE: GDScript = preload("res://scripts/test_api/battle.gd")
 const ARGS: GDScript = preload("res://scripts/commands/actions/action_args.gd")
 
 const USAGE_START := "battle.start [map_id]"
-const USAGE_SPAWN := "battle.spawn <monster_id>"
+const USAGE_SPAWN := "battle.spawn <monster_id> [count]"
+const MAX_SPAWN_COUNT := 2000
 const USAGE_DAMAGE := "battle.damage <target> <amount>"
 
 
@@ -32,9 +33,23 @@ static func spawn(args: PackedStringArray) -> Dictionary:
 	var check: Dictionary = ARGS.require(args, 1, USAGE_SPAWN)
 	if not check.ok:
 		return check
-	if not BATTLE.spawn_monster(StringName(args[0])):
+	var count := 1
+	if args.size() > 1:
+		var parsed: Dictionary = ARGS.int_arg(args[1], USAGE_SPAWN)
+		if not parsed.ok:
+			return parsed
+		count = int(parsed.value)
+		if count < 1 or count > MAX_SPAWN_COUNT:
+			return CommandResult.fail("数量必须是 1~%d\nusage: %s" % [MAX_SPAWN_COUNT, USAGE_SPAWN])
+	var monster_id := StringName(args[0])
+	var spawned := 0
+	for _i in range(count):
+		if not BATTLE.spawn_monster(monster_id):
+			break
+		spawned += 1
+	if spawned == 0:
 		return CommandResult.fail("刷怪失败：怪物不存在或战斗未运行")
-	return CommandResult.ok(true)
+	return CommandResult.ok({"monster_id": String(monster_id), "spawned": spawned})
 
 
 static func damage(args: PackedStringArray) -> Dictionary:

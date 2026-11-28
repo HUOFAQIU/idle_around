@@ -47,7 +47,7 @@
 - 下层反向依赖上层：`CollectionDB` → `ModLoader` 的 warning 表。
 - 编解码耦合运行时：`SaveCodec` 直接查 `CollectionDB` / `MapCatalog`。
 - 测试用节点路径当接口：`test_api/window.gd`、`test_api/cube.gd`。
-- 项目代码写第三方私有字段：`ModCueRegistrar` 写 `GameplayCueManager._cue_scenes`；`DebugWindow` 读 `_cue_scenes`。
+- 项目代码写第三方私有字段：`ModCueRegistrar` 写 `GameplayCueManager._cue_scenes`。
 
 ### P2：浅但可接受（低优先）
 

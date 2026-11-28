@@ -28,7 +28,7 @@
 | 怪物设计、刷新距离、掉落与玩家/怪物属性池 | `设计/单位与属性.md` | `base_mods/core/monsters/`、`game/content/monster_data.gd`、`godot_gas/attributes/` |
 | 地图物品、05 面地图板、刷怪配额、数量石与战斗设计 | `设计/地图与战斗.md` | `game/content/map_*.gd`、`scripts/map_board.gd`、`main/Cube/Scripts/map_board_content.gd`、`game/battle/map_run.gd` |
 | 颜色规范与色板插件 | `架构/颜色与主题.md` | `scripts/game_colors.gd`、`scripts/game_color_catalog.gd`、`engine_tools/color_catalog/` |
-| 调试窗口排障、遥测事件与启动耗时打点 | `指南/调试窗口.md`、`架构/调试与遥测.md` | `windows/Debug/`、`scripts/debug/`、`game/battle/battle_event_bus.gd` |
+| 遥测事件、快照接口与启动耗时打点 | `架构/调试与遥测.md` | `scripts/debug/`、`game/battle/battle_event_bus.gd` |
 | AI 测试接口与命令控制台 | `指南/AI测试接口.md`、`指南/命令控制台.md` | `scripts/test_api.gd`、`scripts/test_api/`、`scripts/commands/` |
 | 提交前检查、Lint 规则、注释清理与情景回归测试 | `指南/代码检查.md` | `tools/check.sh`、`tools/lint/`、`tools/compile_check/`、`tools/scenarios/`、`tools/git-hooks/` |
 | 模块边界、依赖层表与临时例外清单 | `架构/边界与seam.md` | `tools/lint/boundaries.toml`、`tools/lint/allowlist.toml` |

@@ -16,11 +16,6 @@ const DEFAULT_PANEL_SPECS := {
 		"scene": "res://windows/Collection/collection_window.tscn",
 		"destroy_on_close": true,
 	},
-	&"debug": {
-		"scene": "res://windows/Debug/debug_window.tscn",
-		"open_position": Vector2i(200, 80),
-		"destroy_on_close": true,
-	},
 	&"terminal": {"scene": "res://windows/Terminal/terminal_window.tscn"},
 	&"mod": {
 		"script": "res://windows/ModWindow/mod_window.gd",

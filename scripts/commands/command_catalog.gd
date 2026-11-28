@@ -64,8 +64,8 @@ static func _build_entries() -> Dictionary:
 			"handler": Callable(BATTLE, "state"),
 		},
 		"battle.spawn": {
-			"usage": "battle.spawn <monster_id>",
-			"summary": "立刻刷一只怪",
+			"usage": "battle.spawn <monster_id> [count]",
+			"summary": "立刻刷怪；count 省略为 1，上限 2000",
 			"handler": Callable(BATTLE, "spawn"),
 			"complete": [Callable(COMPLETERS, "monster_ids")],
 		},

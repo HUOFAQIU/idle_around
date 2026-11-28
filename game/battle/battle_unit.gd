@@ -167,89 +167,23 @@ func _apply_health_delta_effect(health_delta: float) -> void:
 
 
 func on_enemy_moved(moving_unit: BattleUnit, from_cell: Vector2i, to_cell: Vector2i) -> void:
-	if is_dead or battle == null or not battle.is_running or asc == null:
-		return
-	if moving_unit == null or moving_unit.is_dead or moving_unit.team == team:
-		return
-	if soul_loadout == null or not soul_loadout.has_trigger(GameplayTags.Event_Movement_UnitMoved):
-		return
-	var trace := CombatTrace.new("event:UnitMoved", null)
-	asc.send_gameplay_event(GameplayTags.Event_Movement_UnitMoved, {
-		"target": moving_unit,
-		"from_cell": from_cell,
-		"to_cell": to_cell,
-		"trace": trace,
-	})
+	UnitTriggerDispatcher.on_enemy_moved(self, moving_unit, from_cell, to_cell)
 
 
 func _check_health_triggers(old_value: float, new_value: float) -> void:
-	if is_dead or asc == null or max_health_attr == null or new_value <= 0.0:
-		return
-	if new_value >= old_value:
-		return
-	var max_hp := max_health_attr.current_value
-	if max_hp <= 0.0:
-		return
-	var ratio := new_value / max_hp
-	if soul_loadout == null or not soul_loadout.has_health_trigger_for(ratio):
-		return
-	var trace := CombatTrace.new("event:HealthBelowPercent", null)
-	asc.send_gameplay_event(GameplayTags.Event_Health_BelowPercent, {
-		"target": self,
-		"old": old_value,
-		"new": new_value,
-		"ratio": ratio,
-		"trace": trace,
-	})
+	UnitTriggerDispatcher.check_health_triggers(self, old_value, new_value)
 
 
 func notify_soul_used(used: ChargedAbility, parent_trace: CombatTrace = null) -> void:
-	if is_dead or battle == null or not battle.is_running or asc == null:
-		return
-	if soul_loadout == null or not soul_loadout.has_trigger(GameplayTags.Event_Combat_SoulUsed):
-		return
-	var trace := parent_trace if parent_trace != null else CombatTrace.new("event:SoulUsed", null)
-	var used_soul: SoulData = null
-	if used is AutoCastAbility:
-		used_soul = (used as AutoCastAbility).soul_data
-	asc.send_gameplay_event(GameplayTags.Event_Combat_SoulUsed, {
-		"target": self,
-		"used_ability": used,
-		"used_soul": used_soul,
-		"trace": trace,
-	})
+	UnitTriggerDispatcher.notify_soul_used(self, used, parent_trace)
 
 
 func notify_freeze_applied(event_target: BattleUnit, parent_trace: CombatTrace = null) -> void:
-	if battle == null or not battle.is_running or event_target == null:
-		return
-	var trace := parent_trace if parent_trace != null else CombatTrace.new("event:FreezeApplied", null)
-	for unit in battle.trigger_listeners(GameplayTags.Event_Combat_FreezeApplied):
-		if unit.team == event_target.team or unit.asc == null:
-			continue
-		if unit.soul_loadout == null or not unit.soul_loadout.has_trigger(GameplayTags.Event_Combat_FreezeApplied):
-			continue
-		unit.asc.send_gameplay_event(GameplayTags.Event_Combat_FreezeApplied, {
-			"target": event_target,
-			"source": self,
-			"trace": trace,
-		})
+	UnitTriggerDispatcher.notify_freeze_applied(self, event_target, parent_trace)
 
 
 func notify_slow_applied(parent_trace: CombatTrace = null) -> void:
-	if battle == null or not battle.is_running:
-		return
-	var trace := parent_trace if parent_trace != null else CombatTrace.new("event:SlowApplied", null)
-	for unit in battle.trigger_listeners(GameplayTags.Event_Combat_SlowApplied):
-		if unit.team == team or unit.asc == null:
-			continue
-		if unit.soul_loadout == null or not unit.soul_loadout.has_trigger(GameplayTags.Event_Combat_SlowApplied):
-			continue
-		unit.asc.send_gameplay_event(GameplayTags.Event_Combat_SlowApplied, {
-			"target": self,
-			"source": self,
-			"trace": trace,
-		})
+	UnitTriggerDispatcher.notify_slow_applied(self, parent_trace)
 
 
 func apply_trigger_effect(
@@ -262,22 +196,9 @@ func apply_trigger_effect(
 	soul_runtime: SoulRuntime = null,
 	effect_duration: float = 0.0
 ) -> void:
-	if effect == null or asc == null or target == null or target.asc == null:
-		return
-	var context := SoulEffectContext.new(self, self, trace)
-	context.soul_runtime = soul_runtime
-	context.target_data.append_node(target)
-	var spec := GameplayEffectSpec.new(effect, context, 1.0)
-	if not display_name.is_empty():
-		spec.display_name = display_name
-	spec.set_set_by_caller_magnitude(GameplayTags.Data_TriggerMagnitude, magnitude)
-	if effect_duration > 0.0:
-		spec.duration = effect_duration
-	if suppress_state_log:
-		spec.inject_tag(SUPPRESS_STATE_LOG_TAG)
-	asc.apply_effect_spec_to_target(spec, target.asc)
-	if effect.granted_tags.has(GameplayTags.State_Frozen):
-		notify_freeze_applied(target, trace)
+	UnitTriggerDispatcher.apply_trigger_effect(
+		self, effect, target, magnitude, suppress_state_log, trace, display_name, soul_runtime, effect_duration
+	)
 
 
 func ensure_soul_abilities_loaded() -> void:

@@ -2,17 +2,12 @@ class_name CollectionWindow
 extends BaseWindow
 
 const LOCKED_NAME: String = "？？？"
-const FLY_DURATION: float = 0.2
-const FLY_ARC_HEIGHT: float = 110.0
-const FLY_GHOST_SIZE: float = 64.0
-const FLY_END_MARGIN: float = 24.0
 
 @onready var monster_button: Button = $Root/VBox/KindRow/MonsterButton
 @onready var soul_button: Button = $Root/VBox/KindRow/SoulButton
 @onready var vessel_button: Button = $Root/VBox/KindRow/VesselButton
 @onready var entry_grid: GridContainer = $Root/VBox/Body/Scroll/EntryGrid
 @onready var hint_label: Label = $Root/VBox/HintLabel
-@onready var fly_layer: Control = $Root/FlyLayer
 
 var _kind: int = ContentKind.Kind.MONSTER
 var _unlock_all_button: Button
@@ -46,9 +41,9 @@ func _update_hint() -> void:
 		ContentKind.Kind.MONSTER:
 			hint_label.text = "怪物：首次刷出即解锁"
 		ContentKind.Kind.SOUL:
-			hint_label.text = "右键已遇见魂灵：放入仓库"
+			hint_label.text = "魂灵：首次进入背包即解锁"
 		ContentKind.Kind.VESSEL:
-			hint_label.text = "右键已遇见魂器：放入仓库"
+			hint_label.text = "魂器：首次进入任意容器即解锁"
 
 
 func _build_unlock_all_button() -> void:
@@ -131,7 +126,6 @@ func _make_entry_cell(id: StringName) -> Control:
 	elif _kind == ContentKind.Kind.SOUL or _kind == ContentKind.Kind.VESSEL:
 		button.mouse_entered.connect(_show_entry_tooltip.bind(id))
 		button.mouse_exited.connect(_hide_tooltip)
-		button.gui_input.connect(_on_entry_gui_input.bind(id, button))
 	cell.add_child(button)
 
 	var label := Label.new()
@@ -173,66 +167,6 @@ func _show_entry_tooltip(id: StringName) -> void:
 func _hide_tooltip() -> void:
 	if is_instance_valid(TooltipWindow.instance):
 		TooltipWindow.instance.hide_tip(self)
-
-
-func _on_entry_gui_input(event: InputEvent, id: StringName, button: Button) -> void:
-	if not (event is InputEventMouseButton):
-		return
-	var mouse_event := event as InputEventMouseButton
-	if mouse_event.button_index != MOUSE_BUTTON_RIGHT or not mouse_event.pressed:
-		return
-	if not CollectionDB.is_seen(_kind, id):
-		return
-	var item: ItemData = null
-	match _kind:
-		ContentKind.Kind.SOUL:
-			item = CollectionDB.get_soul(id)
-		ContentKind.Kind.VESSEL:
-			item = CollectionDB.get_vessel(id)
-		_:
-			return
-	if item == null:
-		return
-	if not Warehouse.add_item(item):
-		push_warning("见闻：%s放入仓库失败「%s」" % [
-			"魂灵" if _kind == ContentKind.Kind.SOUL else "魂器", item.item_name,
-		])
-		return
-	_play_add_fly_animation(button, item.icon)
-
-
-func _play_add_fly_animation(button: Button, icon: Texture2D) -> void:
-	if icon == null:
-		return
-
-	var ghost := TextureRect.new()
-	ghost.texture = icon
-	ghost.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	ghost.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	ghost.size = Vector2(FLY_GHOST_SIZE, FLY_GHOST_SIZE)
-	ghost.pivot_offset = ghost.size * 0.5
-	ghost.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	fly_layer.add_child(ghost)
-
-	var start := button.get_global_rect().get_center() - fly_layer.get_global_rect().position
-	var end := Vector2(fly_layer.size.x - FLY_END_MARGIN, start.y)
-	var peak_y := maxf(start.y - FLY_ARC_HEIGHT, FLY_GHOST_SIZE * 0.5)
-	var control := Vector2((start.x + end.x) * 0.5, peak_y)
-	ghost.position = start - ghost.size * 0.5
-
-	var tween := ghost.create_tween()
-	tween.set_parallel(true)
-	var place := func (t: float) -> void:
-		ghost.position = _quadratic_bezier(start, control, end, t) - ghost.size * 0.5
-	tween.tween_method(place, 0.0, 1.0, FLY_DURATION)
-	tween.tween_property(ghost, "scale", Vector2(0.5, 0.5), FLY_DURATION)
-	tween.tween_property(ghost, "modulate:a", 0.0, FLY_DURATION * 0.3).set_delay(FLY_DURATION * 0.7)
-	tween.finished.connect(ghost.queue_free)
-
-
-func _quadratic_bezier(start: Vector2, control: Vector2, end: Vector2, t: float) -> Vector2:
-	var inv := 1.0 - t
-	return inv * inv * start + 2.0 * inv * t * control + t * t * end
 
 
 func _on_entry_unlocked(kind: int, _id: StringName) -> void:

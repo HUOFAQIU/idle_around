@@ -100,12 +100,12 @@ static func get_warehouse_page() -> int:
 
 
 static func add_vessel(id : StringName, container : String = "") -> bool:
-	if container.is_empty():
-		container = CONTAINER_IDS.MAIN_INVENTORY
 	var vessel := CollectionDB.get_vessel(id)
 	if vessel == null:
 		push_warning("TestAPI：魂器不存在 %s" % id)
 		return false
+	if container.is_empty():
+		return Warehouse.add_item(vessel)
 	return GBIS.add_item(container, vessel)
 
 

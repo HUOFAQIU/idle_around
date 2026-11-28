@@ -95,6 +95,26 @@ static func _build_entries() -> Dictionary:
 			"handler": Callable(INVENTORY, "soul_roll"),
 			"complete": [Callable(COMPLETERS, "soul_ids")],
 		},
+		"vessel.list": {
+			"usage": "vessel.list",
+			"summary": "列出所有魂器 content_id",
+			"handler": Callable(INVENTORY, "vessel_list"),
+		},
+		"vessel.add": {
+			"usage": "vessel.add <vessel_id> [container]",
+			"summary": "把魂器放进容器；container 为空时从仓库第 1 页找空位",
+			"handler": Callable(INVENTORY, "vessel_add"),
+			"complete": [
+				Callable(COMPLETERS, "vessel_ids"),
+				Callable(COMPLETERS, "container_names"),
+			],
+		},
+		"vessel.equip": {
+			"usage": "vessel.equip <vessel_id>",
+			"summary": "把魂器直接装进角色魂器网格",
+			"handler": Callable(INVENTORY, "vessel_equip"),
+			"complete": [Callable(COMPLETERS, "vessel_ids")],
+		},
 		"map.list": {
 			"usage": "map.list",
 			"summary": "列出地图 id",

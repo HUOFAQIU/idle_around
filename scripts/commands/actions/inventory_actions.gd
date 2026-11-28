@@ -6,6 +6,8 @@ const ARGS: GDScript = preload("res://scripts/commands/actions/action_args.gd")
 
 const USAGE_ADD := "soul.add <soul_id> [container]"
 const USAGE_ROLL := "soul.roll <soul_id> [rarity]"
+const USAGE_VESSEL_ADD := "vessel.add <vessel_id> [container]"
+const USAGE_VESSEL_EQUIP := "vessel.equip <vessel_id>"
 
 
 static func soul_list(_args: PackedStringArray) -> Dictionary:
@@ -40,3 +42,28 @@ static func soul_roll(args: PackedStringArray) -> Dictionary:
 	if result.is_empty():
 		return CommandResult.fail("放入失败：魂灵不存在或仓库放不下")
 	return CommandResult.ok(result)
+
+
+static func vessel_list(_args: PackedStringArray) -> Dictionary:
+	return CommandResult.ok(INVENTORY.get_vessel_ids())
+
+
+static func vessel_add(args: PackedStringArray) -> Dictionary:
+	var check: Dictionary = ARGS.require(args, 1, USAGE_VESSEL_ADD)
+	if not check.ok:
+		return check
+	var container := args[1] if args.size() > 1 else ""
+	if not container.is_empty() and not INVENTORY.has_container(container):
+		return CommandResult.fail("容器不存在：%s" % container)
+	if not INVENTORY.add_vessel(StringName(args[0]), container):
+		return CommandResult.fail("放入失败：魂器不存在或容器放不下")
+	return CommandResult.ok(true)
+
+
+static func vessel_equip(args: PackedStringArray) -> Dictionary:
+	var check: Dictionary = ARGS.require(args, 1, USAGE_VESSEL_EQUIP)
+	if not check.ok:
+		return check
+	if not INVENTORY.equip_vessel(StringName(args[0])):
+		return CommandResult.fail("装备失败：魂器不存在或魂器网格放不下")
+	return CommandResult.ok(true)

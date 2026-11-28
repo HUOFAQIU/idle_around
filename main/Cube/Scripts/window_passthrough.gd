@@ -9,9 +9,7 @@ static var instance: WindowPassthrough
 
 @export var cube_placement_path: NodePath = ^"../CubePlacement"
 @export var hud_path: NodePath = ^"../HUD"
-@export var panel_manager_path: NodePath = ^"../GameUI/GameControl/PanelManager"
-@export var tooltip_path: NodePath = ^"../GameUI/GameControl/TooltipLayer/TooltipWindow"
-@export var item_window_path: NodePath = ^"../GameUI/GameControl/DragLayer/ItemWindow"
+@export var window_host_path: NodePath = ^"../GameUI/GameControl"
 
 var enabled: bool = true:
 	set(value):
@@ -29,9 +27,7 @@ var _camera: Camera3D
 var _cube_placement: CubePlacement
 var _hud: CubeHud
 var _drag_handle: CubeDragHandle
-var _panel_manager: PanelManager
-var _tooltip: Control
-var _item_window: Control
+var _window_host: GameUI
 var _locked: bool = false
 var _dirty: bool = true
 var _last_polygon := PackedVector2Array()
@@ -54,9 +50,7 @@ func _ready() -> void:
 	_hud = get_node_or_null(hud_path) as CubeHud
 	_drag_handle = CubeScenePaths.resolve(
 			self, CubeScenePaths.DRAG_HANDLE) as CubeDragHandle
-	_panel_manager = get_node_or_null(panel_manager_path) as PanelManager
-	_tooltip = get_node_or_null(tooltip_path) as Control
-	_item_window = get_node_or_null(item_window_path) as Control
+	_window_host = get_node_or_null(window_host_path) as GameUI
 
 	if _window != null:
 		_window.mouse_passthrough = false
@@ -72,8 +66,8 @@ func _ready() -> void:
 		_cube_placement.screen_center_changed.connect(_on_overlay_regions_changed)
 	else:
 		push_warning("WindowPassthrough 找不到 CubePlacement，程序化移动立方体时穿透区域不会刷新。")
-	if _panel_manager == null:
-		push_warning("WindowPassthrough 找不到 PanelManager，游戏窗口不会加入穿透区域。")
+	if _window_host == null:
+		push_warning("WindowPassthrough 找不到 GameUI，游戏窗口不会加入穿透区域。")
 
 	_refresh_region()
 
@@ -98,18 +92,18 @@ func _process(_delta: float) -> void:
 		_last_cube_viewport_size = cube_viewport_size
 		_dirty = true
 
-	var tooltip_visible := _tooltip != null and _tooltip.is_visible_in_tree()
+	var host_locks := _window_host != null and _window_host.should_lock_passthrough()
 	if _locked:
 		if _mouse_buttons_down():
 			return
 		if _cube_orientation != null and _cube_orientation.is_rotating():
 			return
-		if tooltip_visible:
+		if host_locks:
 			return
 		_locked = false
 		_dirty = true
 
-	if tooltip_visible:
+	if host_locks:
 		_lock_full_region()
 		return
 
@@ -179,13 +173,9 @@ func _on_overlay_regions_changed() -> void:
 func _collect_ui_rects() -> Array[Rect2]:
 	var rects: Array[Rect2] = []
 	var area := Rect2(Vector2.ZERO, get_viewport().get_visible_rect().size)
-	if _panel_manager != null:
-		for rect in _panel_manager.get_visible_panel_rects():
+	if _window_host != null:
+		for rect in _window_host.get_passthrough_rects():
 			_append_clipped(rects, rect, area)
-	if _tooltip != null and _tooltip.is_visible_in_tree():
-		_append_clipped(rects, _tooltip.get_global_rect(), area)
-	if _item_window != null and _item_window.is_visible_in_tree():
-		_append_clipped(rects, _item_window.get_global_rect(), area)
 	return rects
 
 

@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="MonsterData" format=3 uid="uid://cmpgq28xaybob"]
+
+[ext_resource type="Texture2D" uid="uid://deaj7ddfwbqwh" path="res://assets/tokens.png" id="1_icon"]
+[ext_resource type="Script" uid="uid://c2igyvamknn3f" path="res://game/content/monster_data.gd" id="2_data"]
+[ext_resource type="ArrayMesh" path="res://base_mods/core/monsters/spiked_slime/spiked_slime.res" id="3_mesh3d"]
+[ext_resource type="Resource" path="res://base_mods/core/monsters/spiked_slime/spiked_slime_anim.tres" id="4_anim"]
+[ext_resource type="Script" uid="uid://bl81pxa0sjvj1" path="res://game/content/monster_soul_entry.gd" id="5_gu4ck"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_spiked_slime"]
+atlas = ExtResource("1_icon")
+region = Rect2(64, 0, 32, 32)
+
+[resource]
+script = ExtResource("2_data")
+display_name = "刺史莱姆"
+icon = SubResource("AtlasTexture_spiked_slime")
+tier = 1
+health_per_level = 200.0
+attack_range = 36.0
+move_speed = 10.0
+body_radius = 12.5
+mesh_3d = ExtResource("3_mesh3d")
+visual_scale = 1.45
+hit_height = 0.82
+debris_color = Color(0.16, 0.52, 0.26, 1)
+anim_config = ExtResource("4_anim")

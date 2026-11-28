@@ -31,6 +31,8 @@ var battle: BattleManager
 var asc: AbilitySystemComponent
 var brain: BattleBrain
 var monster_data: MonsterData
+var level: int = 1
+var tier: int = MonsterData.Tier.MOB
 var position: Vector2 = Vector2.ZERO
 var global_position: Vector2:
 	get:
@@ -470,6 +472,8 @@ func recycle_to_pool() -> void:
 	_active_effect_count = 0
 	_souls_loaded = false
 	is_test_spawn = false
+	level = 1
+	tier = MonsterData.Tier.MOB
 
 
 func activate_from_pool(p_battle: BattleManager) -> void:

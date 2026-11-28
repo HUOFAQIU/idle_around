@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="MonsterData" format=3 uid="uid://ciixxx21xjnks"]
+
+[ext_resource type="Texture2D" uid="uid://deaj7ddfwbqwh" path="res://assets/tokens.png" id="1_icon"]
+[ext_resource type="Script" uid="uid://c2igyvamknn3f" path="res://game/content/monster_data.gd" id="2_data"]
+[ext_resource type="ArrayMesh" path="res://base_mods/core/monsters/blue_slime/blue_slime.res" id="3_mesh3d"]
+[ext_resource type="Resource" path="res://base_mods/core/monsters/blue_slime/blue_slime_anim.tres" id="4_anim"]
+[ext_resource type="Script" uid="uid://bl81pxa0sjvj1" path="res://game/content/monster_soul_entry.gd" id="5_yfmq2"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_blue_slime"]
+atlas = ExtResource("1_icon")
+region = Rect2(64, 0, 32, 32)
+
+[resource]
+script = ExtResource("2_data")
+display_name = "蓝史莱姆"
+icon = SubResource("AtlasTexture_blue_slime")
+health_per_level = 70.0
+attack_range = 32.0
+body_radius = 9.5
+mesh_3d = ExtResource("3_mesh3d")
+visual_scale = 1.1
+hit_height = 0.54
+debris_color = Color(0.24, 0.72, 0.98, 1)
+anim_config = ExtResource("4_anim")

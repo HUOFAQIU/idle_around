@@ -18,15 +18,3 @@ rule = "dependency-boundary"
 path = "game/battle/battle_session.gd"
 reason = "战斗结算直接写 Warehouse 单例；待改成注入的仓库端口"
 expires = "2027-03-01"
-
-[[allow]]
-rule = "dependency-boundary"
-path = "game/content/map_catalog.gd"
-reason = "地图目录硬编码内置 core mod 的地图资源；待改走 ModLoader 资源注册"
-expires = "2027-03-01"
-
-[[allow]]
-rule = "dependency-boundary"
-path = "game/content/map_catalog.gd"
-reason = "同上：数量石物品资源同样硬编码内置 core mod"
-expires = "2027-03-01"

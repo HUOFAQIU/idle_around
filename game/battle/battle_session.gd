@@ -20,12 +20,13 @@ var souls: Array[SoulData] = []
 
 var _map_item: MapItemData
 var _map_run: MapRun
-var _pending_spawn_ids: Array[StringName] = []
+var _pending_spawns: Array[Dictionary] = []
 var _map_finished: bool = false
 var _manual_time: bool = false
 var _map_kills: Dictionary = {}
 var _test_monster_id: StringName = &""
 var _next_spawn_is_test: bool = false
+var _next_spawn_level: int = 1
 var _enemy_pool: Array[BattleUnit] = []
 
 
@@ -67,7 +68,7 @@ func start(p_slots: Array[SoulSlot], map_item: MapItemData) -> void:
 	for unit in battle.units:
 		battle.log_line("%s  HP %.0f" % [unit.unit_name, unit.health_attr.current_value], "white")
 	if _map_run != null:
-		_enqueue_spawns(_map_run.take_initial_spawns())
+		_enqueue_spawns(_map_run.take_initial_spawns(battle.rng))
 	battle.spawn_one()
 	battle_started.emit(battle)
 
@@ -91,7 +92,7 @@ func stop() -> void:
 		battle = null
 	_map_item = null
 	_map_run = null
-	_pending_spawn_ids.clear()
+	_pending_spawns.clear()
 	_map_finished = false
 	_map_kills.clear()
 	_test_monster_id = &""
@@ -167,7 +168,7 @@ func get_state() -> Dictionary:
 	state["map_id"] = _map_run.state().get("map_id", "") if _map_run != null else ""
 	state["map_finished"] = _map_finished
 	state["map"] = _map_run.state() if _map_run != null else {}
-	state["pending_spawns"] = _pending_spawn_ids.size()
+	state["pending_spawns"] = _pending_spawns.size()
 	var kills := {}
 	for id in _map_kills:
 		kills[String(id)] = _map_kills[id]
@@ -211,8 +212,8 @@ func _physics_process(delta: float) -> void:
 func advance(delta: float) -> void:
 	if battle == null or not battle.is_running or _map_run == null or _map_finished:
 		return
-	_enqueue_spawns(_map_run.advance(delta))
-	while not _pending_spawn_ids.is_empty():
+	_enqueue_spawns(_map_run.advance(delta, battle.rng))
+	while not _pending_spawns.is_empty():
 		battle.spawn_one()
 	_check_map_finished()
 
@@ -264,9 +265,12 @@ func _spawn_enemy() -> void:
 	var is_pooled := unit != null
 	if not is_pooled:
 		unit = BattleUnit.create_headless(BattleUnit.Team.ENEMY)
+	var spawn_level := maxi(_next_spawn_level, 1)
 	unit.cache_monster_visuals(monster)
+	unit.level = spawn_level
+	unit.tier = monster.tier
 	unit.unit_name = monster.display_name
-	unit.max_health = monster.max_health
+	unit.max_health = monster.max_health_for_level(spawn_level)
 	unit.attack_range = monster.attack_range
 	unit.move_speed = monster.move_speed
 	unit.drops = monster.drop_entries()
@@ -320,22 +324,25 @@ func _place_spawned_enemy(unit: BattleUnit, monster: MonsterData) -> void:
 
 func _take_next_monster() -> MonsterData:
 	_next_spawn_is_test = false
+	_next_spawn_level = 1
 	if not _test_monster_id.is_empty():
 		var forced := CollectionDB.get_monster(_test_monster_id)
 		_test_monster_id = &""
 		_next_spawn_is_test = true
 		return forced
-	while not _pending_spawn_ids.is_empty():
-		var monster_id: StringName = _pending_spawn_ids.pop_front()
+	while not _pending_spawns.is_empty():
+		var req: Dictionary = _pending_spawns.pop_front()
+		var monster_id: StringName = req.get("monster_id", &"")
 		var monster := CollectionDB.get_monster(monster_id)
 		if monster != null:
+			_next_spawn_level = maxi(int(req.get("level", 1)), 1)
 			return monster
 	return null
 
 
-func _enqueue_spawns(monster_ids: Array[StringName]) -> void:
-	for monster_id in monster_ids:
-		_pending_spawn_ids.append(monster_id)
+func _enqueue_spawns(requests: Array[Dictionary]) -> void:
+	for req in requests:
+		_pending_spawns.append(req)
 
 
 func _on_enemy_died(unit: BattleUnit) -> void:
@@ -346,13 +353,13 @@ func _on_enemy_died(unit: BattleUnit) -> void:
 		return
 	var monster_id: StringName = monster.content_id
 	_map_kills[monster_id] = int(_map_kills.get(monster_id, 0)) + 1
-	_enqueue_spawns(_map_run.on_monster_killed(monster_id))
+	_enqueue_spawns(_map_run.on_monster_killed(monster_id, monster.tier, battle.rng))
 
 
 func _check_map_finished() -> void:
 	if _map_finished or _map_run == null or battle == null:
 		return
-	if not _map_run.is_finished() or not _pending_spawn_ids.is_empty():
+	if not _map_run.is_finished() or not _pending_spawns.is_empty():
 		return
 	for unit in battle.enemies:
 		if unit != null and not unit.is_dead:
@@ -406,6 +413,8 @@ func _unit_state(unit: BattleUnit) -> Dictionary:
 		in_attack_range = unit.team == BattleUnit.Team.ENEMY and unit.is_in_attack_range(battle.player)
 	return {
 		"name": unit.unit_name,
+		"level": unit.level,
+		"tier": unit.tier,
 		"hp": unit.health_attr.current_value if unit.health_attr != null else 0.0,
 		"max_hp": unit.max_health_attr.current_value if unit.max_health_attr != null else 0.0,
 		"shield": unit.shield_attr.current_value if unit.shield_attr != null else 0.0,

@@ -49,6 +49,28 @@ static func all() -> Array[Dictionary]:
 			"core_dir": "cues",
 			"core_suffixes": [".tscn"],
 		},
+		{
+			"kind": CONTENT_KIND.Kind.MAP,
+			"key": "maps",
+			"label": "地图",
+			"id_field": "id",
+			"path_field": "path",
+			"id_suffix": "_map",
+			"is_tag": false,
+			"core_dir": "maps",
+			"core_suffixes": ["_map.tres"],
+		},
+		{
+			"kind": CONTENT_KIND.Kind.ITEM,
+			"key": "items",
+			"label": "物品",
+			"id_field": "id",
+			"path_field": "path",
+			"id_suffix": "",
+			"is_tag": false,
+			"core_dir": "items",
+			"core_suffixes": [".tres"],
+		},
 	]
 
 

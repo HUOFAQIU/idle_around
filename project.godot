@@ -24,11 +24,11 @@ run/max_fps=60
 [autoload]
 
 ModLoader="*res://scripts/mod/mod_loader.gd"
-GameGlobal="*uid://d4mr5auojqyxl"
-GBIS="*uid://dit4hlufoh182"
+GameGlobal="*res://scripts/GameGlobal.gd"
+GBIS="*res://game/inventory/grid_base_inventory_system/core/grid_base_inventory_system.gd"
 GameplayCueManager="*res://addons/GodotGAS/managers/gameplay_cue_manager.gd"
 ModCueRegistrar="*res://scripts/mod/mod_cue_registrar.gd"
-CollectionDB="*uid://b76qj7km7m8ad"
+CollectionDB="*res://scripts/collection_db.gd"
 CombatTelemetry="*res://scripts/debug/combat_telemetry.gd"
 SoulRuntimeDB="*res://game/battle/soul_runtime_db.gd"
 Warehouse="*res://scripts/warehouse.gd"

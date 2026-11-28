@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="UnitAnimConfig" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://game/content/unit_anim_config.gd" id="1_cfg"]
+
+[resource]
+script = ExtResource("1_cfg")
+move_phase_scale = 3.5
+attack_speed = 2.0
+attack_impact_u = 0.50
+flash_decay = 5.5
+move_amp = 1.0
+move_freq = 1.0
+idle_sway = 0.6
+attack_windup = 0.35
+attack_strike = 0.65
+attack_lunge = 1.0
+flash_color = Color(0.85, 1, 0.82, 1)
+flash_intensity = 0.6

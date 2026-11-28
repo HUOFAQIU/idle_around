@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="MonsterData" format=3 uid="uid://dskamp0pig80h"]
+
+[ext_resource type="Texture2D" uid="uid://deaj7ddfwbqwh" path="res://assets/tokens.png" id="1_icon"]
+[ext_resource type="Script" uid="uid://c2igyvamknn3f" path="res://game/content/monster_data.gd" id="2_data"]
+[ext_resource type="ArrayMesh" path="res://base_mods/core/monsters/mud_slime/mud_slime.res" id="3_mesh3d"]
+[ext_resource type="Resource" path="res://base_mods/core/monsters/mud_slime/mud_slime_anim.tres" id="4_anim"]
+[ext_resource type="Script" uid="uid://bl81pxa0sjvj1" path="res://game/content/monster_soul_entry.gd" id="5_0ifou"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_mud_slime"]
+atlas = ExtResource("1_icon")
+region = Rect2(64, 0, 32, 32)
+
+[resource]
+script = ExtResource("2_data")
+display_name = "泥史莱姆"
+icon = SubResource("AtlasTexture_mud_slime")
+health_per_level = 100.0
+attack_range = 32.0
+move_speed = 10.0
+body_radius = 9.5
+mesh_3d = ExtResource("3_mesh3d")
+visual_scale = 1.1
+hit_height = 0.54
+debris_color = Color(0.54, 0.36, 0.2, 1)
+anim_config = ExtResource("4_anim")

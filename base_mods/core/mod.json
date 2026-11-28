@@ -7,115 +7,147 @@
   "description": "官方基础内容：魂灵、怪物、魂器和战斗 Cue。",
   "content_namespace": "global",
   "game_version": {
-	"min": "0.1.0"
+    "min": "0.1.0"
   },
   "content": {
-	"souls": [
-	  {
-		"id": "bi_lei_zhen_soul",
-		"path": "souls/bi_lei_zhen/bi_lei_zhen_soul.tres"
-	  },
-	  {
-		"id": "chang_gong_soul",
-		"path": "souls/chang_gong/chang_gong_soul.tres"
-	  },
-	  {
-		"id": "chui_jian_soul",
-		"path": "souls/chui_jian/chui_jian_soul.tres"
-	  },
-	  {
-		"id": "dao_huo_shu_soul",
-		"path": "souls/dao_huo_shu/dao_huo_shu_soul.tres"
-	  },
-	  {
-		"id": "dian_chi_soul",
-		"path": "souls/dian_chi/dian_chi_soul.tres"
-	  },
-	  {
-		"id": "du_ya_soul",
-		"path": "souls/du_ya/du_ya_soul.tres"
-	  },
-	  {
-		"id": "hua_liu_shen_soul",
-		"path": "souls/hua_liu_shen/hua_liu_shen_soul.tres"
-	  },
-	  {
-		"id": "jian_shen_fang_soul",
-		"path": "souls/jian_shen_fang/jian_shen_fang_soul.tres"
-	  },
-	  {
-		"id": "jian_ya_soul",
-		"path": "souls/jian_ya/jian_ya_soul.tres"
-	  },
-	  {
-		"id": "ka_fei_soul",
-		"path": "souls/ka_fei/ka_fei_soul.tres"
-	  },
-	  {
-		"id": "kong_lang_soul",
-		"path": "souls/kong_lang/kong_lang_soul.tres"
-	  },
-	  {
-		"id": "mian_bao_soul",
-		"path": "souls/mian_bao/mian_bao_soul.tres"
-	  },
-	  {
-		"id": "qiang_laishi_soul",
-		"path": "souls/qiang_laishi/qiang_laishi_soul.tres"
-	  },
-	  {
-		"id": "sheng_suo_soul",
-		"path": "souls/sheng_suo/sheng_suo_soul.tres"
-	  },
-	  {
-		"id": "song_shu_soul",
-		"path": "souls/song_shu/song_shu_soul.tres"
-	  },
-	  {
-		"id": "wa_soul",
-		"path": "souls/wa/wa_soul.tres"
-	  },
-	  {
-		"id": "xian_zi_soul",
-		"path": "souls/xian_zi/xian_zi_soul.tres"
-	  },
-	  {
-		"id": "xiao_lu_soul",
-		"path": "souls/xiao_lu/xiao_lu_soul.tres"
-	  },
-	  {
-		"id": "yao_dai_soul",
-		"path": "souls/yao_dai/yao_dai_soul.tres"
-	  },
-	  {
-		"id": "yi_chang_hu_wan_soul",
-		"path": "souls/yi_chang_hu_wan/yi_chang_hu_wan_soul.tres"
-	  },
-	  {
-		"id": "yu_soul",
-		"path": "souls/yu/yu_soul.tres"
-	  }
-	],
-	"monsters": [
-	  {
-		"id": "fu_monster",
-		"path": "monsters/fu/fu_monster.tres"
-	  },
-	  {
-		"id": "slime_monster",
-		"path": "monsters/slime/slime_monster.tres"
-	  },
-	  {
-		"id": "snake_monster",
-		"path": "monsters/snake/snake_monster.tres"
-	  }
-	],
-	"vessels": [
-	  {
-		"id": "mei_you_deng_vessel",
-		"path": "vessels/mei_you_deng/mei_you_deng_vessel.tres"
-	  }
-	],
-	"cues": []
+    "souls": [
+      {
+        "id": "bi_lei_zhen_soul",
+        "path": "souls/bi_lei_zhen/bi_lei_zhen_soul.tres"
+      },
+      {
+        "id": "chang_gong_soul",
+        "path": "souls/chang_gong/chang_gong_soul.tres"
+      },
+      {
+        "id": "chui_jian_soul",
+        "path": "souls/chui_jian/chui_jian_soul.tres"
+      },
+      {
+        "id": "dao_huo_shu_soul",
+        "path": "souls/dao_huo_shu/dao_huo_shu_soul.tres"
+      },
+      {
+        "id": "dian_chi_soul",
+        "path": "souls/dian_chi/dian_chi_soul.tres"
+      },
+      {
+        "id": "du_ya_soul",
+        "path": "souls/du_ya/du_ya_soul.tres"
+      },
+      {
+        "id": "hua_liu_shen_soul",
+        "path": "souls/hua_liu_shen/hua_liu_shen_soul.tres"
+      },
+      {
+        "id": "jian_shen_fang_soul",
+        "path": "souls/jian_shen_fang/jian_shen_fang_soul.tres"
+      },
+      {
+        "id": "jian_ya_soul",
+        "path": "souls/jian_ya/jian_ya_soul.tres"
+      },
+      {
+        "id": "ka_fei_soul",
+        "path": "souls/ka_fei/ka_fei_soul.tres"
+      },
+      {
+        "id": "kong_lang_soul",
+        "path": "souls/kong_lang/kong_lang_soul.tres"
+      },
+      {
+        "id": "mian_bao_soul",
+        "path": "souls/mian_bao/mian_bao_soul.tres"
+      },
+      {
+        "id": "qiang_laishi_soul",
+        "path": "souls/qiang_laishi/qiang_laishi_soul.tres"
+      },
+      {
+        "id": "sheng_suo_soul",
+        "path": "souls/sheng_suo/sheng_suo_soul.tres"
+      },
+      {
+        "id": "song_shu_soul",
+        "path": "souls/song_shu/song_shu_soul.tres"
+      },
+      {
+        "id": "wa_soul",
+        "path": "souls/wa/wa_soul.tres"
+      },
+      {
+        "id": "xian_zi_soul",
+        "path": "souls/xian_zi/xian_zi_soul.tres"
+      },
+      {
+        "id": "xiao_lu_soul",
+        "path": "souls/xiao_lu/xiao_lu_soul.tres"
+      },
+      {
+        "id": "yao_dai_soul",
+        "path": "souls/yao_dai/yao_dai_soul.tres"
+      },
+      {
+        "id": "yi_chang_hu_wan_soul",
+        "path": "souls/yi_chang_hu_wan/yi_chang_hu_wan_soul.tres"
+      },
+      {
+        "id": "yu_soul",
+        "path": "souls/yu/yu_soul.tres"
+      }
+    ],
+    "monsters": [
+      {
+        "id": "blue_slime_monster",
+        "path": "monsters/blue_slime/blue_slime_monster.tres"
+      },
+      {
+        "id": "fu_monster",
+        "path": "monsters/fu/fu_monster.tres"
+      },
+      {
+        "id": "green_slime_monster",
+        "path": "monsters/green_slime/green_slime_monster.tres"
+      },
+      {
+        "id": "mud_slime_monster",
+        "path": "monsters/mud_slime/mud_slime_monster.tres"
+      },
+      {
+        "id": "purple_slime_monster",
+        "path": "monsters/purple_slime/purple_slime_monster.tres"
+      },
+      {
+        "id": "slime_king_monster",
+        "path": "monsters/slime_king/slime_king_monster.tres"
+      },
+      {
+        "id": "snake_monster",
+        "path": "monsters/snake/snake_monster.tres"
+      },
+      {
+        "id": "spiked_slime_monster",
+        "path": "monsters/spiked_slime/spiked_slime_monster.tres"
+      }
+    ],
+    "vessels": [
+      {
+        "id": "mei_you_deng_vessel",
+        "path": "vessels/mei_you_deng/mei_you_deng_vessel.tres"
+      }
+    ],
+    "cues": [],
+    "maps": [
+      {
+        "id": "forest_map",
+        "path": "maps/forest/forest_map.tres"
+      }
+    ],
+    "items": [
+      {
+        "id": "quantity_stone",
+        "path": "items/quantity_stone/quantity_stone.tres"
+      }
+    ]
   }
 }

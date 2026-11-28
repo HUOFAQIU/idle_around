@@ -38,6 +38,7 @@ void vertex() {
 	float mv_raw = INSTANCE_CUSTOM.a;
 	float cast_u = max(0.0, mv_raw - 2.0);
 	float mv = clamp(mv_raw > 1.5 ? 0.0 : mv_raw, 0.0, 1.0);
+	float idle_w = (1.0 - mv) * u_anim_move.z;
 
 	vec3 piv = CUSTOM0.xyz;
 	float pid = floor(CUSTOM0.w + 0.5);
@@ -123,7 +124,8 @@ void vertex() {
 			v = rot_y(tp, atk_twist) + vec3(0.0, 0.56, atk_lunge * 0.38);
 			n = rot_y(n, atk_twist);
 		}
-		v.y += bob;
+		float breath = sin(TIME * 2.8 + phase) * 0.025 * idle_w;
+		v.y += bob + (pid >= 2.5 ? breath : 0.0);
 	} else if (pid > 5.5 && pid < 6.5) {
 		// Wraith float & sway
 		float tw = TIME + phase * 0.35;
@@ -143,17 +145,20 @@ void vertex() {
 			v = rot_x(v - piv, a) + piv;
 			n = rot_x(n, a);
 		}
+		v.y *= 1.0 + sin(TIME * 3.0 + phase) * 0.03 * idle_w;
 		v.y += bob + lng * 0.14;
 		v.z += lng * 0.28;
 	} else if (pid > 19.5 && pid < 20.5) {
 		// Slime / Bog Toad squash & hop
 		float hop = abs(sin(phase * 0.6)) * mv;
 		float lng = sin(clamp(swing, 0.0, 1.0) * 3.14159);
-		float sy = 1.0 + (hop - 0.35) * 0.34;
+		float idle_breath = sin(TIME * 3.6 + phase) * 0.065 * idle_w;
+		float sy = 1.0 + (hop - 0.35) * 0.34 * mv + idle_breath;
 		float sxz = 1.0 / sqrt(max(sy, 0.4));
 		v.x *= sxz;
 		v.z *= sxz;
 		v.y *= sy;
+		v.x += sin(TIME * 2.3 + phase) * 0.025 * v.y * idle_w;
 		v.y += hop * 0.28 + lng * 0.14;
 		v.z += lng * 0.22;
 	} else if (pid >= 31.0 && pid <= 33.5) {
@@ -178,15 +183,16 @@ void vertex() {
 			v = rot_y(v - piv, -a) + piv;
 			n = rot_y(n, -a);
 		}
+		v.y *= 1.0 + sin(TIME * 3.2 + phase) * 0.03 * idle_w;
 		v.y += lng * 0.12;
 		v.z += lng * 0.24;
 	} else if (pid > 49.5 && pid < 50.5) {
 		// Serpent (Snake, Fu): S-curve slither + coiled head lunge driven by UnitAnimConfig
 		float hw = clamp(piv.y, 0.0, 1.0);
 		float slither = sin(phase * 1.15 - v.z * 4.2 * u_anim_move.y) * 0.085 * u_anim_move.x * mv;
-		float sway = sin(phase * 0.75) * 0.03 * u_anim_move.z * hw;
+		float sway = sin(TIME * 2.6 + phase) * 0.035 * u_anim_move.z * hw;
 		v.x += slither + sway;
-		v.y += sin(phase * 0.9) * 0.02 * u_anim_move.z * hw;
+		v.y += sin(TIME * 3.2 + phase) * 0.022 * u_anim_move.z * hw;
 		if (swing > 0.01) {
 			v.z += atk_lunge * 1.65 * hw;
 			v.y += max(atk_lunge, 0.0) * 0.55 * hw;

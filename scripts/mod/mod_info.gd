@@ -25,6 +25,8 @@ var soul_count: int = 0
 var monster_count: int = 0
 var vessel_count: int = 0
 var cue_count: int = 0
+var map_count: int = 0
+var item_count: int = 0
 var errors: Array[String] = []
 var warnings: Array[String] = []
 

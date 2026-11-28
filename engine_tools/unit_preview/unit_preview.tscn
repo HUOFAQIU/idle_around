@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://blha57fnn5psj"]
 
 [ext_resource type="Script" uid="uid://cda1yiaqd21ua" path="res://engine_tools/unit_preview/unit_preview.gd" id="1_script"]
+[ext_resource type="Resource" uid="uid://cmpgq28xaybob" path="res://base_mods/core/monsters/spiked_slime/spiked_slime_monster.tres" id="2_k0274"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_1"]
 sky_top_color = Color(0.54, 0.72, 0.92, 1)
@@ -17,7 +18,8 @@ ambient_light_energy = 0.7
 
 [node name="UnitAnimPreview" type="Node3D" unique_id=1796790299]
 script = ExtResource("1_script")
-preview_mode = 3
+monster_data = ExtResource("2_k0274")
+preview_mode = 0
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=704079849]
 environment = SubResource("Environment_1")

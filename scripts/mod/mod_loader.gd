@@ -17,10 +17,14 @@ var _soul_entries: Array[ModContentEntry] = []
 var _monster_entries: Array[ModContentEntry] = []
 var _vessel_entries: Array[ModContentEntry] = []
 var _cue_entries: Array[ModContentEntry] = []
+var _map_entries: Array[ModContentEntry] = []
+var _item_entries: Array[ModContentEntry] = []
 var _soul_ids: Dictionary[StringName, bool] = {}
 var _monster_ids: Dictionary[StringName, bool] = {}
 var _vessel_ids: Dictionary[StringName, bool] = {}
 var _cue_tags: Dictionary[StringName, bool] = {}
+var _map_ids: Dictionary[StringName, bool] = {}
+var _item_ids: Dictionary[StringName, bool] = {}
 var _content_paths: Dictionary[String, StringName] = {}
 var _overrides: Dictionary[String, StringName] = {}
 var _errors: Array[String] = []
@@ -77,6 +81,18 @@ func get_vessel_entries() -> Array[ModContentEntry]:
 func get_cue_entries() -> Array[ModContentEntry]:
 	var result: Array[ModContentEntry] = []
 	result.assign(_cue_entries)
+	return result
+
+
+func get_map_entries() -> Array[ModContentEntry]:
+	var result: Array[ModContentEntry] = []
+	result.assign(_map_entries)
+	return result
+
+
+func get_item_entries() -> Array[ModContentEntry]:
+	var result: Array[ModContentEntry] = []
+	result.assign(_item_entries)
 	return result
 
 
@@ -525,6 +541,32 @@ func _load_content_entry(mod: ModInfo, spec: Dictionary, raw_entry: Dictionary) 
 			_content_paths[path] = content_id
 			_cue_entries.append(_make_entry(kind, mod, content_id, path, resource))
 			mod.cue_count += 1
+		ContentKind.Kind.MAP:
+			if not resource is MapData:
+				_mod_error(mod, "地图资源类型不对：%s" % path)
+				return
+			if _map_ids.has(content_id):
+				_mod_error(mod, "地图 ID 重复：%s" % content_id)
+				return
+			var map_data := resource as MapData
+			map_data.content_id = content_id
+			_map_ids[content_id] = true
+			_content_paths[path] = content_id
+			_map_entries.append(_make_entry(kind, mod, content_id, path, resource))
+			mod.map_count += 1
+		ContentKind.Kind.ITEM:
+			if not resource is ItemData:
+				_mod_error(mod, "物品资源类型不对：%s" % path)
+				return
+			if _item_ids.has(content_id):
+				_mod_error(mod, "物品 ID 重复：%s" % content_id)
+				return
+			var item_data := resource as ItemData
+			item_data.content_id = content_id
+			_item_ids[content_id] = true
+			_content_paths[path] = content_id
+			_item_entries.append(_make_entry(kind, mod, content_id, path, resource))
+			mod.item_count += 1
 
 
 func _make_entry(
@@ -635,8 +677,8 @@ func _validate_soul_vocabulary(mod: ModInfo, soul: SoulData) -> void:
 func _validate_monster_config(mod: ModInfo, monster: MonsterData) -> void:
 	if monster.display_name.is_empty():
 		_mod_error(mod, "怪物 %s 缺少 display_name" % monster.content_id)
-	if monster.max_health <= 0.0:
-		_mod_error(mod, "怪物 %s 的 max_health 必须大于 0：%s" % [monster.content_id, monster.max_health])
+	if monster.health_per_level <= 0.0:
+		_mod_error(mod, "怪物 %s 的 health_per_level 必须大于 0：%s" % [monster.content_id, monster.max_health])
 	if monster.attack_range < 0.0:
 		_mod_error(mod, "怪物 %s 的 attack_range 不能为负：%s" % [monster.content_id, monster.attack_range])
 	if monster.move_speed < 0.0:

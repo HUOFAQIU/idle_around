@@ -5,4 +5,6 @@ enum Kind {
 	MONSTER,
 	CUE,
 	VESSEL,
+	MAP,
+	ITEM,
 }

@@ -3,26 +3,21 @@ extends RefCounted
 
 const FOREST_MAP_ID: StringName = &"forest_map"
 const QUANTITY_STONE_ID: StringName = &"quantity_stone"
-const FOREST_MAP_PATH: String = "res://base_mods/core/maps/forest/forest_map.tres"
-const QUANTITY_STONE_PATH: String = (
-	"res://base_mods/core/items/quantity_stone/quantity_stone.tres"
-)
-
-static var _forest_map: MapData
-static var _quantity_stone: QuantityStoneData
 
 
 static func get_map(id: StringName) -> MapData:
-	match id:
-		FOREST_MAP_ID:
-			if _forest_map == null:
-				_forest_map = load(FOREST_MAP_PATH) as MapData
-			return _forest_map
+	for entry in ModLoader.get_map_entries():
+		if entry.content_id == id:
+			return entry.resource as MapData
 	return null
 
 
 static func get_map_ids() -> Array[StringName]:
-	return [FOREST_MAP_ID]
+	var ids: Array[StringName] = []
+	for entry in ModLoader.get_map_entries():
+		if entry.resource is MapData:
+			ids.append(entry.content_id)
+	return ids
 
 
 static func make_map_item(id: StringName) -> MapItemData:
@@ -49,7 +44,11 @@ static func make_quantity_stone() -> QuantityStoneData:
 
 
 static func get_quantity_stone_ids() -> Array[StringName]:
-	return [QUANTITY_STONE_ID]
+	var ids: Array[StringName] = []
+	for entry in ModLoader.get_item_entries():
+		if entry.resource is QuantityStoneData:
+			ids.append(entry.content_id)
+	return ids
 
 
 static func collect_problems() -> Array[String]:
@@ -60,20 +59,41 @@ static func collect_problems() -> Array[String]:
 			problems.append("地图资源打不开：%s" % id)
 			continue
 		problems.append_array(map_data.collect_problems())
-		for entry in map_data.spawn_entries:
-			if entry == null:
-				continue
-			if CollectionDB.get_monster(entry.monster_id) == null:
-				problems.append("%s：怪物不存在 %s" % [id, entry.monster_id])
-			if entry.condition == MapSpawnEntry.Condition.KILL_COUNT \
-					and CollectionDB.get_monster(entry.kill_monster_id) == null:
-				problems.append("%s：击杀条件怪物不存在 %s" % [id, entry.kill_monster_id])
+		if map_data.uses_tiered_spawns():
+			_check_pool_monsters(problems, id, map_data.mob_pool, "小怪池")
+			_check_pool_monsters(problems, id, map_data.elite_pool, "精英池")
+			if map_data.boss_entry != null and not map_data.boss_entry.monster_id.is_empty():
+				if CollectionDB.get_monster(map_data.boss_entry.monster_id) == null:
+					problems.append("%s：首领怪物不存在 %s" % [id, map_data.boss_entry.monster_id])
+		else:
+			for entry in map_data.spawn_entries:
+				if entry == null:
+					continue
+				if CollectionDB.get_monster(entry.monster_id) == null:
+					problems.append("%s：怪物不存在 %s" % [id, entry.monster_id])
+				if entry.condition == MapSpawnEntry.Condition.KILL_COUNT \
+						and CollectionDB.get_monster(entry.kill_monster_id) == null:
+					problems.append("%s：击杀条件怪物不存在 %s" % [id, entry.kill_monster_id])
 	if _quantity_stone_template() == null:
-		problems.append("数量石资源打不开：%s" % QUANTITY_STONE_PATH)
+		problems.append("数量石资源未注册：%s" % QUANTITY_STONE_ID)
 	return problems
 
 
+static func _check_pool_monsters(
+	problems: Array[String],
+	map_id: StringName,
+	pool: Array[MapSpawnPoolEntry],
+	label: String
+) -> void:
+	for entry in pool:
+		if entry == null or entry.monster_id.is_empty():
+			continue
+		if CollectionDB.get_monster(entry.monster_id) == null:
+			problems.append("%s：%s怪物不存在 %s" % [map_id, label, entry.monster_id])
+
+
 static func _quantity_stone_template() -> QuantityStoneData:
-	if _quantity_stone == null:
-		_quantity_stone = load(QUANTITY_STONE_PATH) as QuantityStoneData
-	return _quantity_stone
+	for entry in ModLoader.get_item_entries():
+		if entry.content_id == QUANTITY_STONE_ID:
+			return entry.resource as QuantityStoneData
+	return null

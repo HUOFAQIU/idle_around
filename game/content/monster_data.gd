@@ -1,5 +1,11 @@
 class_name MonsterData extends Resource
 
+enum Tier {
+	MOB,
+	ELITE,
+	BOSS,
+}
+
 ## 运行期稳定 ID：由 ModLoader 从 manifest 写入（core 沿用原 ID）。
 ## 由 CollectionDB / ModLoader 写入；不要在资源里手填。
 @export_storage var content_id: StringName = &""
@@ -9,8 +15,10 @@ class_name MonsterData extends Resource
 ## 图鉴图标，也用作战斗贴图（推荐 AtlasTexture）
 @export var icon: Texture2D
 
-## 血量上限（战斗时写入 ASC）
-@export var max_health: float = 100.0
+## 怪物阶位：小怪 / 精英 / 首领
+@export var tier: Tier = Tier.MOB
+## 每级最大生命值（实际血量 = health_per_level * 等级）
+@export var health_per_level: float = 50.0
 ## 攻击范围（像素，圆心到圆心）
 @export_range(0.0, 1000.0, 0.1) var attack_range: float = 30.0
 ## 移动速度（像素/秒）
@@ -55,3 +63,6 @@ func drop_entries() -> Array[DropEntry]:
 		drop.chance = entry.drop_chance
 		result.append(drop)
 	return result
+
+func max_health_for_level(level: int) -> float:
+	return health_per_level * float(maxi(level, 1))

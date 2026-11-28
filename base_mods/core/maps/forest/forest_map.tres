@@ -1,25 +1,55 @@
 [gd_resource type="Resource" script_class="MapData" format=3 uid="uid://dp0u5s2h45mvf"]
 
 [ext_resource type="Script" uid="uid://cuwcav40al724" path="res://game/content/map_data.gd" id="1_map"]
-[ext_resource type="Script" uid="uid://co6t2r8tlnsju" path="res://game/content/map_spawn_entry.gd" id="2_entry"]
+[ext_resource type="Script" path="res://game/content/map_spawn_pool_entry.gd" id="2_pool"]
 [ext_resource type="Texture2D" uid="uid://cqeab360k7nle" path="res://assets/map_22.png" id="3_icon"]
 
-[sub_resource type="Resource" id="Resource_snake"]
-script = ExtResource("2_entry")
-monster_id = &"snake_monster"
-count = 200
+[sub_resource type="Resource" id="Resource_mob_green"]
+script = ExtResource("2_pool")
+monster_id = &"green_slime_monster"
+weight = 1.0
+level_range = Vector2i(1, 3)
 
-[sub_resource type="Resource" id="Resource_fu"]
-script = ExtResource("2_entry")
-condition = 1
-monster_id = &"fu_monster"
-kill_monster_id = &"snake_monster"
-kill_threshold = 10
+[sub_resource type="Resource" id="Resource_mob_blue"]
+script = ExtResource("2_pool")
+monster_id = &"blue_slime_monster"
+weight = 1.0
+level_range = Vector2i(1, 3)
+
+[sub_resource type="Resource" id="Resource_mob_mud"]
+script = ExtResource("2_pool")
+monster_id = &"mud_slime_monster"
+weight = 1.0
+level_range = Vector2i(1, 3)
+
+[sub_resource type="Resource" id="Resource_elite_purple"]
+script = ExtResource("2_pool")
+monster_id = &"purple_slime_monster"
+weight = 1.0
+level_range = Vector2i(3, 4)
+
+[sub_resource type="Resource" id="Resource_elite_spiked"]
+script = ExtResource("2_pool")
+monster_id = &"spiked_slime_monster"
+weight = 1.0
+level_range = Vector2i(3, 4)
+
+[sub_resource type="Resource" id="Resource_boss_king"]
+script = ExtResource("2_pool")
+monster_id = &"slime_king_monster"
+weight = 1.0
+level_range = Vector2i(5, 5)
 
 [resource]
 script = ExtResource("1_map")
 content_id = &"forest_map"
-display_name = "森林"
+display_name = "边缘森林"
 icon = ExtResource("3_icon")
+level_range = Vector2i(1, 5)
 rarity = 1
-spawn_entries = Array[ExtResource("2_entry")]([SubResource("Resource_snake"), SubResource("Resource_fu")])
+mob_pool = Array[ExtResource("2_pool")]([SubResource("Resource_mob_green"), SubResource("Resource_mob_blue"), SubResource("Resource_mob_mud")])
+mob_total = 200
+mob_interval_seconds = 1.0
+elite_pool = Array[ExtResource("2_pool")]([SubResource("Resource_elite_purple"), SubResource("Resource_elite_spiked")])
+elite_every_mob_kills = 10
+boss_entry = SubResource("Resource_boss_king")

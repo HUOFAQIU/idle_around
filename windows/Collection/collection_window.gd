@@ -75,11 +75,11 @@ func _sorted_ids() -> Array[StringName]:
 	var ids: Array[StringName] = []
 	match _kind:
 		ContentKind.Kind.MONSTER:
-			ids.assign(CollectionDB.get_monster_ids())
+			ids.assign(ModLoader.get_monster_ids())
 		ContentKind.Kind.SOUL:
-			ids.assign(CollectionDB.get_soul_ids())
+			ids.assign(ModLoader.get_soul_ids())
 		ContentKind.Kind.VESSEL:
-			ids.assign(CollectionDB.get_vessel_ids())
+			ids.assign(ModLoader.get_vessel_ids())
 	ids.sort_custom(func(a, b): return _entry_name(a) < _entry_name(b))
 	return ids
 
@@ -87,13 +87,13 @@ func _sorted_ids() -> Array[StringName]:
 func _entry_name(id: StringName) -> String:
 	match _kind:
 		ContentKind.Kind.MONSTER:
-			var monster := CollectionDB.get_monster(id)
+			var monster := ModLoader.get_monster(id)
 			return monster.display_name if monster != null else String(id)
 		ContentKind.Kind.SOUL:
-			var soul := CollectionDB.get_soul(id)
+			var soul := ModLoader.get_soul(id)
 			return soul.item_name if soul != null else String(id)
 		ContentKind.Kind.VESSEL:
-			var vessel := CollectionDB.get_vessel(id)
+			var vessel := ModLoader.get_vessel(id)
 			return vessel.item_name if vessel != null else String(id)
 	return String(id)
 
@@ -101,13 +101,13 @@ func _entry_name(id: StringName) -> String:
 func _entry_icon(id: StringName) -> Texture2D:
 	match _kind:
 		ContentKind.Kind.MONSTER:
-			var monster := CollectionDB.get_monster(id)
+			var monster := ModLoader.get_monster(id)
 			return monster.icon if monster != null else null
 		ContentKind.Kind.SOUL:
-			var soul := CollectionDB.get_soul(id)
+			var soul := ModLoader.get_soul(id)
 			return soul.icon if soul != null else null
 		ContentKind.Kind.VESSEL:
-			var vessel := CollectionDB.get_vessel(id)
+			var vessel := ModLoader.get_vessel(id)
 			return vessel.icon if vessel != null else null
 	return null
 
@@ -143,7 +143,7 @@ func _show_entry_tooltip(id: StringName) -> void:
 		return
 	match _kind:
 		ContentKind.Kind.SOUL:
-			var soul := CollectionDB.get_soul(id)
+			var soul := ModLoader.get_soul(id)
 			if soul == null:
 				return
 			tip.show_tip(
@@ -153,7 +153,7 @@ func _show_entry_tooltip(id: StringName) -> void:
 				SoulTooltip.build(soul, TooltipText.Format.PLAIN)
 			)
 		ContentKind.Kind.VESSEL:
-			var vessel := CollectionDB.get_vessel(id)
+			var vessel := ModLoader.get_vessel(id)
 			if vessel == null:
 				return
 			tip.show_tip(

@@ -4,7 +4,7 @@ class_name ItemData
 signal sig_refresh
 
 ## 运行期稳定 ID：由 ModLoader 从 manifest 写入（core 沿用原 ID）。
-## 由 CollectionDB / ModLoader 写入；不要在资源里手填，也不要拿来显示。
+## 由 ModLoader 写入；不要在资源里手填，也不要拿来显示。
 @export_storage var content_id: StringName = &""
 
 @export_group("Common Settings")

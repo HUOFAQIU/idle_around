@@ -104,7 +104,7 @@ func stop() -> void:
 func spawn_monster_for_test(monster_id: StringName) -> bool:
 	if battle == null or not battle.is_running:
 		return false
-	if CollectionDB.get_monster(monster_id) == null:
+	if ModLoader.get_monster(monster_id) == null:
 		return false
 	var before := battle.units.size()
 	_test_monster_id = monster_id
@@ -327,14 +327,14 @@ func _take_next_monster() -> MonsterData:
 	_next_spawn_is_test = false
 	_next_spawn_level = 1
 	if not _test_monster_id.is_empty():
-		var forced := CollectionDB.get_monster(_test_monster_id)
+		var forced := ModLoader.get_monster(_test_monster_id)
 		_test_monster_id = &""
 		_next_spawn_is_test = true
 		return forced
 	while not _pending_spawns.is_empty():
 		var req: Dictionary = _pending_spawns.pop_front()
 		var monster_id: StringName = req.get("monster_id", &"")
-		var monster := CollectionDB.get_monster(monster_id)
+		var monster := ModLoader.get_monster(monster_id)
 		if monster != null:
 			_next_spawn_level = maxi(int(req.get("level", 1)), 1)
 			return monster

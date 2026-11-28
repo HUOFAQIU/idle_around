@@ -7,50 +7,16 @@ const STARTUP_TIMING: GDScript = preload("res://scripts/debug/startup_timing.gd"
 
 var unlock_all_for_testing: bool = false
 
-var _souls: Dictionary[StringName, SoulData] = {}
-var _monsters: Dictionary[StringName, MonsterData] = {}
-var _vessels: Dictionary[StringName, SoulVesselData] = {}
 var _seen: Dictionary = {}
 
 
 func _ready() -> void:
 	STARTUP_TIMING.mark("主场景加载编译与前置 autoload 完成")
 	_reset_seen()
-	_load_catalog()
 	GBIS.sig_inv_item_added.connect(_on_inv_item_added)
 	GBIS.sig_inv_refresh.connect(_scan_owned_souls)
 	@warning_ignore("missing_await")
 	_scan_owned_souls_after_ready()
-
-
-func get_soul_ids() -> Array[StringName]:
-	var ids: Array[StringName] = []
-	ids.assign(_souls.keys())
-	return ids
-
-
-func get_monster_ids() -> Array[StringName]:
-	var ids: Array[StringName] = []
-	ids.assign(_monsters.keys())
-	return ids
-
-
-func get_soul(id: StringName) -> SoulData:
-	return _souls.get(id)
-
-
-func get_monster(id: StringName) -> MonsterData:
-	return _monsters.get(id)
-
-
-func get_vessel_ids() -> Array[StringName]:
-	var ids: Array[StringName] = []
-	ids.assign(_vessels.keys())
-	return ids
-
-
-func get_vessel(id: StringName) -> SoulVesselData:
-	return _vessels.get(id)
 
 
 func is_seen(kind: int, id: StringName) -> bool:
@@ -102,9 +68,9 @@ func mark_monster_seen(monster: MonsterData) -> void:
 
 
 func unlock_all() -> bool:
-	var changed := _unlock_kind(ContentKind.Kind.MONSTER, _monsters)
-	changed = _unlock_kind(ContentKind.Kind.SOUL, _souls) or changed
-	return _unlock_kind(ContentKind.Kind.VESSEL, _vessels) or changed
+	var changed := _unlock_kind(ContentKind.Kind.MONSTER, ModLoader.get_monster_ids())
+	changed = _unlock_kind(ContentKind.Kind.SOUL, ModLoader.get_soul_ids()) or changed
+	return _unlock_kind(ContentKind.Kind.VESSEL, ModLoader.get_vessel_ids()) or changed
 
 
 func to_save_data() -> Dictionary:
@@ -140,65 +106,9 @@ func _reset_seen() -> void:
 	}
 
 
-func _load_catalog() -> void:
-	for entry in ModLoader.get_soul_entries():
-		var soul := entry.resource as SoulData
-		if soul == null:
-			push_warning("见闻：魂灵加载失败 %s" % entry.content_id)
-			continue
-		soul.content_id = entry.content_id
-		_register_soul(entry.content_id, soul)
-
-	for entry in ModLoader.get_monster_entries():
-		var monster := entry.resource as MonsterData
-		if monster == null:
-			push_warning("见闻：怪物加载失败 %s" % entry.content_id)
-			continue
-		monster.content_id = entry.content_id
-		_monsters[entry.content_id] = monster
-
-	for entry in ModLoader.get_vessel_entries():
-		var vessel := entry.resource as SoulVesselData
-		if vessel == null:
-			push_warning("见闻：魂器加载失败 %s" % entry.content_id)
-			continue
-		vessel.content_id = entry.content_id
-		_vessels[entry.content_id] = vessel
-
-	if _souls.is_empty() or _monsters.is_empty():
-		push_warning("见闻：内容目录为空，检查内置 core mod 是否加载成功")
-	_warn_duplicate_skill_ids()
-
-
-func _register_soul(id: StringName, soul: SoulData) -> void:
-	if _souls.has(id):
-		push_warning("见闻：魂灵 ID 重复，已跳过 %s" % id)
-		return
-	_souls[id] = soul
-
-
-func _warn_duplicate_skill_ids() -> void:
-	var skill_sources: Dictionary[StringName, String] = {}
-	for soul: SoulData in _souls.values():
-		if soul == null or soul.skill == null or soul.skill.id.is_empty():
-			continue
-		var skill_id := StringName(soul.skill.id)
-		var source: String = soul.skill.resource_path
-		if source.is_empty():
-			source = str(soul.skill.get_instance_id())
-		if skill_sources.has(skill_id) and skill_sources[skill_id] != source:
-			ModLoader.report_warning("技能 ID 重复「%s」（%s / %s）" % [
-				skill_id,
-				skill_sources[skill_id],
-				source,
-			])
-			continue
-		skill_sources[skill_id] = source
-
-
-func _unlock_kind(kind: int, catalog: Dictionary) -> bool:
+func _unlock_kind(kind: int, ids: Array[StringName]) -> bool:
 	var changed := false
-	for id: StringName in catalog:
+	for id: StringName in ids:
 		if _seen.get(kind, {}).has(id):
 			continue
 		_mark_seen(kind, id)

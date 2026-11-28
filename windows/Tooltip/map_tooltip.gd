@@ -59,7 +59,7 @@ static func _entry_line(entry: MapSpawnEntry) -> String:
 
 
 static func _monster_name(monster_id: StringName) -> String:
-	var monster := CollectionDB.get_monster(monster_id)
+	var monster := ModLoader.get_monster(monster_id)
 	if monster == null or monster.display_name.is_empty():
 		return String(monster_id)
 	return monster.display_name

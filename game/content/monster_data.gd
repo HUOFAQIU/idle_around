@@ -7,7 +7,7 @@ enum Tier {
 }
 
 ## 运行期稳定 ID：由 ModLoader 从 manifest 写入（core 沿用原 ID）。
-## 由 CollectionDB / ModLoader 写入；不要在资源里手填。
+## 由 ModLoader 写入；不要在资源里手填。
 @export_storage var content_id: StringName = &""
 
 ## 图鉴显示名，也是战斗中的头顶名字
@@ -18,7 +18,7 @@ enum Tier {
 ## 怪物阶位：小怪 / 精英 / 首领
 @export var tier: Tier = Tier.MOB
 ## 每级最大生命值（实际血量 = health_per_level * 等级）
-@export var health_per_level: float = 50.0
+@export var health_per_level: float = 100.0
 ## 攻击范围（像素，圆心到圆心）
 @export_range(0.0, 1000.0, 0.1) var attack_range: float = 30.0
 ## 移动速度（像素/秒）

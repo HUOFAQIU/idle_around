@@ -5,7 +5,7 @@ const COMMON: GDScript = preload("res://scripts/test_api/common.gd")
 const CONTAINER_IDS: GDScript = preload("res://scripts/container_ids.gd")
 
 static func add_soul(id : StringName, container : String = "") -> bool:
-	var soul := CollectionDB.get_soul(id)
+	var soul := ModLoader.get_soul(id)
 	if soul == null:
 		push_warning("TestAPI：魂灵不存在 %s" % id)
 		return false
@@ -43,7 +43,7 @@ static func show_shop() -> bool:
 
 
 static func shop_add_soul(id : StringName) -> bool:
-	var soul := CollectionDB.get_soul(id)
+	var soul := ModLoader.get_soul(id)
 	if soul == null:
 		push_warning("TestAPI：魂灵不存在 %s" % id)
 		return false
@@ -100,7 +100,7 @@ static func get_warehouse_page() -> int:
 
 
 static func add_vessel(id : StringName, container : String = "") -> bool:
-	var vessel := CollectionDB.get_vessel(id)
+	var vessel := ModLoader.get_vessel(id)
 	if vessel == null:
 		push_warning("TestAPI：魂器不存在 %s" % id)
 		return false
@@ -110,7 +110,7 @@ static func add_vessel(id : StringName, container : String = "") -> bool:
 
 
 static func equip_vessel(id : StringName) -> bool:
-	var vessel := CollectionDB.get_vessel(id)
+	var vessel := ModLoader.get_vessel(id)
 	if vessel == null:
 		push_warning("TestAPI：魂器不存在 %s" % id)
 		return false
@@ -118,7 +118,7 @@ static func equip_vessel(id : StringName) -> bool:
 
 
 static func vessel_add_soul(soul_id : StringName, vessel_slot : int = 0) -> bool:
-	var soul := CollectionDB.get_soul(soul_id)
+	var soul := ModLoader.get_soul(soul_id)
 	if soul == null:
 		push_warning("TestAPI：魂灵不存在 %s" % soul_id)
 		return false
@@ -147,7 +147,7 @@ static func get_vessel_contents(vessel_slot : int = 0) -> Array[String]:
 
 
 static func get_vessel_ids() -> Array[StringName]:
-	return CollectionDB.get_vessel_ids()
+	return ModLoader.get_vessel_ids()
 
 
 static func get_equipped_vessel_tooltip_text(vessel_slot : int = 0) -> String:
@@ -211,25 +211,25 @@ static func is_seen(kind : int, id : StringName) -> bool:
 
 
 static func get_soul_ids() -> Array[StringName]:
-	return CollectionDB.get_soul_ids()
+	return ModLoader.get_soul_ids()
 
 
 static func get_soul_types(id : StringName) -> Array[StringName]:
-	var soul := CollectionDB.get_soul(id)
+	var soul := ModLoader.get_soul(id)
 	if soul == null:
 		return []
 	return soul.types.duplicate()
 
 
 static func get_soul_tags(id : StringName) -> Array[StringName]:
-	var soul := CollectionDB.get_soul(id)
+	var soul := ModLoader.get_soul(id)
 	if soul == null:
 		return []
 	return soul.tags.duplicate()
 
 
 static func get_soul_size_tag(id : StringName) -> StringName:
-	var soul := CollectionDB.get_soul(id)
+	var soul := ModLoader.get_soul(id)
 	return soul.size_tag() if soul != null else &""
 
 
@@ -247,8 +247,8 @@ static func get_vessel_tooltip_ansi(id : StringName) -> String:
 
 static func get_skill_tags() -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
-	for id in CollectionDB.get_soul_ids():
-		var soul := CollectionDB.get_soul(id)
+	for id in ModLoader.get_soul_ids():
+		var soul := ModLoader.get_soul(id)
 		if soul == null or soul.skill == null:
 			continue
 		result.append({
@@ -260,7 +260,7 @@ static func get_skill_tags() -> Array[Dictionary]:
 
 
 static func get_soul_card_info(id : StringName) -> Dictionary:
-	var soul := CollectionDB.get_soul(id)
+	var soul := ModLoader.get_soul(id)
 	if soul == null:
 		push_warning("TestAPI：魂灵不存在 %s" % id)
 		return {}
@@ -273,7 +273,7 @@ static func get_soul_card_info(id : StringName) -> Dictionary:
 
 
 static func get_soul_damage_scaling(id : StringName) -> Dictionary:
-	var soul := CollectionDB.get_soul(id)
+	var soul := ModLoader.get_soul(id)
 	if soul == null or soul.skill == null:
 		return {}
 	var damage := SoulDamagePreview.find_damage_execution(soul.skill)
@@ -305,7 +305,7 @@ static func get_equipped_soul_damage_preview(id : StringName) -> Dictionary:
 
 
 static func get_soul_steps(id : StringName) -> Array[Dictionary]:
-	var soul := CollectionDB.get_soul(id)
+	var soul := ModLoader.get_soul(id)
 	if soul == null or soul.skill == null:
 		return []
 	var result: Array[Dictionary] = []
@@ -340,7 +340,7 @@ static func get_soul_steps(id : StringName) -> Array[Dictionary]:
 
 
 static func get_soul_cast_times(id : StringName) -> int:
-	var soul := CollectionDB.get_soul(id)
+	var soul := ModLoader.get_soul(id)
 	if soul == null or soul.skill == null:
 		return 0
 	return maxi(soul.skill.cast_times, 1)
@@ -371,11 +371,11 @@ static func get_equipped_soul_tooltip_ansi(id : StringName) -> String:
 
 
 static func get_monster_ids() -> Array[StringName]:
-	return CollectionDB.get_monster_ids()
+	return ModLoader.get_monster_ids()
 
 
 static func get_monster_spawn_distances(id : StringName) -> Array[int]:
-	var monster := CollectionDB.get_monster(id)
+	var monster := ModLoader.get_monster(id)
 	if monster == null:
 		push_warning("TestAPI：怪物不存在 %s" % id)
 		return []
@@ -392,7 +392,7 @@ static func _format_tooltip(
 
 
 static func _soul_tooltip(id : StringName, format : TooltipText.Format) -> String:
-	var soul := CollectionDB.get_soul(id)
+	var soul := ModLoader.get_soul(id)
 	if soul == null:
 		push_warning("TestAPI：魂灵不存在 %s" % id)
 		return ""
@@ -409,7 +409,7 @@ static func _equipped_soul_tooltip(id : StringName, format : TooltipText.Format)
 
 
 static func _vessel_tooltip(id : StringName, format : TooltipText.Format) -> String:
-	var vessel := CollectionDB.get_vessel(id)
+	var vessel := ModLoader.get_vessel(id)
 	if vessel == null:
 		push_warning("TestAPI：魂器不存在 %s" % id)
 		return ""

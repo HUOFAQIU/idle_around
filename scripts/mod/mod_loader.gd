@@ -20,12 +20,12 @@ var _vessel_entries: Array[ModContentEntry] = []
 var _cue_entries: Array[ModContentEntry] = []
 var _map_entries: Array[ModContentEntry] = []
 var _item_entries: Array[ModContentEntry] = []
-var _soul_ids: Dictionary[StringName, bool] = {}
-var _monster_ids: Dictionary[StringName, bool] = {}
-var _vessel_ids: Dictionary[StringName, bool] = {}
+var _souls_by_id: Dictionary[StringName, SoulData] = {}
+var _monsters_by_id: Dictionary[StringName, MonsterData] = {}
+var _vessels_by_id: Dictionary[StringName, SoulVesselData] = {}
 var _cue_tags: Dictionary[StringName, bool] = {}
-var _map_ids: Dictionary[StringName, bool] = {}
-var _item_ids: Dictionary[StringName, bool] = {}
+var _maps_by_id: Dictionary[StringName, MapData] = {}
+var _items_by_id: Dictionary[StringName, ItemData] = {}
 var _content_paths: Dictionary[String, StringName] = {}
 var _errors: Array[String] = []
 var _warnings: Array[String] = []
@@ -95,6 +95,56 @@ func get_item_entries() -> Array[ModContentEntry]:
 	var result: Array[ModContentEntry] = []
 	result.assign(_item_entries)
 	return result
+
+
+func get_soul(id: StringName) -> SoulData:
+	return _souls_by_id.get(id)
+
+
+func get_soul_ids() -> Array[StringName]:
+	var ids: Array[StringName] = []
+	ids.assign(_souls_by_id.keys())
+	return ids
+
+
+func get_monster(id: StringName) -> MonsterData:
+	return _monsters_by_id.get(id)
+
+
+func get_monster_ids() -> Array[StringName]:
+	var ids: Array[StringName] = []
+	ids.assign(_monsters_by_id.keys())
+	return ids
+
+
+func get_vessel(id: StringName) -> SoulVesselData:
+	return _vessels_by_id.get(id)
+
+
+func get_vessel_ids() -> Array[StringName]:
+	var ids: Array[StringName] = []
+	ids.assign(_vessels_by_id.keys())
+	return ids
+
+
+func get_map(id: StringName) -> MapData:
+	return _maps_by_id.get(id)
+
+
+func get_map_ids() -> Array[StringName]:
+	var ids: Array[StringName] = []
+	ids.assign(_maps_by_id.keys())
+	return ids
+
+
+func get_item(id: StringName) -> ItemData:
+	return _items_by_id.get(id)
+
+
+func get_item_ids() -> Array[StringName]:
+	var ids: Array[StringName] = []
+	ids.assign(_items_by_id.keys())
+	return ids
 
 
 func get_errors() -> Array[String]:
@@ -420,6 +470,9 @@ func _load_all_content() -> void:
 	for mod in _sorted_enabled:
 		if mod.loaded:
 			_load_mod_content(mod)
+	if _souls_by_id.is_empty() or _monsters_by_id.is_empty():
+		report_warning("内容目录为空，检查内置 core mod 是否加载成功")
+	_warn_duplicate_skill_ids()
 
 
 func _load_mod_content(mod: ModInfo) -> void:
@@ -481,7 +534,7 @@ func _load_content_entry(mod: ModInfo, spec: Dictionary, raw_entry: Dictionary) 
 			if not resource is SoulData:
 				_mod_error(mod, "魂灵资源类型不对：%s" % path)
 				return
-			if _soul_ids.has(content_id):
+			if _souls_by_id.has(content_id):
 				_mod_error(mod, "魂灵 ID 重复：%s" % content_id)
 				return
 			var soul := resource as SoulData
@@ -493,7 +546,7 @@ func _load_content_entry(mod: ModInfo, spec: Dictionary, raw_entry: Dictionary) 
 			_validator.validate_skill_steps(mod, soul)
 			if _errors.size() > errors_before:
 				return
-			_soul_ids[content_id] = true
+			_souls_by_id[content_id] = soul
 			_content_paths[path] = content_id
 			_soul_entries.append(_make_entry(kind, mod, content_id, path, resource))
 			mod.soul_count += 1
@@ -501,7 +554,7 @@ func _load_content_entry(mod: ModInfo, spec: Dictionary, raw_entry: Dictionary) 
 			if not resource is MonsterData:
 				_mod_error(mod, "怪物资源类型不对：%s" % path)
 				return
-			if _monster_ids.has(content_id):
+			if _monsters_by_id.has(content_id):
 				_mod_error(mod, "怪物 ID 重复：%s" % content_id)
 				return
 			var monster := resource as MonsterData
@@ -510,7 +563,7 @@ func _load_content_entry(mod: ModInfo, spec: Dictionary, raw_entry: Dictionary) 
 			_validator.validate_monster_config(mod, monster)
 			if _errors.size() > errors_before:
 				return
-			_monster_ids[content_id] = true
+			_monsters_by_id[content_id] = monster
 			_content_paths[path] = content_id
 			_monster_entries.append(_make_entry(kind, mod, content_id, path, resource))
 			mod.monster_count += 1
@@ -518,7 +571,7 @@ func _load_content_entry(mod: ModInfo, spec: Dictionary, raw_entry: Dictionary) 
 			if not resource is SoulVesselData:
 				_mod_error(mod, "魂器资源类型不对：%s" % path)
 				return
-			if _vessel_ids.has(content_id):
+			if _vessels_by_id.has(content_id):
 				_mod_error(mod, "魂器 ID 重复：%s" % content_id)
 				return
 			var vessel := resource as SoulVesselData
@@ -527,7 +580,7 @@ func _load_content_entry(mod: ModInfo, spec: Dictionary, raw_entry: Dictionary) 
 			_validator.validate_vessel_config(mod, vessel)
 			if _errors.size() > errors_before:
 				return
-			_vessel_ids[content_id] = true
+			_vessels_by_id[content_id] = vessel
 			_content_paths[path] = content_id
 			_vessel_entries.append(_make_entry(kind, mod, content_id, path, resource))
 			mod.vessel_count += 1
@@ -546,12 +599,12 @@ func _load_content_entry(mod: ModInfo, spec: Dictionary, raw_entry: Dictionary) 
 			if not resource is MapData:
 				_mod_error(mod, "地图资源类型不对：%s" % path)
 				return
-			if _map_ids.has(content_id):
+			if _maps_by_id.has(content_id):
 				_mod_error(mod, "地图 ID 重复：%s" % content_id)
 				return
 			var map_data := resource as MapData
 			map_data.content_id = content_id
-			_map_ids[content_id] = true
+			_maps_by_id[content_id] = map_data
 			_content_paths[path] = content_id
 			_map_entries.append(_make_entry(kind, mod, content_id, path, resource))
 			mod.map_count += 1
@@ -559,12 +612,12 @@ func _load_content_entry(mod: ModInfo, spec: Dictionary, raw_entry: Dictionary) 
 			if not resource is ItemData:
 				_mod_error(mod, "物品资源类型不对：%s" % path)
 				return
-			if _item_ids.has(content_id):
+			if _items_by_id.has(content_id):
 				_mod_error(mod, "物品 ID 重复：%s" % content_id)
 				return
 			var item_data := resource as ItemData
 			item_data.content_id = content_id
-			_item_ids[content_id] = true
+			_items_by_id[content_id] = item_data
 			_content_paths[path] = content_id
 			_item_entries.append(_make_entry(kind, mod, content_id, path, resource))
 			mod.item_count += 1
@@ -620,3 +673,22 @@ func _mod_error(mod: ModInfo, message: String) -> void:
 	var text := "%s: %s" % [mod.id, message]
 	mod.errors.append(text)
 	_errors.append(text)
+
+
+func _warn_duplicate_skill_ids() -> void:
+	var skill_sources: Dictionary[StringName, String] = {}
+	for soul: SoulData in _souls_by_id.values():
+		if soul == null or soul.skill == null or soul.skill.id.is_empty():
+			continue
+		var skill_id := StringName(soul.skill.id)
+		var source: String = soul.skill.resource_path
+		if source.is_empty():
+			source = str(soul.skill.get_instance_id())
+		if skill_sources.has(skill_id) and skill_sources[skill_id] != source:
+			report_warning("技能 ID 重复「%s」（%s / %s）" % [
+				skill_id,
+				skill_sources[skill_id],
+				source,
+			])
+			continue
+		skill_sources[skill_id] = source

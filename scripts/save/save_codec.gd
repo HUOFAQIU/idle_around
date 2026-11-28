@@ -66,7 +66,7 @@ static func decode_item(record: Dictionary, orphans: Array = []) -> ItemData:
 	var kind := String(record.get("kind", ""))
 	var id := StringName(String(record.get("id", "")))
 	if kind == KIND_SOUL:
-		var soul := CollectionDB.get_soul(id)
+		var soul := ModLoader.get_soul(id)
 		if soul == null:
 			push_warning("存档：找不到魂灵「%s」" % id)
 			return null
@@ -74,7 +74,7 @@ static func decode_item(record: Dictionary, orphans: Array = []) -> ItemData:
 		instance.emotions = _decode_emotions(record.get("emotions", {}))
 		return instance
 	if kind == KIND_VESSEL:
-		var vessel := CollectionDB.get_vessel(id)
+		var vessel := ModLoader.get_vessel(id)
 		if vessel == null:
 			push_warning("存档：找不到魂器「%s」" % id)
 			return null

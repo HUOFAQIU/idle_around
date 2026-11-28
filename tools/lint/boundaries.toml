@@ -56,7 +56,6 @@ reads = [
 	"scripts/debug/",
 	"scripts/save/",
 	"scripts/mod/",
-	"scripts/collection_db.gd",
 ]
 
 [[layer]]
@@ -70,6 +69,7 @@ reads = [
 	"scripts/game_colors.gd",
 	"scripts/debug/",
 	"scripts/save/",
+	"scripts/mod/mod_loader.gd",
 	"scripts/collection_db.gd",
 ]
 

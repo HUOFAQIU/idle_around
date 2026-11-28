@@ -6,7 +6,7 @@ static func get_emotion_ids() -> Array[StringName]:
 
 
 static func get_emotion_ranges(soul_id: StringName) -> Dictionary:
-	var soul := CollectionDB.get_soul(soul_id)
+	var soul := ModLoader.get_soul(soul_id)
 	if soul == null:
 		push_warning("TestAPI：魂灵不存在 %s" % soul_id)
 		return {}
@@ -19,7 +19,7 @@ static func get_emotion_ranges(soul_id: StringName) -> Dictionary:
 
 
 static func get_effective_emotion_ids(soul_id: StringName) -> Array[StringName]:
-	var soul := CollectionDB.get_soul(soul_id)
+	var soul := ModLoader.get_soul(soul_id)
 	if soul == null:
 		push_warning("TestAPI：魂灵不存在 %s" % soul_id)
 		return []
@@ -31,7 +31,7 @@ static func roll_soul_emotions(
 	rarity: int = SoulEmotion.DEFAULT_RARITY,
 	rng_seed: int = 0
 ) -> Dictionary:
-	var soul := CollectionDB.get_soul(soul_id)
+	var soul := ModLoader.get_soul(soul_id)
 	if soul == null:
 		push_warning("TestAPI：魂灵不存在 %s" % soul_id)
 		return {}
@@ -47,7 +47,7 @@ static func roll_loot_soul_emotions(
 	rarity: int = SoulEmotion.DEFAULT_RARITY,
 	rng_seed: int = 0
 ) -> Dictionary:
-	var soul := CollectionDB.get_soul(soul_id)
+	var soul := ModLoader.get_soul(soul_id)
 	if soul == null:
 		push_warning("TestAPI：魂灵不存在 %s" % soul_id)
 		return {}
@@ -75,7 +75,7 @@ static func roll_soul_to_warehouse(
 	rarity: int = SoulEmotion.DEFAULT_RARITY,
 	rng_seed: int = -1
 ) -> Dictionary:
-	var soul := CollectionDB.get_soul(soul_id)
+	var soul := ModLoader.get_soul(soul_id)
 	if soul == null:
 		push_warning("TestAPI：魂灵不存在 %s" % soul_id)
 		return {}
@@ -92,7 +92,7 @@ static func roll_soul_to_warehouse(
 
 
 static func apply_soul_emotions(soul_id: StringName, emotions: Dictionary) -> Dictionary:
-	var soul := CollectionDB.get_soul(soul_id)
+	var soul := ModLoader.get_soul(soul_id)
 	if soul == null:
 		push_warning("TestAPI：魂灵不存在 %s" % soul_id)
 		return {}
@@ -104,7 +104,7 @@ static func apply_soul_emotions(soul_id: StringName, emotions: Dictionary) -> Di
 static func get_soul_tooltip_text_with_emotions(
 	soul_id: StringName, emotions: Dictionary
 ) -> String:
-	var soul := CollectionDB.get_soul(soul_id)
+	var soul := ModLoader.get_soul(soul_id)
 	if soul == null:
 		push_warning("TestAPI：魂灵不存在 %s" % soul_id)
 		return ""
@@ -119,7 +119,7 @@ static func check_soul_emotion_roundtrip(
 	rng_seed: int = 0
 ) -> Dictionary:
 	var rolled := roll_soul_emotions(soul_id, rarity, rng_seed)
-	var soul := CollectionDB.get_soul(soul_id)
+	var soul := ModLoader.get_soul(soul_id)
 	if soul == null or rolled.is_empty():
 		return {"ok": false, "checks": []}
 	var instance := soul.make_instance() as SoulData

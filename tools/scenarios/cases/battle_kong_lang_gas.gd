@@ -29,7 +29,7 @@ func run(ctx: ScenarioContext) -> void:
 				cue_dirs.append(float(ev.fields.get("direction", 0.0)))
 		)
 
-	var kong_lang := CollectionDB.get_soul(&"kong_lang_soul")
+	var kong_lang := ModLoader.get_soul(&"kong_lang_soul")
 	ctx.check(kong_lang != null, "已加载恐狼魂灵")
 	var map_item := MapCatalog.make_map_item(MapCatalog.FOREST_MAP_ID)
 	ctx.check(map_item != null, "已加载森林地图")

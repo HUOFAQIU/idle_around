@@ -99,7 +99,7 @@ func _check_loot_seam(ctx: ScenarioContext) -> void:
 	)
 	var bounds := SoulEmotion.total_range(5)
 	ctx.check(high_share >= bounds.x and high_share <= bounds.y, "传说稀有度掉落落在 65~85%")
-	ctx.check(CollectionDB.get_soul(SOUL_ID).emotions.is_empty(), "掉落不改共享模板")
+	ctx.check(ModLoader.get_soul(SOUL_ID).emotions.is_empty(), "掉落不改共享模板")
 
 
 func _check_type_cap(ctx: ScenarioContext) -> void:

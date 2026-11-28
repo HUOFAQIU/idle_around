@@ -6,18 +6,11 @@ const QUANTITY_STONE_ID: StringName = &"quantity_stone"
 
 
 static func get_map(id: StringName) -> MapData:
-	for entry in ModLoader.get_map_entries():
-		if entry.content_id == id:
-			return entry.resource as MapData
-	return null
+	return ModLoader.get_map(id)
 
 
 static func get_map_ids() -> Array[StringName]:
-	var ids: Array[StringName] = []
-	for entry in ModLoader.get_map_entries():
-		if entry.resource is MapData:
-			ids.append(entry.content_id)
-	return ids
+	return ModLoader.get_map_ids()
 
 
 static func make_map_item(id: StringName) -> MapItemData:
@@ -63,16 +56,16 @@ static func collect_problems() -> Array[String]:
 			_check_pool_monsters(problems, id, map_data.mob_pool, "小怪池")
 			_check_pool_monsters(problems, id, map_data.elite_pool, "精英池")
 			if map_data.boss_entry != null and not map_data.boss_entry.monster_id.is_empty():
-				if CollectionDB.get_monster(map_data.boss_entry.monster_id) == null:
+				if ModLoader.get_monster(map_data.boss_entry.monster_id) == null:
 					problems.append("%s：首领怪物不存在 %s" % [id, map_data.boss_entry.monster_id])
 		else:
 			for entry in map_data.spawn_entries:
 				if entry == null:
 					continue
-				if CollectionDB.get_monster(entry.monster_id) == null:
+				if ModLoader.get_monster(entry.monster_id) == null:
 					problems.append("%s：怪物不存在 %s" % [id, entry.monster_id])
 				if entry.condition == MapSpawnEntry.Condition.KILL_COUNT \
-						and CollectionDB.get_monster(entry.kill_monster_id) == null:
+						and ModLoader.get_monster(entry.kill_monster_id) == null:
 					problems.append("%s：击杀条件怪物不存在 %s" % [id, entry.kill_monster_id])
 	if _quantity_stone_template() == null:
 		problems.append("数量石资源未注册：%s" % QUANTITY_STONE_ID)
@@ -88,12 +81,9 @@ static func _check_pool_monsters(
 	for entry in pool:
 		if entry == null or entry.monster_id.is_empty():
 			continue
-		if CollectionDB.get_monster(entry.monster_id) == null:
+		if ModLoader.get_monster(entry.monster_id) == null:
 			problems.append("%s：%s怪物不存在 %s" % [map_id, label, entry.monster_id])
 
 
 static func _quantity_stone_template() -> QuantityStoneData:
-	for entry in ModLoader.get_item_entries():
-		if entry.content_id == QUANTITY_STONE_ID:
-			return entry.resource as QuantityStoneData
-	return null
+	return ModLoader.get_item(QUANTITY_STONE_ID) as QuantityStoneData

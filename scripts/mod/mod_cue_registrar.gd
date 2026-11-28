@@ -6,6 +6,8 @@ const BUILTIN_3D_CUE_TAGS: Array[StringName] = [
 	&"Cue.Combat.PoisonApply",
 	&"Cue.Status.Poison",
 	&"Cue.Status.Freeze",
+	&"Cue.Status.Shield",
+	&"Cue.Status.Heal",
 ]
 
 var _mod_registered_tags: Array[StringName] = []

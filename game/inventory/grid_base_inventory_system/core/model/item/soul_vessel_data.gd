@@ -93,9 +93,11 @@ func _clone_contents_from(source: ContainerData) -> ContainerData:
 func _new_contents() -> ContainerData:
 	var types: Array[String] = ["SOUL"]
 	var container_name := "vessel_%d" % get_instance_id()
-	return ContainerData.new(
+	var data := ContainerData.new(
 		container_name, container_columns, container_rows, types
 	)
+	data.set_owner_item(self)
+	return data
 
 
 static func _anchor_in(container: ContainerData, vessel: SoulVesselData) -> Vector2i:

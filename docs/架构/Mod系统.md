@@ -1,6 +1,6 @@
 # Mod 系统与创意工坊
 
-> 类型：实现 | 状态：部分实现（内置 core 已接入；Steam 后置） | 核对：2026-11-28
+> 类型：实现 | 状态：部分实现（内置 core 已接入；Steam 后置） | 核对：2026-11-27
 > 何时读：改 ModLoader 启动时序、内容注册校验、覆盖与冲突检测、Mod 窗口、加载顺序或 Steam 接入规划
 > 关键词：ModLoader ModCueRegistrar ContentKindSpec PCK manifest overrides 加载顺序 orphaned Steam 常见排查
 > 代码：`scripts/mod/`、`scripts/collection_db.gd`、`scripts/save/`、`base_mods/core/mod.json`、`windows/ModWindow/`
@@ -12,7 +12,6 @@
 | 文件 | 核心入口 | 职责 |
 |---|---|---|
 | `scripts/mod/mod_loader.gd` | `get_mods` / `get_*_entries` / `get_errors` | 两段式发现、PCK 挂载、排序与注册 |
-| `scripts/mod/mod_content_validator.gd` | `validate_content_id` / `normalize_skill_id` / `validate_overrides` | 内容 ID、技能 ID、魂灵/怪物/魂器规格与 override 冲突校验 |
 | `scripts/mod/mod_cue_registrar.gd` | `register_cue` / `get_mod_cues` | Mod 特效 Cue 注册进 GAS |
 | `scripts/collection_db.gd` | `get_soul` / `get_monster` / `get_vessel` / `is_seen` | 从 ModLoader 构建内容索引与见闻 |
 | `base_mods/core/mod.json` | — | 内置官方内容唯一清单真相 |
@@ -31,7 +30,7 @@ ModLoader (_init: 发现 core + user://mods → 校验/排序 → 全挂载 PCK 
 ## 2. 启动时序与硬约束
 
 1. `ModLoader._init()`：读 `user://mods.cfg`（启用态与 `[order]`），扫 `res://base_mods/*/mod.json` 与 `user://mods/*/mod.json`，校验/依赖排序后**先挂载全部 PCK，再统一加载内容**。
-2. `GameGlobal`、`GBIS` 等按 `project.godot` 顺序启动。
+2. `GBIS` 等其余 Autoload 按 `project.godot` 顺序启动。
 3. `GameplayCueManager._ready()`（直接指向 `addons/GodotGAS/managers/gameplay_cue_manager.gd`，项目内 `cue_registry.tres` 为空）→ `ModCueRegistrar._ready()` 注册全部校验通过的 core 与 mod Cue。
 4. `CollectionDB._ready()` 构建目录并写 `content_id` → `SaveManager` 等待容器就绪（不自动读档）→ 主场景启动。
 

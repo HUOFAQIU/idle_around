@@ -24,7 +24,6 @@ run/max_fps=60
 [autoload]
 
 ModLoader="*res://scripts/mod/mod_loader.gd"
-GameGlobal="*res://scripts/GameGlobal.gd"
 GBIS="*res://game/inventory/grid_base_inventory_system/core/grid_base_inventory_system.gd"
 GameplayCueManager="*res://addons/GodotGAS/managers/gameplay_cue_manager.gd"
 ModCueRegistrar="*res://scripts/mod/mod_cue_registrar.gd"

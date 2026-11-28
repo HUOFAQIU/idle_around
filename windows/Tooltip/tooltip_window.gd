@@ -110,10 +110,10 @@ func _on_item_focused(item_data: ItemData, container_name: String) -> void:
 
 
 func _soul_preview(soul: SoulData, container_name: String) -> SoulDamagePreview:
-	var vessel_window := SoulVesselWindow.instance
-	if vessel_window == null or vessel_window.contents_container_name() != container_name:
+	var container := ContainerRepository.instance.get_container(container_name)
+	if container == null:
 		return null
-	var vessel := vessel_window.contents_vessel()
+	var vessel := container.get_owner_item() as SoulVesselData
 	if vessel == null or vessel.vessel_kind != "COMBAT":
 		return null
 	var runtime := SoulRuntimeDB.get_runtime(soul)

@@ -90,7 +90,6 @@ reads = [
 
 [autoload]
 ModLoader = "scripts/mod/mod_loader.gd"
-GameGlobal = "scripts/GameGlobal.gd"
 GBIS = "game/inventory/grid_base_inventory_system/core/grid_base_inventory_system.gd"
 GameplayCueManager = "addons/GodotGAS/managers/gameplay_cue_manager.gd"
 ModCueRegistrar = "scripts/mod/mod_cue_registrar.gd"

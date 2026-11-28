@@ -26,6 +26,7 @@ enum DropState {
 @export_storage var item_grids_map: Dictionary[ItemData, Array]
 ## 格子到物品的映射
 @export_storage var grid_item_map: Dictionary[Vector2i, ItemData] = {}
+var _owner_ref: WeakRef = null
 
 @warning_ignore("shadowed_variable")
 func _init(container_name: String = GBIS.DEFAULT_INVENTORY_NAME, columns: int = 0, rows: int = 0, avilable_types: Array[String] = []) -> void:
@@ -178,3 +179,13 @@ func _try_get_empty_grids_by_shape(start: Vector2i, shape: Vector2i) -> Array[Ve
 			else:
 				return []
 	return ret
+
+
+func set_owner_item(item: ItemData) -> void:
+	_owner_ref = weakref(item) if item != null else null
+
+
+func get_owner_item() -> ItemData:
+	if _owner_ref == null:
+		return null
+	return _owner_ref.get_ref() as ItemData

@@ -3,17 +3,13 @@ extends BaseWindow
 
 const WINDOW_PADDING : int = 16
 
-static var instance : SoulVesselWindow
-
 @onready var inventory_view: InventoryView = $VBox/Contents
 
 var _vessel: SoulVesselData
-var _contents_name: String = ""
 
 
 func _ready() -> void:
 	super()
-	instance = self
 	title = "魂器"
 	GBIS.sig_item_activated.connect(_on_item_activated)
 	GBIS.sig_inv_item_removed.connect(_on_item_removed)
@@ -28,7 +24,6 @@ func open_for(vessel: SoulVesselData) -> void:
 		return
 	_vessel = vessel
 	var contents := vessel.ensure_contents()
-	_contents_name = contents.container_name
 	ContainerRepository.instance.register_container_data(contents.container_name, contents)
 	if not GBIS.inventory_names.has(contents.container_name):
 		GBIS.inventory_names.append(contents.container_name)
@@ -41,13 +36,6 @@ func open_for(vessel: SoulVesselData) -> void:
 	if not GBIS.opened_containers.has(contents.container_name):
 		GBIS.opened_containers.append(contents.container_name)
 
-
-func contents_container_name() -> String:
-	return _contents_name
-
-
-func contents_vessel() -> SoulVesselData:
-	return _vessel
 
 
 func _on_visibility_changed() -> void:
@@ -66,7 +54,6 @@ func _on_item_removed(_inv_name: String, item_data: ItemData) -> void:
 		return
 	hide()
 	_vessel = null
-	_contents_name = ""
 
 
 func _on_item_activated(item_data: ItemData) -> void:

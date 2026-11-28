@@ -6,7 +6,7 @@
 
 | 你要做什么 | 先读 | 代码入口 |
 |---|---|---|
-| 项目总览、Autoload、输入动作、开发约定与引擎工具 | `架构/00_总览.md`、`指南/开发约定.md` | `project.godot`、`scripts/GameGlobal.gd`、`engine_tools/` |
+| 项目总览、Autoload、输入动作、开发约定与引擎工具 | `架构/00_总览.md`、`指南/开发约定.md` | `project.godot`、`engine_tools/` |
 | 启动链、单窗口外壳、面板拖动/置顶/遮挡、Info/Item/Shop 窗口 | `架构/窗口与场景.md` | `main/control.gd`、`main/panel_manager.gd`、`main/status_bar_container.gd`、`windows/base_window.gd`、`windows/Battle/battle_window.tscn`、`windows/Info/`、`windows/Item/`、`windows/Shop/`、`scripts/ui/`、`scripts/window_pin_settings.gd` |
 | 3D 立方体旋转/翻面、面片/PetPanel、透明点击穿透、拖动圆点 | `架构/立方体外壳.md` | `main/Cube/`、`main/pet_panel.gd`、`main/Cube/Scripts/window_passthrough.gd` |
 | 开局/新游戏/六槽存档选择/角色选择/面锁定 | `架构/开局流程.md`、`架构/存档.md` | `game/flow/game_flow.gd`、`game/content/Characters/`、`main/Cube/Scenes/UI/` |

@@ -51,7 +51,7 @@
 
 ### P2：浅但可接受（低优先）
 
-`TestAPI` 门面与 commands actions 的纯转发（稳定入口，有意为之）；`GameGlobal` 单常量；`ContentKind` 枚举；`WindowPinSettings`；`CollectionSaveParticipant`。
+`TestAPI` 门面与 commands actions 的纯转发（稳定入口，有意为之）；`ContentKind` 枚举；`WindowPinSettings`；`CollectionSaveParticipant`。
 
 ## 4. 命名与入口
 

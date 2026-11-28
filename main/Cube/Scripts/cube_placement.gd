@@ -6,6 +6,7 @@ signal screen_center_changed
 const TARGET_FACE_PX : float = 300.0
 const FACE_WORLD_SIZE : float = 1.9
 const FACE_OFFSET : float = 1.005
+const WINDOW_POS_OFFSET : float = 5.0
 
 var _camera : Camera3D
 var _floating : FloatingMotion
@@ -96,7 +97,7 @@ func _default_center() -> Vector2:
 
 func _clamp_center(value : Vector2) -> Vector2:
 	var viewport_size := get_viewport().get_visible_rect().size
-	var half := TARGET_FACE_PX * 0.5 + float(GameGlobal.WINDOWPOSOFFSET)
+	var half := TARGET_FACE_PX * 0.5 + WINDOW_POS_OFFSET
 	var min_point := Vector2(half, half)
 	var max_point := viewport_size - min_point
 	if max_point.x < min_point.x:

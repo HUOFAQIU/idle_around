@@ -254,7 +254,7 @@ func _cast_times() -> int:
 
 
 func launch_projectiles(step: UnitSkillStep, groups: Array, ctx: SkillCastContext) -> void:
-	if step == null or step.projectile_scene == null:
+	if step == null or not step.uses_projectile:
 		return
 	var caster := caster_unit()
 	if caster == null:
@@ -272,7 +272,7 @@ func launch_projectiles(step: UnitSkillStep, groups: Array, ctx: SkillCastContex
 	caster.add_child(task)
 	task.projectile_landed.connect(_on_step_projectile_landed.bind(step, ctx))
 	task.task_finished.connect(_on_projectiles_finished.bind(targets.size(), ctx.trace))
-	task.execute(caster, targets, step.projectile_scene, step.projectile_speed)
+	task.execute(caster, targets, step.projectile_speed)
 
 
 func _on_step_projectile_landed(hit_unit: BattleUnit, step: UnitSkillStep, ctx: SkillCastContext) -> void:

@@ -9,12 +9,11 @@ var _pending : int = 0
 func execute(
 	caster: BattleUnit,
 	targets: Array[BattleUnit],
-	projectile_scene: PackedScene,
 	speed: float = SoulProjectile.DEFAULT_SPEED
 ) -> void:
 	if is_aborted:
 		return
-	if caster == null or caster.battle == null or projectile_scene == null or targets.is_empty():
+	if caster == null or caster.battle == null or targets.is_empty():
 		finish_task(0)
 		return
 

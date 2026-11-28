@@ -155,11 +155,6 @@ def check_index(
     return errors
 
 
-def write_index(root: Path) -> int:
-    """兼容旧 --write 参数：自动扫描模式下无需手工回写清单，直接返回 0。"""
-    return 0
-
-
 def main(argv: list[str] | None = None) -> int:
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")
@@ -168,14 +163,10 @@ def main(argv: list[str] | None = None) -> int:
 
     parser = argparse.ArgumentParser(description="自动扫描 docs/ 元数据并校验 docs/INDEX.md 路由")
     parser.add_argument("--root", default=str(Path(__file__).resolve().parents[2]))
-    parser.add_argument("--write", action="store_true", help="兼容保留参数（自动扫描模式无需回写）")
     parser.add_argument("--strict-budget", action="store_true", help="同时校验单篇文档行数与字节预算")
     args = parser.parse_args(argv)
 
     root = Path(args.root).resolve()
-    if args.write:
-        print(f"INDEX_META_WRITTEN {write_index(root)}")
-
     errors = check_index(root, strict_budget=args.strict_budget)
     for error in errors:
         print(error)

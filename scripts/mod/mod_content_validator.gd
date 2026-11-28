@@ -72,6 +72,13 @@ func normalize_skill_id(mod: ModInfo, soul: SoulData) -> void:
 			_report_error.call(mod, "core 技能 id 应与魂灵 ID 对应，应为 %s：%s" % [expected, skill.id])
 
 
+func _validate_external_skill_id(mod: ModInfo, skill: SkillDefinition) -> void:
+	if skill.id.is_empty():
+		_report_error.call(mod, "外部技能资源缺少 id：%s" % skill.resource_path)
+	elif not CONTENT_NAMING.is_valid_tag(skill.id):
+		_report_error.call(mod, "技能 id 不是合法 GAS 标签：%s" % skill.id)
+
+
 func validate_soul_vocabulary(mod: ModInfo, soul: SoulData) -> void:
 	for type in soul.types:
 		if not _is_soul_type(type):
@@ -111,7 +118,7 @@ func validate_monster_config(mod: ModInfo, monster: MonsterData) -> void:
 	for distance in monster.spawn_distances:
 		if distance < 1:
 			_report_error.call(mod, "怪物 %s 的刷新距离必须 >= 1：%d" % [monster.content_id, distance])
-	if monster.mesh_3d == null and monster.battle_scene == null:
+	if monster.mesh_3d == null:
 		_report_error.call(mod, "怪物 %s 缺少 mesh_3d" % monster.content_id)
 
 
@@ -134,6 +141,16 @@ func validate_vessel_config(mod: ModInfo, vessel: SoulVesselData) -> void:
 			continue
 		if effect.stat == SoulVesselEffect.Stat.DAMAGE_BONUS and effect.value < 0.0:
 			_report_error.call(mod, "魂器 %s 的伤害加成不能为负：%s" % [vessel.content_id, effect.value])
+
+
+func _is_soul_type(value: StringName) -> bool:
+	var text := String(value)
+	return text.begins_with("Soul.types.") and CONTENT_NAMING.is_valid_tag(text.trim_prefix("Soul.types."))
+
+
+func _is_soul_tag(value: StringName) -> bool:
+	var text := String(value)
+	return text.begins_with("Soul.tags.") and CONTENT_NAMING.is_valid_tag(text.trim_prefix("Soul.tags."))
 
 
 func validate_soul_tags(mod: ModInfo, soul: SoulData) -> void:
@@ -181,7 +198,7 @@ func validate_skill_steps(mod: ModInfo, soul: SoulData) -> void:
 					_report_error.call(mod, "魂灵 %s 的第 %d 步 max_range 不能为负：%d" % [soul.content_id, step_no, unit_rule.max_range])
 				if unit_rule.count < 0:
 					_report_error.call(mod, "魂灵 %s 的第 %d 步 count 不能为负：%d" % [soul.content_id, step_no, unit_rule.count])
-			if unit_step.effects.is_empty() and unit_step.projectile_scene == null:
+			if unit_step.effects.is_empty() and not unit_step.uses_projectile:
 				_report_error.call(mod, "魂灵 %s 的第 %d 步没有任何效果" % [soul.content_id, step_no])
 			if unit_step.status_magnitude < -1.0:
 				_report_error.call(mod, "魂灵 %s 的第 %d 步 status_magnitude 不能小于 -1：%s" % [soul.content_id, step_no, unit_step.status_magnitude])
@@ -205,40 +222,6 @@ func validate_skill_steps(mod: ModInfo, soul: SoulData) -> void:
 			if step.get_script() != null:
 				step_path = step.get_script().resource_path
 			_report_error.call(mod, "魂灵 %s 的第 %d 步类型未知：%s" % [soul.content_id, step_no, step_path])
-
-
-func validate_overrides(mod: ModInfo) -> void:
-	for raw_path in mod.manifest.overrides:
-		var path := raw_path.simplify_path()
-		if not path.begins_with("res://"):
-			_report_error.call(mod, "override 必须是 res:// 路径：%s" % raw_path)
-			continue
-		if _is_protected_override(path):
-			_report_error.call(mod, "不允许覆盖受保护路径：%s" % path)
-			continue
-		if not ResourceLoader.exists(path):
-			_report_error.call(mod, "override 目标不存在：%s" % path)
-			continue
-		if _overrides.has(path) and _overrides[path] != mod.id:
-			_report_error.call(mod, "override 路径已被 %s 覆盖：%s" % [_overrides[path], path])
-		_overrides[path] = mod.id
-
-
-func _validate_external_skill_id(mod: ModInfo, skill: SkillDefinition) -> void:
-	if skill.id.is_empty():
-		_report_error.call(mod, "外部技能资源缺少 id：%s" % skill.resource_path)
-	elif not CONTENT_NAMING.is_valid_tag(skill.id):
-		_report_error.call(mod, "技能 id 不是合法 GAS 标签：%s" % skill.id)
-
-
-func _is_soul_type(value: StringName) -> bool:
-	var text := String(value)
-	return text.begins_with("Soul.types.") and CONTENT_NAMING.is_valid_tag(text.trim_prefix("Soul.types."))
-
-
-func _is_soul_tag(value: StringName) -> bool:
-	var text := String(value)
-	return text.begins_with("Soul.tags.") and CONTENT_NAMING.is_valid_tag(text.trim_prefix("Soul.tags."))
 
 
 func _validate_effects(mod: ModInfo, effects: Array[GameplayEffect], mod_owner: StringName) -> void:
@@ -323,6 +306,23 @@ func _validate_tag(mod: ModInfo, tag: StringName, required_prefix: String, conte
 		_report_error.call(mod, "%s 应以 %s 开头：%s" % [context, required_prefix, text])
 
 
+func validate_overrides(mod: ModInfo) -> void:
+	for raw_path in mod.manifest.overrides:
+		var path := raw_path.simplify_path()
+		if not path.begins_with("res://"):
+			_report_error.call(mod, "override 必须是 res:// 路径：%s" % raw_path)
+			continue
+		if _is_protected_override(path):
+			_report_error.call(mod, "不允许覆盖受保护路径：%s" % path)
+			continue
+		if not ResourceLoader.exists(path):
+			_report_error.call(mod, "override 目标不存在：%s" % path)
+			continue
+		if _overrides.has(path) and _overrides[path] != mod.id:
+			_report_error.call(mod, "override 路径已被 %s 覆盖：%s" % [_overrides[path], path])
+		_overrides[path] = mod.id
+
+
 func _is_protected_override(path: String) -> bool:
 	if path == "res://project.godot":
 		return true
@@ -337,3 +337,5 @@ func _is_protected_override(path: String) -> bool:
 
 func _cue_tag_prefix(mod: ModInfo) -> String:
 	return "Cue.Mod.%s." % CONTENT_NAMING.to_pascal(String(mod.id))
+
+

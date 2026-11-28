@@ -71,9 +71,9 @@ func load(slot: int) -> SaveLoadResult:
 	if version > SaveDocument.VERSION:
 		push_warning("存档：版本 %d 高于当前 %d，只读不覆盖" % [version, SaveDocument.VERSION])
 		read_only = true
-	elif version != SaveDocument.VERSION:
-		data = SaveDocument.migrate(data, version)
-		write_back = true
+	elif version < SaveDocument.VERSION:
+		push_warning("存档：版本 %d 低于当前 %d，已忽略旧版存档" % [version, SaveDocument.VERSION])
+		return SaveLoadResult.empty()
 	return SaveLoadResult.loaded(data, write_back, keep_backup, read_only)
 
 

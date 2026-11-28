@@ -17,7 +17,7 @@ class_name MapData
 @export_group("阶位刷怪池")
 ## 小怪池：按权重随机刷出
 @export var mob_pool: Array[MapSpawnPoolEntry] = []
-## 本图小怪总数（> 0 时启用阶位刷怪模式）
+## 本图小怪总数
 @export var mob_total: int = 0
 ## 小怪刷新间隔（秒）
 @export_range(0.05, 60.0, 0.05) var mob_interval_seconds: float = 1.0
@@ -27,14 +27,6 @@ class_name MapData
 @export var elite_every_mob_kills: int = 10
 ## 首领条目：击杀全部小怪后刷出，击败首领通关
 @export var boss_entry: MapSpawnPoolEntry
-
-@export_group("旧版刷怪条目（兼容）")
-## 旧版逐条刷怪配置（仅 mob_total <= 0 时生效）
-@export var spawn_entries: Array[MapSpawnEntry] = []
-
-
-func uses_tiered_spawns() -> bool:
-	return mob_total > 0 and not mob_pool.is_empty()
 
 
 func collect_problems() -> Array[String]:
@@ -47,36 +39,24 @@ func collect_problems() -> Array[String]:
 		problems.append("%s：稀有度必须在 1~5" % content_id)
 	if level_range.x < 1 or level_range.y < level_range.x:
 		problems.append("%s：level_range 非法 %s" % [content_id, level_range])
-
-	if uses_tiered_spawns():
-		if mob_interval_seconds <= 0.0:
-			problems.append("%s：mob_interval_seconds 必须大于 0" % content_id)
-		if elite_every_mob_kills < 0:
-			problems.append("%s：elite_every_mob_kills 不能为负" % content_id)
-		for entry in mob_pool:
-			if entry == null:
-				problems.append("%s：小怪池存在空项" % content_id)
-				continue
-			entry.collect_problems(problems, level_range, "%s 小怪池" % content_id)
-		for entry in elite_pool:
-			if entry == null:
-				problems.append("%s：精英池存在空项" % content_id)
-				continue
-			entry.collect_problems(problems, level_range, "%s 精英池" % content_id)
-		if boss_entry != null:
-			boss_entry.collect_problems(problems, level_range, "%s 首领" % content_id)
-		return problems
-
-	if spawn_entries.is_empty():
-		problems.append("%s：没有任何刷怪条目" % content_id)
-	var has_time_entry := false
-	for entry in spawn_entries:
+	if mob_total <= 0:
+		problems.append("%s：mob_total 必须大于 0" % content_id)
+	if mob_pool.is_empty():
+		problems.append("%s：小怪池不能为空" % content_id)
+	if mob_interval_seconds <= 0.0:
+		problems.append("%s：mob_interval_seconds 必须大于 0" % content_id)
+	if elite_every_mob_kills < 0:
+		problems.append("%s：elite_every_mob_kills 不能为负" % content_id)
+	for entry in mob_pool:
 		if entry == null:
-			problems.append("%s：刷怪条目为空" % content_id)
+			problems.append("%s：小怪池存在空项" % content_id)
 			continue
-		if entry.condition == MapSpawnEntry.Condition.TIME_INTERVAL:
-			has_time_entry = true
-		entry.collect_problems(problems)
-	if not has_time_entry:
-		problems.append("%s：至少需要一个时间刷怪条目" % content_id)
+		entry.collect_problems(problems, level_range, "%s 小怪池" % content_id)
+	for entry in elite_pool:
+		if entry == null:
+			problems.append("%s：精英池存在空项" % content_id)
+			continue
+		entry.collect_problems(problems, level_range, "%s 精英池" % content_id)
+	if boss_entry != null:
+		boss_entry.collect_problems(problems, level_range, "%s 首领" % content_id)
 	return problems

@@ -2,23 +2,31 @@ class_name GameUI
 extends Control
 
 const DEFAULT_PANEL_SPECS := {
-	&"character": {"scene": "res://windows/Character/character_window.tscn"},
+	&"character": {
+		"scene": "res://windows/Character/character_window.tscn",
+		"destroy_on_close": true,
+	},
 	&"inventory": {
 		"scene": "res://windows/Inventory/inventory_window.tscn",
 		"open_position": Vector2i(735, 20),
 	},
 	&"battle": {"scene": "res://windows/Battle/battle_window.tscn"},
 	&"shop": {"scene": "res://windows/Shop/shop_window.tscn"},
-	&"collection": {"scene": "res://windows/Collection/collection_window.tscn"},
+	&"collection": {
+		"scene": "res://windows/Collection/collection_window.tscn",
+		"destroy_on_close": true,
+	},
 	&"debug": {
 		"scene": "res://windows/Debug/debug_window.tscn",
 		"open_position": Vector2i(200, 80),
+		"destroy_on_close": true,
 	},
 	&"terminal": {"scene": "res://windows/Terminal/terminal_window.tscn"},
 	&"mod": {
 		"script": "res://windows/ModWindow/mod_window.gd",
 		"node_name": "ModWindow",
 		"rect": Rect2(0.0, 36.0, 640.0, 356.0),
+		"destroy_on_close": true,
 	},
 }
 
@@ -27,32 +35,6 @@ var _panels: Dictionary = {}
 var _overlays: Array[Dictionary] = []
 
 @onready var panel_manager: PanelManager = $PanelManager
-
-# why: 懒加载窗口统一标注为 BaseWindow，避免编译期拉起各窗口与测试脚本依赖链
-var character_window: BaseWindow:
-	get:
-		return ensure_panel(&"character")
-var inventory_window: BaseWindow:
-	get:
-		return ensure_panel(&"inventory")
-var battle_window: BaseWindow:
-	get:
-		return ensure_panel(&"battle")
-var shop_window: BaseWindow:
-	get:
-		return ensure_panel(&"shop")
-var collection_window: BaseWindow:
-	get:
-		return ensure_panel(&"collection")
-var debug_window: BaseWindow:
-	get:
-		return ensure_panel(&"debug")
-var mod_window: BaseWindow:
-	get:
-		return ensure_panel(&"mod")
-var terminal_window: BaseWindow:
-	get:
-		return ensure_panel(&"terminal")
 
 
 func _ready() -> void:
@@ -110,7 +92,7 @@ func should_lock_passthrough() -> bool:
 
 func get_panel(panel_id: StringName) -> BaseWindow:
 	var existing := _panels.get(panel_id) as BaseWindow
-	if existing != null and is_instance_valid(existing):
+	if existing != null and is_instance_valid(existing) and not existing.is_queued_for_deletion():
 		return existing
 	return null
 
@@ -138,18 +120,44 @@ func ensure_panel(panel_id: StringName) -> BaseWindow:
 		return null
 	if spec.has("open_position"):
 		created.open_position = spec["open_position"]
+	created.destroy_on_close = bool(spec.get("destroy_on_close", false))
 	created.visible = false
+	created.tree_exiting.connect(_on_panel_exiting.bind(panel_id, created))
 	add_child(created)
 	_panels[panel_id] = created
 	return created
 
 
 func open_panel(panel_id: StringName) -> void:
-	panel_manager.toggle(ensure_panel(panel_id))
+	var existing := get_panel(panel_id)
+	if existing != null and existing.visible:
+		close_panel(panel_id)
+		return
+	panel_manager.open(ensure_panel(panel_id))
+
+
+func close_panel(panel_id: StringName) -> void:
+	var existing := get_panel(panel_id)
+	if existing != null:
+		existing.request_close()
+
+
+func destroy_panel(panel_id: StringName) -> void:
+	var existing := get_panel(panel_id)
+	if existing == null:
+		return
+	_panels.erase(panel_id)
+	existing.hide()
+	existing.queue_free()
 
 
 func close_all_panels() -> void:
 	panel_manager.hide_all()
+
+
+func _on_panel_exiting(panel_id: StringName, panel: BaseWindow) -> void:
+	if _panels.get(panel_id) == panel:
+		_panels.erase(panel_id)
 
 
 func _instantiate_panel(spec: Dictionary) -> BaseWindow:

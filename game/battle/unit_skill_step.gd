@@ -5,8 +5,8 @@ class_name UnitSkillStep extends SkillStep
 @export var effects: Array[GameplayEffect] = []
 ## 命中特效标签：每次结算到目标身上时播一次；留空不播
 @export var hit_cue_tag: StringName = &""
-## 投射物场景；留空 = 选完目标立刻结算
-@export var projectile_scene: PackedScene
+## 是否发射投射物飞行命中；false = 选完目标立刻结算
+@export var uses_projectile: bool = false
 ## 投射物飞行速度（像素/秒）；0 或负数使用投射物默认速度
 @export var projectile_speed: float = 420.0
 ## 本步骤对 StatusApplyExecution 的数值覆盖；< 0 = 使用效果资源自己的 base_amount
@@ -38,7 +38,7 @@ func execute(ctx: SkillCastContext) -> SkillStepResult:
 			"release_count": ctx.release_count,
 		})
 
-	if projectile_scene != null:
+	if uses_projectile:
 		ctx.ability.launch_projectiles(self, groups, ctx)
 		return SkillStepResult.hit_result()
 

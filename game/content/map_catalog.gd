@@ -52,21 +52,11 @@ static func collect_problems() -> Array[String]:
 			problems.append("地图资源打不开：%s" % id)
 			continue
 		problems.append_array(map_data.collect_problems())
-		if map_data.uses_tiered_spawns():
-			_check_pool_monsters(problems, id, map_data.mob_pool, "小怪池")
-			_check_pool_monsters(problems, id, map_data.elite_pool, "精英池")
-			if map_data.boss_entry != null and not map_data.boss_entry.monster_id.is_empty():
-				if ModLoader.get_monster(map_data.boss_entry.monster_id) == null:
-					problems.append("%s：首领怪物不存在 %s" % [id, map_data.boss_entry.monster_id])
-		else:
-			for entry in map_data.spawn_entries:
-				if entry == null:
-					continue
-				if ModLoader.get_monster(entry.monster_id) == null:
-					problems.append("%s：怪物不存在 %s" % [id, entry.monster_id])
-				if entry.condition == MapSpawnEntry.Condition.KILL_COUNT \
-						and ModLoader.get_monster(entry.kill_monster_id) == null:
-					problems.append("%s：击杀条件怪物不存在 %s" % [id, entry.kill_monster_id])
+		_check_pool_monsters(problems, id, map_data.mob_pool, "小怪池")
+		_check_pool_monsters(problems, id, map_data.elite_pool, "精英池")
+		if map_data.boss_entry != null and not map_data.boss_entry.monster_id.is_empty():
+			if ModLoader.get_monster(map_data.boss_entry.monster_id) == null:
+				problems.append("%s：首领怪物不存在 %s" % [id, map_data.boss_entry.monster_id])
 	if _quantity_stone_template() == null:
 		problems.append("数量石资源未注册：%s" % QUANTITY_STONE_ID)
 	return problems

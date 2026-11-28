@@ -5,7 +5,6 @@
 [ext_resource type="Script" uid="uid://dxtfmpqjh3pta" path="res://game/battle/soul_damage_execution.gd" id="2_exec"]
 [ext_resource type="Script" uid="uid://c81papidngxvg" path="res://addons/GodotGAS/effects/gameplay_effect.gd" id="3_nlx2s"]
 [ext_resource type="Script" uid="uid://ccvfqmqr8q1pm" path="res://addons/GodotGAS/gameplay_tag/gameplay_tag_query.gd" id="4_57rb0"]
-[ext_resource type="PackedScene" uid="uid://dy5x2eppw8sxv" path="res://game/battle/soul_projectile.tscn" id="5_8nym0"]
 [ext_resource type="Script" uid="uid://ktr72cmavmyy" path="res://game/content/skill_definition.gd" id="6_kxtoe"]
 [ext_resource type="Script" uid="uid://cf2mx3u4jfquk" path="res://game/battle/target_rule.gd" id="7_wqsw1"]
 
@@ -34,7 +33,7 @@ max_range = 20
 script = ExtResource("skill_step_unit")
 effects = Array[ExtResource("3_nlx2s")]([SubResource("Resource_effect_damage")])
 target_rule = SubResource("Resource_target_rule")
-projectile_scene = ExtResource("5_8nym0")
+uses_projectile = true
 
 [resource]
 script = ExtResource("6_kxtoe")

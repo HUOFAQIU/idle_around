@@ -51,9 +51,3 @@ static func player_of(document: Dictionary) -> Dictionary:
 		"display_name": DEFAULT_CHARACTER_NAME,
 	}
 
-
-static func migrate(document: Dictionary, from_version: int) -> Dictionary:
-	if from_version < 2:
-		document[KEY_PLAYER] = player_of(document)
-	document[KEY_VERSION] = VERSION
-	return document

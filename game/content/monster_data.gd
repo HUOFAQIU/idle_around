@@ -30,8 +30,6 @@ enum Tier {
 @export var spawn_distances: Array[int] = [3]
 ## 携带的魂灵与各自的掉落几率；战斗时按列表顺序生成虚拟魂灵栏
 @export var soul_entries: Array[MonsterSoulEntry] = []
-## 战斗时实例化的场景
-@export var battle_scene: PackedScene
 @export_group("3D 表现")
 ## 3D 战斗网格模型（支持官方与第三方 Mod 自包含）
 @export var mesh_3d: Mesh

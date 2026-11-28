@@ -321,7 +321,7 @@ static func get_soul_steps(id : StringName) -> Array[Dictionary]:
 			info["domain"] = "UNIT" if unit_step.target_rule != null else ""
 			info["target_rule"] = rule_path
 			info["effect_count"] = unit_step.effects.size()
-			info["projectile"] = unit_step.projectile_scene != null
+			info["projectile"] = unit_step.uses_projectile
 			info["hit_cue_tag"] = String(unit_step.hit_cue_tag)
 			info["status_magnitude"] = unit_step.status_magnitude
 		elif step is SoulSkillStep:

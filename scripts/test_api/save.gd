@@ -110,13 +110,8 @@ static func check_save_pipeline() -> Dictionary:
 				and not future_result.write_back)
 
 	storage.seed(3, {SaveDocument.KEY_VERSION: 1, SaveDocument.KEY_PLAY_TIME: 4.0})
-	var migrated: SaveLoadResult = pipeline.load(3)
-	var migrated_player: Dictionary = migrated.data.get(SaveDocument.KEY_PLAYER, {})
-	_check(checks, "v1 迁移",
-			migrated.status == SAVE_LOAD_RESULT.Status.LOADED
-				and migrated.write_back
-				and int(migrated.data.get(SaveDocument.KEY_VERSION, 0)) == SaveDocument.VERSION
-				and not migrated_player.is_empty())
+	var legacy: SaveLoadResult = pipeline.load(3)
+	_check(checks, "旧版本拒绝", legacy.status == SAVE_LOAD_RESULT.Status.EMPTY)
 
 	var slot_flags := ""
 	for summary in pipeline.summaries():

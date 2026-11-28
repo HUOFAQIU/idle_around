@@ -11,6 +11,9 @@ const TITLE_FONT_SIZE : int = 12
 const DEFAULT_BG_COLOR : Color = Color(0.1, 0.1, 0.1, 1.0)
 
 signal title_changed
+signal close_requested
+
+var destroy_on_close : bool = false
 
 var title : String = "":
 	set(value):
@@ -49,6 +52,13 @@ func _open_window() -> void:
 		position = _clamp_position(Vector2(open_position))
 	visible = true
 	call_deferred("_grow_to_content")
+
+
+func request_close() -> void:
+	close_requested.emit()
+	hide()
+	if destroy_on_close:
+		queue_free()
 
 
 func add_title_bar_button(button : Button) -> void:
@@ -125,7 +135,7 @@ func _build_title_bar() -> void:
 	_close_button.custom_minimum_size = TITLE_BUTTON_SIZE
 	_close_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	_style_title_bar_button(_close_button)
-	_close_button.pressed.connect(hide)
+	_close_button.pressed.connect(request_close)
 	_title_bar_box.add_child(_close_button)
 
 	var right_space := Control.new()

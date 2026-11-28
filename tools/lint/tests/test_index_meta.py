@@ -7,7 +7,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from index_meta import check_index, write_index
+from index_meta import check_index
 
 
 class IndexMetaTest(unittest.TestCase):
@@ -113,10 +113,6 @@ class IndexMetaTest(unittest.TestCase):
         self.assertEqual(check_index(self.root), [])
         errors = check_index(self.root, strict_budget=True)
         self.assertTrue(any("超出行数上限" in e for e in errors))
-
-    def test_write_index_compat_returns_zero(self) -> None:
-        self.write_index([])
-        self.assertEqual(write_index(self.root), 0)
 
 
 if __name__ == "__main__":

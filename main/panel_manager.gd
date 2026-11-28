@@ -26,7 +26,7 @@ func toggle(panel : BaseWindow) -> void:
 	if panel == null:
 		return
 	if panel.visible:
-		panel.hide()
+		panel.request_close()
 		return
 	open(panel)
 
@@ -69,8 +69,8 @@ func get_top_panel_at(global_position : Vector2) -> BaseWindow:
 func hide_all() -> void:
 	for panel in _registered.keys():
 		var window := panel as BaseWindow
-		if window != null:
-			window.hide()
+		if window != null and is_instance_valid(window):
+			window.request_close()
 
 
 func get_visible_panel_rects() -> Array[Rect2]:

@@ -14,23 +14,20 @@ func execute(
 ) -> void:
 	if is_aborted:
 		return
-	if caster == null or projectile_scene == null or targets.is_empty():
+	if caster == null or caster.battle == null or projectile_scene == null or targets.is_empty():
 		finish_task(0)
 		return
 
 	_hit_count = 0
 	_pending = 0
-	var parent := caster.get_parent()
 
 	for target in targets:
 		if target == null:
 			continue
-		var projectile := projectile_scene.instantiate() as SoulProjectile
-		if projectile == null:
-			continue
-		parent.add_child(projectile)
+		var projectile := SoulProjectile.new()
 		projectile.setup(caster, target.position, speed)
 		projectile.finished.connect(_on_projectile_finished)
+		caster.battle.add_projectile(projectile)
 		_pending += 1
 
 	if _pending == 0:

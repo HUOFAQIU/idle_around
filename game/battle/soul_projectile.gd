@@ -1,11 +1,14 @@
-class_name SoulProjectile extends Sprite2D
+class_name SoulProjectile extends RefCounted
 
 signal finished(projectile: SoulProjectile, hit_unit: BattleUnit)
 
 const DEFAULT_SPEED : float = 420.0
 const HIT_RADIUS : float = 20.0
 const MAX_LIFE : float = 3.0
-const GROUP : StringName = &"soul_projectiles"
+
+var position : Vector2 = Vector2.ZERO
+var rotation : float = 0.0
+var modulate : Color = Color.WHITE
 
 var _direction : Vector2 = Vector2.ZERO
 var _caster : BattleUnit
@@ -20,22 +23,16 @@ func setup(caster: BattleUnit, aim_position: Vector2, speed: float = DEFAULT_SPE
 	_battle = caster.battle
 	_speed = speed if speed > 0.0 else DEFAULT_SPEED
 	position = caster.position
-	
+	modulate = GameColors.to_color(GameColors.PROJECTILE)
+
 	var aim_offset := aim_position - caster.position
 	if aim_offset.length_squared() > 0.0001:
 		_direction = aim_offset.normalized()
 		rotation = _direction.angle() + PI / 2.0
 
 
-func _ready() -> void:
-	add_to_group(GROUP)
-	modulate = GameColors.to_color(GameColors.PROJECTILE)
-
-
-func _physics_process(delta: float) -> void:
-	if _battle != null and is_instance_valid(_battle) and _battle.clock != null and _battle.clock.manual:
-		return
-	advance(delta)
+func is_active() -> bool:
+	return not _done
 
 
 func advance(delta: float) -> void:
@@ -49,13 +46,13 @@ func advance(delta: float) -> void:
 	if _life >= MAX_LIFE:
 		_finish(null)
 		return
-	
+
 	var distance := _speed * delta
 	while distance > 0.0:
 		var step := minf(distance, HIT_RADIUS * 0.5)
 		position += _direction * step
 		distance -= step
-	
+
 		var hit := _find_hit()
 		if hit:
 			_finish(hit)
@@ -77,4 +74,3 @@ func _find_hit() -> BattleUnit:
 func _finish(hit_unit: BattleUnit) -> void:
 	_done = true
 	finished.emit(self, hit_unit)
-	queue_free()

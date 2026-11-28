@@ -1,10 +1,3 @@
 [gd_scene format=3 uid="uid://dy5x2eppw8sxv"]
 
-[ext_resource type="Texture2D" uid="uid://deaj7ddfwbqwh" path="res://assets/tokens.png" id="1_tex"]
-[ext_resource type="Script" uid="uid://c23kthg2ydxjd" path="res://game/battle/soul_projectile.gd" id="2_script"]
-
-[node name="SoulProjectile" type="Sprite2D" unique_id=1716230000]
-texture = ExtResource("1_tex")
-region_enabled = true
-region_rect = Rect2(0, 32, 32, 32)
-script = ExtResource("2_script")
+[node name="SoulProjectile" type="Node" unique_id=1716230000]

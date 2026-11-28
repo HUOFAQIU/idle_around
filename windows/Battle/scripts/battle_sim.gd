@@ -67,6 +67,7 @@ func init_game(mat_unit: ShaderMaterial, height_fn: Callable = Callable()) -> vo
 	_session.spawn_radius_max_logic = spawn_radius_max / LOGIC_TO_3D_SCALE
 	_session.attach_observers = _attach_session_observers
 	_session.loot_sink = Warehouse.add_item
+	_session.on_monster_seen = CollectionDB.mark_monster_seen
 	add_child(_session)
 
 	reset_run(true)
@@ -215,7 +216,8 @@ func step_sim(dt: float) -> void:
 	var ts := Time.get_ticks_usec()
 	perf_sim_ms = float(ts - t0) * 0.001
 	_render_session_units()
-	_fx.sync_projectiles(get_tree().get_nodes_in_group(SoulProjectile.GROUP), _logic_to_3d)
+	var projs: Array = _session.battle.projectiles if _is_session_mode() and _session.battle != null else []
+	_fx.sync_projectiles(projs, _logic_to_3d)
 	_fx.step(dt, height_at)
 	perf_batch_ms = float(Time.get_ticks_usec() - ts) * 0.001
 

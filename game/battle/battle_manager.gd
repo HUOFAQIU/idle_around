@@ -38,12 +38,14 @@ var _tick_count: int = 0
 var _move_slice: int = 0
 var _trigger_listeners: Dictionary = {}
 var _dirty_brains: Array[BattleBrain] = []
+var projectiles: Array[SoulProjectile] = []
 
 
 func setup() -> void:
 	process_physics_priority = TICK_END_PHYSICS_PRIORITY
 	_tick_count = 0
 	_dirty_brains.clear()
+	projectiles.clear()
 	clock = BattleClock.new()
 	clock.name = "BattleClock"
 	add_child(clock)
@@ -108,7 +110,27 @@ func begin() -> void:
 func _physics_process(delta: float) -> void:
 	if clock != null and clock.manual:
 		return
+	advance_projectiles(delta)
 	advance(delta)
+
+
+func add_projectile(projectile: SoulProjectile) -> void:
+	if projectile != null:
+		projectiles.append(projectile)
+
+
+func advance_projectiles(delta: float) -> void:
+	if projectiles.is_empty():
+		return
+	var active := projectiles.duplicate()
+	for projectile in active:
+		if projectile != null and projectile.is_active():
+			projectile.advance(delta)
+	var keep: Array[SoulProjectile] = []
+	for projectile in projectiles:
+		if projectile != null and projectile.is_active():
+			keep.append(projectile)
+	projectiles = keep
 
 
 func advance(delta: float) -> void:

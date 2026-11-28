@@ -210,9 +210,11 @@ func sync_projectiles(nodes: Array, to_3d_fn: Callable) -> void:
 	for node in nodes:
 		if pc >= MAX_PROJECTILES:
 			break
-		if not node is SoulProjectile or not is_instance_valid(node):
+		if not node is SoulProjectile:
 			continue
 		var proj := node as SoulProjectile
+		if not proj.is_active():
+			continue
 		var pos3: Vector3 = to_3d_fn.call(proj.position)
 		pos3.y += 0.65
 		var dir2 := Vector2.from_angle(proj.rotation - PI * 0.5)

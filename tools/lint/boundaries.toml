@@ -70,7 +70,6 @@ reads = [
 	"scripts/debug/",
 	"scripts/save/",
 	"scripts/mod/mod_loader.gd",
-	"scripts/collection_db.gd",
 ]
 
 [[layer]]

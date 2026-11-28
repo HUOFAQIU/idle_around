@@ -10,6 +10,7 @@ const MAX_ENEMY_POOL: int = 512
 var units_root: Node
 var attach_observers: Callable = Callable()
 var loot_sink: Callable = Callable()
+var on_monster_seen: Callable = Callable()
 var spawn_radius_min_logic: float = 0.0
 var spawn_radius_max_logic: float = 0.0
 
@@ -220,12 +221,8 @@ func advance(delta: float) -> void:
 
 
 func _advance_projectiles(delta: float) -> void:
-	var tree := get_tree()
-	if tree == null:
-		return
-	for projectile in tree.get_nodes_in_group(SoulProjectile.GROUP):
-		if projectile is SoulProjectile and is_instance_valid(projectile):
-			projectile.advance(delta)
+	if battle != null:
+		battle.advance_projectiles(delta)
 
 
 func _spawn_player() -> BattleUnit:
@@ -286,7 +283,8 @@ func _spawn_enemy() -> void:
 		unit.died.connect(_on_enemy_died)
 	_place_spawned_enemy(unit, monster)
 	battle.add_unit(unit)
-	CollectionDB.mark_monster_seen(monster)
+	if on_monster_seen.is_valid():
+		on_monster_seen.call(monster)
 
 
 func _acquire_enemy_unit() -> BattleUnit:

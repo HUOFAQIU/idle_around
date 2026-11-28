@@ -125,8 +125,7 @@ func _on_visibility_changed() -> void:
 	if visible:
 		_ensure_arena()
 		return
-	if TooltipWindow.instance != null:
-		TooltipWindow.instance.hide_tip(self)
+	TooltipService.hide_tip(self)
 	if battle_arena != null:
 		battle_arena.stop_run()
 	_map_item = null

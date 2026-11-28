@@ -1,8 +1,6 @@
 class_name TooltipWindow
 extends PanelContainer
 
-static var instance : TooltipWindow
-
 const GAP : float = 10.0
 
 const BODY_FONT_SIZE : int = 16
@@ -22,7 +20,7 @@ var _body_text : String = ""
 
 
 func _ready() -> void:
-	instance = self
+	TooltipService.bind(self, show_tip, hide_tip)
 	visible = false
 	_body_terminal.font_size = BODY_FONT_SIZE
 	_body_terminal.visible = false
@@ -30,6 +28,10 @@ func _ready() -> void:
 	reset_size()
 	GBIS.sig_item_focused.connect(_on_item_focused)
 	GBIS.sig_item_focus_lost.connect(_on_item_focus_lost)
+
+
+func _exit_tree() -> void:
+	TooltipService.unbind(self)
 
 
 func _process(_delta: float) -> void:

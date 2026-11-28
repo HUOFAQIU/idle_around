@@ -138,17 +138,16 @@ func _make_entry_cell(id: StringName) -> Control:
 
 
 func _show_entry_tooltip(id: StringName) -> void:
-	var tip := TooltipWindow.instance
-	if not is_instance_valid(tip) or not CollectionDB.is_seen(_kind, id):
+	if not CollectionDB.is_seen(_kind, id):
 		return
 	match _kind:
 		ContentKind.Kind.SOUL:
 			var soul := ModLoader.get_soul(id)
 			if soul == null:
 				return
-			tip.show_tip(
+			TooltipService.show_tip(
 				self,
-				TooltipWindow.Layer.ITEM,
+				TooltipService.Layer.ITEM,
 				soul.item_name,
 				SoulTooltip.build(soul, TooltipText.Format.PLAIN)
 			)
@@ -156,17 +155,16 @@ func _show_entry_tooltip(id: StringName) -> void:
 			var vessel := ModLoader.get_vessel(id)
 			if vessel == null:
 				return
-			tip.show_tip(
+			TooltipService.show_tip(
 				self,
-				TooltipWindow.Layer.ITEM,
+				TooltipService.Layer.ITEM,
 				vessel.item_name,
 				VesselTooltip.build(vessel, TooltipText.Format.PLAIN)
 			)
 
 
 func _hide_tooltip() -> void:
-	if is_instance_valid(TooltipWindow.instance):
-		TooltipWindow.instance.hide_tip(self)
+	TooltipService.hide_tip(self)
 
 
 func _on_entry_unlocked(kind: int, _id: StringName) -> void:

@@ -89,7 +89,7 @@ static func complete_command(line : String, caret : int = -1) -> Dictionary:
 
 
 static func tooltip_snapshot() -> Dictionary:
-	var tip := TooltipWindow.instance
+	var tip := TooltipService.get_host()
 	if not is_instance_valid(tip) or not tip.visible:
 		return {}
 	for node in tip.find_children("*", "", true, false):

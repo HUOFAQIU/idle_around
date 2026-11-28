@@ -140,11 +140,11 @@ func _on_eject_pressed() -> void:
 
 
 func _on_mouse_entered() -> void:
-	if _item == null or TooltipWindow.instance == null:
+	if _item == null:
 		return
-	TooltipWindow.instance.show_tip(
+	TooltipService.show_tip(
 		self,
-		TooltipWindow.Layer.ITEM,
+		TooltipService.Layer.ITEM,
 		_item.tooltip_title(),
 		MapTooltip.build(_item, TooltipText.Format.PLAIN),
 	)
@@ -155,8 +155,7 @@ func _on_mouse_exited() -> void:
 
 
 func _hide_tooltip() -> void:
-	if TooltipWindow.instance != null:
-		TooltipWindow.instance.hide_tip(self)
+	TooltipService.hide_tip(self)
 
 
 func _exit_tree() -> void:

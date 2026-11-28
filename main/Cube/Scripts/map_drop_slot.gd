@@ -102,19 +102,18 @@ func _center_item_view() -> void:
 
 
 func _show_tooltip() -> void:
-	if _pending == null or TooltipWindow.instance == null:
+	if _pending == null:
 		return
-	TooltipWindow.instance.show_tip(
+	TooltipService.show_tip(
 		self,
-		TooltipWindow.Layer.ITEM,
+		TooltipService.Layer.ITEM,
 		_pending.tooltip_title(),
 		MapTooltip.build(_pending, TooltipText.Format.PLAIN),
 	)
 
 
 func _hide_tooltip() -> void:
-	if TooltipWindow.instance != null:
-		TooltipWindow.instance.hide_tip(self)
+	TooltipService.hide_tip(self)
 
 
 static func _with_alpha(color: Color, alpha: float) -> Color:
